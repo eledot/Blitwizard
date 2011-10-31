@@ -1,6 +1,4 @@
 averclone/
-src/imgloader/zlib/*
-src/imgloader/png/*
 *.o
 *~
 *.a
