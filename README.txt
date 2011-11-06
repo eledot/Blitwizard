@@ -27,7 +27,8 @@ into the directories, but just what the main folder *contains*.
 (2) Appropriate tools
 
 If you are on Unix (Linux or Mac), please open a bash terminal now.
-Then cd to the root directory of blitwizard.
+Then cd to the root directory of blitwizard. Please note gcc has
+to be installed!
 
 If you are on Windows, install MinGW (you MUST include MSYS!).
 Then move the whole blitwizard folder into your MSYS root dir,
