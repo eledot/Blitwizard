@@ -21,5 +21,23 @@
 
 */
 
-int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* renderer);
+int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* renderer, char** error);
+//Set or change graphics mode.
+//This can possibly cause all textures to become unloaded and reloaded,
+//so is a possibly very slow operation.
+//Renderer can be NULL (for any), "software", "opengl" or "direct3d".
+//If you want the best for your system, go for NULL.
+
 int graphics_InitSDL();
+
+int graphics_PromptTextureLoading(const char* texture, void* callbackptr);
+//Prompt texture loading and sign up with callback info.
+//Returns 0 on fatal error (e.g. out of memory), 1 for operation in progress,
+//2 for image already loaded.
+//Only for operation in progress, you'll get a callback later with graphics_CheckTextureLoading().
+//All other return values mean there is no later callback happening.
+
+void graphics_CheckTextureLoading(void (*callbackinfo)(int success, const char* texture, void* callbackptr));
+
+
+void graphics_Quit();

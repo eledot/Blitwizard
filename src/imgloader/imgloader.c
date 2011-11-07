@@ -207,10 +207,12 @@ void img_GetData(void* handle, char** path, int* imgwidth, int* imgheight, char*
 	*imgwidth = i->imagewidth;
 	*imgheight = i->imageheight;
 	*imgdata = i->data;
-	if (i->path) {
-		*path = strdup(i->path);
-	}else{
-		*path = NULL;
+	if (path) {
+		if (i->path) {
+			*path = strdup(i->path);
+		}else{
+			*path = NULL;
+		}
 	}
 	//*imgdatasize = i->datasize; // can be calculated from width*height*4
 }

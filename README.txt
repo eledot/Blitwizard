@@ -21,8 +21,9 @@ For building this software, you first need to:
  - drop the contents of a source tarball of a recent zlib release into
     src/imgloader/zlib
 
-Please note you should NOT drop the whole sub folder of a tarball
-into the directories, but just what the main folder *contains*.
+Please note you should NOT drop the whole main folder itself
+of a tarball into the directories, but just what the main folder
+*contains*.
 
 (2) Appropriate tools
 
@@ -44,6 +45,8 @@ to get into that folder.
 (3) Configuration step
 
 Type ./configure into your Unix bash or MSYS shell.
+If you use the git code (not an official release), you will need to
+type sh ./autogen.sh FIRST before doing that.
 Please note there are options you can change if you want to do so,
 type ./configure --help to view them (you don't need to however).
 
