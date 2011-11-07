@@ -1,6 +1,4 @@
 averclone/
-*.o
-*~
 *.a
 *.swp
 *~

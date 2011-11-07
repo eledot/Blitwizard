@@ -20,6 +20,7 @@ AC_CONFIG_MACRO_DIR([m4])
 maybeos=`echo $EXEEXT | grep exe`
 # Checks for libraries.
 
+
 # --- OS DEPENDENT STUFF ---
 
 AS_IF([test -z "$maybeos"],[
