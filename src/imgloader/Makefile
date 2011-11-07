@@ -10,16 +10,15 @@ CFLAGS:=-O3 -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -I./zlib/ -DDEBU
 CROSSCOMPILER:=i686-pc-mingw32-gcc
 
 comp: clean-objs $(FILES)
-	$(AR) rcs ./libimglib$(WIN).a $(FILES)
-win:
-	make comp WIN="_w32"
+	rm -f ./libimglib.a
+	$(AR) rcs ./libimglib.a $(FILES)
 deps:
 	cd png && rm -rf ./*.o // $(CC) -I./ -I../zlib/ -O2 -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -DPNG_STATIC *.c
-	$(AR) rcs libcustompng$(WIN).a png/*.o
+	rm -f ./libcustompng.a
+	$(AR) rcs libcustompng.a png/*.o
 	cd zlib && rm -rf ./*.o && $(CC) -I./ -I../png/ -O2 -fomit-frame-pointer -ffast-math -msse -mfpmath=sse *.c
-	$(AR) rcs libcustomzlib$(WIN).a zlib/*.o
-depswin:
-	make deps WIN="_w32"
+	rm -f ./libcustomzlib.a
+	$(AR) rcs libcustomzlib.a zlib/*.o
 clean-objs:
 	rm -rf ./*.o
 clean: clean-objs
