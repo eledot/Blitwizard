@@ -26,6 +26,7 @@
 #include "imgloader.h"
 
 // various standard headers
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -54,11 +55,20 @@ struct graphicstexture {
 	//callbacks
 	struct graphicstexturecallback* callbacks;
 	
-	//pointer to next element
+	//pointer to next list element
 	struct graphicstexture* next;
+	//pointer to next hashmap bucket element
+	struct graphcistexture* hashbucketnext;
 };
 
 hashmap* texhashmap = NULL;
+
+static graphicstexture* graphics_GetTextureByName(const char* name) {
+	uint32_t i = hashmap_GetIndex(texhashmap, name, strlen(name), 1);
+	if (texhashmap->items[i] == NULL) {
+		return NULL;
+	}
+}
 
 int graphics_Init(char** error) {
 	char errormsg[512];
@@ -149,6 +159,32 @@ void graphics_TextureFromSDL(struct graphicstexture* gt) {
 	gt->tex = NULL;
 }
 
+void graphics_AddTextureToHashmap(struct graphicstexture* gt) {
+	uint32_t i = hashmap_GetIndex(texhashmap, gt->name, strlen(gt->name), 1);
+	gt->hashbucketnext = (struct graphicstexture*)(texhashmap->items[i]);
+	texhashmap->items[i] = gt;
+}
+
+void graphics_RemoveTextureFromHashmap(struct graphicstexture* gt) {
+	uint32_t i = hashmap_GetIndex(texhashmap, gt->name, strlen(gt->name), 1);
+	struct graphicstexture* gt2 = (struct graphicstexture*)(texhashmap->items[i]);
+	struct graphicstexture* gtprev = NULL;
+	while (gt2) {
+		if (gt2 == gt) {
+			if (gtprev) {
+				gtprev->next = gt->hashbucketnext;
+			}else{
+				texhashmap->items[i] = gt->hashbucketnext;
+			}
+			gt->hashbucketnext = NULL;
+			return;
+		}
+		
+		gtprev = gt2;
+		gt2 = gt2->hashbucketnext;
+	}
+}
+
 void graphics_TransferTexturesFromSDL() {
 	struct graphicstexture* gt = texlist;
 	while (gt) {
@@ -166,6 +202,23 @@ int graphics_TransferTexturesToSDL() {
 		gt = gt->next;
 	}
 	return 1;
+}
+
+int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight) {
+	struct graphicstexture* gt = graphics_GetTextureByName(texname);
+	if (!gt || gt->threadingptr || !gt->tex) {return 0;}
+	return 1;
+}
+
+int graphics_Draw(const char* texname, int x, int y, float alpha) {
+	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, -1, -1);
+}
+
+void graphics_UnloadTexture(const char* texname) {
+	struct graphicstexture* gt = graphics_GetTextureByName(texname);
+	if (gt && !gt->threadingptr) {
+		graphics_FreeTexture(gt);
+	}
 }
 
 int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
@@ -212,6 +265,7 @@ int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
 	//add us to the list
 	gt->next = texlist;
 	texlist = gt;
+	graphics_AddTextureToHashmap(gt);
 	return 1;
 }
 
@@ -231,6 +285,7 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
 		gt->tex = NULL;
 	}
 	if (gt->name) {
+		graphics_RemoveTextureFromHashmap(gt);
 		free(gt->name);
 		gt->name = NULL;
 	}

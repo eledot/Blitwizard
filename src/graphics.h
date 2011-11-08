@@ -28,7 +28,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 //Renderer can be NULL (for any), "software", "opengl" or "direct3d".
 //If you want the best for your system, go for NULL.
 
-int graphics_InitSDL();
+int graphics_Init(char** error);
 
 int graphics_PromptTextureLoading(const char* texture, void* callbackptr);
 //Prompt texture loading and sign up with callback info.
@@ -38,6 +38,17 @@ int graphics_PromptTextureLoading(const char* texture, void* callbackptr);
 //All other return values mean there is no later callback happening.
 
 void graphics_CheckTextureLoading(void (*callbackinfo)(int success, const char* texture, void* callbackptr));
-
+//Check texture loading state and get the newest callbacks
 
 void graphics_Quit();
+//Quit the graphics subsystem
+
+int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight);
+//Draw a texture cropped. Returns 1 on success, 0 when there is no such texture.
+
+int graphics_Draw(const char* texname, int x, int y, float alpha);
+//Draw a texture. Returns 1 on success, 0 when there is no such texture.
+
+void graphics_UnloadTexture(const char* texname);
+//Unload the given texture if loaded currently. Does nothing if texture is currently being loaded!
+
