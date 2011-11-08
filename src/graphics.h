@@ -21,7 +21,7 @@
 
 */
 
-int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* renderer, char** error);
+int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error);
 //Set or change graphics mode.
 //This can possibly cause all textures to become unloaded and reloaded,
 //so is a possibly very slow operation.

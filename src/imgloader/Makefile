@@ -6,17 +6,18 @@
 # libpng versions known to work are: 1.5.5
 
 FILES:=pngloader.o imgloader.o
-CFLAGS:=-O3 -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -I./zlib/ -DDEBUGLOG
+CFLAGS:=-O3 -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -I./zlib/ -I. -DDEBUGLOG
 CROSSCOMPILER:=i686-pc-mingw32-gcc
 
 comp: clean-objs $(FILES)
 	rm -f ./libimglib.a
 	$(AR) rcs ./libimglib.a $(FILES)
 deps:
-	cd png && rm -rf ./*.o // $(CC) -I./ -I../zlib/ -O2 -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -DPNG_STATIC *.c
+	yes n | cp -i png/scripts/pnglibconf.h.prebuilt png/pnglibconf.h
+	cd png && rm -rf ./*.o && $(CC) -I./ -I../zlib/ -O2 -c -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -DPNG_STATIC *.c && rm -rf ./*test*.o
 	rm -f ./libcustompng.a
 	$(AR) rcs libcustompng.a png/*.o
-	cd zlib && rm -rf ./*.o && $(CC) -I./ -I../png/ -O2 -fomit-frame-pointer -ffast-math -msse -mfpmath=sse *.c
+	cd zlib && rm -rf ./*.o && $(CC) -I./ -I../png/ -O2 -c -fomit-frame-pointer -ffast-math -msse -mfpmath=sse *.c
 	rm -f ./libcustomzlib.a
 	$(AR) rcs libcustomzlib.a zlib/*.o
 clean-objs:

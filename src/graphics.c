@@ -21,15 +21,16 @@
 
 */
 
-#include "SDL1.3/SDL.h"
-#include "graphics.h"
-#include "imgloader.h"
-
 // various standard headers
-#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+#include "SDL.h"
+#include "graphics.h"
+#include "imgloader.h"
+#include "hash.h"
 
 static SDL_Window* mainwindow;
 static SDL_Renderer* mainrenderer;
@@ -58,16 +59,18 @@ struct graphicstexture {
 	//pointer to next list element
 	struct graphicstexture* next;
 	//pointer to next hashmap bucket element
-	struct graphcistexture* hashbucketnext;
+	struct graphicstexture* hashbucketnext;
 };
 
 hashmap* texhashmap = NULL;
 
-static graphicstexture* graphics_GetTextureByName(const char* name) {
+static struct graphicstexture* graphics_GetTextureByName(const char* name) {
 	uint32_t i = hashmap_GetIndex(texhashmap, name, strlen(name), 1);
-	if (texhashmap->items[i] == NULL) {
-		return NULL;
+	struct graphicstexture* gt = (struct graphicstexture*)(texhashmap->items[i]);
+	while (gt && !(strcasecmp(gt->name, name) == 0)) {
+		gt = gt->hashbucketnext;
 	}
+	return gt;
 }
 
 int graphics_Init(char** error) {
@@ -214,12 +217,6 @@ int graphics_Draw(const char* texname, int x, int y, float alpha) {
 	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, -1, -1);
 }
 
-void graphics_UnloadTexture(const char* texname) {
-	struct graphicstexture* gt = graphics_GetTextureByName(texname);
-	if (gt && !gt->threadingptr) {
-		graphics_FreeTexture(gt);
-	}
-}
 
 int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
 	//check if texture is already present or being loaded
@@ -233,6 +230,7 @@ int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
 				if (!gtcallback) {
 					return 0;
 				}
+				gtcallback->callbackptr = callbackptr;
 				gtcallback->next = gt->callbacks;
 				gt->callbacks = gtcallback;
 				return 1;
@@ -243,7 +241,7 @@ int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
 	}
 	
 	//allocate new texture info
-	struct graphicstexture* gt = malloc(sizeof(*gt));
+	gt = malloc(sizeof(*gt));
 	if (!gt) {
 		return 0;
 	}
@@ -253,14 +251,24 @@ int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
 		free(gt);
 		return 0;
 	}
-	
-	//trigger image fetching thread
-	gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
-	if (!gt->threadingptr) {
+
+	struct graphicstexturecallback* gtcallback = malloc(sizeof(*gtcallback));
+	gtcallback->callbackptr = callbackptr;
+	gtcallback->next = NULL;
+	if (!gtcallback) {
 		free(gt->name);
 		free(gt);
-		return 0;
 	}
+	gt->callbacks = gtcallback;	
+
+	//trigger image fetching thread
+        gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
+        if (!gt->threadingptr) {
+		free(gt->callbacks);
+                free(gt->name);
+                free(gt);
+                return 0;
+        }
 	
 	//add us to the list
 	gt->next = texlist;
@@ -301,13 +309,26 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
 	return 1;
 }
 
+void graphics_UnloadTexture(const char* texname) {
+        struct graphicstexture* gt = graphics_GetTextureByName(texname);
+        if (gt && !gt->threadingptr) {
+		struct graphicstexture* gtprev = texlist;
+		while (gtprev && !(gtprev->next == gt)) {
+			gtprev = gtprev->next;
+		}
+                graphics_FreeTexture(gt, gtprev);
+        }
+}
+
 int graphics_FreeAllTextures() {
 	int fullycleaned = 1;
 	struct graphicstexture* gt = texlist;
+	struct graphicstexture* gtprev = NULL;
 	while (gt) {
-		if (!graphics_FreeTexture(gt)) {
+		if (!graphics_FreeTexture(gt, gtprev)) {
 			fullycleaned = 0;
 		}
+		gtprev = gt;
 		gt = gt->next;
 	}
 	return fullycleaned;
@@ -322,7 +343,7 @@ void graphics_CheckTextureLoading(void (*callbackinfo)(int success, const char* 
 			//texture which is currently being loaded
 			if (img_CheckSuccess(gt->threadingptr)) {
 				char* data;int width,height;
-				img_GetData(gt->threadingptr, &width, &height, &data);
+				img_GetData(gt->threadingptr, NULL, &width, &height, &data);
 				img_FreeHandle(gt->threadingptr);
 				gt->threadingptr = NULL;
 				
@@ -338,7 +359,7 @@ void graphics_CheckTextureLoading(void (*callbackinfo)(int success, const char* 
 				while (gt->callbacks) {
 					struct graphicstexturecallback* gtcallback = gt->callbacks;
 					gt->callbacks = gt->callbacks->next;
-					callbackinfo(success, gtcallback->name, gtcallback->callbackptr);
+					callbackinfo(success, gt->name, gtcallback->callbackptr);
 					free(gtcallback);
 				}
 				gt->callbacks = NULL;
@@ -371,7 +392,7 @@ void graphics_Quit() {
 	}
 }
 
-int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* renderer, char** error) {
+int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
 	char errormsg[512];
 	//initialize SDL video if not done yet
 	if (!sdlvideoinit) {
@@ -414,13 +435,15 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 			r++;
 		}
 	}
+	//preserve textures by managing them on our own for now
+	graphics_TransferTexturesFromSDL();
 	//destroy old window/renderer if we got one
 	graphics_Quit();
 	//create window
 	if (fullscreen) {
-		mainwindow = SDL_CreateWindow(titlebar, 0,0, width, height, SDL_WINDOW_FULLSCREEN);
+		mainwindow = SDL_CreateWindow(title, 0,0, width, height, SDL_WINDOW_FULLSCREEN);
 	}else{
-		mainwindow = SDL_CreateWindow(titlebar, SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, width, height, 0);
+		mainwindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, width, height, 0);
 	}
 	if (!mainwindow) {
 		snprintf(errormsg,sizeof(errormsg),"Failed to open SDL window: %s", SDL_GetError());
@@ -439,7 +462,9 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 			SDL_DestroyWindow(mainwindow);
 			mainwindow = NULL;
 		}
-		snprintf(errormsg,sizeof(errormsg),"Failed to create SDL renderer (backend %s): %s", backendname, SDL_GetError());
+		SDL_RendererInfo info;
+                SDL_GetRenderDriverInfo(rendererindex, &info);
+		snprintf(errormsg,sizeof(errormsg),"Failed to create SDL renderer (backend %s): %s", info.name, SDL_GetError());
 		errormsg[sizeof(errormsg)-1] = 0;
 		*error = strdup(errormsg);
 		return 0;
@@ -448,5 +473,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		SDL_GetRendererInfo(mainrenderer, &info);
 		//printf("Graphics renderer is: %s (hardware acceleration: %s)", info.name, yesnostr((int)(info.flags & SDL_RENDERER_ACCELERATED)));
 	}
+	//Transfer textures back to SDL
+	graphics_TransferTexturesToSDL();
 	return 1;
 }

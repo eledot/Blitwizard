@@ -251,9 +251,9 @@ void img_ConvertRGBAtoBGRA(char* imgdata, int datasize) {
 }
 
 //Simple linear scaler:
-void img_Scale(char* imgdata, int originalwidth, int originalheight, char** newdata, int targetwidth, int targetheight) {
+void img_Scale(int bytesize, char* imgdata, int originalwidth, int originalheight, char** newdata, int targetwidth, int targetheight) {
 	if (*newdata == NULL) {
-		*newdata = malloc(targetwidth*targetheight*4);
+		*newdata = malloc(targetwidth*targetheight*bytesize);
 	}
 	if (!(*newdata)) {return;}
 	int r,k;
@@ -270,7 +270,7 @@ void img_Scale(char* imgdata, int originalwidth, int originalheight, char** newd
 			if (fromy < 0) {fromy = 0;}
 			if (fromy >= originalheight) {fromy = originalheight;}
 			
-			memcpy((*newdata) + (r + (k * targetheight)) * 4, imgdata + (fromx + (fromy * originalwidth)) * 4, 4);
+			memcpy((*newdata) + (r + (k * targetheight)) * bytesize, imgdata + (fromx + (fromy * originalwidth)) * 4, 4);
 			
 			k++;
 		}

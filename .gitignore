@@ -12,8 +12,9 @@ src/blitwizard
 ltmain.sh
 m4
 autom4te.cache/
-./Makefile
-src/Makefile/
+/Makefile
+src/.deps/
+src/Makefile
 config.status
 config.log
 config.guess

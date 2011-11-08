@@ -1,2 +1,2 @@
 
-SUBDIRS = src src/imgloader/
+SUBDIRS = src

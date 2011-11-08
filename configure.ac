@@ -28,7 +28,7 @@ AS_IF([test -z "$maybeos"],[
 	# >> Unix
 
 	CFLAGS="$CFLAGS -rdynamic"
-	LIBS="-lpthread -ldl"
+	LIBS="-lpthread -ldl -lm"
 	
 	AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 	#AC_CHECK_LIB([sqlite3], [sqlite3_prepare_v2],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))

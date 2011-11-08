@@ -74,3 +74,4 @@ void img_4to3channel(char* imgdata, int width, int height, char** newdata, int c
 // If *newdata is NULL, it will be changed to a buffer for the new RGB data (it will be sized width * height * 3) if allocation succeeds.
 // If *newdata is not NULL, it is assumed to point to a buffer of that size.
 // The contents of *newdata, if not NULL, will be altered to contain the new RGB data.
+

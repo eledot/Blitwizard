@@ -52,7 +52,7 @@ static int pngloader_CheckIfPng(const void* data, unsigned int datasize) {
 }
 
 void readdata(png_structp png_ptr, png_bytep data, png_size_t length)  {
-	struct loadpnginfo* linfo = (struct loadpnginfo*)(png_ptr->io_ptr);
+	struct loadpnginfo* linfo = (struct loadpnginfo*)png_get_io_ptr(png_ptr);
 	memcpy(data, linfo->source+linfo->readoffset, length);
 	linfo->readoffset += length;
 }
@@ -64,7 +64,7 @@ void pngloader_FreeLoadInfo(struct loadpnginfo* linfo) {
 		linfo->info_ptr = NULL;
 	}
 	if (linfo->info_ptr) {
-		png_destroy_info_struct(&linfo->png_ptr, &linfo->info_ptr);
+		png_destroy_info_struct(linfo->png_ptr, &linfo->info_ptr);
 		linfo->info_ptr = NULL;
 	}
 	if (linfo->imgdat) {
@@ -154,6 +154,7 @@ int pngloader_LoadRGBA(const char* pngdata, unsigned int pngdatasize, char** ima
 	if (channels != 3 && channels != 4) {
 		pngloader_FreeLoadInfo(linfo);return 0; //we don't support this :( sorry
 	}
+	png_read_update_info(linfo->png_ptr, linfo->info_ptr);
 	
 	//ok let's get it - preparations..
 	linfo->row_pointers = malloc(height*sizeof(void*)); //row pointers libpng wants for some odd reason
