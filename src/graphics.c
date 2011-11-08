@@ -58,7 +58,15 @@ struct graphicstexture {
 	struct graphicstexture* next;
 };
 
-int graphics_InitSDL(char** error) {
+hashmap* texhashmap = NULL;
+
+int graphics_Init(char** error) {
+	char errormsg[512];
+	texhashmap = hashmap_New(2048);
+	if (!texhashmap) {
+		*error = strdup("Failed to allocate texture hash map");
+		return 0;
+	}
 	if (SDL_Init(SDL_INIT_TIMER|SDL_INIT_AUDIO) < 0) {
 		snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL: %s", SDL_GetError());
 		errormsg[sizeof(errormsg)-1] = 0;
