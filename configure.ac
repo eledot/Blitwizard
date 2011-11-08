@@ -29,6 +29,8 @@ AS_IF([test -z "$maybeos"],[
 
 	CFLAGS="$CFLAGS -rdynamic"
 	LIBS="-lpthread -ldl -lm"
+
+	echo "posix" >> scripts/.luatarget
 	
 	AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 	#AC_CHECK_LIB([sqlite3], [sqlite3_prepare_v2],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
@@ -62,6 +64,8 @@ AS_IF([test -z "$maybeos"],[
 
 	TGHOST="$host_alias"
 	AC_SUBST(TGHOST)
+
+	echo "mingw" >> scripts/.luatarget
 
 	CFLAGS="$CFLAGS -D_WIN32_WINNT=0x0501 -DWIN -mconsole -L../ -I../"
 	

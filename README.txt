@@ -16,6 +16,8 @@ For building this software, you first need to:
     src/ogg
  - drop the contents of a source tarball of a recent libvorbis release into
     src/vorbis
+ - drop the contents of a source tarball of a recent Lua 5 release into
+    src/lua
  - drop the contents of a source tarball of a recent libpng release into
     src/imgloader/png
  - drop the contents of a source tarball of a recent zlib release into
@@ -23,7 +25,9 @@ For building this software, you first need to:
 
 Please note you should NOT drop the whole main folder itself
 of a tarball into the directories, but just what the main folder
-*contains*.
+*contains* (You will get a verbose error later if you did this
+part wrong - so if you get errors about a "MISSING DEPENDENCY"
+which you provided, you most likely did this part wrong).
 
 (2) Appropriate tools
 
