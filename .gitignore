@@ -10,6 +10,8 @@ autom4te.cache
 src/blitwizard
 .deps
 ltmain.sh
+.luatarget
+.depsarebuilt
 m4
 autom4te.cache/
 /Makefile
