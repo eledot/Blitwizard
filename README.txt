@@ -12,16 +12,28 @@ For building this software, you first need to:
 
  - drop the contents of a source tarball of a recent SDL 1.3 into
     src/sdl/
+   see http://www.libsdl.org/hg.php
+
  - drop the contents of a source tarball of a recent libogg release into
     src/ogg
+   see http://xiph.org/downloads/
+
  - drop the contents of a source tarball of a recent libvorbis release into
     src/vorbis
+   http://xiph.org/downloads/
+
  - drop the contents of a source tarball of a recent Lua 5 release into
     src/lua
+   see http://www.lua.org/download.html
+   (IMPORTANT: You should apply the patches aswell if you need a secure Lua!)
+
  - drop the contents of a source tarball of a recent libpng release into
     src/imgloader/png
+   see http://libpng.org/pub/png/libpng.html
+
  - drop the contents of a source tarball of a recent zlib release into
     src/imgloader/zlib
+   see http://zlib.net/
 
 Please note you should NOT drop the whole main folder itself
 of a tarball into the directories, but just what the main folder
