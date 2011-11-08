@@ -5,6 +5,14 @@
 This is the README for building blitwizard.
 Please note the dependency step is also required on Unix/Linux!
 
+NOTE:
+The build process does NOT require any expert knowledge (also due
+to the detailed explanations below), but it is lengthy.
+So if you plan to go through this, make sure to reserve some time.
+
+Before you start, extract this whole archive to a folder.
+All relative parts specified are relative to the extracted folder.
+
 == Build guide ==
 (1) Dependencies
 
@@ -35,11 +43,18 @@ For building this software, you first need to:
     src/imgloader/zlib
    see http://zlib.net/
 
+A source tarball is simply an archive that contains a folder with all
+the source code of the product in it. If you get your tarball as .tar.gz
+or .tar.bz2 (instead of .zip) and you are on Microsoft Windows, get
+http://www.7-zip.org/ which can extract those.
+
 Please note you should NOT drop the whole main folder itself
 of a tarball into the directories, but just what the main folder
-*contains* (You will get a verbose error later if you did this
+*contains*.
+
+You will get a verbose error later if you did this
 part wrong - so if you get errors about a "MISSING DEPENDENCY"
-which you provided, you most likely did this part wrong).
+which you provided, check back on this.
 
 (2) Appropriate tools
 
@@ -47,10 +62,15 @@ If you are on Unix (Linux or Mac), please open a bash terminal now.
 Then cd to the root directory of blitwizard. Please note gcc has
 to be installed!
 
-If you are on Windows, install MinGW (you MUST include MSYS!).
-Then move the whole blitwizard folder into your MSYS root dir,
-e.g. C:\MinGW\MSYS\1.0\ (or differently depending on your choice
-during the isntallation).
+If you are on Windows, install MinGW (you MUST include MSYS and a
+C compiler for it to work).
+
+Get MinGW/MSYS through mingw-get: http://www.mingw.org/wiki/Getting_Started
+
+Then move the whole blitwizard folder (this extracted archive with
+all the deps copied into it as specified above) into your MSYS root
+dir, which should be at some place like C:\MinGW\MSYS\1.0\ (depends
+on your choice during the MinGW installation).
 
 E.g. move the blitwizard folder to C:\MinGW\MSYS\1.0\blitwizard
 
