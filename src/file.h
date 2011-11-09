@@ -21,6 +21,13 @@
 
 */
 
-int luahelpers_loadfile(lua_State* l);
-int luahelpers_dofile(lua_State* l);
+int file_Cwd(const char* path);
+char* file_GetCwd();
+char* file_GetAbsolutePathFromRelativePath(const char* path);
+int file_IsDirectory(const char* path);
+int file_IsPathRelative(const char* path);
+char* file_GetDirectoryPathFromFilePath(const char* path);
+char* file_GetAbsoluteDirectoryPathFromFilePath(const char* path);
+char* file_GetFileNameFromFilePath(const char* path);
+int file_ContentToBuffer(const char* path, char** buf, size_t* buflen);
 

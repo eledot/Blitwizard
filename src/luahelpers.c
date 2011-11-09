@@ -21,3 +21,51 @@
 
 */
 
+int luahelpers_loadfile(lua_State* l) {
+	const char* p = lua_tostring(l,1);
+	if (!p) {
+		lua_pushstring(l, "First argument is not a file name string");
+		return lua_error(l);
+	}
+	int r = luaL_loadfile(l, p);
+	if (r != 0) {
+		char errormsg[512];
+		if (r == LUA_ERRFILE) {
+			lua_pushstring(l, "Cannot open file");
+			return lua_error(l);
+		}
+		if (r == LUA_ERRSYNTAX) {
+			snprintf(errormsg,sizeof(errormsg),"Syntax error: %s",lua_tostring(l,-1));
+			lua_pop(l, 1);
+			lua_pushstring(l, errormsg);
+			return lua_error(l);
+		}
+		return lua_error(l);
+	}
+	return 1;
+}
+
+int luahelpers_dofile(lua_State* l) {
+	const char* p = lua_tostring(l,1);
+	if (!p) {
+		lua_pushstring(l,"First argument is not a file name string");
+		return lua_error(l);
+	}
+	int i = lua_gettop(l);
+	while (i > 1) {
+		lua_pop(l,1);
+		i--;
+	}
+	lua_pushstring(l, "loadfile");
+	lua_gettable(l, LUA_GLOBALSINDEX); //first, push function
+	lua_pushvalue(l, 1); //then push file name as argument
+	lua_call(l, 1, 1); //call loadfile
+	int previouscount = lua_gettop(l)-1; //minus the function on the stack which lua_pcall() removes
+	int ret = lua_pcall(l, 0, LUA_MULTRET, 0); //call returned function by loadfile
+	if (ret != 0) {
+		return lua_error(l);
+	}
+	return lua_gettop(l)-previouscount;
+}
+
+

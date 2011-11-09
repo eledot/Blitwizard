@@ -29,27 +29,39 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "file.h"
+
 static lua_State* scriptstate = NULL;
 
 static lua_State* luastate_New() {
 	lua_State* l = luaL_newstate();
+	lua_pushcfunction(l, &luahelpers_loadfile);
+	lua_setglobal(l,"loadfile");
+	lua_pushcfunction(l, &luahelpers_dofile);
+	lua_setglobal(l,"dofile");
 	return l;
 }
 
-static int luastate_LoadFile(lua_State* l, const char* file, char** error) {
-	
-	return 1;
-}
-
 static int luastate_DoFile(lua_State* l, const char* file, char** error) {
-	
+	lua_pushstring(l, "dofile");
+	lua_gettable(l, LUA_GLOBALSINDEX); //first, push function
+	lua_pushstring(l, file); //then push file name as argument
+	int ret = lua_pcall(l, 1, 0, 0); //call returned function by loadfile
+	if (ret != 0) {
+		const char* e = lua_tostring(l,-1);
+		*error = NULL;
+		if (e) {
+			*error = strdup(e);
+		}
+		return 0;
+	}
 	return 1;
 }
 
 int luastate_DoInitialFile(const char* file, char** error) {
 	scriptstate = luastate_New();
 	if (!scriptstate) {
-		*error = strdup("Failed to initialize state!");
+		*error = strdup("Failed to initialize state");
 		return 0;
 	}
 	return luastate_DoFile(scriptstate, file, error);
