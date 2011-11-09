@@ -27,6 +27,10 @@ if [ ! -f src/ogg/src/framing.c ]; then
         echo "MISSING DEPENDENCY: Please extract the contents of a recent libogg tarball into src/ogg/ - or read README.txt";
 	exit;
 fi
+if [ ! -f src/lua/src/lua.h ]; then
+        echo "MISSING DEPENDENCY: Please extract the contents of a recent Lua 5 tarball into src/lua/ - or read README.txt";
+        exit;
+fi
 
 dir=`pwd`
 cd src/imgloader && make deps && make
@@ -44,6 +48,7 @@ cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a
 cp src/imgloader/libimglib.a libs/
 cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
 cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
+cp src/lua/src/liblua.a libs/libblitwizardlua.a
 
 echo "" > scripts/.depsarebuilt
 

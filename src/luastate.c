@@ -21,47 +21,52 @@
 
 */
 
+#include "lua.h"
+#include "lauxlib.h"
+#include "luastate.h"
+#include "luahelpers.h"
+
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "luastate.h"
+static lua_State* scriptstate = NULL;
 
-int wantquit;
-int main(int argc, char** argv) {
-	const char* script = "game.lua";
-	int i = 1;
-	int scriptargfound = 0;
-	while (i < argc) {
-		if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
-			if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0 ||
-			strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0) {
-				printf("blitwizard %s\n",VERSION);
-				printf("Usage: blitwizard [options] [lua script]\n");
-				printf("   --help: Show this help text and quit\n");
-				return 0;
-			}
-			printf("Error: Unknown option: %s\n",argv[i]);
-			return -1;
-		}else{
-			if (!scriptargfound) {
-				scriptargfound = 1;
-				script = argv[i];
-			}
-		}
-		i++;
+static lua_State* luastate_New() {
+	lua_State* l = luaL_newstate();
+	return l;
+}
+
+static int luastate_LoadFile(lua_State* l, const char* file, char** error) {
+	
+	return 1;
+}
+
+static int luastate_DoFile(lua_State* l, const char* file, char** error) {
+	
+	return 1;
+}
+
+int luastate_DoInitialFile(const char* file, char** error) {
+	scriptstate = luastate_New();
+	if (!scriptstate) {
+		*error = strdup("Failed to initialize state!");
+		return 0;
 	}
-	char outofmem[] = "Out of memory";
-	char** error;
-	if (!luastate_DoInitialFile(script, &error)) {
-		if (*error == NULL) {
-			*error = outofmem;
-		}
-		printf("Error when running \"%s\": %s\n",script,*error);
-		return -1;
-	}
-	while (1) {
-		
-	}
-	return 0;
+	return luastate_DoFile(scriptstate, file, error);
+}
+
+int luastate_PushFunctionArgumentToMainstate_Bool(int yesno) {
+	lua_pushboolean(scriptstate, yesno);
+	return 1;
+}
+
+int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
+	lua_pushstring(scriptstate, string);
+	return 1;
+}
+
+
+int luastate_CallFunctionInMainstate(const char* function, int args, char** error) {
+	
 }
 
