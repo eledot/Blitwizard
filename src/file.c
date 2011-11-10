@@ -25,10 +25,12 @@
 #include <windows.h>
 #else
 #include <limits.h>
+#include <sys/stat.h>
 #endif
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "file.h"
 
@@ -38,7 +40,7 @@ int file_Cwd(const char* path) {
 		return 0;
 	}
 #else
-	if (chdir(basepath) != 0) {
+	if (chdir(path) != 0) {
 		return 0;
 	}
 #endif
@@ -78,26 +80,125 @@ int file_IsDirectory(const char* path) {
 #endif
 }
 
-char* file_GetAbsolutePathFromRelativePath(const char* relativepath) {
+static char file_NativeSlash() {
 #ifdef WIN
-
+	return '\\';
 #else
-	return realpath(relativepath, NULL);
+	return '/';
 #endif
 }
 
 static int file_LatestSlash(const char* path) {
-#ifdef WIN
-	char slash = '\\';
-#else
-	char slash = '/';
-#endif
+	char slash = file_NativeSlash();
 	int i = strlen(path)-1;
 	while (path[i] != slash && i > 0) {
 		i--;
 	}
 	if (i <= 0) {i = -1;}
 	return i;
+}
+
+static void file_CutOffOneElement(char* path) {
+	while (1) {
+		int i = file_LatestSlash(path);
+		//check if there is nothing left to cut off for absolute paths
+#ifdef WIN
+		if (i == 2 && path[1] == ':' && (tolower(path[0]) >= 'a' && tolower(path[0]) <= 'z')) {
+			return;
+		}
+#else
+		if (i == 0) {
+			return;
+		}
+#endif
+		//see what we can cut off
+		if (i < 0) {
+			//just one relative item left -> empty to current dir ""
+			path[0] = 0;
+			return;
+		}else{
+			if (i == strlen(path)-1) {
+				//slash is at the end (directory path).
+				path[i] = 0;
+				if (strlen(path) > 0) {
+					if (path[strlen(path)-1] == '.') {
+						//was this a trailing ./ or ../?
+						if (strlen(path) > 1) {
+							if (path[strlen(path)-2] == '.') {
+								//this is ../, so we're done when the .. is gone
+								path[strlen(path)-2] = 0;
+								return;
+							}
+						}
+						//it is just ./ so we need to carry on after removing it
+						path[strlen(path)-1] = 0;
+					}
+				}
+			}else{
+				path[i+1] = 0;
+				return;
+			}
+		}
+	}
+}
+
+char* file_AddComponentToPath(const char* path, const char* component) {
+	int addslash = 0;
+	if (strlen(path) > 0) {
+		if (path[strlen(path)-1] != file_NativeSlash()) {
+			addslash = 1;
+		}
+	}
+	char* newpath = malloc(strlen(path)+addslash+1+strlen(component));
+	if (!newpath) {return NULL;}
+	memcpy(newpath, path, strlen(path));
+	if (addslash) {
+		newpath[strlen(path)] = file_NativeSlash();
+	}
+	memcpy(newpath + strlen(path) + addslash, component, strlen(component));
+	newpath[strlen(path) + addslash + strlen(component)] = 0;
+	return newpath;
+}
+
+char* file_GetAbsolutePathFromRelativePath(const char* path) {
+	//cancel for absolute paths
+	if (file_IsPathRelative(path)) {
+		return strdup(path);
+	}
+	
+	//cut off unrequired clutter
+	while (path[0] == '.' && path[1] == file_NativeSlash()) {
+		path += 2;
+	}
+	
+	//get current working directory
+	char* currentdir = file_GetCwd();
+	if (!currentdir) {
+		return NULL;
+	}
+	
+	//process ../
+	while (path[0] == '.' && path[1] == '.' && path[2] == file_NativeSlash()) {
+		file_CutOffOneElement(currentdir);
+		path += 3;
+	}
+	
+	//allocate space for new path
+	char* newdir = malloc(strlen(currentdir) + 1 + strlen(path) + 1);
+	if (!newdir) {
+		free(currentdir);
+		return NULL;
+	}
+	
+	//assemble new path
+	memcpy(newdir, currentdir, strlen(currentdir));
+	char slash = file_NativeSlash();
+	newdir[strlen(currentdir)] = slash;
+	memcpy(newdir + strlen(currentdir) + 1, path, strlen(path));
+	newdir[strlen(currentdir) + 1 + strlen(path)] = 0;
+	
+	free(currentdir);
+	return newdir;
 }
 
 char* file_GetDirectoryPathFromFilePath(const char* path) {
@@ -148,6 +249,7 @@ char* file_GetFileNameFromFilePath(const char* path) {
 		char* filename = malloc(strlen(path)-i);
 		if (!filename) {return NULL;}
 		memcpy(filename, path + i + 1, strlen(path)-i);
+		filename[strlen(path)-i] = 0;
 		return filename;
 	}
 }

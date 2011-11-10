@@ -21,6 +21,14 @@
 
 */
 
+#include <stdlib.h>
+#include <string.h>
+
+#include "lua.h"
+#include "lauxlib.h"
+
+#include "luahelpers.h"
+
 int luahelpers_loadfile(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {

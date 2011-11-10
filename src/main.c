@@ -23,22 +23,32 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "luastate.h"
+#include "file.h"
 
 int wantquit;
 int main(int argc, char** argv) {
 	const char* script = "game.lua";
 	int i = 1;
 	int scriptargfound = 0;
+	int option_changedir = 0;
 	while (i < argc) {
 		if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
-			if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0 ||
-			strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0) {
+			if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
+			|| strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
+			|| strcasecmp(argv[i],"-h") == 0) {
 				printf("blitwizard %s\n",VERSION);
 				printf("Usage: blitwizard [options] [lua script]\n");
-				printf("   --help: Show this help text and quit\n");
+				printf("   -changedir: Change working directory to script dir\n");
+				printf("   -help: Show this help text and quit\n");
 				return 0;
+			}
+			if (strcasecmp(argv[i],"-changedir") == 0) {
+				option_changedir = 1;
+				i++;
+				continue;
 			}
 			printf("Error: Unknown option: %s\n",argv[i]);
 			return -1;
@@ -51,12 +61,41 @@ int main(int argc, char** argv) {
 		i++;
 	}
 	char outofmem[] = "Out of memory";
-	char** error;
-	if (!luastate_DoInitialFile(script, &error)) {
-		if (*error == NULL) {
-			*error = outofmem;
+	char* error;
+	char* filenamebuf = NULL;
+	if (file_IsDirectory(script)) {
+		filenamebuf = file_AddComponentToPath(script, "game.lua");
+		script = filenamebuf;
+	}
+	if (option_changedir) {
+		char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
+		if (!p) {
+			printf("Error: NULL returned for absolute directory\n");
+			return -1;
 		}
-		printf("Error when running \"%s\": %s\n",script,*error);
+		char* newfilenamebuf = file_GetFileNameFromFilePath(script);
+		if (!newfilenamebuf) {
+			free(p);
+			printf("Error: NULL returned for file name\n");
+			return -1;
+		}
+		if (filenamebuf) {free(filenamebuf);}
+		filenamebuf = newfilenamebuf;
+		if (!file_Cwd(p)) {
+			free(p);
+			free(filenamebuf);
+			printf("Error: Cannot cd to %s\n",p);
+			return -1;
+		}
+		free(p);
+		script = filenamebuf;
+	}
+	if (!luastate_DoInitialFile(script, &error)) {
+		if (error == NULL) {
+			error = outofmem;
+		}
+		printf("Error when running \"%s\": %s\n",script,error);
+		if (filenamebuf) {free(filenamebuf);}
 		return -1;
 	}
 	while (1) {
