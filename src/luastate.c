@@ -23,6 +23,7 @@
 
 #include "lua.h"
 #include "lauxlib.h"
+#include "lualib.h"
 #include "luastate.h"
 #include "luahelpers.h"
 
@@ -36,6 +37,15 @@ static lua_State* scriptstate = NULL;
 
 static lua_State* luastate_New() {
 	lua_State* l = luaL_newstate();
+	
+	//standard libs
+	luaopen_base(l);
+	luaopen_string(l);
+	luaopen_table(l);
+	luaopen_math(l);
+	luaopen_os(l);
+	
+	//own dofile/loadfile	
 	lua_pushcfunction(l, &luahelpers_loadfile);
 	lua_setglobal(l,"loadfile");
 	lua_pushcfunction(l, &luahelpers_dofile);
