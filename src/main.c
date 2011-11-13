@@ -27,6 +27,7 @@
 
 #include "luastate.h"
 #include "file.h"
+#include "graphics.h"
 
 int wantquit;
 int main(int argc, char** argv) {
@@ -98,8 +99,10 @@ int main(int argc, char** argv) {
 		if (filenamebuf) {free(filenamebuf);}
 		return -1;
 	}
-	while (1) {
+	if (graphics_AreGraphicsRunning()) {
+		while (1) {
 		
+		}
 	}
 	return 0;
 }

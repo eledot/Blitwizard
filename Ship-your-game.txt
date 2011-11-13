@@ -1,0 +1,9 @@
+
+To ship your game based on blitwizard, simply combine your game files (your game.lua and other used scripts and the artwork you use) with the blitwizard binary (either just the windows .exe or preferrably, for more platforms - check on the homepage).
+
+I suggest you include README-libs.txt aswell, see note at the bottom of http://games.homeofjones.de/blitwizard/
+
+Also a question that might be commonly asked:
+Do you need to pay for distributing with and using blitwizard for games, even if they're commercial?
+No, you don't :)
+

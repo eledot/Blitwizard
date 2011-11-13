@@ -3,8 +3,14 @@
 cd ..
 
 if [ -f scripts/.depsarebuilt ]; then
-        echo "Deps are already built. To force a rebuild, remove the file scripts/.depsarebuilt";
-        exit;
+	currentluatarget=`cat scripts/.luatarget`
+	depsluatarget=`cat scripts/.depsarebuilt`
+	if [ "$currentluatarget" != "$depsluatarget" ]; then
+		echo "Deps will be rebuilt to match new different target.";
+	else
+        	echo "Deps are already built. To force a rebuild, remove the file scripts/.depsarebuilt";
+        	exit;
+	fi
 fi
 
 if [ ! -f src/imgloader/png/png.c ]; then
@@ -50,5 +56,5 @@ cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
 cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
 cp src/lua/src/liblua.a libs/libblitwizardlua.a
 
-echo "" > scripts/.depsarebuilt
+echo "`cat scripts/.luatarget`" > scripts/.depsarebuilt
 

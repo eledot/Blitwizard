@@ -25,7 +25,7 @@
 #include "lauxlib.h"
 #include "lualib.h"
 #include "luastate.h"
-#include "luahelpers.h"
+#include "luafuncs.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -34,6 +34,13 @@
 #include "file.h"
 
 static lua_State* scriptstate = NULL;
+
+static int luastate_CreateGraphicsTable(lua_State* l) {
+	lua_newtable(l);
+	lua_pushstring(l, "setmode");
+	lua_pushcfunction(l, &luafuncs_setmode);
+	lua_settable(l,-3);
+}
 
 static lua_State* luastate_New() {
 	lua_State* l = luaL_newstate();
@@ -46,10 +53,19 @@ static lua_State* luastate_New() {
 	luaopen_os(l);
 	
 	//own dofile/loadfile	
-	lua_pushcfunction(l, &luahelpers_loadfile);
+	lua_pushcfunction(l, &luafuncs_loadfile);
 	lua_setglobal(l,"loadfile");
-	lua_pushcfunction(l, &luahelpers_dofile);
+	lua_pushcfunction(l, &luafuncs_dofile);
 	lua_setglobal(l,"dofile");
+
+	//blitwiz namespace
+	lua_newtable(l);
+	lua_pushstring(l,"graphics");
+	luastate_CreateGraphicsTable(l);
+	lua_settable(l,-3);
+	lua_setglobal(l, "blitwiz");
+	
+	
 	return l;
 }
 

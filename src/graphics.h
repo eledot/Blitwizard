@@ -21,6 +21,9 @@
 
 */
 
+int graphics_AreGraphicsRunning();
+//Returns 1 if the graphics are open/active, otherwise 0.
+
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error);
 //Set or change graphics mode.
 //This can possibly cause all textures to become unloaded and reloaded,

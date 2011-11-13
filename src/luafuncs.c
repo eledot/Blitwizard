@@ -27,9 +27,9 @@
 #include "lua.h"
 #include "lauxlib.h"
 
-#include "luahelpers.h"
+#include "luafuncs.h"
 
-int luahelpers_loadfile(lua_State* l) {
+int luafuncs_loadfile(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
 		lua_pushstring(l, "First argument is not a file name string");
@@ -53,7 +53,7 @@ int luahelpers_loadfile(lua_State* l) {
 	return 1;
 }
 
-int luahelpers_dofile(lua_State* l) {
+int luafuncs_dofile(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
 		lua_pushstring(l,"First argument is not a file name string");
@@ -76,4 +76,37 @@ int luahelpers_dofile(lua_State* l) {
 	return lua_gettop(l)-previouscount;
 }
 
+int luafuncs_setmode(lua_State* l) {
+	int x = lua_tonumber(l,1);
+	if (x <= 0) {
+		lua_pushstring(l,"First argument is not a valid resolution width");
+		return lua_error(l);
+	}
+	int y = lua_tonumber(l,2);
+	if (y <= 0) {
+		lua_pushstring(l,"First argument is not a valid resolution height");
+		return lua_error(l);
+	}
+	int fullscreen = 0;
+	if (lua_type(l,3) == LUA_TBOOLEAN) {
+		fullscreen = lua_toboolean(l,3);
+	}
+	char defaulttitle[] = "blitwizard";
+	const char* title = lua_tostring(l,4);
+	if (!title) {
+		title = defaulttitle;
+	}
+	const char* renderer = lua_tostring(l,5);
+	char* error;
+	if (!graphics_SetMode(x, y, fullscreen, 0, defaulttitle, renderer, &error)) {
+		if (error) {
+			lua_pushstring(l, error);
+			free(error);
+			return lua_error(l);
+		}
+		lua_pushstring(l, "Unknown error on setting mode");
+		return lua_error(l);
+	}
+	return 0;
+}
 

@@ -36,6 +36,7 @@ static SDL_Window* mainwindow;
 static SDL_Renderer* mainrenderer;
 static int softwarerendering = 0;
 static int sdlvideoinit = 0;
+static int graphicsvisible = 0;
 
 static struct graphicstexture* texlist = NULL;
 
@@ -71,6 +72,10 @@ static struct graphicstexture* graphics_GetTextureByName(const char* name) {
 		gt = gt->hashbucketnext;
 	}
 	return gt;
+}
+
+int graphics_AreGraphicsRunning() {
+	return graphicsvisible;
 }
 
 int graphics_Init(char** error) {
@@ -381,6 +386,7 @@ void graphics_CheckTextureLoading(void (*callbackinfo)(int success, const char* 
 }
 
 void graphics_Quit() {
+	graphicsvisible = 0;
 	if (mainrenderer) {
 		graphics_TransferTexturesFromSDL();
 		SDL_DestroyRenderer(mainrenderer);
@@ -474,6 +480,15 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		//printf("Graphics renderer is: %s (hardware acceleration: %s)", info.name, yesnostr((int)(info.flags & SDL_RENDERER_ACCELERATED)));
 	}
 	//Transfer textures back to SDL
-	graphics_TransferTexturesToSDL();
+	if (!graphics_TransferTexturesToSDL()) {
+		SDL_RendererInfo info;
+		SDL_GetRendererInfo(mainrenderer, &info);
+		snprintf(errormsg,sizeof(errormsg),"Failed to create SDL renderer (backend %s): Cannot recreate textures", info.name);
+		*error = strdup(errormsg);
+		SDL_DestroyRenderer(mainrenderer);
+		SDL_DestroyWindow(mainwindow);
+		return 0;
+	}
+	graphicsvisible = 1;
 	return 1;
 }

@@ -21,6 +21,7 @@
 
 */
 
-int luahelpers_loadfile(lua_State* l);
-int luahelpers_dofile(lua_State* l);
+int luafuncs_loadfile(lua_State* l);
+int luafuncs_dofile(lua_State* l);
+int luafuncs_setmode(lua_State* l);
 
