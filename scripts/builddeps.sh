@@ -60,8 +60,7 @@ cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && mak
 cd $dir
 
 # Build vorbis and remember to tell it where ogg is
-#oggincludedir="`pwd`/src/ogg/include/"
-oggincludedir="../ogg/include/"
+oggincludedir="`pwd`/src/ogg/include/"
 ogglibrarydir="`pwd`/src/ogg/src/.libs/"
 cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
 cd $dir
