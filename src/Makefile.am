@@ -13,3 +13,5 @@ AM_CFLAGS = -fno-PIC -O2 -Wall -Wextra -Wno-sign-compare -g -fno-stack-protector
 # The -fno-stack-protector option is only put here for increased binary compatibility with some older Linux systems:
 # -fno-PIC is only added for some extra speed, same as -O2.
 
+all-local:
+	cp ./blitwizard* ../bin/
