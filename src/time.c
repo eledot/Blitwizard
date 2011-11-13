@@ -21,8 +21,20 @@
 
 */
 
-extern int drawingallowed;
-int luafuncs_loadfile(lua_State* l);
-int luafuncs_dofile(lua_State* l);
-int luafuncs_setmode(lua_State* l);
+#include <stdint.h>
+#include "SDL.h"
+
+uint64_t oldtime = 0;
+uint64_t timeadd = 0;
+uint64_t time_GetMilliSeconds() {
+	uint64_t i = SDL_GetTime();
+	i += timeadd;
+	if (i > oldtime) {
+		oldtime = i;
+	}else{
+		timeadd = (oldtime-i)+1;
+		i += timeadd;	
+	}
+	return i;
+}
 

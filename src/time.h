@@ -21,8 +21,17 @@
 
 */
 
-extern int drawingallowed;
-int luafuncs_loadfile(lua_State* l);
-int luafuncs_dofile(lua_State* l);
-int luafuncs_setmode(lua_State* l);
+
+uint64_t time_GetMilliSeconds();
+//Timestamp derived from SDL_GetTicks(),
+//but deals with wraps (SDL_GetTicks() is originally
+//an uint32_t).
+//
+//When a wrap happens, it is detected and the time is
+//forced to proceed from the last returned value + 1.
+//
+//This results in an inaccurate time returned when
+//a wrap happens relative to the previous time stamp
+//returned, but the time will never wrap/suddenly
+//jump backwards until uint64_t is exceeded.
 

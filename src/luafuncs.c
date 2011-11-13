@@ -30,6 +30,8 @@
 #include "luafuncs.h"
 #include "graphics.h"
 
+int drawingallowed = 0;
+
 int luafuncs_loadfile(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
@@ -78,6 +80,10 @@ int luafuncs_dofile(lua_State* l) {
 }
 
 int luafuncs_setmode(lua_State* l) {
+	if (lua_gettop(l) <= 0) {
+		graphics_Quit();
+		return;
+	}
 	int x = lua_tonumber(l,1);
 	if (x <= 0) {
 		lua_pushstring(l,"First argument is not a valid resolution width");

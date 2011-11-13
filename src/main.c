@@ -24,12 +24,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 #include "luastate.h"
 #include "file.h"
 #include "graphics.h"
+#include "time.h"
 
-int wantquit;
+#define TIMESTEP 16
+
+int wantquit = 0;
 int main(int argc, char** argv) {
 	const char* script = "game.lua";
 	int i = 1;
@@ -99,9 +103,24 @@ int main(int argc, char** argv) {
 		if (filenamebuf) {free(filenamebuf);}
 		return -1;
 	}
+	//call init
+	
+	//when graphics are open, run the main loop
 	if (graphics_AreGraphicsRunning()) {
-		while (1) {
-		
+		uint64_t logictimestamp = time_GetMilliSeconds();
+		while (!wantquit) {
+			uint64_t time = time_GetMilliSeconds();
+			//first, call the do function
+			while (logictimestamp < time) {
+				
+				logictimestamp += TIMESTEP;
+			}
+			//call the drawing function
+			drawingallowed = 1;
+
+			drawingallowed = 0;
+			//complete the drawing
+			
 		}
 	}
 	return 0;
