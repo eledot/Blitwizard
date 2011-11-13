@@ -28,6 +28,7 @@
 #include "lauxlib.h"
 
 #include "luafuncs.h"
+#include "graphics.h"
 
 int luafuncs_loadfile(lua_State* l) {
 	const char* p = lua_tostring(l,1);

@@ -35,7 +35,7 @@
 
 static lua_State* scriptstate = NULL;
 
-static int luastate_CreateGraphicsTable(lua_State* l) {
+static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_newtable(l);
 	lua_pushstring(l, "setmode");
 	lua_pushcfunction(l, &luafuncs_setmode);
@@ -106,6 +106,6 @@ int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
 
 
 int luastate_CallFunctionInMainstate(const char* function, int args, char** error) {
-	
+	return 1;	
 }
 
