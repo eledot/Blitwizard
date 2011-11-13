@@ -36,7 +36,38 @@
 
 #include "file.h"
 
+static char file_NativeSlash() {
+#ifdef WIN
+        return '\\';
+#else
+        return '/';
+#endif
+}
+
+static int file_IsDirectorySeparator(char c) {
+#ifdef WIN
+	if (c == '/' || c == '\\') {return 1;}
+#else
+	if (file_NativeSlash == c) {return 1;}
+#endif
+	return 0;
+}
+
+void file_MakeSlashesNative(char* path) {
+	int i = 0;
+	while (i < strlen(path)) {
+		if (file_IsDirectorySeparator(path[i])) {path[i] = file_NativeSlash();}
+		i++;
+	}
+}
+
 int file_Cwd(const char* path) {
+	while (path[0] == '.' && strlen(path) > 1 && file_IsDirectorySeparator(path[1])) {
+		path += 2;
+	}	
+	if (strcasecmp(path, "") == 0 || strcasecmp(path, ".") == 0) {
+		return 1;
+	}
 #ifdef WIN
 	if (SetCurrentDirectory(path) == 0) {
 		return 0;
@@ -72,29 +103,17 @@ int file_IsDirectory(const char* path) {
 	return 0;
 #endif
 #ifdef WIN
-	WIN32_FIND_DATA findFileData;
-	HANDLE hf = FindFirstFile(path, &findFileData);
-	if (hf == INVALID_HANDLE_VALUE) {FindClose(hf);return 0;}
-	FindClose(hf);
-	if ((findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) {
+	if (PathIsDirectory(path) == (BOOL)FILE_ATTRIBUTE_DIRECTORY) {
 		return 1;
 	}
 	return 0;
 #endif
 }
 
-static char file_NativeSlash() {
-#ifdef WIN
-	return '\\';
-#else
-	return '/';
-#endif
-}
 
 static int file_LatestSlash(const char* path) {
-	char slash = file_NativeSlash();
 	int i = strlen(path)-1;
-	while (path[i] != slash && i > 0) {
+	while (!file_IsDirectorySeparator(path[i]) && i > 0) {
 		i--;
 	}
 	if (i <= 0) {i = -1;}
@@ -148,7 +167,7 @@ static void file_CutOffOneElement(char* path) {
 char* file_AddComponentToPath(const char* path, const char* component) {
 	int addslash = 0;
 	if (strlen(path) > 0) {
-		if (path[strlen(path)-1] != file_NativeSlash()) {
+		if (!file_IsDirectorySeparator(path[strlen(path)-1])) {
 			addslash = 1;
 		}
 	}
@@ -165,7 +184,7 @@ char* file_AddComponentToPath(const char* path, const char* component) {
 
 char* file_GetAbsolutePathFromRelativePath(const char* path) {
 	//cancel for absolute paths
-	if (file_IsPathRelative(path)) {
+	if (!file_IsPathRelative(path)) {
 		return strdup(path);
 	}
 	
@@ -226,7 +245,7 @@ int file_IsPathRelative(const char* path) {
 	if (PathIsRelative(path) == TRUE) {return 1;}
 	return 0;
 #else
-	if (path[0] == '/') {return 0;}
+	if (file_IsDirectorySeparator(path[0])) {return 0;}
 	return 1;
 #endif
 }

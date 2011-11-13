@@ -83,9 +83,9 @@ int main(int argc, char** argv) {
 		if (filenamebuf) {free(filenamebuf);}
 		filenamebuf = newfilenamebuf;
 		if (!file_Cwd(p)) {
-			free(p);
 			free(filenamebuf);
-			printf("Error: Cannot cd to %s\n",p);
+			printf("Error: Cannot cd to \"%s\"\n",p);
+			free(p);
 			return -1;
 		}
 		free(p);
