@@ -110,6 +110,19 @@ int file_IsDirectory(const char* path) {
 #endif
 }
 
+int file_DoesFileExist(const char* path) {
+#ifndef WIN
+        struct stat st;
+        if (stat(path,&st) == 0) {return 1;}
+        return 0;
+#else
+        DWORD fileAttr;
+        fileAttr = GetFileAttributes(path);
+        if (0xFFFFFFFF == fileAttr) {return 0;}
+        return 1;
+#endif
+}
+
 
 static int file_LatestSlash(const char* path) {
 	int i = strlen(path)-1;

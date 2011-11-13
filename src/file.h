@@ -24,6 +24,7 @@
 int file_Cwd(const char* path);
 char* file_GetCwd();
 char* file_GetAbsolutePathFromRelativePath(const char* path);
+int file_DoesFileExist(const char* path);
 int file_IsDirectory(const char* path);
 int file_IsPathRelative(const char* path);
 char* file_GetDirectoryPathFromFilePath(const char* path);
