@@ -12,6 +12,7 @@ src/blitwizard
 ltmain.sh
 .luatarget
 .depsarebuilt
+libtool
 m4
 autom4te.cache/
 /Makefile
