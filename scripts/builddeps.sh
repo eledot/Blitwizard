@@ -3,11 +3,13 @@
 cd ..
 
 luatarget=`cat scripts/.luatarget | grep luatarget | sed -re 's/^luatarget\=//'`
+changedhost=""
 
 if [ -f scripts/.depsarebuilt ]; then
 	depsluatarget=`cat scripts/.depsarebuilt`
 	if [ "$luatarget" != "$depsluatarget" ]; then
 		echo "Deps will be rebuilt to match new different target.";
+		changedhost="yes";
 	else
         	echo "Deps are already built. To force a rebuild, remove the file scripts/.depsarebuilt";
         	exit;
@@ -15,6 +17,7 @@ if [ -f scripts/.depsarebuilt ]; then
 fi
 
 CC=`cat scripts/.luatarget | grep CC | sed -re 's/^.+\=//'`
+RANLIB=`cat scripts/.luatarget | grep RANLIB | sed -re 's/^.+\=//'`
 AR=`cat scripts/.luatarget | grep AR | sed -re 's/^.+\=//'`
 HOST=`cat scripts/.luatarget | grep HOST | sed -re 's/^.+\=//'`
 
@@ -47,18 +50,46 @@ export CC="$CC"
 export AR="$AR"
 
 dir=`pwd`
-cd src/imgloader && make deps && make
+
+# This will build libpng/zlib and our custom threaded image loader wrapper
+cd src/imgloader && make deps && make || { echo "Failed to compile libpng/zlib/imgloader"; exit 1; }
 cd $dir
-cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make
+
+# Build ogg
+cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
 cd $dir
-oggincludedir="`pwd`/../ogg/src/include/"
-ogglibrarydir="`pwd`/../ogg/src/.libs/"
-cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make
+
+# Build vorbis and remember to tell it where ogg is
+#oggincludedir="`pwd`/src/ogg/include/"
+oggincludedir="../ogg/include/"
+ogglibrarydir="`pwd`/src/ogg/src/.libs/"
+cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
 cd $dir
-cd src/sdl && ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static && make
+
+# Build SDL 1.3
+cd src/sdl && ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL 1.3"; exit 1; }
 cd $dir
-cd src/lua/ && make $luatarget
+if [ "changeddeps" == "yes" ]; then
+	cd src/sdl && make clean || { echo "Failed to compile SDL 1.3"; exit 1; }
+	cd $dir
+fi
+cd src/sdl && make || { echo "Failed to compile SDL 1.3"; exit 1; }
 cd $dir
+
+# Avoid the overly stupid Lua build script which doesn't even adhere to $CC
+cd src/lua/ && rm -f src/liblua.a && rm -rf build/
+cd $dir
+cd src/lua/ && mkdir -p build/ && cp src/*.c build/ && cp src/*.h build/
+cd $dir
+cd src/lua/build && rm luac.c && $CC -c -O2 *.c && $AR rcs ../src/liblua.a *.o || { echo "Failed to compile Lua 5"; exit 1; }
+cd $dir
+
+# Wipe out the object files of blitwizard if we need to
+if [ "$changedhost" == "yes" ]; then
+	rm -f src/*.o
+fi
+
+# Copy libraries
 cp src/sdl/build/.libs/libSDL.a libs/libblitwizardSDL.a
 cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a
 cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a
@@ -68,5 +99,6 @@ cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
 cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
 cp src/lua/src/liblua.a libs/libblitwizardlua.a
 
+# Remember for which target we built
 echo "$luatarget" > scripts/.depsarebuilt
 

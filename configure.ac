@@ -33,7 +33,7 @@ AS_IF([test -z "$maybeos"],[
 	CFLAGS="$CFLAGS -rdynamic"
 	LIBS="-lpthread -ldl -lm"
 
-	WRITELINE="luatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST"
+	WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB"
 	echo -e "$WRITELINE" > scripts/.luatarget
 	
 	AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
@@ -69,11 +69,11 @@ AS_IF([test -z "$maybeos"],[
 	TGHOST="$host_alias"
 	AC_SUBST(TGHOST)
 	
-	WRITELINE="luatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST"
+	WRITELINE="luatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB"
 	echo -e "$WRITELINE" > scripts/.luatarget
 
 	CFLAGS="$CFLAGS -D_WIN32_WINNT=0x0501 -DWIN -mconsole -L../ -I../"
-	
+	LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lole32 -lwinmm -luuid -lversion"
 
 	AC_CHECK_HEADERS([windows.h string.h stdio.h unistd.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
 

@@ -23,6 +23,7 @@
 
 #ifdef WIN
 #include <windows.h>
+#include "shlwapi.h"
 #else
 #include <limits.h>
 #include <sys/stat.h>
@@ -31,6 +32,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "file.h"
 
@@ -70,6 +72,7 @@ int file_IsDirectory(const char* path) {
 	return 0;
 #endif
 #ifdef WIN
+	WIN32_FIND_DATA findFileData;
 	HANDLE hf = FindFirstFile(path, &findFileData);
 	if (hf == INVALID_HANDLE_VALUE) {FindClose(hf);return 0;}
 	FindClose(hf);
