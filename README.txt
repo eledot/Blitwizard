@@ -16,7 +16,25 @@ All relative parts specified are relative to the extracted folder.
 == Build guide ==
 (1) Dependencies
 
-For building this software, you first need to:
+For building this software, you first need to get the dependencies
+(this is also required on Linux/Mac/..).
+
+Either get them here: http://games.homeofjones.de/blitwizard/deps.zip
+(extract into the blitwizard folder root here).
+
+That file contains:
+    SDL 1.3 hg cloned/fetched at Nov 13, 2011
+    libpng 1.5.6
+    zlib 1.2.5
+    libogg 1.3.0
+    libvorbis 1.3.2
+    Lua 5.1.4 with patch-lua-5.1.4-4
+
+WARNING: Those versions might be outdated and contain bugs! Please
+always check if there are newer versions available, and consider
+using those instead:   
+
+Alternatively, get them yourself in hand-picked, current versions:
 
  - drop the contents of a source tarball of a recent SDL 1.3 into
     src/sdl/

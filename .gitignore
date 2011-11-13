@@ -14,6 +14,7 @@ ltmain.sh
 .depsarebuilt
 libtool
 m4
+deps
 autom4te.cache/
 /Makefile
 src/.deps/
