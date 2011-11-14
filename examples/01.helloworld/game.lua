@@ -77,7 +77,7 @@ function blitwiz.callback.event.image(name, success)
 		else
 			-- Loading failed. So we quit with an error:
 			print("Error: Failed to load hello_world.png!")
-			blitwizard.quit()
+			blitwiz.quit()
 		end
 	end		
 end
@@ -88,7 +88,7 @@ function blitwiz.callback.event.close()
 	
 	-- The user has attempted to close the window,
 	-- so we want to respect his wishes and quit :-)
-	blitwizard.quit()
+	blitwiz.quit()
 end
 
 function blitwiz.callback.step()
@@ -99,6 +99,10 @@ function blitwiz.callback.step()
 	-- This is the right place for game physics/continuous
 	-- movements or calculations of any sort that are part
 	-- of your continuously running game simulation.
-	-- For this example, we don't want to do anything here.
+
+	-- For this example, we just want to quit after 5 seconds
+	if blitwiz.time.getTime() > 5000 then
+		blitwiz.quit()
+	end
 end
 

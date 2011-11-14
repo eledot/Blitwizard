@@ -45,6 +45,13 @@ static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_settable(l,-3);
 }
 
+static void luastate_CreateTimeTable(lua_State* l) {
+	lua_newtable(l);
+	lua_pushstring(l, "getTime");
+	lua_pushcfunction(l, &luafuncs_getTime);
+	lua_settable(l,-3);
+}
+
 static lua_State* luastate_New() {
 	lua_State* l = luaL_newstate();
 	
@@ -63,15 +70,26 @@ static lua_State* luastate_New() {
 
 	//blitwiz namespace
 	lua_newtable(l);
+
 	lua_pushstring(l,"graphics");
 	luastate_CreateGraphicsTable(l);
 	lua_settable(l,-3);
+
 	lua_pushstring(l,"callback");
 	lua_newtable(l);
 		lua_pushstring(l, "event");
 		lua_newtable(l);
 		lua_settable(l,-3);
 	lua_settable(l,-3);
+
+	lua_pushstring(l, "time");
+	luastate_CreateTimeTable(l);
+	lua_settable(l,-3);
+	
+	lua_pushstring(l, "quit");
+	lua_pushcfunction(l, &luafuncs_quit);
+	lua_settable(l,-3);
+
 	lua_setglobal(l, "blitwiz");
 	
 	return l;
@@ -129,14 +147,12 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 				fp[r] = 0;
 				lua_pushstring(scriptstate, fp);
 				function += r+1;
-				printf(">> Checking component '%s' [%s]\n",fp,function);
 				free(fp);
 
 				//lookup
 				if (tablerecursion == 0) {
 					//lookup on global table
 					lua_gettable(scriptstate, LUA_GLOBALSINDEX);
-					printf("> type: %d\n",lua_type(scriptstate,-1));
 				}else{
 					//lookup nested on previous table
 					lua_gettable(scriptstate, -2);
@@ -171,6 +187,11 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 
 	//quit sanely if function is nil and we allowed this
 	if (allownil && lua_type(scriptstate, -1) == LUA_TNIL) {return 1;}
+	
+	//function needs to be first, then arguments. -> correct order
+	if (args > 0) {
+                lua_insert(scriptstate, -(args+1));
+        }
 
 	//call function
 	int i = lua_pcall(scriptstate, args, 0, 0);

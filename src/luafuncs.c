@@ -21,6 +21,7 @@
 
 */
 
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -29,6 +30,7 @@
 
 #include "luafuncs.h"
 #include "graphics.h"
+#include "timefuncs.h"
 
 int drawingallowed = 0;
 
@@ -124,6 +126,15 @@ int luafuncs_loadImage(lua_State* l) {
 		return lua_error(l);
 	}
 	graphics_PromptTextureLoading(p);
+	return 0;
 }
 
+int luafuncs_getTime(lua_State* l) {
+	lua_pushnumber(l, time_GetMilliSeconds());
+	return 1;
+}
+
+luafuncs_quit(lua_State* l) {
+	exit(0);
+}
 
