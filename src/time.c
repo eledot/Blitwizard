@@ -38,3 +38,7 @@ uint64_t time_GetMilliSeconds() {
 	return i;
 }
 
+void time_Sleep(uint32_t milliseconds) {
+	SDL_Delay(milliseconds);
+}
+

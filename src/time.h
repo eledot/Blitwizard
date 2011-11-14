@@ -35,3 +35,6 @@ uint64_t time_GetMilliSeconds();
 //returned, but the time will never wrap/suddenly
 //jump backwards until uint64_t is exceeded.
 
+void time_Sleep(uint32_t milliseconds);
+//Sleep for a specified amount of time.
+

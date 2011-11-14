@@ -79,10 +79,10 @@ int luafuncs_dofile(lua_State* l) {
 	return lua_gettop(l)-previouscount;
 }
 
-int luafuncs_setmode(lua_State* l) {
+int luafuncs_setWindow(lua_State* l) {
 	if (lua_gettop(l) <= 0) {
 		graphics_Quit();
-		return;
+		return 0;
 	}
 	int x = lua_tonumber(l,1);
 	if (x <= 0) {
@@ -116,4 +116,14 @@ int luafuncs_setmode(lua_State* l) {
 	}
 	return 0;
 }
+
+int luafuncs_loadImage(lua_State* l) {
+	const char* p = lua_tostring(l,1);
+	if (!p) {
+		lua_pushstring(l, "First parameter is not a valid image name string");
+		return lua_error(l);
+	}
+	graphics_PromptTextureLoading(p);
+}
+
 

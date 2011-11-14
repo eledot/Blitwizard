@@ -40,10 +40,6 @@ static int graphicsvisible = 0;
 
 static struct graphicstexture* texlist = NULL;
 
-struct graphicstexturecallback {
-	void* callbackptr;
-	struct graphicstexturecallback* next;
-};
 struct graphicstexture {
 	//basic info
 	char* name;
@@ -54,8 +50,6 @@ struct graphicstexture {
 	void* threadingptr;
 	//SDL info
 	SDL_Texture* tex; //NULL if not loaded yet
-	//callbacks
-	struct graphicstexturecallback* callbacks;
 	
 	//pointer to next list element
 	struct graphicstexture* next;
@@ -223,26 +217,16 @@ int graphics_Draw(const char* texname, int x, int y, float alpha) {
 }
 
 
-int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
+int graphics_PromptTextureLoading(const char* texture) {
 	//check if texture is already present or being loaded
-	struct graphicstexture* gt = texlist;
-	while (gt) {
-		if (gt->name && strcasecmp(gt->name, texture) == 0) {
-			//check for threaded loading
-			if (gt->threadingptr) {
-				//add us to the callback queue
-				struct graphicstexturecallback* gtcallback = malloc(sizeof(*gtcallback));
-				if (!gtcallback) {
-					return 0;
-				}
-				gtcallback->callbackptr = callbackptr;
-				gtcallback->next = gt->callbacks;
-				gt->callbacks = gtcallback;
-				return 1;
-			}
-			return 2; //texture is already present
+	struct graphicstexture* gt = graphics_GetTextureByName(texture);
+	if (gt) {
+		//check for threaded loading
+		if (gt->threadingptr) {
+			//it will be loaded.
+			return 1;
 		}
-		gt = gt->next;
+		return 2; //texture is already present
 	}
 	
 	//allocate new texture info
@@ -256,15 +240,6 @@ int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
 		free(gt);
 		return 0;
 	}
-
-	struct graphicstexturecallback* gtcallback = malloc(sizeof(*gtcallback));
-	gtcallback->callbackptr = callbackptr;
-	gtcallback->next = NULL;
-	if (!gtcallback) {
-		free(gt->name);
-		free(gt);
-	}
-	gt->callbacks = gtcallback;	
 
 	//trigger image fetching thread
         gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
@@ -283,12 +258,6 @@ int graphics_PromptTextureLoading(const char* texture, void* callbackptr) {
 }
 
 int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* prev) {
-	while (gt->callbacks) {
-		struct graphicstexturecallback* gtcallback = gt->callbacks;
-		gt->callbacks = gt->callbacks->next;
-		free(gtcallback);
-	}
-	gt->callbacks = NULL;
 	if (gt->pixels) {
 		free(gt->pixels);
 		gt->pixels = NULL;
@@ -339,7 +308,7 @@ int graphics_FreeAllTextures() {
 	return fullycleaned;
 }
 
-void graphics_CheckTextureLoading(void (*callbackinfo)(int success, const char* texture, void* callbackptr)) {
+void graphics_CheckTextureLoading(void (*callback)(int success, const char* texture)) {
 	struct graphicstexture* gt = texlist;
 	struct graphicstexture* gtprev = NULL;
 	while (gt) {
@@ -352,22 +321,20 @@ void graphics_CheckTextureLoading(void (*callbackinfo)(int success, const char* 
 				img_FreeHandle(gt->threadingptr);
 				gt->threadingptr = NULL;
 				
-				//now do the callbacks
+				//check if we succeeded
 				int success = 0;
 				if (data) {
 					success = 1;
-					if (!graphics_TextureToSDL(gt)) {
-						free(data);
-						success = 0;
+					if (graphics_AreGraphicsRunning()) {
+						if (!graphics_TextureToSDL(gt)) {
+							free(data);
+							success = 0;
+						}
 					}
 				}
-				while (gt->callbacks) {
-					struct graphicstexturecallback* gtcallback = gt->callbacks;
-					gt->callbacks = gt->callbacks->next;
-					callbackinfo(success, gt->name, gtcallback->callbackptr);
-					free(gtcallback);
-				}
-				gt->callbacks = NULL;
+
+				//do callback
+				callback(success, gt->name);
 				
 				//if this is an empty abandoned entry, remove
 				if (!gt->name) {
@@ -492,3 +459,26 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	graphicsvisible = 1;
 	return 1;
 }
+
+int graphics_IsTextureLoaded(const char* name) {
+	//check texture state
+	struct graphicstexture* gt = graphics_GetTextureByName(name);
+        if (gt) {
+                //check for threaded loading
+                if (gt->threadingptr) {
+                        //it will be loaded.
+                        return 1;
+                }
+                return 2; //texture is already present
+        }
+	return 0; //not loaded
+}
+
+void graphics_StartFrame() {
+
+}
+
+void graphics_CompleteFrame() {
+	
+}
+

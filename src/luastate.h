@@ -34,3 +34,4 @@ int luastate_PushFunctionArgumentToMainstate_String(const char* string); //1: su
 //Function call:
 int luastate_CallFunctionInMainstate(const char* function, int args, char** error); //1: success, 0: failure (*error will be either changed to NULL or to an error string - NULL means most likely out of memory)
 
+

@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdarg.h>
 
 #include "luastate.h"
 #include "file.h"
@@ -33,8 +34,13 @@
 
 #define TIMESTEP 16
 
+void printerror(const char* fmt, ...) {
+
+}
+
 int wantquit = 0;
 int main(int argc, char** argv) {
+	//evaluate command line arguments:
 	const char* script = "game.lua";
 	int i = 1;
 	int scriptargfound = 0;
@@ -55,7 +61,7 @@ int main(int argc, char** argv) {
 				i++;
 				continue;
 			}
-			printf("Error: Unknown option: %s\n",argv[i]);
+			printerror("Error: Unknown option: %s\n",argv[i]);
 			return -1;
 		}else{
 			if (!scriptargfound) {
@@ -65,62 +71,97 @@ int main(int argc, char** argv) {
 		}
 		i++;
 	}
+
+	//check the provided path:
 	char outofmem[] = "Out of memory";
 	char* error;
 	char* filenamebuf = NULL;
+
+	//check if a folder:
 	if (file_IsDirectory(script)) {
 		filenamebuf = file_AddComponentToPath(script, "game.lua");
 		script = filenamebuf;
 	}
+
+	//check if we want to change directory to the provided path:
 	if (option_changedir) {
 		char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
 		if (!p) {
-			printf("Error: NULL returned for absolute directory\n");
+			printerror("Error: NULL returned for absolute directory\n");
 			return -1;
 		}
 		char* newfilenamebuf = file_GetFileNameFromFilePath(script);
 		if (!newfilenamebuf) {
 			free(p);
-			printf("Error: NULL returned for file name\n");
+			printerror("Error: NULL returned for file name\n");
 			return -1;
 		}
 		if (filenamebuf) {free(filenamebuf);}
 		filenamebuf = newfilenamebuf;
 		if (!file_Cwd(p)) {
 			free(filenamebuf);
-			printf("Error: Cannot cd to \"%s\"\n",p);
+			printerror("Error: Cannot cd to \"%s\"\n",p);
 			free(p);
 			return -1;
 		}
 		free(p);
 		script = filenamebuf;
 	}
+
+	//open and run provided file
 	if (!luastate_DoInitialFile(script, &error)) {
 		if (error == NULL) {
 			error = outofmem;
 		}
-		printf("Error when running \"%s\": %s\n",script,error);
+		printerror("Error when running \"%s\": %s\n",script,error);
 		if (filenamebuf) {free(filenamebuf);}
 		return -1;
 	}
+
 	//call init
+	if (!luastate_CallFunctionInMainstate("blitwizard.callback.load", 0, &error)) {
+		printerror("Error when calling blitwizard.callback.load: %s\n",error);
+		return -1;
+	}
 	
 	//when graphics are open, run the main loop
 	if (graphics_AreGraphicsRunning()) {
 		uint64_t logictimestamp = time_GetMilliSeconds();
+		uint64_t lastdrawingtime = 0;
 		while (!wantquit) {
 			uint64_t time = time_GetMilliSeconds();
+
 			//first, call the do function
 			while (logictimestamp < time) {
-				
+				if (!luastate_CallFunctionInMainstate("blitwizard.callback.do", 0, &error)) {
+					printerror("Error when calling blitwizard.callback.do: %s\n", error);
+					if (error) {free(error);}
+				}
 				logictimestamp += TIMESTEP;
 			}
-			//call the drawing function
-			drawingallowed = 1;
 
-			drawingallowed = 0;
-			//complete the drawing
+			//check for image loading progress
 			
+
+			//limit to 100 FPS
+			uint64_t delta = time_GetMilliseconds()-lastdrawingtime;
+			if (delta < 8) {
+				time_Sleep(10-delta);
+			}
+			
+			//start drawing
+			drawingallowed = 1;
+			graphics_StartFrame();
+			
+			//call the drawing function
+			if (!luastate_CallFunctionInMainstate("blitwizard.callback.draw", 0, &error)) {
+				printerror("Error when calling blitwizard.callback.draw: %s\n",error);
+				if (error) {free(error);}
+			}
+			
+			//complete the drawing
+			drawingallowed = 0;
+			graphics_CompleteFrame();
 		}
 	}
 	return 0;

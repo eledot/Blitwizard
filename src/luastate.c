@@ -37,8 +37,11 @@ static lua_State* scriptstate = NULL;
 
 static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_newtable(l);
-	lua_pushstring(l, "setmode");
-	lua_pushcfunction(l, &luafuncs_setmode);
+	lua_pushstring(l, "setWindow");
+	lua_pushcfunction(l, &luafuncs_setWindow);
+	lua_settable(l,-3);
+	lua_pushstring(l, "loadImage");
+	lua_pushcfunction(l, &luafuncs_loadImage);
 	lua_settable(l,-3);
 }
 
@@ -105,7 +108,54 @@ int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
 }
 
 
-int luastate_CallFunctionInMainstate(const char* function, int args, char** error) {
-	return 1;	
-}
+int luastate_CallFunctionInMainstate(const char* function, int args, char** error, int recursivetables) {
+	//look up table components of our function name (e.g. namespace.func())
+	int tablerecursion = 0;
+	while (recursivetables && tablerecursion < 5) {
+		int r = 0;
+		while (r < strlen(function)) {
+			if (function[r] == '.') {
+				lua_pushstring(scriptstate, function);
+				if (tablerecursion == 0) {
+					//lookup on global table
+					lua_gettable(scriptstate, LUA_GLOBALSINDEX);
+				}else{
+					//lookup nested on previous table
+					lua_gettable(scriptstate, -2);
+					//dispose of previous table
+					lua_insert(scriptstate, -2);
+					lua_pop(scriptstate, 1);
+				}
+			}
+			r++;
+		}
+		tablerecursion++;
+	}
 
+	//lookup function normally if there was no recursion lookup:
+	if (tablerecursion <= 0) {
+		lua_pushstring(scriptstate, function);
+		lua_gettable(scriptstate, LUA_GLOBALSINDEX);
+	}
+
+	//call function
+	int i = lua_pcall(l, args, 0, 0);
+	if (i != 0) {
+		char errbuf[256];
+		if (i == LUA_ERRRUN) {
+			const char* e = lua_tostring(l, -1);
+			*error = NULL;
+			if (e) {
+				*error = strdup(e);
+			}
+			return 0;
+		}
+		if (i == LUA_ERRMEM) {
+			*error = strdup("Out of memory");
+			return 0;
+		}
+		*error = strdup("Unknown error");
+		return 0;
+	}
+	return 1;
+}
