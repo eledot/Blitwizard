@@ -21,7 +21,7 @@ print("Hello world example in blitwizard")
 -- available, check the other examples or see the full
 -- documentation on http://games.homeofjones.de/blitwizard/
 
-function blitwiz.callback.load()
+function blitwiz.on_init()
 	-- This function is called right after blitwizard has
 	-- started. You would normally want to open up a
 	-- window here with blitwiz.graphics.setWindow().
@@ -42,7 +42,7 @@ function blitwiz.callback.load()
 	-- soon as it has finished loading (see below).
 end
 
-function blitwiz.callback.draw()
+function blitwiz.on_draw()
 	-- This gets called each time the window is redrawn.
 	-- If you don't put this function here or if you don't put
 	-- any drawing calls into it, the window will simply stay
@@ -63,7 +63,7 @@ function blitwiz.callback.draw()
 	-- Done!
 end
 
-function blitwiz.callback.event.image(name, success)
+function blitwiz.on_image(name, success)
 	-- This gets called every time an image has been loaded.
 	-- You would normally set some variables e.g. to advance
 	-- a loading progress bar or to tell your drawing code that
@@ -83,7 +83,7 @@ function blitwiz.callback.event.image(name, success)
 	end		
 end
 
-function blitwiz.callback.event.close()
+function blitwiz.on_close()
 	-- This function gets called whenever the user clicks
 	-- the close button in the window title bar.
 	
@@ -92,7 +92,7 @@ function blitwiz.callback.event.close()
 	blitwiz.quit()
 end
 
-function blitwiz.callback.step()
+function blitwiz.on_step()
 	-- This gets called with fixed 60 FPS constantly (it
 	-- will get called more often if FPS are lower to
 	-- keep up).

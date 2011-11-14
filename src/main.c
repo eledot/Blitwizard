@@ -53,17 +53,17 @@ void printerror(const char* fmt, ...) {
 static void imgloaded(int success, const char* texture) {
 	char* error;
 	if (!luastate_PushFunctionArgumentToMainstate_String(texture)) {
-		printerror("Error when pushing func args to blitwiz.callback.event.image\n");
+		printerror("Error when pushing func args to blitwiz.on_image\n");
 		fatalscripterror();
 		return;
 	}
 	if (!luastate_PushFunctionArgumentToMainstate_Bool(success)) {
-        printerror("Error when pushing func args to blitwiz.callback.event.image\n");
+        printerror("Error when pushing func args to blitwiz.on_image\n");
         fatalscripterror();
         return;
     }
-	if (!luastate_CallFunctionInMainstate("blitwiz.callback.event.image", 2, 1, 1, &error)) {
-		printerror("Error when calling blitwiz.callback.event.image: %s\n", error);
+	if (!luastate_CallFunctionInMainstate("blitwiz.on_image", 2, 1, 1, &error)) {
+		printerror("Error when calling blitwiz.on_image: %s\n", error);
 		if (error) {free(error);}
 		fatalscripterror();
 		return;
@@ -158,8 +158,8 @@ int main(int argc, char** argv) {
 	}
 
 	//call init
-	if (!luastate_CallFunctionInMainstate("blitwiz.callback.load", 0, 1, 1, &error)) {
-		printerror("Error when calling blitwiz.callback.load: %s\n",error);
+	if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error)) {
+		printerror("Error when calling blitwiz.on_init: %s\n",error);
 		return -1;
 	}
 	
@@ -172,8 +172,8 @@ int main(int argc, char** argv) {
 
 			//first, call the step function
 			while (logictimestamp < time) {
-				if (!luastate_CallFunctionInMainstate("blitwiz.callback.step", 0, 1, 1, &error)) {
-					printerror("Error when calling blitwiz.callback.step: %s\n", error);
+				if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error)) {
+					printerror("Error when calling blitwiz.on_step: %s\n", error);
 					if (error) {free(error);}
 				}
 				logictimestamp += TIMESTEP;
@@ -193,8 +193,8 @@ int main(int argc, char** argv) {
 			graphics_StartFrame();
 			
 			//call the drawing function
-			if (!luastate_CallFunctionInMainstate("blitwiz.callback.draw", 0, 1, 1, &error)) {
-				printerror("Error when calling blitwiz.callback.draw: %s\n",error);
+			if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error)) {
+				printerror("Error when calling blitwiz.on_draw: %s\n",error);
 				if (error) {free(error);}
 			}
 			
