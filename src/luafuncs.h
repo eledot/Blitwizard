@@ -27,4 +27,7 @@ int luafuncs_setWindow(lua_State* l);
 int luafuncs_loadImage(lua_State* l);
 int luafuncs_getTime(lua_State* l);
 int luafuncs_quit(lua_State* l);
+int luafuncs_getImageSize(lua_State* l);
+int luafuncs_getWindowSize(lua_State* l);
+int luafuncs_drawImage(lua_State* l);
 

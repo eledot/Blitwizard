@@ -65,3 +65,10 @@ void graphics_UnloadTexture(const char* texname);
 int graphics_IsTextureLoaded(const char* name);
 //Check if a texture is loaded. 0: no, 1: operation in progress, 2: yes
 
+int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigned int* height);
+//1 on success, 0 on error
+
+int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height);
+//1 on success, 0 on error (window not opened most likely)
+
+

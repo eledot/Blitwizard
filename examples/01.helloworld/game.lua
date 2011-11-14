@@ -73,7 +73,8 @@ function blitwiz.callback.event.image(name, success)
 		-- Hey, it is our requested image!
 		if success then
 			-- Loading succeeded. So we can use it now
-			imgLoaded = true
+			imageLoaded = true
+			print("hello_world.png loaded!")
 		else
 			-- Loading failed. So we quit with an error:
 			print("Error: Failed to load hello_world.png!")
@@ -101,7 +102,11 @@ function blitwiz.callback.step()
 	-- of your continuously running game simulation.
 
 	-- For this example, we just want to quit after 5 seconds
-	if blitwiz.time.getTime() > 5000 then
+	-- from the point when the image was loaded and shown.
+	if imageLoaded ~= true then
+		preloadedTime = blitwiz.time.getTime()
+	end
+	if blitwiz.time.getTime() > preloadedTime + 5000 then
 		blitwiz.quit()
 	end
 end

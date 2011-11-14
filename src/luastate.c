@@ -43,6 +43,15 @@ static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_pushstring(l, "loadImage");
 	lua_pushcfunction(l, &luafuncs_loadImage);
 	lua_settable(l,-3);
+	lua_pushstring(l, "getImageSize");
+	lua_pushcfunction(l, &luafuncs_getImageSize);
+	lua_settable(l,-3);
+	lua_pushstring(l, "getWindowSize");
+	lua_pushcfunction(l, &luafuncs_getWindowSize);
+	lua_settable(l,-3);
+	lua_pushstring(l, "drawImage");
+	lua_pushcfunction(l, &luafuncs_drawImage);
+	lua_settable(l,-3);
 }
 
 static void luastate_CreateTimeTable(lua_State* l) {

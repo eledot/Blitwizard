@@ -93,18 +93,26 @@ int luafuncs_setWindow(lua_State* l) {
 	}
 	int y = lua_tonumber(l,2);
 	if (y <= 0) {
-		lua_pushstring(l,"First argument is not a valid resolution height");
+		lua_pushstring(l,"Second argument is not a valid resolution height");
 		return lua_error(l);
 	}
-	int fullscreen = 0;
-	if (lua_type(l,3) == LUA_TBOOLEAN) {
-		fullscreen = lua_toboolean(l,3);
-	}
+	
 	char defaulttitle[] = "blitwizard";
-	const char* title = lua_tostring(l,4);
+	const char* title = lua_tostring(l,3);
 	if (!title) {
 		title = defaulttitle;
 	}
+	
+	int fullscreen = 0;
+	if (lua_type(l,4) == LUA_TBOOLEAN) {
+		fullscreen = lua_toboolean(l,4);
+	}else{
+		if (lua_gettop(l) >= 4) {
+			lua_pushstring(l,"Fourth argument is not a valid fullscreen boolean");
+			return lua_error(l);
+		}
+	}
+	
 	const char* renderer = lua_tostring(l,5);
 	char* error;
 	if (!graphics_SetMode(x, y, fullscreen, 0, defaulttitle, renderer, &error)) {
@@ -137,4 +145,66 @@ int luafuncs_getTime(lua_State* l) {
 luafuncs_quit(lua_State* l) {
 	exit(0);
 }
+
+int luafuncs_getImageSize(lua_State* l) {
+	const char* p = lua_tostring(l,1);
+	if (!p) {
+		lua_pushstring(l, "First parameter is not a valid image name string");
+		return lua_error(l);
+	}
+	unsigned int w,h;
+	if (!graphics_GetTextureDimensions(p, &w,&h)) {
+		lua_pushstring(l, "Failed to get image size");
+		return lua_error(l);
+	}
+	lua_pushnumber(l,w);
+	lua_pushnumber(l,h);
+	return 2;
+}
+
+int luafuncs_getWindowSize(lua_State* l) {
+	unsigned int w,h;
+	if (!graphics_GetWindowDimensions(&w,&h)) {
+		lua_pushstring(l, "Failed to get window size");
+		return lua_error(l);
+	}
+	lua_pushnumber(l,w);
+	lua_pushnumber(l,h);
+	return 2;
+}
+
+int luafuncs_drawImage(lua_State* l) {
+	const char* p = lua_tostring(l,1);
+	if (!p) {
+		lua_pushstring(l, "First parameter is not a valid image name string");
+		return lua_error(l);
+	}
+	int x,y;
+	float alpha = 1;
+	if (lua_type(l,2) != LUA_TNUMBER) {
+		lua_pushstring(l, "Second parameter is not a valid x position number");
+		return lua_error(l);
+	}
+	if (lua_type(l,3) != LUA_TNUMBER) {
+		lua_pushstring(l, "Third parameter is not a valid x position number");
+		return lua_error(l);
+	}
+	x = lua_tointeger(l,2);
+	y = lua_tointeger(l,3);
+	if (lua_gettop(l) >= 4) {
+		if (lua_type(l,4) != LUA_TNUMBER) {
+			lua_pushstring(l,"Fourth parameter is not a valid alpha number");
+			return lua_error(l);
+		}
+		alpha = lua_tonumber(l,4);
+		if (alpha < 0) {alpha = 0;}
+		if (alpha > 1) {alpha = 1;}
+	}
+	if (!graphics_Draw(p, x, y, alpha)) {
+		lua_pushstring(l, "Requested texture isn't loaded or available");
+		return lua_error(l);
+	}
+	return 0;
+}
+
 

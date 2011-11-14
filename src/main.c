@@ -41,11 +41,11 @@ void fatalscripterror() {
 
 void printerror(const char* fmt, ...) {
 	char printline[2048];
-        va_list a;
-        va_start(a, fmt);
-        vsnprintf(printline, sizeof(printline)-1, fmt, a);
-        printline[sizeof(printline)-1] = 0;
-        va_end(a);
+    va_list a;
+    va_start(a, fmt);
+    vsnprintf(printline, sizeof(printline)-1, fmt, a);
+    printline[sizeof(printline)-1] = 0;
+    va_end(a);
 	fprintf(stderr,"%s",printline);
 	fflush(stderr);
 }
@@ -53,15 +53,15 @@ void printerror(const char* fmt, ...) {
 static void imgloaded(int success, const char* texture) {
 	char* error;
 	if (!luastate_PushFunctionArgumentToMainstate_String(texture)) {
-		printerror("Error when pushing func args to blitwizi.callback.event.image\n");
+		printerror("Error when pushing func args to blitwiz.callback.event.image\n");
 		fatalscripterror();
 		return;
 	}
 	if (!luastate_PushFunctionArgumentToMainstate_Bool(success)) {
-                printerror("Error when pushing func args to blitwizi.callback.event.image\n");
-                fatalscripterror();
-                return;
-        }
+        printerror("Error when pushing func args to blitwiz.callback.event.image\n");
+        fatalscripterror();
+        return;
+    }
 	if (!luastate_CallFunctionInMainstate("blitwiz.callback.event.image", 2, 1, 1, &error)) {
 		printerror("Error when calling blitwiz.callback.event.image: %s\n", error);
 		if (error) {free(error);}

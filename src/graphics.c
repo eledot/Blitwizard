@@ -208,13 +208,66 @@ int graphics_TransferTexturesToSDL() {
 
 int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight) {
 	struct graphicstexture* gt = graphics_GetTextureByName(texname);
-	if (!gt || gt->threadingptr || !gt->tex) {return 0;}
+	if (!gt || gt->threadingptr || !gt->tex) {
+		return 0;
+	}
+	
+	alpha = 1;
+	
+	if (alpha <= 0) {return 1;}
+	if (alpha > 1) {alpha = 1;}
+	
+	//calculate source dimensions
+	SDL_Rect src,dest;
+	src.x = sourcex;
+	src.y = sourcey;
+	if (sourcewidth > 0) {
+		src.w = sourcewidth;
+	}else{
+		src.w = gt->width;
+	}
+	if (sourceheight > 0) {
+		src.h = sourceheight;
+	}else{
+		src.h = gt->height;
+	}
+	
+	//set target dimensinos
+	dest.x = x; dest.y = y;
+	dest.w = src.w;dest.h = src.h;
+	
+	//render
+	SDL_SetTextureAlphaMod(gt->tex, alpha);
+	SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
 	return 1;
 }
 
 int graphics_Draw(const char* texname, int x, int y, float alpha) {
-	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, -1, -1);
+	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0);
 }
+
+int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
+	if (mainwindow) {
+		int w,h;
+		SDL_GetWindowSize(mainwindow, &w,&h);
+		if (w < 0 || h < 0) {return 0;}
+		*width = w;
+		*height = h;
+		return 1;
+	}
+	return 0;
+}
+
+int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigned int* height) {
+	struct graphicstexture* gt = graphics_GetTextureByName(name);
+	if (!gt || gt->threadingptr) {return 0;}
+	
+	*width = gt->width;
+	*height = gt->height;
+	return 1;
+}
+
+
 
 
 int graphics_PromptTextureLoading(const char* texture) {
@@ -283,14 +336,14 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
 }
 
 void graphics_UnloadTexture(const char* texname) {
-        struct graphicstexture* gt = graphics_GetTextureByName(texname);
-        if (gt && !gt->threadingptr) {
+    struct graphicstexture* gt = graphics_GetTextureByName(texname);
+    if (gt && !gt->threadingptr) {
 		struct graphicstexture* gtprev = texlist;
 		while (gtprev && !(gtprev->next == gt)) {
 			gtprev = gtprev->next;
 		}
-                graphics_FreeTexture(gt, gtprev);
-        }
+		graphics_FreeTexture(gt, gtprev);
+    }
 }
 
 int graphics_FreeAllTextures() {
@@ -323,10 +376,12 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 				//check if we succeeded
 				int success = 0;
 				if (data) {
+					gt->pixels = data;
+					gt->width = width;
+					gt->height = height;
 					success = 1;
-					if (graphics_AreGraphicsRunning()) {
+					if (graphics_AreGraphicsRunning() && gt->name) {
 						if (!graphics_TextureToSDL(gt)) {
-							free(data);
 							success = 0;
 						}
 					}
@@ -335,8 +390,8 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 				//do callback
 				callback(success, gt->name);
 				
-				//if this is an empty abandoned entry, remove
-				if (!gt->name) {
+				//if this is an empty abandoned or a failed entry, remove
+				if (!gt->name || !success) {
 					graphics_FreeTexture(gt, gtprev);
 				}
 			}
@@ -434,16 +489,19 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 			SDL_DestroyWindow(mainwindow);
 			mainwindow = NULL;
 		}
-		SDL_RendererInfo info;
-                SDL_GetRenderDriverInfo(rendererindex, &info);
-		snprintf(errormsg,sizeof(errormsg),"Failed to create SDL renderer (backend %s): %s", info.name, SDL_GetError());
+		if (softwarerendering) {
+			snprintf(errormsg,sizeof(errormsg),"Failed to create SDL renderer (backend software): %s", SDL_GetError());
+		}else{
+			SDL_RendererInfo info;
+			SDL_GetRenderDriverInfo(rendererindex, &info);
+			snprintf(errormsg,sizeof(errormsg),"Failed to create SDL renderer (backend %s): %s", info.name, SDL_GetError());
+		}
 		errormsg[sizeof(errormsg)-1] = 0;
 		*error = strdup(errormsg);
 		return 0;
 	}else{
 		SDL_RendererInfo info;
 		SDL_GetRendererInfo(mainrenderer, &info);
-		//printf("Graphics renderer is: %s (hardware acceleration: %s)", info.name, yesnostr((int)(info.flags & SDL_RENDERER_ACCELERATED)));
 	}
 	//Transfer textures back to SDL
 	if (!graphics_TransferTexturesToSDL()) {
@@ -478,6 +536,6 @@ void graphics_StartFrame() {
 }
 
 void graphics_CompleteFrame() {
-	
+	SDL_RenderPresent(mainrenderer);
 }
 
