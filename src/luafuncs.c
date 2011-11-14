@@ -133,7 +133,15 @@ int luafuncs_loadImage(lua_State* l) {
 		lua_pushstring(l, "First parameter is not a valid image name string");
 		return lua_error(l);
 	}
-	graphics_PromptTextureLoading(p);
+	int i = graphics_PromptTextureLoading(p);
+	if (i == 0) {
+		lua_pushstring(l, "Failed to load image due to fatal error: Out of memory?");
+		return lua_error(l);
+	}
+	if (i == 2) {
+		lua_pushstring(l, "Image is already loaded");
+		return lua_error(l);
+	}
 	return 0;
 }
 
