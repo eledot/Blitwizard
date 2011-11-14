@@ -11,11 +11,11 @@
 
 print("Hello world example in blitwizard")
 
--- All blitwiz.callback.* functions are predetermined by
+-- All blitwiz.on_* functions are predetermined by
 -- blitwizard and are called when various things happen
--- (if you add them to your program). This allows you to
--- react to certain events (e.g. program has loaded, window
--- is redrawn etc.).
+-- (if you have added them to your program). This allows
+-- you to react to certain events (e.g. program has loaded,
+-- the window is redrawn etc.).
 
 -- For more information on which callback functions are
 -- available, check the other examples or see the full
