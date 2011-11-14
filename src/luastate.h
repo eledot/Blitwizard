@@ -32,6 +32,6 @@ int luastate_DoInitialFile(const char* file, char** error);
 int luastate_PushFunctionArgumentToMainstate_Bool(int yesno); //1: success, 0: failure (out of memory)
 int luastate_PushFunctionArgumentToMainstate_String(const char* string); //1: success, 0: failure (out of memory)
 //Function call:
-int luastate_CallFunctionInMainstate(const char* function, int args, char** error); //1: success, 0: failure (*error will be either changed to NULL or to an error string - NULL means most likely out of memory)
+int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetablelookup, int allownil, char** error); //1: success, 0: failure (*error will be either changed to NULL or to an error string - NULL means most likely out of memory)
 
 

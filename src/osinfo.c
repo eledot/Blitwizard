@@ -25,6 +25,8 @@
 #include "osinfo.h"
 #include "file.h"
 #include <ctype.h>
+#include <string.h>
+#include <unistd.h>
 
 static char versionbuf[512] = "";
 

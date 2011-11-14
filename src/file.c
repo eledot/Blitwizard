@@ -21,6 +21,13 @@
 
 */
 
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdint.h>
+
 #ifdef WIN
 #include <windows.h>
 #include "shlwapi.h"
@@ -28,11 +35,6 @@
 #include <limits.h>
 #include <sys/stat.h>
 #endif
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
 
 #include "file.h"
 
@@ -48,7 +50,7 @@ static int file_IsDirectorySeparator(char c) {
 #ifdef WIN
 	if (c == '/' || c == '\\') {return 1;}
 #else
-	if (file_NativeSlash == c) {return 1;}
+	if (file_NativeSlash() == c) {return 1;}
 #endif
 	return 0;
 }
@@ -281,7 +283,7 @@ char* file_GetFileNameFromFilePath(const char* path) {
 	if (i < 0) {
 		return strdup(path);
 	}else{
-		char* filename = malloc(strlen(path)-i);
+		char* filename = malloc(strlen(path)-i+1);
 		if (!filename) {return NULL;}
 		memcpy(filename, path + i + 1, strlen(path)-i);
 		filename[strlen(path)-i] = 0;

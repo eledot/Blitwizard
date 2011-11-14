@@ -66,8 +66,13 @@ static lua_State* luastate_New() {
 	lua_pushstring(l,"graphics");
 	luastate_CreateGraphicsTable(l);
 	lua_settable(l,-3);
+	lua_pushstring(l,"callback");
+	lua_newtable(l);
+		lua_pushstring(l, "event");
+		lua_newtable(l);
+		lua_settable(l,-3);
+	lua_settable(l,-3);
 	lua_setglobal(l, "blitwiz");
-	
 	
 	return l;
 }
@@ -108,42 +113,70 @@ int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
 }
 
 
-int luastate_CallFunctionInMainstate(const char* function, int args, char** error, int recursivetables) {
+int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error) {
 	//look up table components of our function name (e.g. namespace.func())
 	int tablerecursion = 0;
 	while (recursivetables && tablerecursion < 5) {
 		int r = 0;
+		int recursed = 0;
 		while (r < strlen(function)) {
 			if (function[r] == '.') {
-				lua_pushstring(scriptstate, function);
+				recursed = 1;
+				//extract the component
+				char* fp = malloc(r+1);
+				if (!fp) {*error = NULL;return 0;}
+				memcpy(fp, function, r);
+				fp[r] = 0;
+				lua_pushstring(scriptstate, fp);
+				function += r+1;
+				printf(">> Checking component '%s' [%s]\n",fp,function);
+				free(fp);
+
+				//lookup
 				if (tablerecursion == 0) {
 					//lookup on global table
 					lua_gettable(scriptstate, LUA_GLOBALSINDEX);
+					printf("> type: %d\n",lua_type(scriptstate,-1));
 				}else{
 					//lookup nested on previous table
 					lua_gettable(scriptstate, -2);
+					
 					//dispose of previous table
 					lua_insert(scriptstate, -2);
 					lua_pop(scriptstate, 1);
 				}
+				break;
 			}
 			r++;
 		}
-		tablerecursion++;
+		if (recursed) {
+			tablerecursion++;
+		}else{
+			break;
+		}
 	}
 
 	//lookup function normally if there was no recursion lookup:
 	if (tablerecursion <= 0) {
 		lua_pushstring(scriptstate, function);
 		lua_gettable(scriptstate, LUA_GLOBALSINDEX);
+	}else{
+		//get the function from our recursive lookup
+		lua_pushstring(scriptstate, function);
+		lua_gettable(scriptstate, -2);
+		//wipe out the table we got it from
+		lua_insert(scriptstate,-2);
+		lua_pop(scriptstate, 1);
 	}
 
+	//quit sanely if function is nil and we allowed this
+	if (allownil && lua_type(scriptstate, -1) == LUA_TNIL) {return 1;}
+
 	//call function
-	int i = lua_pcall(l, args, 0, 0);
+	int i = lua_pcall(scriptstate, args, 0, 0);
 	if (i != 0) {
-		char errbuf[256];
 		if (i == LUA_ERRRUN) {
-			const char* e = lua_tostring(l, -1);
+			const char* e = lua_tostring(scriptstate, -1);
 			*error = NULL;
 			if (e) {
 				*error = strdup(e);

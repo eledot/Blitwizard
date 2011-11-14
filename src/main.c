@@ -27,15 +27,23 @@
 #include <stdint.h>
 #include <stdarg.h>
 
+extern int drawingallowed; //stored in luafuncs.c
 #include "luastate.h"
 #include "file.h"
 #include "graphics.h"
-#include "time.h"
+#include "timefuncs.h"
 
 #define TIMESTEP 16
 
 void printerror(const char* fmt, ...) {
-
+	char printline[2048];
+        va_list a;
+        va_start(a, fmt);
+        vsnprintf(printline, sizeof(printline)-1, fmt, a);
+        printline[sizeof(printline)-1] = 0;
+        va_end(a);
+	fprintf(stderr,"%s",printline);
+	fflush(stderr);
 }
 
 int wantquit = 0;
@@ -119,8 +127,8 @@ int main(int argc, char** argv) {
 	}
 
 	//call init
-	if (!luastate_CallFunctionInMainstate("blitwizard.callback.load", 0, &error)) {
-		printerror("Error when calling blitwizard.callback.load: %s\n",error);
+	if (!luastate_CallFunctionInMainstate("blitwiz.callback.load", 0, 1, 1, &error)) {
+		printerror("Error when calling blitwiz.callback.load: %s\n",error);
 		return -1;
 	}
 	
@@ -131,10 +139,10 @@ int main(int argc, char** argv) {
 		while (!wantquit) {
 			uint64_t time = time_GetMilliSeconds();
 
-			//first, call the do function
+			//first, call the step function
 			while (logictimestamp < time) {
-				if (!luastate_CallFunctionInMainstate("blitwizard.callback.do", 0, &error)) {
-					printerror("Error when calling blitwizard.callback.do: %s\n", error);
+				if (!luastate_CallFunctionInMainstate("blitwiz.callback.step", 0, 1, 1, &error)) {
+					printerror("Error when calling blitwiz.callback.step: %s\n", error);
 					if (error) {free(error);}
 				}
 				logictimestamp += TIMESTEP;
@@ -144,7 +152,7 @@ int main(int argc, char** argv) {
 			
 
 			//limit to 100 FPS
-			uint64_t delta = time_GetMilliseconds()-lastdrawingtime;
+			uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;
 			if (delta < 8) {
 				time_Sleep(10-delta);
 			}
@@ -154,7 +162,7 @@ int main(int argc, char** argv) {
 			graphics_StartFrame();
 			
 			//call the drawing function
-			if (!luastate_CallFunctionInMainstate("blitwizard.callback.draw", 0, &error)) {
+			if (!luastate_CallFunctionInMainstate("blitwizard.callback.draw", 0, 1, 1, &error)) {
 				printerror("Error when calling blitwizard.callback.draw: %s\n",error);
 				if (error) {free(error);}
 			}

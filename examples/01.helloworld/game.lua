@@ -91,7 +91,7 @@ function blitwiz.callback.event.close()
 	blitwizard.quit()
 end
 
-function blitwiz.callback.do()
+function blitwiz.callback.step()
 	-- This gets called with fixed 60 FPS constantly (it
 	-- will get called more often if FPS are lower to
 	-- keep up).

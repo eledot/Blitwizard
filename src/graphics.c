@@ -244,7 +244,6 @@ int graphics_PromptTextureLoading(const char* texture) {
 	//trigger image fetching thread
         gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
         if (!gt->threadingptr) {
-		free(gt->callbacks);
                 free(gt->name);
                 free(gt);
                 return 0;

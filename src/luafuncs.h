@@ -21,7 +21,6 @@
 
 */
 
-extern int drawingallowed;
 int luafuncs_loadfile(lua_State* l);
 int luafuncs_dofile(lua_State* l);
 int luafuncs_setWindow(lua_State* l);

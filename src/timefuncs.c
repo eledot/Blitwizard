@@ -23,11 +23,12 @@
 
 #include <stdint.h>
 #include "SDL.h"
+#include "timefuncs.h"
 
 uint64_t oldtime = 0;
 uint64_t timeadd = 0;
 uint64_t time_GetMilliSeconds() {
-	uint64_t i = SDL_GetTime();
+	uint64_t i = SDL_GetTicks();
 	i += timeadd;
 	if (i > oldtime) {
 		oldtime = i;
