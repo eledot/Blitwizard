@@ -212,8 +212,6 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 		return 0;
 	}
 	
-	alpha = 1;
-	
 	if (alpha <= 0) {return 1;}
 	if (alpha > 1) {alpha = 1;}
 	
