@@ -435,7 +435,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		sdlvideoinit = 1;
 	}
 	//think about the renderer we want
-	char preferredrenderer[20] = "";
+	char preferredrenderer[20] = "opengl";
 	softwarerendering = 0;
 	if (renderer) {
 		if (strcasecmp(renderer, "software") == 0) {

@@ -67,6 +67,7 @@ function blitwiz.on_close()
 	blitwiz.quit()
 end
 
+
 function blitwiz.on_step()
 	-- We will continuously move our car here:
 	if imageCount >= 2 then

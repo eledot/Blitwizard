@@ -27,7 +27,7 @@ function blitwiz.on_init()
 	-- window here with blitwiz.graphics.setWindow().
 	
 	-- Open a window
-	blitwiz.graphics.setWindow(640,480,"Hello World")
+	blitwiz.graphics.setWindow(640,480,"Hello World", false, "opengl")
 
 	-- Ask for an image to be loaded
 	imageLoaded = false
@@ -42,6 +42,12 @@ function blitwiz.on_init()
 	-- soon as it has finished loading (see below).
 end
 
+function blitwiz.on_keydown(key)
+	-- When pressing space, we can switch to software rendering with this:
+	if key == "space" then
+		blitwiz.graphics.setWindow(600,480,"Hell world", false, "software")
+	end
+end
 function blitwiz.on_draw()
 	-- This gets called each time the window is redrawn.
 	-- If you don't put this function here or if you don't put

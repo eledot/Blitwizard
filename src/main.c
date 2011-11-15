@@ -109,8 +109,8 @@ static void mousemoveevent(int x, int y) {
 }
 static void keyboardevent(const char* button, int release) {
 	char* error;
-	char onkeyup[] = "on_keyup";
-	const char* funcname = "on_keydown";
+	char onkeyup[] = "blitwiz.on_keyup";
+	const char* funcname = "blitwiz.on_keydown";
 	if (release) {funcname = onkeyup;}
         if (!luastate_PushFunctionArgumentToMainstate_String(button)) {
                 printerror("Error when pushing func args to %s\n", funcname);
