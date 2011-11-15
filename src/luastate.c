@@ -155,7 +155,16 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 				recursed = 1;
 				//extract the component
 				char* fp = malloc(r+1);
-				if (!fp) {*error = NULL;return 0;}
+				if (!fp) {
+					*error = NULL;
+					//clean up stack again:
+					lua_pop(scriptstate, args);
+					if (recursivetables > 0) {
+						//clean up recursive table left on stack
+						lua_pop(scriptstate, 1);
+					}
+					return 0;
+				}
 				memcpy(fp, function, r);
 				fp[r] = 0;
 				lua_pushstring(scriptstate, fp);
@@ -199,7 +208,15 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 	}
 
 	//quit sanely if function is nil and we allowed this
-	if (allownil && lua_type(scriptstate, -1) == LUA_TNIL) {return 1;}
+	if (allownil && lua_type(scriptstate, -1) == LUA_TNIL) {
+		//clean up stack again:
+		lua_pop(scriptstate, args);
+		if (recursivetables > 0) {
+			//clean up recursive origin table left on stack
+			lua_pop(scriptstate, 1);
+  	        }
+		return 1;
+	}
 	
 	//function needs to be first, then arguments. -> correct order
 	if (args > 0) {
