@@ -135,13 +135,14 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 }
 
 void graphics_TextureFromSDL(struct graphicstexture* gt) {
-	if (!gt->tex || gt->threadingptr || !gt->pixels) {return;}
+	if (!gt->tex || gt->threadingptr || !gt->pixels || !gt->name) {return;}
 	
 	gt->pixels = malloc(gt->width * gt->height * 4);
 	if (!gt->pixels) {
 		//turn this into a failed-to-load texture
 		SDL_DestroyTexture(gt->tex);
 		gt->tex = NULL;
+		return;
 	}
 	
 	//Lock SDL Texture
@@ -149,16 +150,19 @@ void graphics_TextureFromSDL(struct graphicstexture* gt) {
 	if (SDL_LockTexture(gt->tex, NULL, &pixels, &pitch) != 0) {
 		//success, the texture is now officially garbage.
 		//can/should we do anything about this? (a purely visual problem)
-		SDL_DestroyTexture(gt->tex);
-		gt->tex = NULL;
-		return;
-	}
+	}else{
 	
-	//Copy texture
-	if (pitch == 0) {
-		memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
+		//Copy texture
+		if (pitch == 0) {
+			memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
+		}else{
+			//anything we should be doing here?
+		}
+
+		//unlock texture again
+		SDL_UnlockTexture(gt->tex);
 	}
-	
+		
 	SDL_DestroyTexture(gt->tex);
 	gt->tex = NULL;
 }
