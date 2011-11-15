@@ -139,6 +139,10 @@ int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
 	return 1;
 }
 
+int luastate_PushFunctionArgumentToMainstate_Double(double i) {
+	lua_pushnumber(scriptstate, i);
+	return 1;
+}
 
 int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error) {
 	//look up table components of our function name (e.g. namespace.func())

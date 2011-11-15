@@ -106,7 +106,7 @@ function blitwiz.on_step()
 	if imageLoaded ~= true then
 		preloadedTime = blitwiz.time.getTime()
 	end
-	if blitwiz.time.getTime() > preloadedTime + 5000 then
+	if blitwiz.time.getTime() > preloadedTime + 8000 then
 		blitwiz.quit()
 	end
 end

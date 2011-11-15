@@ -543,3 +543,65 @@ void graphics_CompleteFrame() {
 	SDL_RenderPresent(mainrenderer);
 }
 
+void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text)) {
+	SDL_Event e;
+        while (SDL_PollEvent(&e) == 1) {
+                if (e.type == SDL_QUIT) {
+			quitevent();
+                }
+                if (e.type == SDL_MOUSEMOTION) {
+			mousemoveevent(e.motion.x, e.motion.y);
+                }
+		if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
+			int release = 0;
+			if (e.type == SDL_MOUSEBUTTONUP) {release = 1;}
+			int button = e.button.button;
+			mousebuttonevent(button, release, e.button.x, e.button.y);
+		}
+		if (e.type == SDL_TEXTINPUT) {
+			textevent(e.text.text);
+		}
+		if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+			int release = 0;
+			if (e.type == SDL_KEYUP) {release = 1;}
+			char keybuf[30] = "";
+			if (e.key.keysym.sym >= SDLK_F1 && e.key.keysym.sym <= SDLK_F12) {
+                                sprintf(keybuf, "F%d", (e.key.keysym.sym+1)-SDLK_F1);
+                        }
+			if (e.key.keysym.sym >= SDLK_0 && e.key.keysym.sym <= SDLK_9) {
+				sprintf(keybuf, "%d", e.key.keysym.sym - SDLK_0);
+			}
+			if (e.key.keysym.sym >= SDLK_a && e.key.keysym.sym <= SDLK_z) {
+				sprintf(keybuf, "%c", e.key.keysym.sym - SDLK_a + 'a');
+			}
+                        switch (e.key.keysym.sym) {
+                                case SDLK_SPACE:
+                                        sprintf(keybuf, "space");break;
+                                case SDLK_BACKSPACE:
+                                        sprintf(keybuf, "backspace");break;
+                                case SDLK_RETURN:
+                                        sprintf(keybuf, "return");break;
+				case SDLK_ESCAPE:
+                                        sprintf(keybuf, "escape");break;
+                                case SDLK_TAB:
+                                        sprintf(keybuf, "tab");break;
+                                case SDLK_LSHIFT:
+					sprintf(keybuf, "lshift");break;
+                                case SDLK_RSHIFT:
+                                        sprintf(keybuf, "rshift");break;
+                                case SDLK_UP:
+                                        sprintf(keybuf,"up");break;
+				case SDLK_DOWN:
+                                        sprintf(keybuf,"down");break;
+                                case SDLK_LEFT:
+                                        sprintf(keybuf,"left");break;
+                                case SDLK_RIGHT:
+                                        sprintf(keybuf,"right");break;
+			}
+			if (strlen(keybuf) > 0) {
+				keyboardevent(keybuf, release);
+			}
+		}
+	}
+}
+

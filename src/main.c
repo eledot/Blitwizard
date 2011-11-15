@@ -41,14 +41,104 @@ void fatalscripterror() {
 
 void printerror(const char* fmt, ...) {
 	char printline[2048];
-    va_list a;
-    va_start(a, fmt);
-    vsnprintf(printline, sizeof(printline)-1, fmt, a);
-    printline[sizeof(printline)-1] = 0;
-    va_end(a);
+	va_list a;
+	va_start(a, fmt);
+	vsnprintf(printline, sizeof(printline)-1, fmt, a);
+	printline[sizeof(printline)-1] = 0;
+	va_end(a);
 	fprintf(stderr,"%s",printline);
 	fflush(stderr);
 }
+
+static void quitevent() {
+	char* error;
+	if (!luastate_CallFunctionInMainstate("blitwiz.on_close", 0, 1, 1, &error)) {
+		printerror("Error when calling blitwiz.on_close: %s\n",error);
+		if (error) {free(error);}
+		fatalscripterror();
+		return;
+	}
+}
+static void mousebuttonevent(int button, int release, int x, int y) {
+	char* error;
+	char onmouseup[] = "blitwiz.on_mouseup";
+	const char* funcname = "blitwiz.on_mousedown";
+	if (release) {
+		funcname = onmouseup;
+	}
+	if (!luastate_PushFunctionArgumentToMainstate_Double(button)) {
+                printerror("Error when pushing func args to %s\n",funcname);
+                fatalscripterror();
+                return;
+        }
+	if (!luastate_PushFunctionArgumentToMainstate_Double(x)) {
+		printerror("Error when pushing func args to %s\n",funcname);
+		fatalscripterror();
+		return;
+	}
+	if (!luastate_PushFunctionArgumentToMainstate_Double(y)) {
+		printerror("Error when pushing func args to %s\n",funcname);
+                fatalscripterror();
+                return;
+        }
+        if (!luastate_CallFunctionInMainstate(funcname, 3, 1, 1, &error)) {
+                printerror("Error when calling %s: %s\n", funcname, error);
+                if (error) {free(error);}
+                fatalscripterror();
+                return;
+        }
+}
+static void mousemoveevent(int x, int y) {
+	char* error;
+	if (!luastate_PushFunctionArgumentToMainstate_Double(x)) {
+                printerror("Error when pushing func args to blitwiz.on_mousemove\n");
+                fatalscripterror();
+                return;
+        }
+        if (!luastate_PushFunctionArgumentToMainstate_Double(y)) {
+                printerror("Error when pushing func args to blitwiz.on_mousemove\n");
+                fatalscripterror();
+                return;
+        }
+        if (!luastate_CallFunctionInMainstate("blitwiz.on_mousemove", 2, 1, 1, &error)) {
+                printerror("Error when calling blitwiz.on_mousemove: %s\n", error);
+                if (error) {free(error);}
+                fatalscripterror();
+                return;
+        }
+}
+static void keyboardevent(const char* button, int release) {
+	char* error;
+	char onkeyup[] = "on_keyup";
+	const char* funcname = "on_keydown";
+	if (release) {funcname = onkeyup;}
+        if (!luastate_PushFunctionArgumentToMainstate_String(button)) {
+                printerror("Error when pushing func args to %s\n", funcname);
+                fatalscripterror();
+                return;
+        }
+        if (!luastate_CallFunctionInMainstate(funcname, 1, 1, 1, &error)) {
+                printerror("Error when calling %s: %s\n", funcname, error);
+                if (error) {free(error);}
+                fatalscripterror();
+                return;
+        }
+}
+static void textevent(const char* text) {
+	char* error;
+	if (!luastate_PushFunctionArgumentToMainstate_String(text)) {
+                printerror("Error when pushing func args to blitwiz.on_text\n");
+                fatalscripterror();
+                return;
+        }
+        if (!luastate_CallFunctionInMainstate("blitwiz.on_text", 1, 1, 1, &error)) {
+                printerror("Error when calling blitwiz.on_text: %s\n", error);
+                if (error) {free(error);}
+                fatalscripterror();
+                return;
+        }
+}
+
 
 static void imgloaded(int success, const char* texture) {
 	char* error;
@@ -170,6 +260,12 @@ int main(int argc, char** argv) {
 		while (!wantquit) {
 			uint64_t time = time_GetMilliSeconds();
 
+			//limit to roughly 60 FPS
+                        uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;
+                        if (delta < 15) {
+                                time_Sleep(16-delta);
+                        }
+
 			//first, call the step function
 			while (logictimestamp < time) {
 				if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error)) {
@@ -180,13 +276,10 @@ int main(int argc, char** argv) {
 			}
 
 			//check for image loading progress
-			graphics_CheckTextureLoading(&imgloaded);	
-
-			//limit to roughly 60 FPS
-			uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;
-			if (delta < 15) {
-				time_Sleep(16-delta);
-			}
+			graphics_CheckTextureLoading(&imgloaded);
+			
+			//check and trigger all sort of input events
+			graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent);
 			
 			//start drawing
 			drawingallowed = 1;

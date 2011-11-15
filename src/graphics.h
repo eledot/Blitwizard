@@ -71,4 +71,6 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height);
 //1 on success, 0 on error (window not opened most likely)
 
+void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text));
+//Check for events and return info about them through the provided callbacks
 
