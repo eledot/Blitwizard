@@ -47,6 +47,10 @@ function blitwiz.on_keydown(key)
 	if key == "space" then
 		blitwiz.graphics.setWindow(600,480,"Hell world", false, "software")
 	end
+        -- When escape is pressed, we want to quit
+        if key == "escape" then
+		blitwiz.quit()
+	end
 end
 function blitwiz.on_draw()
 	-- This gets called each time the window is redrawn.
@@ -107,7 +111,7 @@ function blitwiz.on_step()
 	-- movements or calculations of any sort that are part
 	-- of your continuously running game simulation.
 
-	-- For this example, we just want to quit after 5 seconds
+	-- For this example, we just want to quit after 8 seconds
 	-- from the point when the image was loaded and shown.
 	if imageLoaded ~= true then
 		preloadedTime = blitwiz.time.getTime()
