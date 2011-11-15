@@ -135,7 +135,7 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 }
 
 void graphics_TextureFromSDL(struct graphicstexture* gt) {
-	if (!gt->tex || gt->threadingptr || !gt->pixels || !gt->name) {return;}
+	if (!gt->tex || gt->threadingptr || gt->pixels || !gt->name) {return;}
 	
 	gt->pixels = malloc(gt->width * gt->height * 4);
 	if (!gt->pixels) {
@@ -150,6 +150,7 @@ void graphics_TextureFromSDL(struct graphicstexture* gt) {
 	if (SDL_LockTexture(gt->tex, NULL, &pixels, &pitch) != 0) {
 		//success, the texture is now officially garbage.
 		//can/should we do anything about this? (a purely visual problem)
+		printf("Warning: SDL_LockTexture() failed\n");
 	}else{
 	
 		//Copy texture
@@ -157,6 +158,7 @@ void graphics_TextureFromSDL(struct graphicstexture* gt) {
 			memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
 		}else{
 			//anything we should be doing here?
+			printf("Warning: Unexpected texture pitch");
 		}
 
 		//unlock texture again

@@ -27,13 +27,13 @@ function blitwiz.on_init()
 	-- window here with blitwiz.graphics.setWindow().
 	
 	-- Open a window
-	blitwiz.graphics.setWindow(640,480,"Hello World", false, "opengl")
+	blitwiz.graphics.setWindow(640,480,"Hello World", false) -- resolution/size: 640x480, title: "Hello World", fullscreen: false/no
 
 	-- Ask for an image to be loaded
 	imageLoaded = false
 	blitwiz.graphics.loadImage("hello_world.png")
 
-	-- Please note the image won't be available instantly.
+	-- Please note the image won't be available instantlytitle: "Hello World", fullscreen: false/no.
 	-- Images are loaded in the background, so take some time
 	-- before they're available (in that time, you can continue
 	-- to do other things, e.g. showing a loading screen image
@@ -43,9 +43,17 @@ function blitwiz.on_init()
 end
 
 function blitwiz.on_keydown(key)
-	-- When pressing space, we can switch to software rendering with this:
+	-- When pressing space, we can switch between accelerated and software rendering with this:
 	if key == "space" then
-		blitwiz.graphics.setWindow(600,480,"Hell world", false, "software")
+		if switchedtosoftware ~= true then
+			blitwiz.graphics.setWindow(600,480,"Hello World", false, "software")
+			switchedtosoftware = true
+			print("Now: software mode")
+		else
+			blitwiz.graphics.setWindow(600,480,"Hello World", false)
+			switchedtosoftware = false
+			print("Now: accelerated mode")
+		end
 	end
         -- When escape is pressed, we want to quit
         if key == "escape" then
