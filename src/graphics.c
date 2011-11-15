@@ -89,8 +89,8 @@ int graphics_Init(char** error) {
 }
 
 int graphics_TextureToSDL(struct graphicstexture* gt) {
-	if (gt->tex || gt->threadingptr || !gt->pixels || !gt->name) {return 1;}
-	
+	if (gt->tex || gt->threadingptr || !gt->name) {return 1;}
+
 	//create SDL surface
 	SDL_Surface* sf = SDL_CreateRGBSurface(SDL_SWSURFACE, gt->width, gt->height, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000); //rgba (intel byte-reversed)
 	if (!sf) {
@@ -127,17 +127,14 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 		printf("Warning: Blend mode SDL_BLENDMODE_BLEND not applied: %s\n",SDL_GetError());
 	}
 	
-	//wipe out pixels to save some memory
-	free(gt->pixels);
-	gt->pixels = NULL;
 	gt->tex = t;
 	return 1;
 }
 
 void graphics_TextureFromSDL(struct graphicstexture* gt) {
-	if (!gt->tex || gt->threadingptr || gt->pixels || !gt->name) {return;}
+	if (!gt->tex || gt->threadingptr || !gt->name) {return;}
 	
-	gt->pixels = malloc(gt->width * gt->height * 4);
+	/*gt->pixels = malloc(gt->width * gt->height * 4);
 	if (!gt->pixels) {
 		//turn this into a failed-to-load texture
 		SDL_DestroyTexture(gt->tex);
@@ -163,7 +160,7 @@ void graphics_TextureFromSDL(struct graphicstexture* gt) {
 
 		//unlock texture again
 		SDL_UnlockTexture(gt->tex);
-	}
+	}*/
 		
 	SDL_DestroyTexture(gt->tex);
 	gt->tex = NULL;
