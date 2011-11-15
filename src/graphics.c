@@ -123,7 +123,9 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 	SDL_FreeSurface(sf);
 	
 	//set blend mode
-	SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND);
+	if (SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND) < 0) {
+		printf("Warning: Blend mode SDL_BLENDMODE_BLEND not applied: %s\n",SDL_GetError());
+	}
 	
 	//wipe out pixels to save some memory
 	free(gt->pixels);
@@ -235,7 +237,10 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	dest.w = src.w;dest.h = src.h;
 	
 	//render
-	SDL_SetTextureAlphaMod(gt->tex, alpha);
+	int i = (int)((float)255.0f * alpha);
+	if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
+		printf("Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
+	}
 	SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
 	return 1;
 }
@@ -530,7 +535,8 @@ int graphics_IsTextureLoaded(const char* name) {
 }
 
 void graphics_StartFrame() {
-
+	SDL_SetRenderDrawColor(mainrenderer, 0, 0, 0, 1);
+	SDL_RenderClear(mainrenderer);
 }
 
 void graphics_CompleteFrame() {

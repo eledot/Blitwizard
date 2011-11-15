@@ -7,7 +7,7 @@
 
    You can copy, alter or reuse this file any way you like.
    It is available without restrictions (public domain).
-]] --
+]]
 
 print("Hello world example in blitwizard")
 
