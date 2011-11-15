@@ -29,6 +29,13 @@ function blitwiz.on_init()
 	blitwiz.graphics.loadImage("car.png")
 end
 
+function blitwiz.on_keydown(key)
+	-- Quit on escape
+	if  key == "escape" then
+		blitwiz.quit()
+	end
+end
+
 function blitwiz.on_draw()
 	-- Draw scenery:
 	
