@@ -7,6 +7,7 @@ fi
 
 rm blitwizard-src.zip
 rm blitwizard-win32.zip
+rm deps.zip
 mkdir tarball
 cd tarball
 git clone http://games.homeofjones.de/blitwizard/git-source/blitwizard.git/ .
