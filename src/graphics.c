@@ -117,6 +117,7 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 	//create texture
 	SDL_Texture* t = SDL_CreateTextureFromSurface(mainrenderer, sf);
 	if (!t) {
+		fprintf(stderr, "Warning: SDL failed to create texture: %s\n",SDL_GetError());
 		SDL_FreeSurface(sf);
 		return 0;
 	}
@@ -242,7 +243,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	//render
 	int i = (int)((float)255.0f * alpha);
 	if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
-		printf("Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
+		fprintf(stderr,"Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
 	}
 	SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
 	return 1;
@@ -438,7 +439,11 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		sdlvideoinit = 1;
 	}
 	//think about the renderer we want
+#ifndef WIN
 	char preferredrenderer[20] = "opengl";
+#else
+	char preferredrenderer[20] = "direct3d";
+#endif
 	softwarerendering = 0;
 	if (renderer) {
 		if (strcasecmp(renderer, "software") == 0) {
@@ -446,11 +451,12 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		}else{
 			if (strcasecmp(renderer, "opengl") == 0) {
 				strcpy(preferredrenderer, "opengl");
-			}else{
-		#ifdef WIN
-				strcpy(preferredrenderer, "direct3d");
-		#endif
 			}
+#ifdef WIN
+			if (strcasecmp(renderer,"direct3d") == 0) {
+				strcpy(preferredrenderer, "direct3d");
+			}
+#endif
 		}
 	}
 	//get renderer index
