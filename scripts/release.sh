@@ -1,6 +1,9 @@
 #!/bin/bash
 
-WINDOWSCC="i686-pc-mingw32"
+TARGETHOST=""
+if [ "$1" == "linux-to-win" ]; then
+	TARGETHOST="i686-pc-mingw32"
+fi
 
 rm blitwizard-src.zip
 rm blitwizard-win32.zip
@@ -23,7 +26,11 @@ zip -r -9 ./blitwizard-src.zip ./blitwizard/
 cd blitwizard
 wget http://games.homeofjones.de/blitwizard/deps.zip
 unzip deps.zip
-./configure --host="$WINDOWSCC"
+if [ "$TARGETHOST" == "" ]; then
+	./configure
+else
+	./configure --host="$TARGETHOST"
+fi
 make
 cd ..
 mkdir ./blitwizard-bin || { echo "Failed to create blitwizard-bin directory."; return 1; }
