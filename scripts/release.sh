@@ -2,7 +2,10 @@
 
 TARGETHOST=""
 if [ "$1" == "linux-to-win" ]; then
+	echo "Building with MinGW cross compiler... (Please set TARGETHOST in this script properly!)";
 	TARGETHOST="i686-pc-mingw32"
+else
+	echo "Building with native compiler";
 fi
 
 rm blitwizard-src.zip
