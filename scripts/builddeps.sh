@@ -2,7 +2,7 @@
 
 cd ..
 
-luatarget=`cat scripts/.luatarget | grep luatarget | sed -re 's/^luatarget\=//'`
+luatarget=`cat scripts/.luatarget | grep luatarget | sed -e 's/^luatarget\=//'`
 changedhost=""
 
 if [ -f scripts/.depsarebuilt ]; then
@@ -16,10 +16,10 @@ if [ -f scripts/.depsarebuilt ]; then
 	fi
 fi
 
-CC=`cat scripts/.luatarget | grep CC | sed -re 's/^.+\=//'`
-RANLIB=`cat scripts/.luatarget | grep RANLIB | sed -re 's/^.+\=//'`
-AR=`cat scripts/.luatarget | grep AR | sed -re 's/^.+\=//'`
-HOST=`cat scripts/.luatarget | grep HOST | sed -re 's/^.+\=//'`
+CC=`cat scripts/.luatarget | grep CC | sed -e 's/^.*\=//'`
+RANLIB=`cat scripts/.luatarget | grep RANLIB | sed -e 's/^.*\=//'`
+AR=`cat scripts/.luatarget | grep AR | sed -e 's/^.*\=//'`
+HOST=`cat scripts/.luatarget | grep HOST | sed -e 's/^.*\=//'`
 
 if [ ! -f src/imgloader/png/png.c ]; then
 	echo "MISSING DEPENDENCY: Please extract the contents of a recent libpng tarball into src/imgloader/png/ - or read README.txt";
