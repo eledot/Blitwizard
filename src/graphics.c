@@ -91,37 +91,26 @@ int graphics_Init(char** error) {
 int graphics_TextureToSDL(struct graphicstexture* gt) {
 	if (gt->tex || gt->threadingptr || !gt->name) {return 1;}
 
-	//create SDL surface
-	SDL_Surface* sf = SDL_CreateRGBSurface(SDL_SWSURFACE, gt->width, gt->height, 32, 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000); //rgba (intel byte-reversed)
-	if (!sf) {
-		return 0;
-	}
-	
-	//fill SDL surface
-	memcpy(sf->pixels, gt->pixels, sf->w * sf->h * 4);
-	
-	//now, optimize surface:
-	SDL_Surface* optimizedImage = NULL;
-	if (sf != NULL) {
-		if (1) {
-			optimizedImage = SDL_DisplayFormatAlpha(sf);
-		}else{
-			optimizedImage = SDL_DisplayFormat(sf);
-		}
-		if (optimizedImage) {
-			SDL_FreeSurface (sf);
-			sf = optimizedImage;
-		}
-	}
-	
 	//create texture
-	SDL_Texture* t = SDL_CreateTextureFromSurface(mainrenderer, sf);
+	SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
 	if (!t) {
 		fprintf(stderr, "Warning: SDL failed to create texture: %s\n",SDL_GetError());
-		SDL_FreeSurface(sf);
+                return 0;
+	}
+
+	//lock texture
+	void* pixels; int pitch;
+	if (SDL_LockTexture(t, NULL, &pixels, &pitch) != 0) {
+		fprintf(stderr, "Warning: SDL failed to lock texture: %s\n",SDL_GetError());
+		SDL_DestroyTexture(t);
 		return 0;
 	}
-	SDL_FreeSurface(sf);
+
+	//copy pixels into texture
+	memcpy(pixels, gt->pixels, gt->width * gt->height * 4);
+	
+	//unlock texture
+	SDL_UnlockTexture(t);
 	
 	//set blend mode
 	if (SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND) < 0) {
@@ -134,34 +123,34 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 
 void graphics_TextureFromSDL(struct graphicstexture* gt) {
 	if (!gt->tex || gt->threadingptr || !gt->name) {return;}
-	
-	/*gt->pixels = malloc(gt->width * gt->height * 4);
-	if (!gt->pixels) {
-		//turn this into a failed-to-load texture
-		SDL_DestroyTexture(gt->tex);
-		gt->tex = NULL;
-		return;
-	}
-	
-	//Lock SDL Texture
-	void* pixels;int pitch;
-	if (SDL_LockTexture(gt->tex, NULL, &pixels, &pitch) != 0) {
-		//success, the texture is now officially garbage.
-		//can/should we do anything about this? (a purely visual problem)
-		printf("Warning: SDL_LockTexture() failed\n");
-	}else{
-	
-		//Copy texture
-		if (pitch == 0) {
-			memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
-		}else{
-			//anything we should be doing here?
-			printf("Warning: Unexpected texture pitch");
-		}
 
-		//unlock texture again
-		SDL_UnlockTexture(gt->tex);
-	}*/
+	if (!gt->pixels) {	
+		gt->pixels = malloc(gt->width * gt->height * 4);
+		if (!gt->pixels) {
+			//wipe this texture
+			SDL_DestroyTexture(gt->tex);
+			gt->tex = NULL;
+			free(gt->name);
+			gt->name = NULL;
+			return;
+		}
+	
+		//Lock SDL Texture
+		void* pixels;int pitch;
+		if (SDL_LockTexture(gt->tex, NULL, &pixels, &pitch) != 0) {
+			//success, the texture is now officially garbage.
+			//can/should we do anything about this? (a purely visual problem)
+			printf("Warning: SDL_LockTexture() failed\n");
+		}else{
+	
+			//Copy texture
+			memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
+
+			//unlock texture again
+			SDL_UnlockTexture(gt->tex);
+
+		}
+	}
 		
 	SDL_DestroyTexture(gt->tex);
 	gt->tex = NULL;
