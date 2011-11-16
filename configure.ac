@@ -33,8 +33,12 @@ AS_IF([test -z "$maybeos"],[
 	CFLAGS="$CFLAGS -rdynamic"
 	if [[ ${CHOST} == *-darwin* ]]; then
 		LIBS="$LIBS -lpthread -ldl -m -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
+		WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
+
 	else
 		LIBS="-lpthread -ldl -lm"
+		WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+
 	fi
 
 	WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB"
@@ -73,7 +77,7 @@ AS_IF([test -z "$maybeos"],[
 	TGHOST="$host_alias"
 	AC_SUBST(TGHOST)
 	
-	WRITELINE="luatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB"
+	WRITELINE="luatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	echo -e "$WRITELINE" > scripts/.luatarget
 
 	CFLAGS="$CFLAGS -D_WIN32_WINNT=0x0501 -DWIN -mconsole -L../ -I../"
