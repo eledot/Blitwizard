@@ -34,10 +34,10 @@ AS_IF([test -z "$maybeos"],[
 	MACTEST=`uname -a | grep Darwin`
 	AS_IF([test -z "$MACTEST"],[
 		LIBS="-lpthread -ldl -lm"
-                WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+                WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	],[
 		LIBS="$LIBS -lpthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
-                WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
+                WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
 	])
 
 	echo -e "$WRITELINE" > scripts/.luatarget
