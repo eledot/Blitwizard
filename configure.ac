@@ -31,7 +31,7 @@ AS_IF([test -z "$maybeos"],[
 	# >> Unix
 
 	CFLAGS="$CFLAGS -rdynamic"
-	if [[ "${CHOST}" == *-darwin* ]]; then
+	if [[ "${TGHOST}" == *-darwin* ]]; then
 		LIBS="$LIBS -lpthread -ldl -m -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
 		WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
 
@@ -41,7 +41,6 @@ AS_IF([test -z "$maybeos"],[
 
 	fi
 
-	WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB"
 	echo -e "$WRITELINE" > scripts/.luatarget
 	
 	AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
