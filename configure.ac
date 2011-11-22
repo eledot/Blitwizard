@@ -31,15 +31,14 @@ AS_IF([test -z "$maybeos"],[
 	# >> Unix
 
 	CFLAGS="$CFLAGS -rdynamic"
-	if [[ "${TGHOST}" == *-darwin* ]]; then
-		LIBS="$LIBS -lpthread -ldl -m -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
-		WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
-
-	else
+	MACTEST=`uname -a | grep Drawin`
+	AS_IF([ test -z "$MACTEST" ],[
 		LIBS="-lpthread -ldl -lm"
-		WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
-
-	fi
+                WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+	],[
+		LIBS="$LIBS -lpthread -ldl -m -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
+                WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
+	])
 
 	echo -e "$WRITELINE" > scripts/.luatarget
 	
