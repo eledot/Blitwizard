@@ -2,7 +2,7 @@
 
 cd ..
 
-luatarget=`cat scripts/.luatarget | grep luatarget | sed -re 's/^luatarget\=//'`
+luatarget=`cat scripts/.buildinfo | grep luatarget | sed -e 's/^luatarget\=//'`
 changedhost=""
 
 if [ -f scripts/.depsarebuilt ]; then
@@ -16,10 +16,11 @@ if [ -f scripts/.depsarebuilt ]; then
 	fi
 fi
 
-CC=`cat scripts/.luatarget | grep CC | sed -re 's/^.+\=//'`
-RANLIB=`cat scripts/.luatarget | grep RANLIB | sed -re 's/^.+\=//'`
-AR=`cat scripts/.luatarget | grep AR | sed -re 's/^.+\=//'`
-HOST=`cat scripts/.luatarget | grep HOST | sed -re 's/^.+\=//'`
+CC=`cat scripts/.buildinfo | grep CC | sed -e 's/^.*\=//'`
+RANLIB=`cat scripts/.buildinfo | grep RANLIB | sed -e 's/^.*\=//'`
+AR=`cat scripts/.buildinfo | grep AR | sed -e 's/^.*\=//'`
+HOST=`cat scripts/.buildinfo | grep HOST | sed -e 's/^.*\=//'`
+MACBUILD=`cat scripts/.buildinfo | grep MACBUILD | sed -e 's/^.*\=//'`
 
 if [ ! -f src/imgloader/png/png.c ]; then
 	echo "MISSING DEPENDENCY: Please extract the contents of a recent libpng tarball into src/imgloader/png/ - or read README.txt";
@@ -62,7 +63,11 @@ cd $dir
 # Build vorbis and remember to tell it where ogg is
 oggincludedir="`pwd`/src/ogg/include/"
 ogglibrarydir="`pwd`/src/ogg/src/.libs/"
-cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+if [ "MACBUILD" != "yes" ]; then
+	cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+else
+	cd src/vorbis && ./configure --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+fi
 cd $dir
 
 # Build SDL 1.3

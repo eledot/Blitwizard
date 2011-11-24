@@ -31,14 +31,16 @@ AS_IF([test -z "$maybeos"],[
 	# >> Unix
 
 	CFLAGS="$CFLAGS -rdynamic"
-	if [[ ${CHOST} == *-darwin* ]]; then
-		LIBS="$LIBS -lpthread -ldl -m -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
-	else
+	MACTEST=`uname -a | grep Darwin`
+	AS_IF([test -z "$MACTEST"],[
 		LIBS="-lpthread -ldl -lm"
-	fi
+                WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+	],[
+		LIBS="$LIBS -lpthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
+                WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
+	])
 
-	WRITELINE="luatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB"
-	echo -e "$WRITELINE" > scripts/.luatarget
+	echo -e "$WRITELINE" > scripts/.buildinfo
 	
 	AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 	#AC_CHECK_LIB([sqlite3], [sqlite3_prepare_v2],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
@@ -73,8 +75,8 @@ AS_IF([test -z "$maybeos"],[
 	TGHOST="$host_alias"
 	AC_SUBST(TGHOST)
 	
-	WRITELINE="luatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB"
-	echo -e "$WRITELINE" > scripts/.luatarget
+	WRITELINE="\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+	echo -e "$WRITELINE" > scripts/.buildinfo
 
 	CFLAGS="$CFLAGS -D_WIN32_WINNT=0x0501 -DWIN -mconsole -L../ -I../"
 	LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lole32 -lwinmm -luuid -lversion"
