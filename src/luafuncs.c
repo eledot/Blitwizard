@@ -150,10 +150,6 @@ int luafuncs_getTime(lua_State* l) {
 	return 1;
 }
 
-luafuncs_quit(lua_State* l) {
-	exit(0);
-}
-
 int luafuncs_getImageSize(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
@@ -194,7 +190,7 @@ int luafuncs_drawImage(lua_State* l) {
 		return lua_error(l);
 	}
 	if (lua_type(l,3) != LUA_TNUMBER) {
-		lua_pushstring(l, "Third parameter is not a valid x position number");
+		lua_pushstring(l, "Third parameter is not a valid y position number");
 		return lua_error(l);
 	}
 	x = lua_tointeger(l,2);

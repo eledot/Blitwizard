@@ -94,10 +94,6 @@ static lua_State* luastate_New() {
 	lua_pushstring(l, "time");
 	luastate_CreateTimeTable(l);
 	lua_settable(l,-3);
-	
-	lua_pushstring(l, "quit");
-	lua_pushcfunction(l, &luafuncs_quit);
-	lua_settable(l,-3);
 
 	lua_setglobal(l, "blitwiz");
 	

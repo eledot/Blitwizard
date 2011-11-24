@@ -1,0 +1,163 @@
+<!DOCTYPE HTML>
+<html>
+<body>
+<a name="0toc"><h1>0. Table of Contents</h1></a>
+<ul>
+<li><a href="#1introduction">1. Introduction</a></li>
+<li><a href="#2summary">2. API summary and document structure</a></li>
+<li><a href="#3blitwiz.graphics">3. <i>blitwiz.graphics</i> namespace</a></li>
+<li><a href="#4os">4. <i>os</i> standard namespace extension</a></li>
+<li><a href="#5string">5. <i>string</i> standard namespace extension</a></li>
+</ul>
+<a name="1introduction"><h1>1. Introduction</h1></a>
+<p>This document describes the blitwizard Lua api with all provided functions.
+Since blitwizard is intended for use with Lua 5 (which it includes),
+those are mainly the functions you will use to program your games.</p>
+<p>Event callbacks are also listed in the <a href="">event section</a>.</p>
+<p>If this document refers to namespaces, this actually means the Lua tables in
+the global space that hold sub functions and variables conveniently packed into
+common modules, e.g. the string table or the os table of the standard lib.</p>
+<a name="2summary"><h1>2. API summary and document structure</h1></a>
+<p>
+Blitwizard mainly comes with an own blitwiz namespace, but also extends the Lua 5
+standard library which it contains. The Lua 5 standard functions are <b>not</b> described
+here but nevertheless important for using Lua, so
+<a href="http://www.lua.org/manual/5.1/manual.html#5">take a look at Lua's standard lib reference</a>
+if you aren't familiar with them.</p>
+<p>The blitwizard extensions to the standard library however, consisting of additional
+functions added to the Lua 5 standard namespaces,
+e.g. <a href="#5string">additional string functions</a>, are described in this document.</p>
+<p>All functions listed in this document are listed with their names, parameters and return value,
+whereas a parameter type and return value type
+is specified.
+Of course Lua allows you to specify variables of any type as parameter,
+but most functions will error if you submit an unfitting type.
+The types are specified
+in brackets behind the parameters like this: <i>(number)</i>. The return value is
+described in the more lengthy description which
+follows each listed function.</p>
+<p>Those types refer to standard Lua 5 variable types: <i>number, string, boolean, nil</i></p>
+<p>The Lua 5 of blitwizard is mostly compiled with standard settings, e.g. numbers
+being double 64bit floating point numbers. Null bytes in strings are generally not
+supported by functions in the blitwiz namespace (those will cut the string off at the
+first null byte), while all extension functions put into the standard namespaces (like
+the string functions) can deal with null bytes similar to Lua's own internal string
+functions.</p>
+<a name="3blitwiz.graphics"><h1>3. <i>blitwiz.graphics</i> namespace</h1></a>
+<ul>
+
+<li><h2><a name="blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>(filename <i>(string)</i>, x position <i>(number)</i>, y position <i>(number)</i>, alpha <i>(number)</i>)</h2>
+<p>
+Draw a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#on_image">on_image</a>).
+Throws an error if the image isn't fully loaded.
+Don't use this call anywhere else than from inside <a href="#on_draw">on_draw</a>.
+</p>
+<p>
+Parameters:
+<ul>
+<li>filename <i>(string)</i> &mdash; specify the filename/path of the loaded image</li>
+<li>x position <i>(number)</i> &mdash; horizontal position in pixels (0 is left, positive goes right) on the screen</li>
+<li>y position <i>(number)</i> &mdash; vertical position in pixels (0 is top, positive goes downwards) on the screen</li>
+<li>alpha <i>(number, optional)</i> &mdash; alpha transparency in the range 0..1, with 0 being completely invisible and 1 fully opaque. default is 1</li>
+</ul>
+</p>
+<p>
+Return value: <i>nil</i> &mdash; none
+</p>
+</li>
+
+<li><h2><a name="blitwiz.graphics.getImageSize">blitwiz.graphics.getImageSize</a>(filename <i>(string)</i>)</h2>
+<p>
+Returns the size of a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#on_image">on_image</a>).
+Throws an error if the image isn't fully loaded.
+</p>
+<p>
+Parameters:
+<ul>
+<li>filename <i>(string)</i> &mdash; specify the filename/path of the loaded image</li>
+</ul>
+</p>
+<p>
+Return values: image width <i>(number)</i>, image height <i>(number)</i>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.graphics.getWindowSize">blitwiz.graphics.getWindowSize</a>()</h2>
+<p>
+Returns the size of the currently open window (see <a href="#blitwiz.graphics.setWindow">blitwiz.graphics.setWindow</a>).
+Throws an error if no window is open.
+</p>
+<p>
+Parameters: None
+</p>
+<p>
+Return values: window width <i>(number)</i>, window height <i>(number)</i>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>(filename <i>(string)</i>)</h2>
+<p>
+Prompt an image file for loading for use in drawing operations. This needs to be done
+for any image you want to use with e.g. <a href="#blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>
+later.
+</p>
+<p>
+Please note image loading is <b>not</b> processed immediately! Instead, image loading is done in the
+background while the script execution and engine operation continues fully, and as soon as the image
+loading process has finished, you'll get an <a href="#on_image">on_image</a> event call.
+<p>
+<p>Do not use any image for drawing before you got the on_image event with reported success! It will
+yield an error.</p>
+<p>
+Parameters:
+<ul>
+<li>filename <i>(string)</i> &mdash; specify the filename/path of the image</li>
+</ul>
+</p>
+<p>
+Return value: <i>nil</i> &mdash; none
+</p>
+</li>
+
+<li><h2><a name="blitwiz.graphics.setWindow">blitwiz.graphics.setWindow</a>(width <i>(number)</i>, height <i>(number)</i>, title<i>(string)</i>, fullscreen<i>(boolean)</i>, renderer<i>(string)</i>)</h2>
+<p>
+Open a new graphics output window, or change the settings for a currently opened
+window in case there is one already opened. If there is a problem opening a window,
+an error will be triggered.
+</p>
+<p>You can also <i>close</i> the window by passing no parameters.</p>
+<p>
+Generally, you should expect errors for two cases: fullscreen windows with an unsupported
+resolution (in such case, you could automatically retry with windowed mode), and driver issues
+which make the renderer unable to startup. Blitwizard mostly picks an accelerated renderer (either "direct3d" or "opengl")
+per default, see renderer parameter below, so you can try to specify "software" as a fallback
+in case of an error to see if that one works.
+</p>
+<p>
+Parameters:
+<ul>
+<li>width <i>(number)</i> &mdash; specify the width (in pixels) of the output window</li>
+<li>height <i>(number)</i> &mdash; specify the height (in pixels) of the output window</li>
+<li>title <i>(string, optional)</i> &mdash; specify a window title for the title bar</li>
+<li>fullscreen <i>(boolean, optional)</i> &mdash; specify if the window should be fullscreen (true) or not (false) - default is false</li>
+<li>renderer <i>string</i> &mdash; specify a preferred renderer. this specifies the
+backend blitwizard will use to output the graphics, which can be one of the following:
+"software", "direct3d", "opengl". Please note that "direct3d" is only available on Windows systems!
+<p>Generally you shouldn't force anything here, except if you want to allow the user to specify a
+renderer explicitely or when setWindow fails with the default choice (which is different depending
+on various things like the platform).
+</p>
+<p>
+In such a case, make sure to call <a href="#os.systemname">os.systemname</a> and check for "windows"
+before you offer or attempt to use direct3d.
+</p>
+</li>
+</ul>
+</p>
+</li>
+
+</ul>
+<a name="4os"><h1>4. <i>os</i> standard namespace extension</h1></a>
+<a name="5string"><h1>5. <i>string</i> standard namespace extension<h1></a>
+</body>
+</html>
