@@ -1,5 +1,14 @@
 <!DOCTYPE HTML>
 <html>
+<head>
+<style type="text/css">
+.code {
+	padding:1em;
+	border:1px solid #000;
+	font-family:monospace;
+	white-space:pre;
+}
+</style>
 <body>
 <a name="0toc"><h1>0. Table of Contents</h1></a>
 <ul>
@@ -53,18 +62,28 @@ Draw a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.gra
 Throws an error if the image isn't fully loaded.
 Don't use this call anywhere else than from inside <a href="#on_draw">on_draw</a>.
 </p>
+<p>Currently supported file formats: PNG (.png)</p>
 <p>
 Parameters:
 <ul>
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the loaded image</li>
-<li>x position <i>(number)</i> &mdash; horizontal position in pixels (0 is left, positive goes right) on the screen</li>
-<li>y position <i>(number)</i> &mdash; vertical position in pixels (0 is top, positive goes downwards) on the screen</li>
+<li>x position <i>(number)</i> &mdash; horizontal position in pixels (0 is left, positive goes right) on the screen, negative coordinates are also allowed (image will be blitted partly or fully moved out of the screen)</li>
+<li>y position <i>(number)</i> &mdash; vertical position in pixels (0 is top, positive goes downwards) on the screen, negative coordinates possible (see above)</li>
 <li>alpha <i>(number, optional)</i> &mdash; alpha transparency in the range 0..1, with 0 being completely invisible and 1 fully opaque. default is 1</li>
 </ul>
 </p>
 <p>
 Return value: <i>nil</i> &mdash; none
 </p>
+<p>
+Examples:
+<div class="code">-- Draw an image at position 5,5 into the currently opened output window
+blitwiz.graphics.drawImage("mypicture.png", 5, 5)
+
+-- Draw the image again moved to the right with only 75% visibility (slightly transparent):
+blitwiz.graphics.drawImage("mypicture.png", 150, 5, 0.75)
+</div>
+<p>
 </li>
 
 <li><h2><a name="blitwiz.graphics.getImageSize">blitwiz.graphics.getImageSize</a>(filename <i>(string)</i>)</h2>
@@ -80,6 +99,13 @@ Parameters:
 </p>
 <p>
 Return values: image width <i>(number)</i>, image height <i>(number)</i>
+</p>
+<p>
+Example:
+<div class="code">-- Output the size of an image
+local w,h = blitwiz.graphics.getImageSize("mypicture.png")
+print("The size of mypicture.png is: " .. tostring(w) .. "," .. tostring(h))
+</div>
 </p>
 </li>
 
@@ -118,6 +144,15 @@ Parameters:
 <p>
 Return value: <i>nil</i> &mdash; none
 </p>
+<p>
+Example:
+<div class="code">-- Load an image:
+blitwiz.graphics.loadImage("mypicture.png")
+
+-- Here at this point, the image is NOT available for use yet, so drawing and all that will fail.
+-- We need to wait for an <a href="#on_image">on_image</a> event first!
+</div>
+</p>
 </li>
 
 <li><h2><a name="blitwiz.graphics.setWindow">blitwiz.graphics.setWindow</a>(width <i>(number)</i>, height <i>(number)</i>, title<i>(string)</i>, fullscreen<i>(boolean)</i>, renderer<i>(string)</i>)</h2>
@@ -154,6 +189,22 @@ before you offer or attempt to use direct3d.
 </p>
 </li>
 </ul>
+</p>
+<p>
+Example:
+<div class="code">-- Attempt to run in fullscreen and open a window if that doesn't work
+
+local function openwindowfullscreen()
+	blitwiz.graphics.setWindow(800,600,"My Game",true)
+end
+
+-- Attempt fullscreen first
+local success = pcall(openwindowfullscreen)
+if success ~= true then
+	-- Fallback to windowed mode
+	blitwiz.graphics.setWindow(800,600,"My Game",false)
+end
+</div>
 </p>
 </li>
 
