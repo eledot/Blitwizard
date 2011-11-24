@@ -6,8 +6,9 @@
 <li><a href="#1introduction">1. Introduction</a></li>
 <li><a href="#2summary">2. API summary and document structure</a></li>
 <li><a href="#3blitwiz.graphics">3. <i>blitwiz.graphics</i> namespace</a></li>
-<li><a href="#4os">4. <i>os</i> standard namespace extension</a></li>
-<li><a href="#5string">5. <i>string</i> standard namespace extension</a></li>
+<li><a href="#4blitwiz.on_*">4. Event callbacks</a></li>
+<li><a href="#5os">5. <i>os</i> standard namespace extension</a></li>
+<li><a href="#6string">6. <i>string</i> standard namespace extension</a></li>
 </ul>
 <a name="1introduction"><h1>1. Introduction</h1></a>
 <p>This document describes the blitwizard Lua api with all provided functions.
@@ -157,7 +158,44 @@ before you offer or attempt to use direct3d.
 </li>
 
 </ul>
-<a name="4os"><h1>4. <i>os</i> standard namespace extension</h1></a>
-<a name="5string"><h1>5. <i>string</i> standard namespace extension<h1></a>
+<a name="4blitwiz.on_*"><h1>4. Event callbacks</h1></a>
+<ul>
+
+<li><h2><a name="blitwiz.on_image">blitwiz.on_image</a>(texture name <i>(string)</i>, result <i>(boolean)</i>)</h2>
+<p>
+If you define this function in your program in the global space, it will be called
+as soon as an image has either finished loading and is now available for drawing
+operations, or if an image has failed loading and won't be available at all.
+</p>
+<p>
+While the first parameter given to you , the
+second parameter .
+</p>
+<p>
+Parameters:
+<ul>
+<li>texture name <i>(string)</i> &mdash; contains the texture path (which was originally
+provided to <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>)</li>
+<li>result <i>(boolean)</i> &mdash; indicates whether the image has been successfully loaded (in which case
+it will be true), or failed to load (in which case it will be false)</li>
+</ul>
+</p>
+<p>
+Example:
+<div class="code">--Print out the loading result of any loaded image
+function blitwiz.on_image(texture, result)
+	if result == true then
+		print ("Image " .. texure .. " has been loaded and is now available for drawing.")
+	else
+		print ("Image " .. texture .. " failed to load!")
+	end
+end
+</div>
+</p>
+</li>
+
+</ul>
+<a name="5os"><h1>5. <i>os</i> standard namespace extension</h1></a>
+<a name="6string"><h1>6. <i>string</i> standard namespace extension<h1></a>
 </body>
 </html>
