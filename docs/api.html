@@ -56,8 +56,8 @@ Don't use this call anywhere else than from inside <a href="#on_draw">on_draw</a
 Parameters:
 <ul>
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the loaded image</li>
-<li>x position <i>(number)</i> &mdash; horizontal position in pixels (0 is left, positive goes right) on the screen</li>
-<li>y position <i>(number)</i> &mdash; vertical position in pixels (0 is top, positive goes downwards) on the screen</li>
+<li>x position <i>(number)</i> &mdash; horizontal position in pixels (0 is left, positive goes right) on the screen, negative coordinates are also allowed (image will be blitted partly or fully moved out of the screen)</li>
+<li>y position <i>(number)</i> &mdash; vertical position in pixels (0 is top, positive goes downwards) on the screen, negative coordinates possible (see above)</li>
 <li>alpha <i>(number, optional)</i> &mdash; alpha transparency in the range 0..1, with 0 being completely invisible and 1 fully opaque. default is 1</li>
 </ul>
 </p>

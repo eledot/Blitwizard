@@ -11,7 +11,7 @@ scripts/blitwizard*
 src/blitwizard
 .deps
 ltmain.sh
-.luatarget
+.buildinfo
 .depsarebuilt
 libtool
 m4
