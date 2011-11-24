@@ -58,9 +58,9 @@ functions.</p>
 
 <li><h2><a name="blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>(filename <i>(string)</i>, x position <i>(number)</i>, y position <i>(number)</i>, alpha <i>(number)</i>)</h2>
 <p>
-Draw a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#on_image">on_image</a>).
+Draw a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#blitwiz.on_image">on_image</a>).
 Throws an error if the image isn't fully loaded.
-Don't use this call anywhere else than from inside <a href="#on_draw">on_draw</a>.
+Don't use this call anywhere else than from inside <a href="#blitwiz.on_draw">on_draw</a>.
 </p>
 <p>Currently supported file formats: PNG (.png)</p>
 <p>
@@ -88,7 +88,7 @@ blitwiz.graphics.drawImage("mypicture.png", 150, 5, 0.75)
 
 <li><h2><a name="blitwiz.graphics.getImageSize">blitwiz.graphics.getImageSize</a>(filename <i>(string)</i>)</h2>
 <p>
-Returns the size of a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#on_image">on_image</a>).
+Returns the size of a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#blitwiz.on_image">on_image</a>).
 Throws an error if the image isn't fully loaded.
 </p>
 <p>
@@ -131,10 +131,18 @@ later.
 <p>
 Please note image loading is <b>not</b> processed immediately! Instead, image loading is done in the
 background while the script execution and engine operation continues fully, and as soon as the image
-loading process has finished, you'll get an <a href="#on_image">on_image</a> event call.
+loading process has finished, you'll get an <a href="#blitwiz.on_image">on_image</a> event call.
 <p>
 <p>Do not use any image for drawing before you got the on_image event with reported success! It will
 yield an error.</p>
+<p>Calling <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>
+when the image is already being loaded simply does nothing. As soon as an
+<a href="#blitwiz.on_image">on_image</a> event reports success, any further
+calls attempting to load such an image will result in an error that the image
+is already loaded.
+If <a href="#blitwiz.on_image">on_image</a> reported failure, you can retry
+<a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> if you
+think that will help.
 <p>
 Parameters:
 <ul>
@@ -150,7 +158,7 @@ Example:
 blitwiz.graphics.loadImage("mypicture.png")
 
 -- Here at this point, the image is NOT available for use yet, so drawing and all that will fail.
--- We need to wait for an <a href="#on_image">on_image</a> event first!
+-- We need to wait for an <a href="#blitwiz.on_image">on_image</a> event first!
 </div>
 </p>
 </li>
@@ -158,16 +166,32 @@ blitwiz.graphics.loadImage("mypicture.png")
 <li><h2><a name="blitwiz.graphics.setWindow">blitwiz.graphics.setWindow</a>(width <i>(number)</i>, height <i>(number)</i>, title<i>(string)</i>, fullscreen<i>(boolean)</i>, renderer<i>(string)</i>)</h2>
 <p>
 Open a new graphics output window, or change the settings for a currently opened
-window in case there is one already opened. If there is a problem opening a window,
+window in case there is one already opened.
+You can also <i>close</i> the window by passing no parameters.
+If there is a problem opening a window,
 an error will be triggered.
 </p>
-<p>You can also <i>close</i> the window by passing no parameters.</p>
+<p></p>
 <p>
-Generally, you should expect errors for two cases: fullscreen windows with an unsupported
+You should expect errors for two cases: fullscreen windows with an unsupported
 resolution (in such case, you could automatically retry with windowed mode), and driver issues
-which make the renderer unable to startup. Blitwizard mostly picks an accelerated renderer (either "direct3d" or "opengl")
+which make the renderer unable to startup.
+Blitwizard mostly picks an accelerated renderer (either "direct3d" or "opengl")
 per default, see renderer parameter below, so you can try to specify "software" as a fallback
 in case of an error to see if that one works.
+</p>
+<p>
+Texture loading is possible without any open window, and textures remain
+available even if you call setWindow again or setWindow fails.
+As soon as setWindow succeeds
+in creating or changing a window, you will be able to use all previously loaded
+textures instantly
+without any further actions required.
+</p>
+<p>
+Please note on a renderer change, this function call can take a few seconds of time
+which it needs for transferring all the textures to the new renderer - it will block
+and only return as soon as the renderer change is complete.
 </p>
 <p>
 Parameters:
@@ -212,15 +236,42 @@ end
 <a name="4blitwiz.on_*"><h1>4. Event callbacks</h1></a>
 <ul>
 
+<li><h2><a name="blitwiz.on_draw">blitwiz.on_draw</a>()</h2>
+<p>
+If you define this function in your program in the global space, it will be called
+each time blitwizard scheduled a redraw (this happens automatically many times in
+a second, you don't have to do anything for it).
+</p>
+<p>Place all your <a href="#blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>
+calls into this function.</p>
+<p>
+Parameters:
+<ul>
+<li>texture name <i>(string)</i> &mdash; contains the texture path (which was originally
+provided to <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>)</li>
+<li>result <i>(boolean)</i> &mdash; indicates whether the image has been successfully loaded (in which case
+it will be true), or failed to load (in which case it will be false)</li>
+</ul>
+</p>
+<p>
+Example:
+<div class="code">--Print out the loading result of any loaded image
+function blitwiz.on_image(texture, result)
+	if result == true then
+		print ("Image " .. texure .. " has been loaded and is now available for drawing.")
+	else
+		print ("Image " .. texture .. " failed to load!")
+	end
+end
+</div>
+</p>
+</li>
+
 <li><h2><a name="blitwiz.on_image">blitwiz.on_image</a>(texture name <i>(string)</i>, result <i>(boolean)</i>)</h2>
 <p>
 If you define this function in your program in the global space, it will be called
 as soon as an image has either finished loading and is now available for drawing
 operations, or if an image has failed loading and won't be available at all.
-</p>
-<p>
-While the first parameter given to you , the
-second parameter .
 </p>
 <p>
 Parameters:
