@@ -270,6 +270,26 @@ end
 <a name="4blitwiz.on_*"><h1>4. Event callbacks</h1></a>
 <ul>
 
+<li><h2><a name="blitwiz.on_close">blitwiz.on_close</a>()</h2>
+<p>
+If you define this function in your program in the global space,
+it will be called when the user clicks the close button in the
+title bar (in windowed mode).
+</p>
+<p>
+If you don't do anything, the user will be unable to easily close
+the window! Therefore, it is recommended you put this code into
+your programs if you don't wish to add special confirmation questions
+which should delay the termination progress:
+</p>
+<p>
+<div class="code">function blitwiz.on_close()
+	os.exit(0)
+end
+</div>
+</p>
+</li>
+
 <li><h2><a name="blitwiz.on_draw">blitwiz.on_draw</a>()</h2>
 <p>
 If you define this function in your program in the global space, it will be called
@@ -277,27 +297,8 @@ each time blitwizard scheduled a redraw (this happens automatically many times i
 a second, you don't have to do anything for it).
 </p>
 <p>Place all your <a href="#blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>
-calls into this function.</p>
-<p>
-Parameters:
-<ul>
-<li>texture name <i>(string)</i> &mdash; contains the texture path (which was originally
-provided to <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>)</li>
-<li>result <i>(boolean)</i> &mdash; indicates whether the image has been successfully loaded (in which case
-it will be true), or failed to load (in which case it will be false)</li>
-</ul>
-</p>
-<p>
-Example:
-<div class="code">--Print out the loading result of any loaded image
-function blitwiz.on_image(texture, result)
-	if result == true then
-		print ("Image " .. texure .. " has been loaded and is now available for drawing.")
-	else
-		print ("Image " .. texture .. " failed to load!")
-	end
-end
-</div>
+calls into this function. Put any game logic and physics into
+<a href="#blitwiz.on_step">on_step</a>.
 </p>
 </li>
 
@@ -325,6 +326,31 @@ function blitwiz.on_image(texture, result)
 	else
 		print ("Image " .. texture .. " failed to load!")
 	end
+end
+</div>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.on_init">blitwiz.on_init</a>()</h2>
+<p>
+This function is called once when blitwizard starts.
+You should open a window here if you wish to do graphical things.
+</p>
+<p>
+Please note when this functions returns without any window being open,
+blitwizard quits (instead of calling
+<a href="#blitwiz.on_step">on_step</a>
+and
+<a href="#blitwiz.on_draw">on_draw</a>
+constantly and keeping your game running even if the window is later
+temporarily closed).
+This is done to support short Lua command line programs aswell.
+</p>
+<p>
+Example:
+<div class="code">function blitwiz.on_init()
+	-- Open a window
+	blitwiz.graphics.setWindow(400,300)
 end
 </div>
 </p>
@@ -402,6 +428,54 @@ Parameters:
 <li>x <i>(number)</i> &mdash; the mouse position's x coordinate where the action was triggered</li>
 <li>y <i>(number)</i> &mdash; the mouse position's y</li>
 </ul>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.on_step">blitwiz.on_step</a>()</h2>
+<p>
+This function is called constantly every 16ms (that is 62.5 times a second).
+While blitwizard cannot guarantee that this amount of time is exactly met
+each cycle, it will guarantee this amount of time is met on average (so up
+to a larger span like one second, those amount of cycles is pretty much set
+in stone).
+</p>
+<p>
+In this function, you should do all game logic (like calculating speed,
+movement, new positions), not any drawing. Due to the guaranteed constantness,
+you will not need to do any sort of time measurement and adaption for the
+<a href="http://en.wikipedia.org/wiki/Frame_rate">FPS</a>
+of the game for yourself - the fixed call interval of
+<a href="#blitwiz.on_step">on_step</a> will make this completely
+unnecessary.
+</p>
+<p>
+Drawing, which needs more processing time than the logic usually,
+happens independently in <a href="#blitwiz.on_draw">on_draw</a> and
+is subject to the usual fluctuations in speed and still highly depends
+on the machine the game runs on for its varying interval.
+</p>
+<p>
+Please note that there is one little exception to the constantness: If you do
+very computationally extensive activies like pathfinding, moving massive amount
+of enemies or blocking activies like file disk access, you will indeed break
+the constant interval calls.
+</p>
+<p>Doing this rarely (e.g. with a file disk access
+for loading something at loading screen time) is no problem, but if you exceed
+your time constantly, the game will simply lag as hell :-) so while this problem
+should be usually no issue to be avoided if you take a bit care of what and how
+much you're doing, you should keep this limitation in mind.
+</p>
+<p>
+Example:
+<div class="code">--Terminate the program when the user clicks the upper left corner of the drawing area:
+function blitwiz.on_mousedown(button, x, y)
+	if x < 50 and y < 50 then
+		-- Quit the program
+		os.exit(0)
+	end
+end
+</div>
 </p>
 </li>
 
