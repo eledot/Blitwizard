@@ -91,52 +91,52 @@ static void mousebuttonevent(int button, int release, int x, int y) {
 static void mousemoveevent(int x, int y) {
 	char* error;
 	if (!luastate_PushFunctionArgumentToMainstate_Double(x)) {
-                printerror("Error when pushing func args to blitwiz.on_mousemove\n");
-                fatalscripterror();
-                return;
-        }
-        if (!luastate_PushFunctionArgumentToMainstate_Double(y)) {
-                printerror("Error when pushing func args to blitwiz.on_mousemove\n");
-                fatalscripterror();
-                return;
-        }
-        if (!luastate_CallFunctionInMainstate("blitwiz.on_mousemove", 2, 1, 1, &error)) {
-                printerror("Error when calling blitwiz.on_mousemove: %s\n", error);
-                if (error) {free(error);}
-                fatalscripterror();
-                return;
-        }
+		printerror("Error when pushing func args to blitwiz.on_mousemove\n");
+		fatalscripterror();
+		return;
+	}
+	if (!luastate_PushFunctionArgumentToMainstate_Double(y)) {
+		printerror("Error when pushing func args to blitwiz.on_mousemove\n");
+		fatalscripterror();
+		return;
+	}
+	if (!luastate_CallFunctionInMainstate("blitwiz.on_mousemove", 2, 1, 1, &error)) {
+		printerror("Error when calling blitwiz.on_mousemove: %s\n", error);
+		if (error) {free(error);}
+		fatalscripterror();
+		return;
+	}
 }
 static void keyboardevent(const char* button, int release) {
 	char* error;
 	char onkeyup[] = "blitwiz.on_keyup";
 	const char* funcname = "blitwiz.on_keydown";
 	if (release) {funcname = onkeyup;}
-        if (!luastate_PushFunctionArgumentToMainstate_String(button)) {
-                printerror("Error when pushing func args to %s\n", funcname);
-                fatalscripterror();
-                return;
-        }
-        if (!luastate_CallFunctionInMainstate(funcname, 1, 1, 1, &error)) {
-                printerror("Error when calling %s: %s\n", funcname, error);
-                if (error) {free(error);}
-                fatalscripterror();
-                return;
-        }
+	if (!luastate_PushFunctionArgumentToMainstate_String(button)) {
+		printerror("Error when pushing func args to %s\n", funcname);
+		fatalscripterror();
+		return;
+	}
+	if (!luastate_CallFunctionInMainstate(funcname, 1, 1, 1, &error)) {
+		printerror("Error when calling %s: %s\n", funcname, error);
+		if (error) {free(error);}
+		fatalscripterror();
+		return;
+	}
 }
 static void textevent(const char* text) {
 	char* error;
 	if (!luastate_PushFunctionArgumentToMainstate_String(text)) {
-                printerror("Error when pushing func args to blitwiz.on_text\n");
-                fatalscripterror();
-                return;
-        }
-        if (!luastate_CallFunctionInMainstate("blitwiz.on_text", 1, 1, 1, &error)) {
-                printerror("Error when calling blitwiz.on_text: %s\n", error);
-                if (error) {free(error);}
-                fatalscripterror();
-                return;
-        }
+		printerror("Error when pushing func args to blitwiz.on_text\n");
+		fatalscripterror();
+		return;
+	}
+	if (!luastate_CallFunctionInMainstate("blitwiz.on_text", 1, 1, 1, &error)) {
+		printerror("Error when calling blitwiz.on_text: %s\n", error);
+		if (error) {free(error);}
+		fatalscripterror();
+		return;
+	}
 }
 
 

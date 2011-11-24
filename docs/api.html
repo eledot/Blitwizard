@@ -2,6 +2,38 @@
 <html>
 <head>
 <style type="text/css">
+a[href] {
+	color:#00f;
+	text-decoration:none;
+}
+a[href]:hover {
+	color:#00f;
+	text-decoration:underline;
+}
+body,html {
+	font-family:Arial,DejaVu Sans;
+	font-size:1em;
+	background-color:#fff;
+	color:#000;
+}
+h1 {
+	font-size:1.5em;
+}
+h2 {
+	font-size:1.2em;
+}
+li h2 {
+	background-color:#cee;
+}
+
+ul {
+	list-style-type:none;
+}
+
+.toc {
+	list-style-type:disc;
+}
+
 .code {
 	padding:1em;
 	border:1px solid #000;
@@ -11,7 +43,7 @@
 </style>
 <body>
 <a name="0toc"><h1>0. Table of Contents</h1></a>
-<ul>
+<ul class="toc">
 <li><a href="#1introduction">1. Introduction</a></li>
 <li><a href="#2summary">2. API summary and document structure</a></li>
 <li><a href="#3blitwiz.graphics">3. <i>blitwiz.graphics</i> namespace</a></li>
@@ -293,6 +325,109 @@ function blitwiz.on_image(texture, result)
 	end
 end
 </div>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.on_keydown">blitwiz.on_keydown</a>(key <i>(string)</i>)</h2>
+<h2><a name="blitwiz.on_keyup">blitwiz.on_keyup</a>(key <i>(string)</i>)</h2>
+<p>
+If you define those functions in your program in the global space, they
+will be called when the user presses (on_keydown) or releases (on_keyup) a key.
+</p>
+<p>
+Please note you should use those functions only for key bindings/action keys,
+not to gather real text input. The reason is that on
+non-English computers, multiple key presses might together generate another character
+(one char through multiple key presses, not one char per key press) which this function
+will not take into account. Use the <a href="#blitwiz.on_text">on_text</a> event for
+multi-language text input support.
+</p>
+<p>
+Parameters:
+<ul>
+<li>key <i>(string)</i> &mdash; a string that describes the key. See <a href="keylist.html">the key list</a> for a complete list of supported keys</li>
+</ul>
+</p>
+<p>
+Example:
+<div class="code">function blitwiz.on_keydown(key)
+	if key == "escape" then
+		-- Quit the program
+		os.exit(0)
+	end
+end
+</div>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.on_mousedown">blitwiz.on_mousedown</a>(button <i>(number)</i>, x <i>(number)</i>, y <i>(number)</i>)</h2>
+<h2><a name="blitwiz.on_mouseup">blitwiz.on_mouseup</a>(button <i>(number)</i>, x <i>(number)</i>, y <i>(number)</i>)</h2>
+<p>
+If you define those functions in your program in the global space, they
+will be called when the user presses (on_mousedown) or releases (on_mouseup)
+a mouse button.
+</p>
+<p>
+Parameters:
+<ul>
+<li>button <i>(number)</i> &mdash; the mouse button pressed or released, 1 for left, 2 for right, 3 for middle, 4...</li>
+<li>x <i>(number)</i> &mdash; the mouse position's x coordinate where the action was triggered</li>
+<li>y <i>(number)</i> &mdash; the mouse position's y</li>
+</ul>
+</p>
+<p>
+Example:
+<div class="code">--Terminate the program when the user clicks the upper left corner of the drawing area:
+function blitwiz.on_mousedown(button, x, y)
+	if x < 50 and y < 50 then
+		-- Quit the program
+		os.exit(0)
+	end
+end
+</div>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.on_mousemove">blitwiz.on_mousemove</a>(x <i>(number)</i>, y <i>(number)</i>)</h2>
+<p>
+If you define this function in your program in the global space,
+it will be called when the mouse is moved over the drawing area of the window.
+Mouse movements outside of the window are not detected.
+</p>
+<p>
+Parameters:
+<ul>
+<li>x <i>(number)</i> &mdash; the mouse position's x coordinate where the action was triggered</li>
+<li>y <i>(number)</i> &mdash; the mouse position's y</li>
+</ul>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.on_text">blitwiz.on_text</a>(text <i>(string)</i>)</h2>
+<p>
+If you define this function in your program in the global space,
+it will be called anytime the user enters text (in parallel to the
+<a href="#blitwiz.on_keydown">on_keydown</a> and <a href="#blitwiz.on_keyup">on_keyup</a>
+events).
+</p>
+<p>Unlike the on_keydown/on_keyup events however, the text
+input event processes all key press combinations even on foreign
+language keyboards properly to generate according Utf-8 output
+with any sort of characters that might be entered in any supported
+language.
+This is accomplished using the advanced Utf-8 processing of the
+<a href="http://libsdl.org/">SDL library</a>.
+</p>
+<p>Please note you still need to take care of actually rendering
+those Utf-8 strings yourself for good foreign language support,
+since the <a href="templates/font/api.html">font renderer template</a>
+cannot exactly process much.
+</p>
+<p>
+Parameters:
+<ul>
+<li>text <i>(string)</i> &mdash; the new letter of group of letters entered, Utf-8 encoded for non-ASCII letters</li>
+</ul>
 </p>
 </li>
 
