@@ -261,10 +261,10 @@ int main(int argc, char** argv) {
 			uint64_t time = time_GetMilliSeconds();
 
 			//limit to roughly 60 FPS
-                        uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;
-                        if (delta < 15) {
-                                time_Sleep(16-delta);
-                        }
+            uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;
+			if (delta < 15) {
+				time_Sleep(16-delta);
+			}
 
 			//first, call the step function
 			while (logictimestamp < time) {
