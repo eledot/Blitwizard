@@ -21,13 +21,15 @@
 
 */
 
+#include "SDL.h"
+
 #define DEFAULTSOUNDBUFFERSIZE 1024
 #define MINSOUNDBUFFERSIZE 512
 #define MAXSOUNDBUFFERSIZE (1024 * 10)
 
 static void*(*samplecallbackptr)(unsigned int) = NULL;
 
-void audiocallback(void *unused, Uint8 *stream, int len) {
+void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
 	memset(stream, 0, (unsigned int)len);
 	if (!samplecallbackptr) {return;}
 	SDL_MixAudio(stream, samplecallbackptr((unsigned int)len), (int)len, SDL_MIX_MAXVOLUME);
@@ -53,9 +55,9 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 	
 	int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
 	if (buffersize > 0) {
-		if (custombufsize < MINSOUNDBUFFERSIZE) {custombufsize = MINSOUNDBUFFERSIZE;}
-		if (custombufsize > MAXSOUNDBUFFERSIZE) {
-			custombufsize = MAXSOUNDBUFFERSIZE;
+		if (buffersize < MINSOUNDBUFFERSIZE) {buffersize = MINSOUNDBUFFERSIZE;}
+		if (buffersize > MAXSOUNDBUFFERSIZE) {
+			buffersize = MAXSOUNDBUFFERSIZE;
 		}
 		custombuffersize = buffersize;
 	}
@@ -63,7 +65,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 	fmt.freq = 48000;
 	fmt.format = AUDIO_S16;
 	fmt.channels = 2;
-	fmt.samples = bufsize;
+	fmt.samples = custombuffersize;
 	fmt.callback = audiocallback;
 	fmt.userdata = NULL;
 	
