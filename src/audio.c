@@ -44,7 +44,9 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		strcpy(preferredbackend, "waveout");
 	}
 #endif
-	if (SDL_AudioInit(preferredbackend) < 0) {
+	const char* b = preferredbackend;
+	if (strlen(b) <= 0) {b = NULL;}
+	if (SDL_AudioInit(b) < 0) {
 		snprintf(errbuf,sizeof(errbuf),"Failed to initialize SDL audio: %s", SDL_GetError());
 		errbuf[sizeof(errbuf)-1] = 0;
 		*error = strdup(errbuf);
