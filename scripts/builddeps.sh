@@ -11,8 +11,8 @@ if [ -f scripts/.depsarebuilt ]; then
 		echo "Deps will be rebuilt to match new different target.";
 		changedhost="yes";
 	else
-        	echo "Deps are already built. To force a rebuild, remove the file scripts/.depsarebuilt";
-        	exit;
+		echo "Deps are already built. To force a rebuild, remove the file scripts/.depsarebuilt";
+		exit 1;
 	fi
 fi
 
@@ -24,27 +24,27 @@ MACBUILD=`cat scripts/.buildinfo | grep MACBUILD | sed -e 's/^.*\=//'`
 
 if [ ! -f src/imgloader/png/png.c ]; then
 	echo "MISSING DEPENDENCY: Please extract the contents of a recent libpng tarball into src/imgloader/png/ - or read README.txt";
-	exit;
+	exit 1;
 fi
 if [ ! -f src/imgloader/zlib/gzlib.c ]; then
-        echo "MISSING DEPENDENCY: Please extract the contents of a recent zlib tarball into src/imgloader/zlib/ - or read README.txt";
-	exit;
+	echo "MISSING DEPENDENCY: Please extract the contents of a recent zlib tarball into src/imgloader/zlib/ - or read README.txt";
+	exit 1;
 fi
 if [ ! -f src/sdl/src/SDL.c ]; then
-        echo "MISSING DEPENDENCY: Please extract the contents of a recent SDL 1.3 tarball into src/sdl/ - or read README.txt";
-	exit;
+	echo "MISSING DEPENDENCY: Please extract the contents of a recent SDL 1.3 tarball into src/sdl/ - or read README.txt";
+	exit 1;
 fi
 if [ ! -f src/vorbis/lib/vorbisenc.c ]; then
-        echo "MISSING DEPENDENCY: Please extract the contents of a recent libvorbis tarball into src/vorbis/ - or read README.txt";
-	exit;
+	echo "MISSING DEPENDENCY: Please extract the contents of a recent libvorbis tarball into src/vorbis/ - or read README.txt";
+	exit 1;
 fi
 if [ ! -f src/ogg/src/framing.c ]; then
-        echo "MISSING DEPENDENCY: Please extract the contents of a recent libogg tarball into src/ogg/ - or read README.txt";
-	exit;
+    echo "MISSING DEPENDENCY: Please extract the contents of a recent libogg tarball into src/ogg/ - or read README.txt";
+	exit 1;
 fi
 if [ ! -f src/lua/src/lua.h ]; then
-        echo "MISSING DEPENDENCY: Please extract the contents of a recent Lua 5 tarball into src/lua/ - or read README.txt";
-        exit;
+	echo "MISSING DEPENDENCY: Please extract the contents of a recent Lua 5 tarball into src/lua/ - or read README.txt";
+	exit 1;
 fi
 
 export CC="$CC"
