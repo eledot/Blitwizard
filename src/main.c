@@ -32,6 +32,7 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "file.h"
 #include "graphics.h"
 #include "timefuncs.h"
+#include "audio.h"
 
 #define TIMESTEP 16
 
@@ -40,6 +41,17 @@ void fatalscripterror() {
 }
 
 void printerror(const char* fmt, ...) {
+	char printline[2048];
+	va_list a;
+	va_start(a, fmt);
+	vsnprintf(printline, sizeof(printline)-1, fmt, a);
+	printline[sizeof(printline)-1] = 0;
+	va_end(a);
+	fprintf(stderr,"%s",printline);
+	fflush(stderr);
+}
+
+void printwarning(const char* fmt, ...) {
 	char printline[2048];
 	va_list a;
 	va_start(a, fmt);
@@ -232,9 +244,16 @@ int main(int argc, char** argv) {
 
 	//initialise graphics
 	if (!graphics_Init(&error)) {
-		printerror("Error when initialising graphics: %s\n",error);
+		printerror("Error: Failed to initialise graphics: %s\n",error);
 		free(error);
 		return -1;
+	}
+	
+	//initialise audio
+	if (!audio_Init(NULL, 0, NULL, &error)) {
+		printwarning("Warning: Failed to initialise audio: %s\n",error);
+		free(error);
+		//non-fatal, however we won't have any working sound output.
 	}
 	
 	//open and run provided file
@@ -242,14 +261,15 @@ int main(int argc, char** argv) {
 		if (error == NULL) {
 			error = outofmem;
 		}
-		printerror("Error when running \"%s\": %s\n",script,error);
-		if (filenamebuf) {free(filenamebuf);}
+		printerror("Error: An error occured when running \"%s\": %s\n",script,error);
+		free(error);
 		return -1;
 	}
 
 	//call init
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error)) {
-		printerror("Error when calling blitwiz.on_init: %s\n",error);
+		printerror("Error: An error occured when calling blitwiz.on_init: %s\n",error);
+		free(error);
 		return -1;
 	}
 	
@@ -269,7 +289,7 @@ int main(int argc, char** argv) {
 			//first, call the step function
 			while (logictimestamp < time) {
 				if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error)) {
-					printerror("Error when calling blitwiz.on_step: %s\n", error);
+					printwarning("Warning: An error occured when calling blitwiz.on_step: %s\n", error);
 					if (error) {free(error);}
 				}
 				logictimestamp += TIMESTEP;
@@ -287,7 +307,7 @@ int main(int argc, char** argv) {
 			
 			//call the drawing function
 			if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error)) {
-				printerror("Error when calling blitwiz.on_draw: %s\n",error);
+				printwarning("Warning: An error occured when calling blitwiz.on_draw: %s\n",error);
 				if (error) {free(error);}
 			}
 			

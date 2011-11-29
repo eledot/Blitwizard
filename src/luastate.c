@@ -216,8 +216,8 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 	
 	//function needs to be first, then arguments. -> correct order
 	if (args > 0) {
-                lua_insert(scriptstate, -(args+1));
-        }
+        lua_insert(scriptstate, -(args+1));
+    }
 
 	//call function
 	int i = lua_pcall(scriptstate, args, 0, 0);

@@ -521,14 +521,14 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 int graphics_IsTextureLoaded(const char* name) {
 	//check texture state
 	struct graphicstexture* gt = graphics_GetTextureByName(name);
-        if (gt) {
-                //check for threaded loading
-                if (gt->threadingptr) {
-                        //it will be loaded.
-                        return 1;
-                }
-                return 2; //texture is already present
-        }
+	if (gt) {
+		//check for threaded loading
+		if (gt->threadingptr) {
+			//it will be loaded.
+			return 1;
+		}
+		return 2; //texture is already present
+	}
 	return 0; //not loaded
 }
 
