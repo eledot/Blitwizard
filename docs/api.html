@@ -161,25 +161,16 @@ Return values: window width <i>(number)</i>, window height <i>(number)</i>
 
 <li><h2><a name="blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>(filename <i>(string)</i>)</h2>
 <p>
-Prompt an image file for loading for use in drawing operations. This needs to be done
+Prompt an image file for loading for use in drawing operations and wait for it to be loaded.
+This needs to be done
 for any image you want to use with e.g. <a href="#blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>
 later.
+Throws an error when image loading fails.
 </p>
-<p>
-Please note image loading is <b>not</b> processed immediately! Instead, image loading is done in the
-background while the script execution and engine operation continues fully, and as soon as the image
-loading process has finished, you'll get an <a href="#blitwiz.on_image">on_image</a> event call.
-<p>
-<p>Do not use any image for drawing before you got the on_image event with reported success! It will
-yield an error.</p>
 <p>Calling <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>
-when the image is already being loaded simply does nothing. As soon as an
-<a href="#blitwiz.on_image">on_image</a> event reports success, any further
-calls attempting to load such an image will result in an error that the image
-is already loaded.
-If <a href="#blitwiz.on_image">on_image</a> reported failure, you can retry
-<a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> if you
-think that will help.
+when the image has been loaded already or is already in progress through a call
+to <a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>,
+then an error is raised.
 <p>
 Parameters:
 <ul class="parameters">
@@ -193,6 +184,45 @@ Return value: <i>nil</i> &mdash; none
 Example:
 <div class="code">-- Load an image:
 blitwiz.graphics.loadImage("mypicture.png")
+
+-- You can now use the image instantly for drawing with <a href="#blitwiz.graphics.drawImage">blitwiz.graphis.drawImage</a>
+</div>
+</p>
+</li>
+
+
+<li><h2><a name="blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>(filename <i>(string)</i>)</h2>
+<p>
+Prompt an image file for loading for use in drawing operations but don't wait for it to finish loading.
+</p>
+<p>
+Image loading is done in the
+background while the script execution and engine operation continues fully, and as soon as the image
+loading process has finished, you'll get an <a href="#blitwiz.on_image">on_image</a> event call.
+<p>
+<p>Do not use any image for drawing before you got the on_image event with reported success! It will
+yield an error.</p>
+<p>Calling <a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>
+when the image is already being loaded simply does nothing. As soon as an
+<a href="#blitwiz.on_image">on_image</a> event reports success, any further
+calls attempting to load such an image will result in an error that the image
+is already loaded.
+If <a href="#blitwiz.on_image">on_image</a> reported failure, you can retry
+<a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>
+(or <a href="#blitwiz.graphics.loadImage">blitwiiz.graphics.loadImage</a>) safely.
+<p>
+Parameters:
+<ul class="parameters">
+<li>filename <i>(string)</i> &mdash; specify the filename/path of the image</li>
+</ul>
+</p>
+<p>
+Return value: <i>nil</i> &mdash; none
+</p>
+<p>
+Example:
+<div class="code">-- Load an image:
+blitwiz.graphics.loadImageAsync("mypicture.png")
 
 -- Here at this point, the image is NOT available for use yet, so drawing and all that will fail.
 -- We need to wait for an <a href="#blitwiz.on_image">on_image</a> event first!
@@ -308,14 +338,15 @@ calls into this function. Put any game logic and physics into
 <li><h2><a name="blitwiz.on_image">blitwiz.on_image</a>(texture name <i>(string)</i>, result <i>(boolean)</i>)</h2>
 <p>
 If you define this function in your program in the global space, it will be called
-as soon as an image has either finished loading and is now available for drawing
+as soon as an image from a <a href="#blitwiz.grapihcs.loadImageAsync">blitwiz.graphics.loadImageAsync</a>
+has either finished loading and is now available for drawing
 operations, or if an image has failed loading and won't be available at all.
 </p>
 <p>
 Parameters:
 <ul class="parameters">
 <li>texture name <i>(string)</i> &mdash; contains the texture path (which was originally
-provided to <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>)</li>
+provided to <a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>)</li>
 <li>result <i>(boolean)</i> &mdash; indicates whether the image has been successfully loaded (in which case
 it will be true), or failed to load (in which case it will be false)</li>
 </ul>
