@@ -55,9 +55,9 @@ function blitwiz.on_keydown(key)
 			print("Now: accelerated mode")
 		end
 	end
-        -- When escape is pressed, we want to quit
-        if key == "escape" then
-		blitwiz.quit()
+	-- When escape is pressed, we want to quit
+    if key == "escape" then
+		os.exit(0)
 	end
 end
 function blitwiz.on_draw()
@@ -96,7 +96,7 @@ function blitwiz.on_image(name, success)
 		else
 			-- Loading failed. So we quit with an error:
 			print("Error: Failed to load hello_world.png!")
-			blitwiz.quit()
+			os.exit(-1)
 		end
 	end		
 end
@@ -107,7 +107,7 @@ function blitwiz.on_close()
 	
 	-- The user has attempted to close the window,
 	-- so we want to respect his wishes and quit :-)
-	blitwiz.quit()
+	os.exit(0)
 end
 
 function blitwiz.on_step()
@@ -125,7 +125,7 @@ function blitwiz.on_step()
 		preloadedTime = blitwiz.time.getTime()
 	end
 	if blitwiz.time.getTime() > preloadedTime + 8000 then
-		blitwiz.quit()
+		os.exit(0)
 	end
 end
 

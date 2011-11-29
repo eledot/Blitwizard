@@ -32,7 +32,7 @@ end
 function blitwiz.on_keydown(key)
 	-- Quit on escape
 	if  key == "escape" then
-		blitwiz.quit()
+		os.exit(0)
 	end
 end
 
@@ -63,7 +63,7 @@ function blitwiz.on_image(name, success)
 	-- Count up until we know we have all images loaded we want
 
 	if success ~= true then
-		blitwiz.quit()
+		os.exit(-1)
 	end
 	imageCount = imageCount + 1	
 end
@@ -71,7 +71,7 @@ end
 function blitwiz.on_close()
 	-- The user has attempted to close the window,
 	-- so we want to respect his wishes and quit :-)
-	blitwiz.quit()
+	os.exit(0)
 end
 
 
