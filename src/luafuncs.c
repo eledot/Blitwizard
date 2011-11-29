@@ -127,7 +127,7 @@ int luafuncs_setWindow(lua_State* l) {
 	return 0;
 }
 
-int luafuncs_loadImageAsync(lua_State* l) {
+int luafuncs_loadImage(lua_State* l) {
     const char* p = lua_tostring(l,1);
     if (!p) {
         lua_pushstring(l, "First parameter is not a valid image name string");
@@ -141,7 +141,7 @@ int luafuncs_loadImageAsync(lua_State* l) {
     return 0;
 }
 
-int luafuncs_loadImage(lua_State* l) {
+int luafuncs_loadImageAsync(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
 		lua_pushstring(l, "First parameter is not a valid image name string");

@@ -30,6 +30,7 @@
 #include "SDL.h"
 #include "graphics.h"
 #include "imgloader.h"
+#include "timefuncs.h"
 #include "hash.h"
 
 static SDL_Window* mainwindow;
@@ -263,21 +264,6 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 	return 1;
 }
 
-
-int graphics_LoadTextureInstantly(const char* texture) {
-	//check if texture is already present or being loaded
-        struct graphicstexture* gt = graphics_GetTextureByName(texture);
-        if (gt) {
-                //check for threaded loading
-                if (gt->threadingptr) {
-                        //it will be loaded.
-                        return 1;
-                }
-                return 2; //texture is already present
-        }
-}
-
-
 int graphics_PromptTextureLoading(const char* texture) {
 	//check if texture is already present or being loaded
 	struct graphicstexture* gt = graphics_GetTextureByName(texture);
@@ -317,7 +303,34 @@ int graphics_PromptTextureLoading(const char* texture) {
 	return 1;
 }
 
-int graphics_FinishImageLoading(struct graphicstexture* gt, void (*callback)(int success, const char* texture)) {
+int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* prev) {
+    if (gt->pixels) {
+        free(gt->pixels);
+        gt->pixels = NULL;
+    }
+    if (gt->tex){
+        SDL_DestroyTexture(gt->tex);
+        gt->tex = NULL;
+    }
+    if (gt->name) {
+        graphics_RemoveTextureFromHashmap(gt);
+        free(gt->name);
+        gt->name = NULL;
+    }
+    if (gt->threadingptr) {
+        return 0;
+    }
+    if (prev) {
+        prev->next = gt->next;
+    }else{
+        texlist = gt->next;
+    }
+    free(gt);
+    return 1;
+}
+
+
+int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstexture* gtprev, void (*callback)(int success, const char* texture)) {
     char* data;int width,height;
     img_GetData(gt->threadingptr, NULL, &width, &height, &data);
     img_FreeHandle(gt->threadingptr);
@@ -350,6 +363,14 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, void (*callback)(int
     return 1;
 }
 
+struct graphicstexture* graphics_GetPreviousTexture(struct graphicstexture* gt) {
+	struct graphicstexture* gtprev = texlist;
+    while (gtprev && !(gtprev->next == gt)) {
+        gtprev = gtprev->next;
+    }
+	return gtprev;
+}
+
 int graphics_LoadTextureInstantly(const char* texture) {
 	//prompt normal async texture loading
 	if (!graphics_PromptTextureLoading(texture)) {
@@ -364,42 +385,13 @@ int graphics_LoadTextureInstantly(const char* texture) {
 	while (!img_CheckSuccess(gt->threadingptr)) {time_Sleep(10);}
 	
 	//complete image
-	return graphics_FinishImageLoading(texture, NULL);
-}
-
-int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* prev) {
-	if (gt->pixels) {
-		free(gt->pixels);
-		gt->pixels = NULL;
-	}
-	if (gt->tex){
-		SDL_DestroyTexture(gt->tex);
-		gt->tex = NULL;
-	}
-	if (gt->name) {
-		graphics_RemoveTextureFromHashmap(gt);
-		free(gt->name);
-		gt->name = NULL;
-	}
-	if (gt->threadingptr) {
-		return 0;
-	}
-	if (prev) {
-		prev->next = gt->next;
-	}else{
-		texlist = gt->next;
-	}
-	free(gt);
-	return 1;
+	return graphics_FinishImageLoading(gt, graphics_GetPreviousTexture(gt), NULL);
 }
 
 void graphics_UnloadTexture(const char* texname) {
     struct graphicstexture* gt = graphics_GetTextureByName(texname);
     if (gt && !gt->threadingptr) {
-		struct graphicstexture* gtprev = texlist;
-		while (gtprev && !(gtprev->next == gt)) {
-			gtprev = gtprev->next;
-		}
+		struct graphicstexture* gtprev = graphics_GetPreviousTexture(gt);
 		graphics_FreeTexture(gt, gtprev);
     }
 }
@@ -426,7 +418,7 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 		if (gt->threadingptr) {
 			//texture which is currently being loaded
 			if (img_CheckSuccess(gt->threadingptr)) {
-				graphics_FinishImageLoading(gt);
+				graphics_FinishImageLoading(gt,gtprev,callback);
 			}
 		}
 		if (!gt->name) {
