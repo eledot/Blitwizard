@@ -43,6 +43,9 @@ static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_pushstring(l, "loadImage");
 	lua_pushcfunction(l, &luafuncs_loadImage);
 	lua_settable(l,-3);
+	lua_pushstring(l, "loadImageAsync");
+	lua_pushcfunction(l, &luafuncs_loadImageAsync);
+	lua_settable(l,-3);
 	lua_pushstring(l, "getImageSize");
 	lua_pushcfunction(l, &luafuncs_getImageSize);
 	lua_settable(l,-3);

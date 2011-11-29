@@ -127,6 +127,20 @@ int luafuncs_setWindow(lua_State* l) {
 	return 0;
 }
 
+int luafuncs_loadImageAsync(lua_State* l) {
+    const char* p = lua_tostring(l,1);
+    if (!p) {
+        lua_pushstring(l, "First parameter is not a valid image name string");
+        return lua_error(l);
+    }
+    int i = graphics_LoadTextureInstantly(p);
+    if (i == 0) {
+        lua_pushstring(l, "Failed to load image due to fatal error: Out of memory?");
+        return lua_error(l);
+    }
+    return 0;
+}
+
 int luafuncs_loadImage(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {

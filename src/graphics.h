@@ -38,6 +38,11 @@ int graphics_PromptTextureLoading(const char* texture);
 //Returns 0 on fatal error (e.g. out of memory), 1 for operation in progress,
 //2 for image already loaded.
 
+int graphics_LoadTextureInstantly(const char* texture);
+//Prompts texture loading and blocks until the texture is loaded or cancelled.
+//Returns 0 on any error (both fatal out of memory or image loading failure),
+//1 when the image has been loaded successfully.
+
 void graphics_CheckTextureLoading(void (*callback)(int success, const char* texture));
 //Check texture loading state and get the newest callbacks.
 //For the callback, success will be 1 for images loaded successfully,

@@ -264,6 +264,18 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 }
 
 
+int graphics_LoadTextureInstantly(const char* texture) {
+	//check if texture is already present or being loaded
+        struct graphicstexture* gt = graphics_GetTextureByName(texture);
+        if (gt) {
+                //check for threaded loading
+                if (gt->threadingptr) {
+                        //it will be loaded.
+                        return 1;
+                }
+                return 2; //texture is already present
+        }
+}
 
 
 int graphics_PromptTextureLoading(const char* texture) {
@@ -303,6 +315,56 @@ int graphics_PromptTextureLoading(const char* texture) {
 	texlist = gt;
 	graphics_AddTextureToHashmap(gt);
 	return 1;
+}
+
+int graphics_FinishImageLoading(struct graphicstexture* gt, void (*callback)(int success, const char* texture)) {
+    char* data;int width,height;
+    img_GetData(gt->threadingptr, NULL, &width, &height, &data);
+    img_FreeHandle(gt->threadingptr);
+    gt->threadingptr = NULL;
+
+    //check if we succeeded
+    int success = 0;
+    if (data) {
+        gt->pixels = data;
+        gt->width = width;
+        gt->height = height;
+        success = 1;
+        if (graphics_AreGraphicsRunning() && gt->name) {
+            if (!graphics_TextureToSDL(gt)) {
+                success = 0;
+            }
+        }
+    }
+
+    //do callback
+    if (callback) {
+        callback(success, gt->name);
+    }
+
+    //if this is an empty abandoned or a failed entry, remove
+    if (!gt->name || !success) {
+         graphics_FreeTexture(gt, gtprev);
+         return 0;
+    }
+    return 1;
+}
+
+int graphics_LoadTextureInstantly(const char* texture) {
+	//prompt normal async texture loading
+	if (!graphics_PromptTextureLoading(texture)) {
+		return 0;
+	}
+	struct graphicstexture* gt = graphics_GetTextureByName(texture);
+	if (!gt) {
+		return 0;
+	}
+
+	//wait for loading to finish
+	while (!img_CheckSuccess(gt->threadingptr)) {time_Sleep(10);}
+	
+	//complete image
+	return graphics_FinishImageLoading(texture, NULL);
 }
 
 int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* prev) {
@@ -364,38 +426,12 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 		if (gt->threadingptr) {
 			//texture which is currently being loaded
 			if (img_CheckSuccess(gt->threadingptr)) {
-				char* data;int width,height;
-				img_GetData(gt->threadingptr, NULL, &width, &height, &data);
-				img_FreeHandle(gt->threadingptr);
-				gt->threadingptr = NULL;
-				
-				//check if we succeeded
-				int success = 0;
-				if (data) {
-					gt->pixels = data;
-					gt->width = width;
-					gt->height = height;
-					success = 1;
-					if (graphics_AreGraphicsRunning() && gt->name) {
-						if (!graphics_TextureToSDL(gt)) {
-							success = 0;
-						}
-					}
-				}
-
-				//do callback
-				callback(success, gt->name);
-				
-				//if this is an empty abandoned or a failed entry, remove
-				if (!gt->name || !success) {
-					graphics_FreeTexture(gt, gtprev);
-				}
+				graphics_FinishImageLoading(gt);
 			}
-		}else{
-			if (!gt->name) {
-				//delete abandoned textures
-				graphics_FreeTexture(gt, gtprev);
-			}
+		}
+		if (!gt->name) {
+			//delete abandoned textures
+			graphics_FreeTexture(gt, gtprev);
 		}
 		gtprev = gt;
 		gt = gtnext;

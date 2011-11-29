@@ -29,17 +29,8 @@ function blitwiz.on_init()
 	-- Open a window
 	blitwiz.graphics.setWindow(640,480,"Hello World", false) -- resolution/size: 640x480, title: "Hello World", fullscreen: false/no
 
-	-- Ask for an image to be loaded
-	imageLoaded = false
+	-- Load image
 	blitwiz.graphics.loadImage("hello_world.png")
-
-	-- Please note the image won't be available instantlytitle: "Hello World", fullscreen: false/no.
-	-- Images are loaded in the background, so take some time
-	-- before they're available (in that time, you can continue
-	-- to do other things, e.g. showing a loading screen image
-	-- you have already loaded).
-	-- The function blitwiz.callback.image() will be called as
-	-- soon as it has finished loading (see below).
 end
 
 function blitwiz.on_keydown(key)
@@ -60,45 +51,21 @@ function blitwiz.on_keydown(key)
 		os.exit(0)
 	end
 end
+
 function blitwiz.on_draw()
 	-- This gets called each time the window is redrawn.
 	-- If you don't put this function here or if you don't put
 	-- any drawing calls into it, the window will simply stay
 	-- black.
 	
-	-- We have to check whether our image is loaded first,
-	-- since image loading in blitwizard doesn't hang your
-	-- whole application, but instead happens in the background:
-	if imageLoaded == true then
-		-- When the image is loaded, draw it centered:
-		local w,h = blitwiz.graphics.getImageSize("hello_world.png")
-		local mw,mh = blitwiz.graphics.getWindowSize()
+	-- When the image is loaded, draw it centered:
+	local w,h = blitwiz.graphics.getImageSize("hello_world.png")
+	local mw,mh = blitwiz.graphics.getWindowSize()
 
-		-- Actual drawing happens here
-		blitwiz.graphics.drawImage("hello_world.png", mw/2 - w/2, mh/2 - h/2)
-	end
+	-- Actual drawing happens here
+	blitwiz.graphics.drawImage("hello_world.png", mw/2 - w/2, mh/2 - h/2)
 
 	-- Done!
-end
-
-function blitwiz.on_image(name, success)
-	-- This gets called every time an image has been loaded.
-	-- You would normally set some variables e.g. to advance
-	-- a loading progress bar or to tell your drawing code that
-	-- various images are available for use now.
-	
-	if name == "hello_world.png" then
-		-- Hey, it is our requested image!
-		if success then
-			-- Loading succeeded. So we can use it now
-			imageLoaded = true
-			print("hello_world.png loaded!")
-		else
-			-- Loading failed. So we quit with an error:
-			print("Error: Failed to load hello_world.png!")
-			os.exit(-1)
-		end
-	end		
 end
 
 function blitwiz.on_close()
@@ -120,8 +87,8 @@ function blitwiz.on_step()
 	-- of your continuously running game simulation.
 
 	-- For this example, we just want to quit after 8 seconds
-	-- from the point when the image was loaded and shown.
-	if imageLoaded ~= true then
+	
+	if preloadedTime == nil then
 		preloadedTime = blitwiz.time.getTime()
 	end
 	if blitwiz.time.getTime() > preloadedTime + 8000 then
