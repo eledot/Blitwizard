@@ -12,7 +12,7 @@ if [ -f scripts/.depsarebuilt ]; then
 		changedhost="yes";
 	else
 		echo "Deps are already built. To force a rebuild, remove the file scripts/.depsarebuilt";
-		exit 1;
+		exit 0;
 	fi
 fi
 
