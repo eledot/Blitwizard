@@ -28,13 +28,61 @@
 
 struct audiosourcefile_internaldata {
 	FILE* file;
+	int eof = 0;
 };
 
 static int audiosourcefile_Read(struct audiosource* source, unsigned int bytes, char* buffer) {
+	struct audiosourcefile_internaldata* idata = source->internaldata;
 	
+	if (idata->file == NULL) {
+		if (idata->eof) {
+			return -1;
+		}
+		idata->file = fopen(path,"rb");
+		if (!idata->file) {
+			idata->file = NULL;
+			return -1;
+		}
+	}
+	
+	size_t bytesread = fread(buffer, bytes, 1, idata->file);
+	if (bytesread >= 0) {
+		return bytesread;
+	}else{
+		fclose(idata->file);
+		idata->file = NULL;
+		idata->eof = 1;
+		return 0;
+	}
+}
+
+static void audiosourcefile_Close(struct audiosource* source) {
+	//close file we might have opened
+	FILE* r = ((struct audiosourceogg_internaldata*)source->internaldata)->file;
+	if (r) {
+		free(r);
+	}
+	//free all structs
+	if (source->internaldata) {
+		free(source->internaldata);
+	}
+	free(source);
 }
 
 struct audiosource* audiosourcefile_Create(const char* path) {
+	struct audiosource* a = malloc(sizeof(*a));
+	if (!a) {
+		return NULL;
+	}
+	
+	memset(a,0,sizeof(*a));
+	a->internaldata = malloc(sizeof(struct audiosourcefile_internaldata));
+	if (a->internaldata) {
+		free(a);
+		return NULL;
+	}
+	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
+	
 	return NULL;
 }
 
