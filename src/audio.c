@@ -84,6 +84,14 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 	return 1;
 }
 
+void audio_LockAudioThread() {
+	SDL_LockAudio();
+}
+
+void audio_UnlockAudioThread() {
+	SDL_UnlockAudio();
+}
+
 void audio_441to480(const char* inputbuf, char* outputbuf, int channels) {
 	
 }

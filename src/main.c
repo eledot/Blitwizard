@@ -33,8 +33,24 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "graphics.h"
 #include "timefuncs.h"
 #include "audio.h"
+#include "main.h"
+#include "audiomixer.h"
 
 #define TIMESTEP 16
+
+int simulateaudio = 0;
+int audioinitialised = 0;
+void main_InitAudio() {
+	if (audioinitialised) {return;}
+	audioinitialised = 1;
+	//initialise audio
+	if (!audio_Init(&audiomixer_GetBuffer, 0, NULL, &error)) {
+		printwarning("Warning: Failed to initialise audio: %s\n",error);
+		free(error);
+		//non-fatal: we will simulate audio manually:
+		simulateaudio = 1;
+	}
+}
 
 void fatalscripterror() {
 
@@ -249,13 +265,6 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 	
-	//initialise audio
-	if (!audio_Init(NULL, 0, NULL, &error)) {
-		printwarning("Warning: Failed to initialise audio: %s\n",error);
-		free(error);
-		//non-fatal, however we won't have any working sound output.
-	}
-	
 	//open and run provided file
 	if (!luastate_DoInitialFile(script, &error)) {
 		if (error == NULL) {
@@ -273,12 +282,29 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 	
-	//when graphics are open, run the main loop
-	if (graphics_AreGraphicsRunning()) {
+	//when graphics or audio is open, run the main loop
+	if (graphics_AreGraphicsRunning() || audioinitialised) {
+		//Initialise audio when it isn't
+		main_InitAudio();
+		
+		//If we failed to initialise audio, we want to simulate it
+		uint64_t simulateaudiotime = 0;
+		if (simulateaudio) {
+			simulateaudiotime = time_GetMilliSeconds();
+		}
+	
 		uint64_t logictimestamp = time_GetMilliSeconds();
 		uint64_t lastdrawingtime = 0;
 		while (!wantquit) {
 			uint64_t time = time_GetMilliSeconds();
+			
+			//simulate audio
+			if (simulateaudio) {
+				while (simulateaudiotime < time_GetMilliSeconds()) {
+					audiomixer_GetBuffer(48 * 2 * 2);
+					time += 1; // 48 * 1000 times * 2 byte * 2 channels per second = simulated 48kHz 16bit stereo audio
+				}
+			}
 
 			//limit to roughly 60 FPS
             uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;

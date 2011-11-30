@@ -21,6 +21,10 @@
 
 */
 
+#include <stdlib.h>
+
+#include "vorbis/vorbisfile.h"
+
 #include "audiosource.h"
 #include "audiosourceogg.h"
 
