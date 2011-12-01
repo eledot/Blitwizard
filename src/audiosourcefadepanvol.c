@@ -26,7 +26,7 @@
 #include <stdlib.h>
 
 #include "audiosource.h"
-#include "audiosourcefile.h"
+#include "audiosourcefadepanvol.h"
 
 struct audiosourcefadepanvol_internaldata {
 	struct audiosource* source;
@@ -56,8 +56,8 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, unsigned int b
 		int writtenbytes = 0;
 		while (bytes > 0) {
 			//see how many samples we want to have minimum
-			int stereosamples = 0;
-			while (stereosamples < bytes * sizeof(float) * 2) {
+			int stereosamples = bytes / sizeof(float) * 2;
+			if (stereosamples * sizeof(float) * 2 < bytes) {
 				stereosamples++;
 			}
 			
