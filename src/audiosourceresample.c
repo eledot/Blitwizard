@@ -28,12 +28,13 @@
 #include "audiosource.h"
 #include "audiosourceresample.h"
 
-struct audiosourcefadepanvol {
+struct audiosourcefadepanvol_internaldata {
+	struct audiosource* source;
 	int targetrate;
 };
 
 static void audiosourcefadepanvol_Close(struct audiosource* source) {
-	struct audiosourceogg_internaldata* idata = source->internaldata;
+	struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
 	
 	//close the processed source
 	if (idata->source) {
@@ -45,6 +46,10 @@ static void audiosourcefadepanvol_Close(struct audiosource* source) {
 		free(source->internaldata);
 	}
 	free(source);
+}
+
+static int audiosourcefadepanvol_Read(struct audiosource* source, unsigned int bytes, char* buffer) {
+	return 0;
 }
 
 struct audiosource* audiosourceresample_Create(struct audiosource* source, int targetrate) {

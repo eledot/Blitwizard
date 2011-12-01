@@ -38,20 +38,6 @@ extern int drawingallowed; //stored in luafuncs.c
 
 #define TIMESTEP 16
 
-int simulateaudio = 0;
-int audioinitialised = 0;
-void main_InitAudio() {
-	if (audioinitialised) {return;}
-	audioinitialised = 1;
-	//initialise audio
-	if (!audio_Init(&audiomixer_GetBuffer, 0, NULL, &error)) {
-		printwarning("Warning: Failed to initialise audio: %s\n",error);
-		free(error);
-		//non-fatal: we will simulate audio manually:
-		simulateaudio = 1;
-	}
-}
-
 void fatalscripterror() {
 
 }
@@ -77,6 +63,22 @@ void printwarning(const char* fmt, ...) {
 	fprintf(stderr,"%s",printline);
 	fflush(stderr);
 }
+
+int simulateaudio = 0;
+int audioinitialised = 0;
+void main_InitAudio() {
+    if (audioinitialised) {return;}
+    audioinitialised = 1;
+    char* error;
+    //initialise audio
+    if (!audio_Init(&audiomixer_GetBuffer, 0, NULL, &error)) {
+        printwarning("Warning: Failed to initialise audio: %s\n",error);
+        free(error);
+        //non-fatal: we will simulate audio manually:
+        simulateaudio = 1;
+    }
+}
+
 
 static void quitevent() {
 	char* error;
