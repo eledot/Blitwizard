@@ -21,48 +21,22 @@
 
 */
 
-#include <stdio.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
 #include "audiosource.h"
-#include "audiosourcefile.h"
+#include "audiosourceresample.h"
 
-struct audiosourcefile_internaldata {
-	FILE* file;
-	int eof = 0;
-};
 
-static int audiosourcefile_Read(struct audiosource* source, unsigned int bytes, char* buffer) {
-	struct audiosourcefile_internaldata* idata = source->internaldata;
+static void audiosourcefadepanvol_Close(struct audiosource* source) {
+	struct audiosourceogg_internaldata* idata = source->internaldata;
 	
-	if (idata->file == NULL) {
-		if (idata->eof) {
-			return -1;
-		}
-		idata->file = fopen(path,"rb");
-		if (!idata->file) {
-			idata->file = NULL;
-			return -1;
-		}
+	//close the processed source
+	if (idata->source) {
+		idata->source->close(idata->source);
 	}
 	
-	size_t bytesread = fread(buffer, bytes, 1, idata->file);
-	if (bytesread >= 0) {
-		return bytesread;
-	}else{
-		fclose(idata->file);
-		idata->file = NULL;
-		idata->eof = 1;
-		return 0;
-	}
-}
-
-static void audiosourcefile_Close(struct audiosource* source) {
-	//close file we might have opened
-	FILE* r = ((struct audiosourceogg_internaldata*)source->internaldata)->file;
-	if (r) {
-		free(r);
-	}
 	//free all structs
 	if (source->internaldata) {
 		free(source->internaldata);
@@ -70,23 +44,29 @@ static void audiosourcefile_Close(struct audiosource* source) {
 	free(source);
 }
 
-struct audiosource* audiosourcefile_Create(const char* path) {
+struct audiosource* audiosourceresample_Create(struct audiosource* source, int targetrate) {
+	if (targetrate != 48000 && source->samplerate != targetrate) {return NULL;}
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
 		return NULL;
 	}
 	
 	memset(a,0,sizeof(*a));
-	a->internaldata = malloc(sizeof(struct audiosourcefile_internaldata));
+	a->internaldata = malloc(sizeof(struct audiosourcefadepanvol_internaldata));
 	if (a->internaldata) {
 		free(a);
 		return NULL;
 	}
 	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
 	
-	a->read = &audiosourcefile_Read;
-	a->close = &audiosourcefile_Close;
+	struct audiosourcefadepanvol_internaldata* idata = a->internaldata;
+	idata->source = source;
+	a->samplerate = source->samplerate;
+	
+	a->read = &audiosourcefadepanvol_Read;
+	a->close = &audiosourcefadepanvol_Close;
 	
 	return NULL;
 }
+
 

@@ -35,10 +35,13 @@ struct audiosource {
 	
 	//Audio sample rate:
 	unsigned int samplerate;
-	//This is set to the audio sample rate. Format is always S16 stereo int if not
+	//This is set to the audio sample rate. Format is always 32bit signed float stereo if not
 	//specified.
-	//In case sample rate is set to 0, this is not a raw audio source. It might
-	//contain e.g. ogg-encoded data!
+	//Set to 0 for unknown or encoded (ogg) formats
+	
+	//Channels:
+	int channels;
+	//This is set to the audio channels. Set to 0 for unknown or encoded (ogg) formats
 	
 	void* internaldata; //DON'T TOUCH, used for internal purposes.
 };

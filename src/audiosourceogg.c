@@ -131,10 +131,28 @@ static int audiosourceogg_Read(struct audiosource* source, unsigned int bytes, c
 		if (!audiosourceogg_InitOgg(source)) {
 			source->eof = 1;
 			source->samplerate = -1;
+			source->channels = -1;
 			return -1;
 		}
 		vorbis_info* vi = ov_info(&idata->vorbisfile, -1);
 		source->samplerate = vi->rate;
+		source->channels = vi->channels;
+		if (source->samplerate != 48000 && source->samplerate != 44100 && source->samplerate != 22050) {
+			//incompatible sample rate
+			source->eof = 1;
+			source->samplerate = -1;
+			source->channels = -1;
+			ov_clear(&idata->vorbisfile);
+			return -1;
+		}
+		if (source->channels < 1 || source->channels > 2) {
+			//incompatible channel count
+			source->eof = 1;
+			source->samplerate = -1;
+			source->channels = -1;
+			ov_clear(&idata->vorbisfile);
+			return -1;
+		}
 	}
 	
 	//if no bytes were requested, don't do anything
@@ -154,8 +172,11 @@ static int audiosourceogg_Read(struct audiosource* source, unsigned int bytes, c
 		}
 		
 		//decode from encoded fetched bytes
-		while (!idata->vorbiseof) {
-			long ret = ov_read(&(channel[chanid].vhandle),idata->decodedbuf + idata->decodedbytes,decodeamount,0,2,1,&idata->vbitstream);
+		int decodesamples = decodebytes/(source->channels * 2);
+		while (!idata->vorbiseof && decodesamples > 0) {
+			float **pcm;
+			
+			long ret = ov_read_float(&idata->vorbisfile, pcm, decodesamples, &source->vbitstream);
 		
 			int fileend = 0;
 			if (ret < 0) {
@@ -169,7 +190,17 @@ static int audiosourceogg_Read(struct audiosource* source, unsigned int bytes, c
 			}else{
 				if (ret > 0) {
 					//success
-					idata->decodedbytes += ret;
+					int i = 0;
+					while (i < ret) {
+						int j = 0;
+						while (j < source->channels) {
+							memcpy(i->decodedbuf + i->decodedbytes, &pcm[j][0], sizeof(float));
+							idata->decodedbytes += sizeof(float);
+							j++;
+						}
+						
+						i++;
+					}
 				}else{
 					//regular eof
 					idata->vorbiseof = 1;
