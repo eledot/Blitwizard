@@ -28,6 +28,9 @@
 #include "audiosource.h"
 #include "audiosourceresample.h"
 
+struct audiosourcefadepanvol {
+	int targetrate;
+};
 
 static void audiosourcefadepanvol_Close(struct audiosource* source) {
 	struct audiosourceogg_internaldata* idata = source->internaldata;
@@ -45,28 +48,45 @@ static void audiosourcefadepanvol_Close(struct audiosource* source) {
 }
 
 struct audiosource* audiosourceresample_Create(struct audiosource* source, int targetrate) {
-	if (targetrate != 48000 && source->samplerate != targetrate) {return NULL;}
+	//check if we got a source and if source samplerate + target rate are supported by our limited implementation
+	if (!source) {return NULL;}
+	if (source->samplerate != 44100 && source->samplerate != 220550 && source->samplerate != 48000) {
+		return NULL;
+	}
+	if (targetrate != 48000 && source->samplerate != targetrate) {
+		source->close(source);
+		return NULL;
+	}
+
+	//allocate data struct
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
+		source->close(source);
 		return NULL;
 	}
 	
+	//allocate data struct for internal (hidden) data
 	memset(a,0,sizeof(*a));
 	a->internaldata = malloc(sizeof(struct audiosourcefadepanvol_internaldata));
 	if (a->internaldata) {
 		free(a);
+		source->close(source);
 		return NULL;
 	}
 	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
 	
+	//remember some things
 	struct audiosourcefadepanvol_internaldata* idata = a->internaldata;
 	idata->source = source;
+	idata->targetrate = targetrate;
 	a->samplerate = source->samplerate;
 	
+	//set function pointers
 	a->read = &audiosourcefadepanvol_Read;
 	a->close = &audiosourcefadepanvol_Close;
 	
-	return NULL;
+	//complete!
+	return a;
 }
 
 

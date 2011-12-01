@@ -261,6 +261,8 @@ static void audiosourceogg_Close(struct audiosource* source) {
 
 struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 	if (!filesource) {return NULL;}
+
+	//main data structure
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
 		filesource->close(filesource);
@@ -268,6 +270,7 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 	}
 	memset(a,0,sizeof(*a));
 	
+	//internal data structure
 	a->internaldata = malloc(sizeof(struct audiosourceogg_internaldata));
 	if (!a->internaldata) {
 		free(a);
@@ -275,12 +278,18 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 		return NULL;
 	}
 	
+	//function pointers
 	a->read = &audiosourceogg_Read;
 	a->close = &audiosourceogg_Close;
 	
-	//ensure proper initialisation of sample rate
+	//ensure proper initialisation of sample rate + channels variables
 	audiosourceogg_Read(a, 0, NULL);
+	if (a->eof && a->returnerroroneof) {
+		//There was an error reading this ogg file - probably not ogg (or broken ogg)
+		audiosourceogg_Close(a);
+		return NULL;
+	}
 	
-	return NULL;
+	return a;
 }
 

@@ -22,4 +22,7 @@
 */
 
 struct audiosource* audiosourceogg_Create(struct audiosource* filesource);
+//Take an audio source that returns encoded binary data (usually audiosourcefile)
+//and attempt to decode the data as ogg. If the file isn't valid ogg, the
+//creation function will simply return NULL.
 

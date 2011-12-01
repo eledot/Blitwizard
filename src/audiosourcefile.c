@@ -87,6 +87,6 @@ struct audiosource* audiosourcefile_Create(const char* path) {
 	a->read = &audiosourcefile_Read;
 	a->close = &audiosourcefile_Close;
 	
-	return NULL;
+	return a;
 }
 
