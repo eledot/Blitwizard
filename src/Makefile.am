@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 bin_PROGRAMS = blitwizard
 
-blitwizard_SOURCES = audio.c audiosourcefile.c audiosourceogg.c file.c graphics.c hash.c luafuncs.c luastate.c main.c osinfo.c timefuncs.c
+blitwizard_SOURCES = audio.c audiosourcefadedpanvol.c audiosourcefile.c audiosourceogg.c audiosourceresample.c file.c graphics.c hash.c luafuncs.c luastate.c main.c osinfo.c timefuncs.c
 blitwizard_LDADD = -limglib -lblitwizardSDL -lblitwizardpng -lblitwizardzlib -lblitwizardvorbisfile -lblitwizardvorbis -lblitwizardogg -lblitwizardlua
 blitwizard_LDFLAGS = 
 
