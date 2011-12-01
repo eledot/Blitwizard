@@ -21,6 +21,7 @@
 
 */
 
+#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -29,7 +30,8 @@
 
 struct audiosourcefile_internaldata {
 	FILE* file;
-	int eof = 0;
+	int eof;
+	char* path;
 };
 
 static int audiosourcefile_Read(struct audiosource* source, unsigned int bytes, char* buffer) {
@@ -39,14 +41,14 @@ static int audiosourcefile_Read(struct audiosource* source, unsigned int bytes, 
 		if (idata->eof) {
 			return -1;
 		}
-		idata->file = fopen(path,"rb");
+		idata->file = fopen(idata->path,"rb");
 		if (!idata->file) {
 			idata->file = NULL;
 			return -1;
 		}
 	}
 	
-	size_t bytesread = fread(buffer, bytes, 1, idata->file);
+	int bytesread = fread(buffer, bytes, 1, idata->file);
 	if (bytesread >= 0) {
 		return bytesread;
 	}else{
@@ -58,12 +60,16 @@ static int audiosourcefile_Read(struct audiosource* source, unsigned int bytes, 
 }
 
 static void audiosourcefile_Close(struct audiosource* source) {
+	struct audiosourcefile_internaldata* idata = source->internaldata;	
 	//close file we might have opened
-	FILE* r = ((struct audiosourceogg_internaldata*)source->internaldata)->file;
+	FILE* r = idata->file;
 	if (r) {
 		free(r);
 	}
-	//free all structs
+	//free all structs & strings
+	if (idata->path) {
+		free(idata->path);
+	}
 	if (source->internaldata) {
 		free(source->internaldata);
 	}
@@ -84,6 +90,14 @@ struct audiosource* audiosourcefile_Create(const char* path) {
 	}
 	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
 	
+	struct audiosourcefile_internaldata* idata = a->internaldata;
+	idata->path = strdup(path);
+	if (!idata->path) {
+		free(a->internaldata);
+		free(a);
+		return NULL;
+	}	
+
 	a->read = &audiosourcefile_Read;
 	a->close = &audiosourcefile_Close;
 	
