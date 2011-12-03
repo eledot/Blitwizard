@@ -28,13 +28,20 @@
 #include "audiosource.h"
 #include "audiosourceresample.h"
 
-struct audiosourcefadepanvol_internaldata {
+struct audiosourceresample_internaldata {
 	struct audiosource* source;
 	int targetrate;
+	int eof;
+
+	char unprocessedbuf[512];
+	int unprocessedbytes;
+
+	char processedbuf[512];
+	int processedbytes;
 };
 
-static void audiosourcefadepanvol_Close(struct audiosource* source) {
-	struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
+static void audiosourceresample_Close(struct audiosource* source) {
+	struct audiosourceresample_internaldata* idata = source->internaldata;
 	
 	//close the processed source
 	if (idata->source) {
@@ -48,7 +55,27 @@ static void audiosourcefadepanvol_Close(struct audiosource* source) {
 	free(source);
 }
 
-static int audiosourcefadepanvol_Read(struct audiosource* source, unsigned int bytes, char* buffer) {
+static int audiosourceresample_Read(struct audiosource* source, unsigned int bytes, char* buffer) {
+	struct audiosourceresample_internaldata* idata = source->internaldata;
+	if (idata->eof) {
+		return -1;
+	}
+	
+	while (bytes > 0) {
+		if (idata->source) {
+			//see how many bytes we want to fetch
+			int wantsamples = bytes / (sizeof(float) * 2);
+			if (wantsamples < sizeof(float) * 2 * bytes) {
+				wantsamples += sizeof(float) * 2;
+			}
+
+			//fetch new bytes from the source
+			while (wantsamples > 0 && idata->unprocessedbytes < sizeof(idata->unprocessedbuf) - sizeof(float) * 2) {
+				int i = idata->source->read(idata->source, sizeof(float) * 2, idata->unprocessedbuf + idata->unprocessedbytes);
+				wantsamples--;
+			}
+		}
+	}
 	return 0;
 }
 
@@ -56,9 +83,15 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, int t
 	//check if we got a source and if source samplerate + target rate are supported by our limited implementation
 	if (!source) {return NULL;}
 	if (source->samplerate != 44100 && source->samplerate != 220550 && source->samplerate != 48000) {
+		source->close(source);
 		return NULL;
 	}
 	if (targetrate != 48000 && source->samplerate != targetrate) {
+		source->close(source);
+		return NULL;
+	}
+	//only allow stereo
+	if (source->channels != 2) {
 		source->close(source);
 		return NULL;
 	}
@@ -72,7 +105,7 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, int t
 	
 	//allocate data struct for internal (hidden) data
 	memset(a,0,sizeof(*a));
-	a->internaldata = malloc(sizeof(struct audiosourcefadepanvol_internaldata));
+	a->internaldata = malloc(sizeof(struct audiosourceresample_internaldata));
 	if (a->internaldata) {
 		free(a);
 		source->close(source);
@@ -81,14 +114,14 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, int t
 	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
 	
 	//remember some things
-	struct audiosourcefadepanvol_internaldata* idata = a->internaldata;
+	struct audiosourceresample_internaldata* idata = a->internaldata;
 	idata->source = source;
 	idata->targetrate = targetrate;
 	a->samplerate = source->samplerate;
 	
 	//set function pointers
-	a->read = &audiosourcefadepanvol_Read;
-	a->close = &audiosourcefadepanvol_Close;
+	a->read = &audiosourceresample_Read;
+	a->close = &audiosourceresample_Close;
 	
 	//complete!
 	return a;

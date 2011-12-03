@@ -52,16 +52,16 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, unsigned int b
 		return -1;
 	}
 	
-	if (idata->source) {
-		int writtenbytes = 0;
-		while (bytes > 0) {
-			//see how many samples we want to have minimum
-			int stereosamples = 0;
-			while (stereosamples < bytes * sizeof(float) * 2) {
-				stereosamples++;
-			}
+	int writtenbytes = 0;
+	while (bytes > 0) {
+		//see how many samples we want to have minimum
+		int stereosamples = 0;
+		while (stereosamples < bytes * sizeof(float) * 2) {
+			stereosamples++;
+		}
 			
-			//get new unprocessed samples
+		//get new unprocessed samples
+		if (idata->source) {
 			int unprocessedstart = idata->processedsamplesbytes;
 			while (idata->processedsamplesbytes + sizeof(float) * 2 <= sizeof(idata->processedsamplesbuf) && stereosamples > 0) {
 				int i = idata->source->read(idata->source, sizeof(float) * 2, idata->processedsamplesbuf + idata->processedsamplesbytes);
@@ -77,82 +77,74 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, unsigned int b
 				}
 				stereosamples--;
 			}
+		}
 	
-			//process unprocessed samples
-			int i = unprocessedstart;
-			float faderange = (-idata->fadesamplestart + idata->fadesampleend);
-			float fadeprogress = idata->fadesampleend;
-			while (i <= idata->processedsamplesbytes - sizeof(float) * 2) {
-				float leftchannel = *((float*)((void*)idata->processedsamplesbuf+i));
-				float rightchannel = *(((float*)((void*)idata->processedsamplesbuf+i))+1);
+		//process unprocessed samples
+		int i = unprocessedstart;
+		float faderange = (-idata->fadesamplestart + idata->fadesampleend);
+		float fadeprogress = idata->fadesampleend;
+		while (i <= idata->processedsamplesbytes - sizeof(float) * 2) {
+			float leftchannel = *((float*)((void*)idata->processedsamplesbuf+i));
+			float rightchannel = *(((float*)((void*)idata->processedsamplesbuf+i))+1);
 	
-				if (idata->fadesamplestart < 0 || idata->fadesampleend > 0) {
-					//calculate fade volume
-					idata->vol = idata->fadevaluestart + (idata->fadevalueend - idata->fadevaluestart)*(1 - fadeprogress/faderange);
+			if (idata->fadesamplestart < 0 || idata->fadesampleend > 0) {
+				//calculate fade volume
+				idata->vol = idata->fadevaluestart + (idata->fadevalueend - idata->fadevaluestart)*(1 - fadeprogress/faderange);
 	
-					//increase fade progress
-					idata->fadesamplestart--;
-					idata->fadesampleend--;
-					fadeprogress = idata->fadesampleend;
+				//increase fade progress
+				idata->fadesamplestart--;
+				idata->fadesampleend--;
+				fadeprogress = idata->fadesampleend;
 					
-					if (idata->fadesampleend < 0) {
-						//fade ended
-						idata->fadesamplestart = 0;
-						idata->fadesampleend = 0;
-	
-						if (idata->terminateafterfade) {
-							idata->source->close(idata->source);
-							idata->source = NULL;
-							idata->processedsamplesbytes = i + sizeof(float) * 2;
-						}
+				if (idata->fadesampleend < 0) {
+					//fade ended
+					idata->fadesamplestart = 0;
+					idata->fadesampleend = 0;
+
+					if (idata->terminateafterfade) {
+						idata->source->close(idata->source);
+						idata->source = NULL;
+						idata->processedsamplesbytes = i + sizeof(float) * 2;
 					}
 				}
+			}
+
+			//apply volume
+			leftchannel = (leftchannel+1)*idata->vol - 1;
+			rightchannel = (leftchannel+1)*idata->vol - 1;
 	
-				//apply volume
-				leftchannel = (leftchannel+1)*idata->vol - 1;
-				rightchannel = (leftchannel+1)*idata->vol - 1;
+			//calculate panning
+			leftchannel *= (idata->pan+1)/2;
+			rightchannel *= 1-(idata->pan+1)/2;
 	
-				//calculate panning
-				leftchannel *= (idata->pan+1)/2;
-				rightchannel *= 1-(idata->pan+1)/2;
-	
-				//write floats back
-				memcpy(idata->processedsamplesbuf+i, &leftchannel, sizeof(float));
-				memcpy(idata->processedsamplesbuf+i+sizeof(float), &rightchannel, sizeof(float));
+			//write floats back
+			memcpy(idata->processedsamplesbuf+i, &leftchannel, sizeof(float));
+			memcpy(idata->processedsamplesbuf+i+sizeof(float), &rightchannel, sizeof(float));
 				
-				i += sizeof(float)*2;
-			}
-	
-			//return from our processed samples
-			int returnbytes = bytes;
-			if (returnbytes > idata->processedsamplesbytes) {
-				returnbytes = idata->processedsamplesbytes;
-			}
-
-			if (returnbytes <= 0) {
-				idata->eof = 1;
-				if (idata->returnerroroneof) {
-					return -1;
-				}
-				return 0;
-			}else{
-				writtenbytes += returnbytes;
-				memcpy(buffer, idata->processedsamplesbuf, returnbytes);
-				buffer += returnbytes;
-			}
-
-			//move away processed & returned samples
-			memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + writtenbytes, sizeof(idata->processedsamplesbuf) - writtenbytes);
-			idata->processedsamplesbytes -= writtenbytes;
+			i += sizeof(float)*2;
 		}
-		return writtenbytes;
-	}else{
-		idata->eof = 1;
-		if (idata->returnerroroneof) {
-			return -1;
+
+		//return from our processed samples
+		int returnbytes = bytes;
+		if (returnbytes > idata->processedsamplesbytes) {
+			returnbytes = idata->processedsamplesbytes;
 		}
-		return 0;
+		if (returnbytes <= 0) {
+			idata->eof = 1;
+			if (idata->returnerroroneof) {
+				return -1;
+			}
+			return 0;
+		}else{
+			writtenbytes += returnbytes;
+			memcpy(buffer, idata->processedsamplesbuf, returnbytes);
+			buffer += returnbytes;
+		}
+		//move away processed & returned samples
+		memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + writtenbytes, sizeof(idata->processedsamplesbuf) - writtenbytes);
+		idata->processedsamplesbytes -= writtenbytes;
 	}
+	return writtenbytes;
 }
 
 static void audiosourcefadepanvol_Close(struct audiosource* source) {
