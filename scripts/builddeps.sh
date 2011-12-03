@@ -63,7 +63,7 @@ cd $dir
 # Build vorbis and remember to tell it where ogg is
 oggincludedir="`pwd`/src/ogg/include/"
 ogglibrarydir="`pwd`/src/ogg/src/.libs/"
-if [ "MACBUILD" != "yes" ]; then
+if [ "$MACBUILD" != "yes" ]; then
 	cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
 else
 	cd src/vorbis && ./configure --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
@@ -73,7 +73,7 @@ cd $dir
 # Build SDL 1.3
 cd src/sdl && ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL 1.3"; exit 1; }
 cd $dir
-if [ "changeddeps" == "yes" ]; then
+if [ "$changeddeps" == "yes" ]; then
 	cd src/sdl && make clean || { echo "Failed to compile SDL 1.3"; exit 1; }
 	cd $dir
 fi
