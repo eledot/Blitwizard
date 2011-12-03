@@ -24,34 +24,81 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <limits.h>
 
 #include "audio.h"
 #include "audiosource.h"
 
-int mixerdisabled = 0;
+#define MAXCHANNELS 32
+
+int lastusedsoundid = -1;
 
 struct soundchannel {
-	struct audiosource* soundsource;
-	
 	struct audiosource* fadepanvolsource;
 	struct audiosource* loopsource;
 	
-	int fadestart;
-	int fadeend;
-	float fadestartvalue;
-	float fadeendvalue;
-	float volume;
-	float panning;
-	int loop;
+	int priority;
+	int id;
 };
-
-void audiomixer_Disable() {
-	//this is called when we have no sound output at all -> disables sound processing
-	mixerdisabled = 1;
-}
+struct soundchannel channels[MAXCHANNELS] = {0};
 
 char mixedaudiobuf[256];
 int mixedaudiobuflen = 0;
+
+static void audiomixer_CancelChannel(int slot) {
+	if (channels[slot].loopsource) {
+		channels[slot].loopsource.close(channels[slot].loopsource);
+		channels[slot].loopsource = NULL;
+		channels[slot].fadepanvolsource = NULL;
+		channels[slot].id = 0;
+	}
+}
+
+static int audiomixer_GetFreeChannelSlot(int priority) {
+	int i = 0;
+	while (i < MAXCHANNELS) {
+		if (channels[i].loopsource) {
+			if (channels[i].priority == priority) {
+				audiomixer_CancelChannel(priority);
+				return i;
+			}
+		}else{
+			return i;
+		}
+		i++;
+	}
+	return -1;
+}
+
+static int audiomixer_GetChannelSlotById(int id) {
+	int i = 0;
+	while (i < MAXCHANNELS) {
+		if (channels[i].id == id) {
+			return i;
+		}
+		i++;
+	}
+	return -1;
+}
+
+static int audiomixer_FreeSoundId() {
+	while (1) {
+		lastusedsoundid++;
+		if (lastusedsoundid >= INT_MAX-1) {
+			lastusedsoundid = -1;
+			continue;
+		}
+		if (audiomixer_GetChannelById(lastusedsound)) {
+			continue;
+		}
+		break;
+	}
+	return lastusedsoundid;
+}
+
+
+
+int audiomixer_SoundFromDisk(const char* path, inte
 
 static void audiomixer_FillMixAudioBuffer() { //SOUND THREAD
 	
