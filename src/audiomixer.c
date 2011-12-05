@@ -28,6 +28,11 @@
 
 #include "audio.h"
 #include "audiosource.h"
+#include "audiosourcefadepanvol.h"
+#include "audiosourceresample.h"
+#include "audiosourceogg.h"
+#include "audiosourcefile.h"
+#include "audiosourceloop.h"
 
 #define MAXCHANNELS 32
 
@@ -40,14 +45,18 @@ struct soundchannel {
 	int priority;
 	int id;
 };
-struct soundchannel channels[MAXCHANNELS] = {0};
+struct soundchannel channels[MAXCHANNELS];
 
 char mixedaudiobuf[256];
 int mixedaudiobuflen = 0;
 
+void audiomixer_Init() {
+	memset(&channels,0,sizeof(struct soundchannel) * MAXCHANNELS);
+}
+
 static void audiomixer_CancelChannel(int slot) {
 	if (channels[slot].loopsource) {
-		channels[slot].loopsource.close(channels[slot].loopsource);
+		channels[slot].loopsource->close(channels[slot].loopsource);
 		channels[slot].loopsource = NULL;
 		channels[slot].fadepanvolsource = NULL;
 		channels[slot].id = 0;
@@ -94,7 +103,7 @@ static int audiomixer_FreeSoundId() {
 			lastusedsoundid = -1;
 			continue;
 		}
-		if (audiomixer_GetChannelById(lastusedsound)) {
+		if (audiomixer_GetChannelSlotById(lastusedsoundid)) {
 			continue;
 		}
 		break;
@@ -104,7 +113,7 @@ static int audiomixer_FreeSoundId() {
 
 
 
-int audiomixer_SoundFromDisk(const char* path, int priority, float volume, float panning, int loop) {
+int audiomixer_SoundFromDisk(const char* path, int priority, float volume, float panning, float fadeinseconds, int loop) {
 	audio_LockAudioThread();
 	int id = audiomixer_FreeSoundId();
 	int slot = audiomixer_GetFreeChannelSlot(priority);
@@ -113,9 +122,20 @@ int audiomixer_SoundFromDisk(const char* path, int priority, float volume, float
 		audio_UnlockAudioThread();
 		return id;
 	}
-	channels[slot].fadepansource = audiosourcefadepanvol_Create(audiosourceresample_Create(audiosourceogg_Create(audiosourcefile_Create(path)), 48000));
-	channels[slot].loopsource = audiosourceloop_Create(channels[slot].fadepansource);
+	
+	channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(audiosourceresample_Create(audiosourceogg_Create(audiosourcefile_Create(path)), 48000));
+	
+	audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, panning, volume);
+	if (fadeinseconds > 0) {
+		audiosourcefadepanvol_StartFade(channels[slot].fadepanvolsource, fadeinseconds, volume, 0);
+	}
+	
+	channels[slot].loopsource = audiosourceloop_Create(channels[slot].fadepanvolsource);
+	
 	audiosourceloop_SetLooping(channels[slot].loopsource, loop);
+	
+	audio_UnlockAudioThread();
+	return id;
 }
 
 static void audiomixer_FillMixAudioBuffer() { //SOUND THREAD

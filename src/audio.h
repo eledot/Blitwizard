@@ -32,10 +32,6 @@ int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersi
 //The raw audio data will be requested through the callback.
 //The amount of requested bytes is not guaranteed to be fitting to the samples.
 
-void audio_441to480(const char* inputbuf, char* outputbuf, int channels);
-//Write from a 441*2*channels byte buffer converted to a 480*2*channels byte buffer
-//with a linear sample rate conversion. Assumes 16bit signed int audio.
-
 void audio_LockAudioThread();
 //Call this to make sure the audio callback you supply in audio_Init() isn't currently running.
 //Will block and wait if the callback is currently running, then prevent it from running

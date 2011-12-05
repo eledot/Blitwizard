@@ -223,6 +223,9 @@ int main(int argc, char** argv) {
 		}
 		i++;
 	}
+	
+	//This needs to be done at some point before we actually initialise audio
+	audiomixer_Init();
 
 	//check the provided path:
 	char outofmem[] = "Out of memory";

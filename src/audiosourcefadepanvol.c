@@ -73,8 +73,8 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 		}
 			
 		//get new unprocessed samples
+		int unprocessedstart = idata->processedsamplesbytes;
 		if (!idata->sourceeof) {
-			int unprocessedstart = idata->processedsamplesbytes;
 			while (idata->processedsamplesbytes + sizeof(float) * 2 <= sizeof(idata->processedsamplesbuf) && stereosamples > 0) {
 				int i = idata->source->read(idata->source, idata->processedsamplesbuf + idata->processedsamplesbytes, sizeof(float) * 2);
 				if (i < sizeof(float)*2) {
@@ -114,8 +114,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 					idata->fadesampleend = 0;
 
 					if (idata->terminateafterfade) {
-						idata->source->close(idata->source);
-						idata->source = NULL;
+						idata->sourceeof = 1;
 						idata->processedsamplesbytes = i + sizeof(float) * 2;
 					}
 				}

@@ -22,4 +22,4 @@
 */
 
 void* audiomixer_GetBuffer(unsigned int len);
-
+void audiomixer_Init();

@@ -92,6 +92,3 @@ void audio_UnlockAudioThread() {
 	SDL_UnlockAudio();
 }
 
-void audio_441to480(const char* inputbuf, char* outputbuf, int channels) {
-	
-}
