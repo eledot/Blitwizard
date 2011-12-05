@@ -3,6 +3,10 @@
    This is an example that simply shows a moving car to
    demonstrate how to do a simple movement animation.
 
+   It is different to example 2 by using more sophisticated
+   async loading (which allows you to do other things while
+   the loading is in progress).
+
    You can copy, alter or reuse this file any way you like.
    It is available without restrictions (public domain).
 ]]
