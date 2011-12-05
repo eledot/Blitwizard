@@ -30,6 +30,7 @@
 
 struct audiosourcefadepanvol_internaldata {
 	struct audiosource* source;
+	int sourceeof;
 	int eof;
 	int returnerroroneof;
 	
@@ -46,13 +47,24 @@ struct audiosourcefadepanvol_internaldata {
 	int processedsamplesbytes;
 };
 
-static int audiosourcefadepanvol_Read(struct audiosource* source, unsigned int bytes, char* buffer) {
+static void audiosourcefadepanvol_Rewind(struct audiosource* source) {
+	struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
+	if (!idata->eof || !idata->returnerroroneof) {
+		idata->source->rewind(idata->source);
+		idata->sourceeof = 0;
+		idata->eof = 0;
+		idata->returnerroroneof = 0;
+		idata->processedsamplesbytes = 0;
+	}
+}
+
+static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
 	struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
 	if (idata->eof) {
 		return -1;
 	}
 	
-	int writtenbytes = 0;
+	int byteswritten = 0;
 	while (bytes > 0) {
 		//see how many samples we want to have minimum
 		int stereosamples = bytes / sizeof(float) * 2;
@@ -61,16 +73,16 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, unsigned int b
 		}
 			
 		//get new unprocessed samples
-		if (idata->source) {
+		if (!idata->sourceeof) {
 			int unprocessedstart = idata->processedsamplesbytes;
 			while (idata->processedsamplesbytes + sizeof(float) * 2 <= sizeof(idata->processedsamplesbuf) && stereosamples > 0) {
-				int i = idata->source->read(idata->source, sizeof(float) * 2, idata->processedsamplesbuf + idata->processedsamplesbytes);
+				int i = idata->source->read(idata->source, idata->processedsamplesbuf + idata->processedsamplesbytes, sizeof(float) * 2);
 				if (i < sizeof(float)*2) {
 					if (i < 0) {
 						//read function returned error
 						idata->returnerroroneof = 1;
 					}
-					idata->eof = 1;
+					idata->sourceeof = 1;
 					break;
 				}else{
 					idata->processedsamplesbytes += sizeof(float)*2;
@@ -130,21 +142,25 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, unsigned int b
 			returnbytes = idata->processedsamplesbytes;
 		}
 		if (returnbytes <= 0) {
-			idata->eof = 1;
-			if (idata->returnerroroneof) {
-				return -1;
+			if (byteswritten <= 0) {
+				idata->eof = 1;
+				if (idata->returnerroroneof) {
+					return -1;
+				}
+				return 0;
+			}else{
+				return byteswritten;
 			}
-			return 0;
 		}else{
-			writtenbytes += returnbytes;
+			byteswritten += returnbytes;
 			memcpy(buffer, idata->processedsamplesbuf, returnbytes);
 			buffer += returnbytes;
 		}
 		//move away processed & returned samples
-		memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + writtenbytes, sizeof(idata->processedsamplesbuf) - writtenbytes);
-		idata->processedsamplesbytes -= writtenbytes;
+		memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + byteswritten, sizeof(idata->processedsamplesbuf) - byteswritten);
+		idata->processedsamplesbytes -= byteswritten;
 	}
-	return writtenbytes;
+	return byteswritten;
 }
 
 static void audiosourcefadepanvol_Close(struct audiosource* source) {
@@ -198,6 +214,7 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	//function pointers
 	a->read = &audiosourcefadepanvol_Read;
 	a->close = &audiosourcefadepanvol_Close;
+	a->rewind = &audiosourcefadepanvol_Rewind;
 	
 	return NULL;
 }

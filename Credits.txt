@@ -1,0 +1,4 @@
+blitwizard credits:
+
+Project lead: Jonas Thiem
+Mac build testing: Nicolas Haunold

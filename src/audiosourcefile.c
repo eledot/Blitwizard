@@ -34,7 +34,16 @@ struct audiosourcefile_internaldata {
 	char* path;
 };
 
-static int audiosourcefile_Read(struct audiosource* source, unsigned int bytes, char* buffer) {
+static void audiosourcefile_Rewind(struct audiosource* source) {
+	struct audiosourcefile_internaldata* idata = source->internaldata;
+	idata->eof = 0;
+	if (idata->file) {
+		fclose(idata->file);
+		idata->file = 0;
+	}
+}
+
+static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;
 	
 	if (idata->file == NULL) {
@@ -100,6 +109,7 @@ struct audiosource* audiosourcefile_Create(const char* path) {
 
 	a->read = &audiosourcefile_Read;
 	a->close = &audiosourcefile_Close;
+	a->rewind = &audiosourcefile_Rewind;
 	
 	return a;
 }

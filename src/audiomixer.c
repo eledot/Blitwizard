@@ -56,14 +56,20 @@ static void audiomixer_CancelChannel(int slot) {
 
 static int audiomixer_GetFreeChannelSlot(int priority) {
 	int i = 0;
+	//first, attempt to find an empty slot
+	while (i < MAXCHANNELS) {
+		if (!channels[i].loopsource) {
+			return i;
+		}
+		i++;
+	}
+	//then override one
 	while (i < MAXCHANNELS) {
 		if (channels[i].loopsource) {
-			if (channels[i].priority == priority) {
+			if (channels[i].priority <= priority) {
 				audiomixer_CancelChannel(priority);
 				return i;
 			}
-		}else{
-			return i;
 		}
 		i++;
 	}
@@ -98,7 +104,19 @@ static int audiomixer_FreeSoundId() {
 
 
 
-int audiomixer_SoundFromDisk(const char* path, inte
+int audiomixer_SoundFromDisk(const char* path, int priority, float volume, float panning, int loop) {
+	audio_LockAudioThread();
+	int id = audiomixer_FreeSoundId();
+	int slot = audiomixer_GetFreeChannelSlot(priority);
+	if (slot < 0) {
+		//all slots are full. do nothing and simply return an unused unplaying id
+		audio_UnlockAudioThread();
+		return id;
+	}
+	channels[slot].fadepansource = audiosourcefadepanvol_Create(audiosourceresample_Create(audiosourceogg_Create(audiosourcefile_Create(path)), 48000));
+	channels[slot].loopsource = audiosourceloop_Create(channels[slot].fadepansource);
+	audiosourceloop_SetLooping(channels[slot].loopsource, loop);
+}
 
 static void audiomixer_FillMixAudioBuffer() { //SOUND THREAD
 	

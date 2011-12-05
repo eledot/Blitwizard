@@ -23,11 +23,16 @@
 
 struct audiosource {
 	//Read data:
-	int (*read)(struct audiosource* source, unsigned int bytes, char* buffer);
+	int (*read)(struct audiosource* source, char* buffer, unsigned int bytes);
 	//Writes 0 to bytes to the buffer pointer. Returns the amount of bytes written.
 	//When -1 is returned, an error occured (the buffer is left untouched).
 	//When 0 is returned, the end of the source is reached.
 	//In case of 0/-1, you should close the audio resource.
+	
+	//Rewind:
+	void (*rewind)(struct audiosource* source);
+	//Rewind and start over from the beginning.
+	//This can be used any time as long as read has never returned an error (-1).
 	
 	//Close audio source:
 	void (*close)(struct audiosource* source);
