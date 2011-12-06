@@ -147,11 +147,12 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 	return id;
 }
 
-static void audiomixer_HandleChannelEOF(int returnvalue) {
-
+static void audiomixer_HandleChannelEOF(int channel, int returnvalue) {
+	audiomixer_CancelChannel(channel);
 }
 
 #define MIXTYPE float
+#define MIXTYPE_FINAL float
 #define MIXSIZE 512
 
 char mixbuf[MIXSIZE];
@@ -159,12 +160,15 @@ char mixbuf2[MIXSIZE];
 int filledmixpartial = 0;
 int filledmixfull = 0;
 
-static void audiomixer_RequestMix(int bytes) { //SOUND THREAD
+static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 	int filledbytes = filledmixpartial + filledmixfull * sizeof(MIXTYPE);
 	
+	int formatdifferencefactor = sizeof(MIXTYPE)/sizeof(MIXTYPE_FINAL);
+	int actualbytes = bytes * formatdifferencefactor;
+
 	//calculate the desired amount of samples
-	int sampleamount = (bytes - filledbytes)/sizeof(MIXTYPE);
-	while (sampleamount * sizeof(MIXTYPE) < bytes - filledbytes) {
+	int sampleamount = (actualbytes - filledbytes)/sizeof(MIXTYPE);
+	while (sampleamount * sizeof(MIXTYPE) < actualbytes - filledbytes) {
 		sampleamount += sizeof(MIXTYPE);
 	}
 
@@ -188,7 +192,7 @@ static void audiomixer_RequestMix(int bytes) { //SOUND THREAD
 			//read bytes
 			int k = channels[i].loopsource->read(channels[i].loopsource, mixbuf2, sampleamount * sizeof(MIXTYPE));
 			if (k <= 0) {
-				audiomixer_HandleChannelEOF(i);
+				audiomixer_HandleChannelEOF(i, k);
 				i++;
 				continue;
 			}
@@ -218,6 +222,7 @@ static void audiomixer_RequestMix(int bytes) { //SOUND THREAD
 		i++;
 	}
 }
+
 
 char* streambuf = NULL;
 unsigned int streambuflen = 0;

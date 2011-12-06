@@ -196,6 +196,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 			ov_clear(&idata->vorbisfile);
 			return -1;
 		}
+		idata->vorbisopened = 1;
 	}
 	
 	//if no bytes were requested, don't do anything

@@ -96,8 +96,8 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 		float faderange = (-idata->fadesamplestart + idata->fadesampleend);
 		float fadeprogress = idata->fadesampleend;
 		while (i <= idata->processedsamplesbytes - sizeof(float) * 2) {
-			float leftchannel = *((float*)((void*)idata->processedsamplesbuf+i));
-			float rightchannel = *(((float*)((void*)idata->processedsamplesbuf+i))+1);
+			float leftchannel = *((float*)((char*)idata->processedsamplesbuf+i));
+			float rightchannel = *((float*)((float*)((char*)idata->processedsamplesbuf+i))+1);
 	
 			if (idata->fadesamplestart < 0 || idata->fadesampleend > 0) {
 				//calculate fade volume
@@ -110,12 +110,13 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 					
 				if (idata->fadesampleend < 0) {
 					//fade ended
+					idata->vol = idata->fadevalueend;
 					idata->fadesamplestart = 0;
 					idata->fadesampleend = 0;
 
 					if (idata->terminateafterfade) {
 						idata->sourceeof = 1;
-						idata->processedsamplesbytes = i + sizeof(float) * 2;
+						i = idata->processedsamplesbytes;
 					}
 				}
 			}
