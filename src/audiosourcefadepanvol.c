@@ -179,11 +179,13 @@ static void audiosourcefadepanvol_Close(struct audiosource* source) {
 
 struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	if (!source) {
+		printf("fadepanvol: no source\n");
 		//no source given
 		return NULL;
 	}
 	if (source->channels != 2) {
 		//we only support stereo audio
+		printf("fadepanvol: no stereo\n");
 		source->close(source);
 		return NULL;
 	}
@@ -198,24 +200,25 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	//allocate internal data struct
 	memset(a,0,sizeof(*a));
 	a->internaldata = malloc(sizeof(struct audiosourcefadepanvol_internaldata));
-	if (a->internaldata) {
+	if (!a->internaldata) {
 		free(a);
 		source->close(source);
 		return NULL;
 	}
-	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
 	
 	//remember various things
 	struct audiosourcefadepanvol_internaldata* idata = a->internaldata;
+	memset(idata, 0, sizeof(*idata));
 	idata->source = source;
 	a->samplerate = source->samplerate;
+	a->channels = source->channels;
 	
 	//function pointers
 	a->read = &audiosourcefadepanvol_Read;
 	a->close = &audiosourcefadepanvol_Close;
 	a->rewind = &audiosourcefadepanvol_Rewind;
 	
-	return NULL;
+	return a;
 }
 
 void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float pan, float vol) {

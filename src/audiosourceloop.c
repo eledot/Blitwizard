@@ -109,14 +109,17 @@ static void audiosourceloop_Close(struct audiosource* source) {
 
 struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 	if (!source) {
+		printf("loop: no source\n");
 		//no source given
 		return NULL;
 	}
 	if (source->channels != 2) {
+		printf("loop: not stereo\n");
 		//we only support stereo audio
 		source->close(source);
 		return NULL;
 	}
+	printf("loop: init...\n");
 
 	//allocate visible data struct
 	struct audiosource* a = malloc(sizeof(*a));
@@ -128,22 +131,23 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 	//allocate internal data struct
 	memset(a,0,sizeof(*a));
 	a->internaldata = malloc(sizeof(struct audiosourceloop_internaldata));
-	if (a->internaldata) {
+	if (!a->internaldata) {
 		free(a);
 		source->close(source);
 		return NULL;
 	}
-	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
 	
 	//remember various things
 	struct audiosourceloop_internaldata* idata = a->internaldata;
+	memset(idata, 0, sizeof(*idata));
 	idata->source = source;
 	a->samplerate = source->samplerate;
+	a->channels = source->channels;
 	
 	//function pointers
 	a->read = &audiosourceloop_Read;
 	a->close = &audiosourceloop_Close;
 	a->rewind = &audiosourceloop_Rewind;
 	
-	return NULL;
+	return a;
 }

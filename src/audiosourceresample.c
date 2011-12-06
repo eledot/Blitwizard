@@ -196,20 +196,22 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 
 struct audiosource* audiosourceresample_Create(struct audiosource* source, int targetrate) {
 	//check if we got a source and if source samplerate + target rate are supported by our limited implementation
-	if (!source) {return NULL;}
+	if (!source) {printf("Resample: no source\n");return NULL;}
 	if ((source->samplerate != 44100 || targetrate != 48000) &&
 		(source->samplerate != 22050 || targetrate != 44100) &&
 		source->samplerate != targetrate) {
 		if (source->samplerate == 22050 && targetrate == 48000) {
 			//do this as a two-step conversion
 			source = audiosourceresample_Create(source, 44100);
-			if (!source) {return NULL;}
+			if (!source) {printf("Resmaple: no in-between source\n");return NULL;}
 		}else{
 			//sorry, we don't support this.
 			source->close(source);
 		}
+		printf("Resample: invalid rate (%d -> %d)\n",source->samplerate, targetrate);
 		return NULL;
 	}
+	printf("Resample: Initialising...\n");
 
 	//allocate data struct
 	struct audiosource* a = malloc(sizeof(*a));
@@ -221,18 +223,19 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, int t
 	//allocate data struct for internal (hidden) data
 	memset(a,0,sizeof(*a));
 	a->internaldata = malloc(sizeof(struct audiosourceresample_internaldata));
-	if (a->internaldata) {
+	if (!a->internaldata) {
 		free(a);
 		source->close(source);
 		return NULL;
 	}
-	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
 	
 	//remember some things
 	struct audiosourceresample_internaldata* idata = a->internaldata;
+	memset(idata, 0, sizeof(*idata));
 	idata->source = source;
 	idata->targetrate = targetrate;
 	a->samplerate = source->samplerate;
+	a->channels = source->channels;
 	
 	//set function pointers
 	a->read = &audiosourceresample_Read;

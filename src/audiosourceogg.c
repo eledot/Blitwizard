@@ -32,7 +32,7 @@
 struct audiosourceogg_internaldata {
 	struct audiosource* filesource;
 	int filesourceeof;
-	char fetchedbuf[512];
+	char fetchedbuf[4096];
 	int fetchedbytes;
 	int fetchedbufreadoffset;
 	int eof;
@@ -65,6 +65,10 @@ static void audiosourceogg_Rewind(struct audiosource* source) {
 }
 
 static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* idata) {
+	if (idata->filesourceeof) {
+		return;
+	}
+	
 	//move buffer back if required
 	if (idata->fetchedbufreadoffset > 0) {
 		memmove(idata->fetchedbuf, idata->fetchedbuf + idata->fetchedbufreadoffset, idata->fetchedbytes);
@@ -74,12 +78,16 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
 	//fetch new bytes
 	if (idata->fetchedbytes < sizeof(idata->fetchedbuf)) {
 		if (!idata->filesourceeof) {
+			printf("file source: requesting bytes: %d\n",sizeof(idata->fetchedbuf) - idata->fetchedbytes);
 			int i = idata->filesource->read(idata->filesource, idata->fetchedbuf + idata->fetchedbytes, sizeof(idata->fetchedbuf) - idata->fetchedbytes);
+			printf("file source: %d bytes\n",i);
 			if (i <= 0) {
 				idata->filesourceeof = 1;
 				if (i < 0) {
 					idata->returnerroroneof = 1;
 				}
+			}else{
+				idata->fetchedbytes += i;
 			}
 		}
 	}
@@ -89,10 +97,13 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
 static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *datasource) {	
 	struct audiosourceogg_internaldata* idata = datasource;
 	
+	printf("vorbis reader: %d/%d\n",size,nmemb);
+	
 	int writtenchunks = 0;
 	while (writtenchunks < nmemb) {
+		printf("written chunks: %d\n",writtenchunks);
 		//read new bytes
-		if (idata->fetchedbytes < size) {
+		if (idata->fetchedbytes < size && idata->filesourceeof != 1) {
 			audiosourceogg_ReadUndecoded(idata);
 		}
 	
@@ -101,23 +112,27 @@ static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *dat
 		if (amount > idata->fetchedbytes) {amount = idata->fetchedbytes;}
 		
 		//is it sufficient for a chunk?
-		if (amount < nmemb) {
+		if (amount < size) {
 			//no, we are done
+			printf("not enough for a chunk: %d\n",amount);
 			return writtenchunks;
 		}else{
 			//yes, check for amount of chunks
 			int chunks = 0;
-			while (chunks * nmemb < amount) {
+			while (chunks * size <= amount - size && chunks < nmemb) {
 				chunks += 1;
 			}
 			
 			//write chunks
 			writtenchunks += chunks;
-			memcpy(ptr, idata->fetchedbuf + idata->fetchedbufreadoffset, chunks * nmemb);
-			idata->fetchedbytes -= chunks * nmemb;
-			idata->fetchedbufreadoffset += chunks * nmemb;
+			printf("old fetched bytes: %d\n",idata->fetchedbytes),
+			memcpy(ptr, idata->fetchedbuf + idata->fetchedbufreadoffset, chunks * size);
+			idata->fetchedbytes -= chunks * size;
+			idata->fetchedbufreadoffset += chunks * size;
+			printf("new fetched bytes: %d\n",idata->fetchedbytes);
 		}
 	}
+	printf("vorbis reader result: %d\n",writtenchunks);
 	return writtenchunks;
 }
 
@@ -131,7 +146,13 @@ static int audiosourceogg_InitOgg(struct audiosource* source) {
 	memset(&callbacks, 0, sizeof(callbacks));
 	callbacks.read_func = &vorbismemoryreader;
 	
-	if (ov_open_callbacks(idata, &idata->vorbisfile, NULL, 0, callbacks) != 0) {
+	int v = ov_open_callbacks(idata, &idata->vorbisfile, NULL, 0, callbacks);
+	if (v != 0) {
+		if (v == OV_EREAD) {printf("OV_READ\n");}
+		if (v == OV_ENOTVORBIS) {printf("OV_ENOTVORBIS\n");}
+		if (v == OV_EVERSION) {printf("OV_EVERSION\n");}
+		if (v == OV_EBADHEADER) {printf("OV_EBADHEADER\n");}
+		if (v == OV_EFAULT) {printf("OV_EFAULT\n");}
 		return 0;
 	}
 	
@@ -139,6 +160,7 @@ static int audiosourceogg_InitOgg(struct audiosource* source) {
 }
 
 static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
+	printf("ogg read: %d\n",bytes);
 	struct audiosourceogg_internaldata* idata = source->internaldata;
 	if (idata->eof) {
 		return -1;
@@ -146,15 +168,18 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 	
 	//open up ogg file if we don't have one yet
 	if (!idata->vorbisopened) {
+		printf("ogg initial read\n");
 		if (!audiosourceogg_InitOgg(source)) {
 			idata->eof = 1;
 			source->samplerate = -1;
 			source->channels = -1;
+			printf("Ogg init failed\n");
 			return -1;
 		}
 		vorbis_info* vi = ov_info(&idata->vorbisfile, -1);
 		source->samplerate = vi->rate;
 		source->channels = vi->channels;
+		printf("ogg rate: %d\n", source->samplerate);
 		if (source->samplerate != 48000 && source->samplerate != 44100 && source->samplerate != 22050) {
 			//incompatible sample rate
 			idata->eof = 1;
@@ -261,12 +286,6 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 
 static void audiosourceogg_Close(struct audiosource* source) {
 	struct audiosourceogg_internaldata* idata = source->internaldata;
-
-	//close audio file source we might have opened
-	struct audiosource* a = idata->filesource;
-	if (a) {
-		a->close(a);
-	}
 	
 	//close ogg file if we have it open
 	if (idata->vorbisopened) {
@@ -286,8 +305,8 @@ static void audiosourceogg_Close(struct audiosource* source) {
 }
 
 struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
-	if (!filesource) {return NULL;}
-
+	if (!filesource) {printf("Ogg: no file source\n");return NULL;}
+	printf("Ogg: initialising...\n");
 	//main data structure
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
@@ -303,7 +322,11 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 		filesource->close(filesource);
 		return NULL;
 	}
+	
+	//internal data values
 	struct audiosourceogg_internaldata* idata = a->internaldata;
+	memset(idata, 0, sizeof(*idata));
+	idata->filesource = filesource;
 	
 	//function pointers
 	a->read = &audiosourceogg_Read;
@@ -313,6 +336,7 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 	//ensure proper initialisation of sample rate + channels variables
 	audiosourceogg_Read(a, NULL, 0);
 	if (idata->eof && idata->returnerroroneof) {
+		printf("Ogg: initial file read error\n");
 		//There was an error reading this ogg file - probably not ogg (or broken ogg)
 		audiosourceogg_Close(a);
 		return NULL;

@@ -57,7 +57,7 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 		}
 	}
 	
-	int bytesread = fread(buffer, bytes, 1, idata->file);
+	int bytesread = fread(buffer, 1, bytes, idata->file);
 	if (bytesread >= 0) {
 		return bytesread;
 	}else{
@@ -93,13 +93,13 @@ struct audiosource* audiosourcefile_Create(const char* path) {
 	
 	memset(a,0,sizeof(*a));
 	a->internaldata = malloc(sizeof(struct audiosourcefile_internaldata));
-	if (a->internaldata) {
+	if (!a->internaldata) {
 		free(a);
 		return NULL;
 	}
-	memset(a->internaldata, 0, sizeof(*(a->internaldata)));
 	
 	struct audiosourcefile_internaldata* idata = a->internaldata;
+	memset(idata, 0, sizeof(*idata));
 	idata->path = strdup(path);
 	if (!idata->path) {
 		free(a->internaldata);
