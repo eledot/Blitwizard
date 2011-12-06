@@ -32,6 +32,7 @@
 #include "graphics.h"
 #include "timefuncs.h"
 #include "luastate.h"
+#include "audio.h"
 
 int drawingallowed = 0;
 
@@ -292,6 +293,11 @@ int luafuncs_play(lua_State* l) {
 	memset(iref,0,sizeof(*iref));
 	iref->type = IDREF_SOUND;
 	iref->id = audiomixer_PlaySoundFromDisk(p, priority, volume, panning, fadein, looping);
+	if (iref->id < 0) {
+		lua_pop(l,1);
+		lua_pushstring(l, "Cannot play sound");
+		return lua_error(l);
+	}
 	return 1;
 }
 

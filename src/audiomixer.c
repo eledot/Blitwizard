@@ -124,6 +124,10 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 	}
 	
 	channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(audiosourceresample_Create(audiosourceogg_Create(audiosourcefile_Create(path)), 48000));
+
+	if (!channels[slot].fadepanvolsource) {
+		return -1;
+	}
 	
 	audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, panning, volume);
 	if (fadeinseconds > 0) {
@@ -131,7 +135,12 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 	}
 	
 	channels[slot].loopsource = audiosourceloop_Create(channels[slot].fadepanvolsource);
-	
+	if (!channels[slot].loopsource) {
+		channels[slot].fadepanvolsource->close(channels[slot].fadepanvolsource);
+		channels[slot].fadepanvolsource = NULL;
+		return -1;
+	}	
+
 	audiosourceloop_SetLooping(channels[slot].loopsource, loop);
 	
 	audio_UnlockAudioThread();
