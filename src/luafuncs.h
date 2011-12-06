@@ -31,3 +31,5 @@ int luafuncs_getImageSize(lua_State* l);
 int luafuncs_getWindowSize(lua_State* l);
 int luafuncs_drawImage(lua_State* l);
 
+int luafuncs_play(lua_State* l);
+

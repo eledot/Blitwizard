@@ -57,6 +57,13 @@ static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_settable(l,-3);
 }
 
+static void luastate_CreateSoundTable(lua_State* l) {
+	lua_newtable(l);
+	lua_pushstring(l, "play");
+	lua_pushcfunction(l, &luafuncs_play);
+	lua_settable(l,-3);
+}
+
 static void luastate_CreateTimeTable(lua_State* l) {
 	lua_newtable(l);
 	lua_pushstring(l, "getTime");
@@ -85,6 +92,10 @@ static lua_State* luastate_New() {
 
 	lua_pushstring(l,"graphics");
 	luastate_CreateGraphicsTable(l);
+	lua_settable(l,-3);
+	
+	lua_pushstring(l, "sound");
+	luastate_CreateSoundTable(l);
 	lua_settable(l,-3);
 
 	lua_pushstring(l,"callback");

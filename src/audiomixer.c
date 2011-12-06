@@ -113,7 +113,7 @@ static int audiomixer_FreeSoundId() {
 
 
 
-int audiomixer_SoundFromDisk(const char* path, int priority, float volume, float panning, float fadeinseconds, int loop) {
+int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, float panning, float fadeinseconds, int loop) {
 	audio_LockAudioThread();
 	int id = audiomixer_FreeSoundId();
 	int slot = audiomixer_GetFreeChannelSlot(priority);

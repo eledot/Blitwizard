@@ -31,6 +31,7 @@
 #include "luafuncs.h"
 #include "graphics.h"
 #include "timefuncs.h"
+#include "luastate.h"
 
 int drawingallowed = 0;
 
@@ -230,4 +231,67 @@ int luafuncs_drawImage(lua_State* l) {
 	return 0;
 }
 
+
+int luafuncs_play(lua_State* l) {
+	const char* p = lua_tostring(l,1);
+	if (!p) {
+		lua_pushstring(l, "First parameter is not a valid sound name string");
+		return lua_error(l);
+	}
+	float volume = 1;
+	float panning = 0;
+	int priority = -1;
+	int looping = 0;
+	float fadein = -1;
+	if (lua_gettop(l) >= 2) {
+		if (lua_type(l,2) != LUA_TNUMBER) {
+			lua_pushstring(l, "Second parameter is not a valid volume number");
+			return lua_error(l);
+		}
+		volume = lua_tonumber(l, 2);
+		if (volume < 0) {volume = 0;}
+		if (volume > 1) {volume = 1;}
+	}
+	if (lua_gettop(l) >= 3) {
+		if (lua_type(l,3) != LUA_TNUMBER) {
+			lua_pushstring(l, "Third parameter is not a valid panning number");
+			return lua_error(l);
+		}
+		panning = lua_tonumber(l, 3);
+		if (panning < -1) {panning = -1;}
+		if (panning > 1) {panning = 1;}
+	}
+	if (lua_gettop(l) >= 4) {
+		if (lua_type(l,4) != LUA_TBOOLEAN) {
+			lua_pushstring(l,"Fourth parameter is not a valid alpha number");
+			return lua_error(l);
+		}
+		if (lua_toboolean(l, 4)) {
+			looping = 1;
+		}
+	}
+	if (lua_gettop(l) >= 5) {
+		if (lua_type(l,5) != LUA_TNUMBER) {
+			lua_pushstring(l, "Fifth parameter is not a valid priority index number");
+			return lua_error(l);
+		}
+		priority = lua_tointeger(l, 5);
+		if (priority < 0) {priority = 0;}
+	}
+	if (lua_gettop(l) >= 6) {
+		if (lua_type(l,6) != LUA_TNUMBER) {
+			lua_pushstring(l, "Sixth parameter is not a valid fade-in seconds number");
+			return lua_error(l);
+		}
+		fadein = lua_tonumber(l,6);
+		if (fadein <= 0) {
+			fadein = -1;
+		}
+	}
+	struct luaidref* iref = lua_newuserdata(l, sizeof(*iref));
+	memset(iref,0,sizeof(*iref));
+	iref->type = IDREF_SOUND;
+	iref->id = audiomixer_PlaySoundFromDisk(p, priority, volume, panning, fadein, looping);
+	return 1;
+}
 

@@ -35,4 +35,11 @@ int luastate_PushFunctionArgumentToMainstate_Double(double i); //1: success, 0: 
 //Function call:
 int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetablelookup, int allownil, char** error); //1: success, 0: failure (*error will be either changed to NULL or to an error string - NULL means most likely out of memory)
 
+#define IDREF_SOUND 1
+
+struct luaidref {
+	int type;
+	int id;
+};
+
 
