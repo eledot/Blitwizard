@@ -154,10 +154,11 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 			byteswritten += returnbytes;
 			memcpy(buffer, idata->processedsamplesbuf, returnbytes);
 			buffer += returnbytes;
+			bytes -= returnbytes;
 		}
 		//move away processed & returned samples
-		memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + byteswritten, sizeof(idata->processedsamplesbuf) - byteswritten);
-		idata->processedsamplesbytes -= byteswritten;
+		memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + returnbytes, sizeof(idata->processedsamplesbuf) - returnbytes);
+		idata->processedsamplesbytes -= returnbytes;
 	}
 	return byteswritten;
 }
