@@ -67,16 +67,18 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 	int byteswritten = 0;
 	while (bytes > 0) {
 		//see how many samples we want to have minimum
-		int stereosamples = bytes / sizeof(float) * 2;
+		int stereosamples = bytes / (sizeof(float) * 2);
 		if (stereosamples * sizeof(float) * 2 < bytes) {
 			stereosamples++;
 		}
+		printf("stereosamples: %d, bytes: %d\n", stereosamples, bytes);
 			
 		//get new unprocessed samples
 		int unprocessedstart = idata->processedsamplesbytes;
 		if (!idata->sourceeof) {
 			while (idata->processedsamplesbytes + sizeof(float) * 2 <= sizeof(idata->processedsamplesbuf) && stereosamples > 0) {
 				int i = idata->source->read(idata->source, idata->processedsamplesbuf + idata->processedsamplesbytes, sizeof(float) * 2);
+				printf("i fetched %d bytes\n", i);
 				if (i < sizeof(float)*2) {
 					if (i < 0) {
 						//read function returned error
@@ -95,7 +97,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 		int i = unprocessedstart;
 		float faderange = (-idata->fadesamplestart + idata->fadesampleend);
 		float fadeprogress = idata->fadesampleend;
-		while (i <= idata->processedsamplesbytes - sizeof(float) * 2) {
+		while (i <= (int)(idata->processedsamplesbytes - (sizeof(float) * 2))) {
 			float leftchannel = *((float*)((char*)idata->processedsamplesbuf+i));
 			float rightchannel = *((float*)((float*)((char*)idata->processedsamplesbuf+i))+1);
 	
@@ -123,7 +125,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 
 			//apply volume
 			leftchannel = (leftchannel+1)*idata->vol - 1;
-			rightchannel = (leftchannel+1)*idata->vol - 1;
+			rightchannel = (rightchannel+1)*idata->vol - 1;
 	
 			//calculate panning
 			leftchannel *= (idata->pan+1)/2;
@@ -142,6 +144,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 			returnbytes = idata->processedsamplesbytes;
 		}
 		if (returnbytes <= 0) {
+			printf("eof.\n");
 			if (byteswritten <= 0) {
 				idata->eof = 1;
 				if (idata->returnerroroneof) {
@@ -158,8 +161,10 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 			bytes -= returnbytes;
 		}
 		//move away processed & returned samples
-		memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + returnbytes, sizeof(idata->processedsamplesbuf) - returnbytes);
-		idata->processedsamplesbytes -= returnbytes;
+		if (returnbytes > 0) {
+			memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + returnbytes, sizeof(idata->processedsamplesbuf) - returnbytes);
+			idata->processedsamplesbytes -= returnbytes;
+		}
 	}
 	return byteswritten;
 }
