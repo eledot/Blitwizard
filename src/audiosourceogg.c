@@ -160,7 +160,6 @@ static int audiosourceogg_InitOgg(struct audiosource* source) {
 }
 
 static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
-	printf("ogg read: %d\n",bytes);
 	struct audiosourceogg_internaldata* idata = source->internaldata;
 	if (idata->eof) {
 		return -1;
@@ -168,18 +167,15 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 	
 	//open up ogg file if we don't have one yet
 	if (!idata->vorbisopened) {
-		printf("ogg initial read\n");
 		if (!audiosourceogg_InitOgg(source)) {
 			idata->eof = 1;
 			source->samplerate = -1;
 			source->channels = -1;
-			printf("Ogg init failed\n");
 			return -1;
 		}
 		vorbis_info* vi = ov_info(&idata->vorbisfile, -1);
 		source->samplerate = vi->rate;
 		source->channels = vi->channels;
-		printf("ogg rate: %d\n", source->samplerate);
 		if (source->samplerate != 48000 && source->samplerate != 44100 && source->samplerate != 22050) {
 			//incompatible sample rate
 			idata->eof = 1;
@@ -217,7 +213,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 		
 		//decode from encoded fetched bytes
 		int decodesamples = decodeamount/(source->channels * sizeof(float));
-		if (decodesamples * (source->channels * sizeof(float)) < decodeamount && decodesamples * (source->channels * sizeof(float)) <= sizeof(idata->decodedbuf) - sizeof(float) * source->channels) {
+		if (decodesamples * (source->channels * sizeof(float)) < decodeamount && decodesamples * (source->channels * sizeof(float)) <= (int)(sizeof(idata->decodedbuf) - sizeof(float) * source->channels)) {
 			//make sure we cover all desired bytes even for half-sample requests or something
 			decodesamples++;
 		}
@@ -225,7 +221,6 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 			float **pcm;
 			
 			long ret = ov_read_float(&idata->vorbisfile, &pcm, decodesamples, &idata->vbitstream);
-		
 			if (ret < 0) {
 				if (ret == OV_HOLE) {
 					//a "jump" or temporary decoding problem - ignore this
@@ -245,7 +240,6 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 							idata->decodedbytes += sizeof(float);
 							j++;
 						}
-						
 						i++;
 					}
 				}else{
@@ -276,8 +270,12 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 			}
 		}
 		
-		//copy
+		//output bytes
 		memcpy(buffer, idata->decodedbuf, amount);
+		byteswritten += amount;
+		buffer += amount;
+
+		//empty our decode buffer
 		memmove(idata->decodedbuf, idata->decodedbuf + amount, sizeof(idata->decodedbuf) - amount);
 		idata->decodedbytes -= amount;
 		bytes -= amount;
@@ -341,6 +339,8 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 		//There was an error reading this ogg file - probably not ogg (or broken ogg)
 		audiosourceogg_Close(a);
 		return NULL;
+	}else{
+		printf("Ogg: success\n");
 	}
 	
 	return a;

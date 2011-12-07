@@ -91,7 +91,7 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 		if (!idata->sourceeof) {
 			//see how many samples we want to fetch
 			int wantsamples = bytes / (sizeof(float) * source->channels);
-			if (wantsamples < sizeof(float) * source->channels * bytes) {
+			if (wantsamples * sizeof(float) * source->channels < bytes) {
 				wantsamples += sizeof(float) * source->channels;
 			}
 			if (wantsamples < 12 && (source->samplerate == 44100 ||source->samplerate == 22050) && idata->targetrate == 48000) {
@@ -170,7 +170,23 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 		}
 		
 		//now we would love to do a lowpass filter. however, this remains to be coded!
-		
+		if (source->samplerate == idata->targetrate) {
+
+		}
+
+		//handle the pass-thru case
+		if (source->samplerate == idata->targetrate) {
+			int i = idata->unprocessedbytes;
+			if (i > sizeof(idata->processedbuf) - idata->processedbytes) {
+				i = (int)(sizeof(idata->processedbuf) - idata->processedbytes);
+			}
+			memcpy(idata->processedbuf + idata->processedbytes, idata->unprocessedbuf, i);
+			idata->processedbytes += i;
+			idata->unprocessedbytes -= i;
+			if (i < idata->unprocessedbytes) {
+				memmove(idata->unprocessedbuf, idata->unprocessedbuf + i, sizeof(idata->unprocessedbuf) - i);
+			}
+		}
 		
 		//serve processed bytes
 		int i = bytes;
