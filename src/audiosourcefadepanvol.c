@@ -44,7 +44,7 @@ struct audiosourcefadepanvol_internaldata {
 	float vol;
 	
 	char processedsamplesbuf[512];
-	int processedsamplesbytes;
+	unsigned int processedsamplesbytes;
 };
 
 static void audiosourcefadepanvol_Rewind(struct audiosource* source) {
@@ -64,22 +64,20 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 		return -1;
 	}
 	
-	int byteswritten = 0;
+	unsigned int byteswritten = 0;
 	while (bytes > 0) {
 		//see how many samples we want to have minimum
 		int stereosamples = bytes / (sizeof(float) * 2);
 		if (stereosamples * sizeof(float) * 2 < bytes) {
 			stereosamples++;
 		}
-		printf("stereosamples: %d, bytes: %d\n", stereosamples, bytes);
 			
 		//get new unprocessed samples
 		int unprocessedstart = idata->processedsamplesbytes;
 		if (!idata->sourceeof) {
 			while (idata->processedsamplesbytes + sizeof(float) * 2 <= sizeof(idata->processedsamplesbuf) && stereosamples > 0) {
 				int i = idata->source->read(idata->source, idata->processedsamplesbuf + idata->processedsamplesbytes, sizeof(float) * 2);
-				printf("i fetched %d bytes\n", i);
-				if (i < sizeof(float)*2) {
+				if (i < (int)sizeof(float)*2) {
 					if (i < 0) {
 						//read function returned error
 						idata->returnerroroneof = 1;
@@ -94,10 +92,10 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 		}
 	
 		//process unprocessed samples
-		int i = unprocessedstart;
+		unsigned int i = unprocessedstart;
 		float faderange = (-idata->fadesamplestart + idata->fadesampleend);
 		float fadeprogress = idata->fadesampleend;
-		while (i <= (int)(idata->processedsamplesbytes - (sizeof(float) * 2))) {
+		while (i <= (idata->processedsamplesbytes - (sizeof(float) * 2))) {
 			float leftchannel = *((float*)((char*)idata->processedsamplesbuf+i));
 			float rightchannel = *((float*)((float*)((char*)idata->processedsamplesbuf+i))+1);
 	
@@ -139,12 +137,11 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 		}
 
 		//return from our processed samples
-		int returnbytes = bytes;
+		unsigned int returnbytes = bytes;
 		if (returnbytes > idata->processedsamplesbytes) {
 			returnbytes = idata->processedsamplesbytes;
 		}
 		if (returnbytes <= 0) {
-			printf("eof.\n");
 			if (byteswritten <= 0) {
 				idata->eof = 1;
 				if (idata->returnerroroneof) {
@@ -166,6 +163,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 			idata->processedsamplesbytes -= returnbytes;
 		}
 	}
+	printf("fadepanvol result: %u\n",byteswritten);
 	return byteswritten;
 }
 

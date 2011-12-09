@@ -54,7 +54,7 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 	}
 	
 	int rewinded = 0; //avoid endless rewind loops for empty sources
-	int byteswritten = 0;
+	unsigned int byteswritten = 0;
 	while (bytes > 0) {
 		int i = 0;
 		if (!idata->sourceeof) {
@@ -72,7 +72,7 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 		}
 		if (i > 0) {
 			byteswritten += i;
-			buffer += bytes;
+			buffer += i;
 			bytes -= i;
 			rewinded = 0;
 		}else{
@@ -89,10 +89,12 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 						return 0;
 					}
 				}
+				printf("loop result: %u\n",byteswritten);
 				return byteswritten;
 			}
 		}
 	}
+	printf("loop result: %u\n",byteswritten);
 	return byteswritten;
 }
 

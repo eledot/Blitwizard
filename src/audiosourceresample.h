@@ -21,5 +21,5 @@
 
 */
 
-struct audiosource* audiosourceresample_Create(struct audiosource* source, int targetrate);
+struct audiosource* audiosourceresample_Create(struct audiosource* source, unsigned int targetrate);
 

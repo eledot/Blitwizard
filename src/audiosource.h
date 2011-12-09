@@ -45,7 +45,7 @@ struct audiosource {
 	//Set to 0 for unknown or encoded (ogg) formats
 	
 	//Channels:
-	int channels;
+	unsigned int channels;
 	//This is set to the audio channels. Set to 0 for unknown or encoded (ogg) formats
 	
 	void* internaldata; //DON'T TOUCH, used for internal purposes.

@@ -34,7 +34,7 @@ struct audiosourceogg_internaldata {
 	int filesourceeof;
 	char fetchedbuf[4096];
 	unsigned int fetchedbytes;
-	int fetchedbufreadoffset;
+	unsigned int fetchedbufreadoffset;
 	int eof;
 	int returnerroroneof;
 	char decodedbuf[512];
@@ -100,11 +100,8 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
 static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *datasource) {	
 	struct audiosourceogg_internaldata* idata = datasource;
 	
-	printf("vorbis reader: %d/%d\n",size,nmemb);
-	
 	unsigned int writtenchunks = 0;
 	while (writtenchunks < nmemb) {
-		printf("written chunks: %d\n",writtenchunks);
 		//read new bytes
 		if (idata->fetchedbytes < size && idata->filesourceeof != 1) {
 			audiosourceogg_ReadUndecoded(idata);
@@ -117,23 +114,19 @@ static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *dat
 		//is it sufficient for a chunk?
 		if (amount < size) {
 			//no, we are done
-			printf("not enough for a chunk: %d\n",amount);
 			return writtenchunks;
 		}else{
 			//yes, check for amount of chunks
-			int chunks = 0;
+			unsigned int chunks = 0;
 			while (chunks * size <= amount - size && chunks < nmemb) {
 				chunks += 1;
 			}
 			
 			//write chunks
 			writtenchunks += chunks;
-			printf("old fetched bytes: %d\n",idata->fetchedbytes),
 			memcpy(ptr, idata->fetchedbuf + idata->fetchedbufreadoffset, chunks * size);
 			idata->fetchedbytes -= chunks * size;
 			idata->fetchedbufreadoffset += chunks * size;
-			printf("new fetched bytes: %d\n",idata->fetchedbytes);
-			printf("(%d chunks)\n",chunks);
 		}
 	}
 	printf("vorbis reader result: %d\n",writtenchunks);
@@ -204,23 +197,23 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 	
 	//if no bytes were requested, don't do anything
 	if (bytes <= 0) {
-		printf("no bytes requested.\n");
+		printf("ogg result: no bytes requested.\n");
 		return 0;
 	}
 
 	//read bytes
 	audiosourceogg_ReadUndecoded(idata);
 	
-	int byteswritten = 0;
+	unsigned int byteswritten = 0;
 	while (bytes > 0) {
 		//see how much we want to decode now
-		int decodeamount = bytes;
+		unsigned int decodeamount = bytes;
 		if (decodeamount > sizeof(idata->decodedbuf)) {
 			decodeamount = sizeof(idata->decodedbuf);
 		}
 		
 		//decode from encoded fetched bytes
-		int decodesamples = decodeamount/(source->channels * sizeof(float));
+		unsigned int decodesamples = decodeamount/(source->channels * sizeof(float));
 		if (decodesamples * (source->channels * sizeof(float)) < decodeamount && decodesamples * (source->channels * sizeof(float)) <= (int)(sizeof(idata->decodedbuf) - sizeof(float) * source->channels)) {
 			//make sure we cover all desired bytes even for half-sample requests or something
 			decodesamples++;
@@ -241,9 +234,9 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 			}else{
 				if (ret > 0) {
 					//success
-					int i = 0;
-					while (i < ret) {
-						int j = 0;
+					unsigned int i = 0;
+					while (i < (unsigned int)ret) {
+						unsigned int j = 0;
 						while (j < source->channels) {
 							memcpy(idata->decodedbuf + idata->decodedbytes, &pcm[j][0], sizeof(float));
 							idata->decodedbytes += sizeof(float);
@@ -261,7 +254,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 		}
 		
 		//check how much we want and can copy
-		int amount = idata->decodedbytes;
+		unsigned int amount = idata->decodedbytes;
 		if (amount > bytes) {
 			//never copy more than we want
 			amount = bytes;
@@ -270,7 +263,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 		//see vorbis end of file
 		if (amount <= 0) {
 			if (byteswritten <= 0) {
-				printf("ogg eof (%d)\n",idata->returnerroroneof);
+				printf("ogg result: eof (%d)\n",idata->returnerroroneof);
 				idata->eof = 1;
 				if (idata->returnerroroneof) {
 					return -1;
@@ -291,6 +284,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 		idata->decodedbytes -= amount;
 		bytes -= amount;
 	}
+	//printf("ogg result: %u\n",byteswritten);
 	return byteswritten;
 }
 

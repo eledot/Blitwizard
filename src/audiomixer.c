@@ -161,10 +161,10 @@ int filledmixpartial = 0;
 int filledmixfull = 0;
 
 static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
-	int filledbytes = filledmixpartial + filledmixfull * sizeof(MIXTYPE);
+	unsigned int filledbytes = filledmixpartial + filledmixfull * sizeof(MIXTYPE);
 	
-	int formatdifferencefactor = sizeof(MIXTYPE)/sizeof(MIXTYPE_FINAL);
-	int actualbytes = bytes * formatdifferencefactor;
+	unsigned int formatdifferencefactor = sizeof(MIXTYPE)/sizeof(MIXTYPE_FINAL);
+	unsigned int actualbytes = bytes * formatdifferencefactor;
 
 	//calculate the desired amount of samples
 	int sampleamount = (actualbytes - filledbytes)/sizeof(MIXTYPE);
@@ -186,11 +186,13 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 	memset(mixbuf + filledbytes, 0, sampleamount * sizeof(MIXTYPE));
 	
 	//cycle all channels and mix them into the buffer
-	int i = 0;
+	unsigned int i = 0;
 	while (i <= MAXCHANNELS) {
 		if (channels[i].loopsource && channels[i].fadepanvolsource) {
 			//read bytes
+			printf("Reading %u samples/%u bytes for mixing\n",sampleamount, sampleamount * sizeof(MIXTYPE));
 			int k = channels[i].loopsource->read(channels[i].loopsource, mixbuf2, sampleamount * sizeof(MIXTYPE));
+			printf("k: %d\n",k);
 			if (k <= 0) {
 				audiomixer_HandleChannelEOF(i, k);
 				i++;
@@ -198,16 +200,17 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 			}
 			
 			//see how many samples we can actually mix from this
-			int mixsamples = k / sizeof(MIXTYPE);
-			while (mixsamples * sizeof(MIXTYPE) > k) {
+			unsigned int mixsamples = k / sizeof(MIXTYPE);
+			while (mixsamples * sizeof(MIXTYPE) > (unsigned int)k) {
 				mixsamples--;
 			}
+			printf("mixsamples: %u\n",mixsamples);
 
 			//mix samples
 			MIXTYPE* mixtarget = (MIXTYPE*)((char*)mixbuf + filledbytes);
 			MIXTYPE* mixsource = (MIXTYPE*)mixbuf2;
-			int r = 0;
-			while (r <= mixsamples) {
+			unsigned int r = 0;
+			while (r < mixsamples) {
 				double sourcevalue = *mixsource;
 				sourcevalue = (sourcevalue + 1)/2;
 				double targetvalue = *mixtarget;
@@ -217,6 +220,7 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 				*mixtarget = (MIXTYPE)result;
 				r++;
 				mixsource++;mixtarget++;
+				filledmixfull++;
 			}
 		}
 		i++;
@@ -227,25 +231,33 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 char* streambuf = NULL;
 unsigned int streambuflen = 0;
 void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
-	if (streambuflen != len) {
+	printf("Mixing %u bytes...\n",len);
+	if (streambuflen != len && (streambuflen < len || streambuflen > len * 2)) {
 		if (streambuf) {free(streambuf);}
 		streambuf = malloc(len);
 		streambuflen = len;
 	}
 	memset(streambuf, 0, len);
 
-	audiomixer_RequestMix(len);
+	char* p = streambuf;
 	while (len > 0) {
+		printf("len: %d\n",len);
+		audiomixer_RequestMix(len);
+		
 		//see how much bytes we can get
-		int filledbytes = filledmixpartial + filledmixfull * sizeof(MIXTYPE);
-		int amount = len;
+		printf("partial: %u, full: %u\n",filledmixpartial, filledmixfull);
+		unsigned int filledbytes = filledmixpartial + filledmixfull * sizeof(MIXTYPE);
+		unsigned int amount = len;
 		if (amount > filledbytes) {
 			amount = filledbytes;
 		}
+		printf("Available bytes for mixing: %u\n",amount);
+		if (amount <= 0) {break;}
 
 		//copy the amount of bytes we have
-		memcpy(streambuf, mixbuf, amount);
+		memcpy(p, mixbuf, amount);
 		len -= amount;
+		p += amount;
 
 		//trim mix buffer:
 		if (amount >= filledbytes) {
@@ -257,7 +269,7 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
 			memmove(mixbuf, mixbuf + amount, sizeof(mixbuf) - amount);
 
 			//update fill state
-			int fullparsedsamples = amount / sizeof(MIXTYPE);
+			unsigned int fullparsedsamples = amount / sizeof(MIXTYPE);
 			if (fullparsedsamples > amount) {
 				fullparsedsamples -= sizeof(MIXTYPE);
 			}
@@ -270,11 +282,16 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
 				filledmixpartial += sizeof(MIXTYPE);
 				filledmixfull++;
 			}
+			while (filledmixpartial >= (int)sizeof(MIXTYPE)) {
+				filledmixpartial -= sizeof(MIXTYPE);
+				filledmixfull--;
+			}
 		}
 
-		
+		len -= amount;
 	}
 	
+	printf("Returning mix of %u bytes\n",len);
 	return streambuf;
 }
 

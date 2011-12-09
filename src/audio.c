@@ -43,6 +43,12 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 	if (backend && strcasecmp(backend, "waveout") == 0) {
 		strcpy(preferredbackend, "waveout");
 	}
+#else
+#if defined(__linux) || defined(linux)
+	if (backend && strcasecmp(backend, "alsa") == 0) {
+		strcpy(preferredbackend, "alsa");
+	}
+#endif
 #endif
 	const char* b = preferredbackend;
 	if (strlen(b) <= 0) {b = NULL;}
@@ -64,6 +70,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		custombuffersize = buffersize;
 	}
 
+	memset(&fmt,0,sizeof(fmt));
 	fmt.freq = 48000;
 	fmt.format = AUDIO_F32SYS;
 	fmt.channels = 2;

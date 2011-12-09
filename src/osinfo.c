@@ -61,17 +61,17 @@ int filecontains(const char* file, const char* name) {
 	FILE* r = fopen(file, "r");
 	if (r) {
 		int i = fread(filecontents,1,sizeof(filecontents)-1,r);
-         	fclose(r);
+       	fclose(r);
 		if (i > 0) {
-			if (i > sizeof(filecontents)-1) {
-				i = sizeof(filecontents)-1;
+			if (i > (int)sizeof(filecontents)-1) {
+				i = (int)sizeof(filecontents)-1;
 			}
 			filecontents[i] = 0;
-			if (i < strlen(name)) {return 0;}
+			if (i < (int)strlen(name)) {return 0;}
 			int j = 0;
 			while (j < i) {
 				int r = j;
-				while (r < i && r < strlen(name)+j) {
+				while (r < i && r < (int)strlen(name)+j) {
 					if (toupper(filecontents[r]) != toupper(name[r-j])) {
 						return 0;
 					}
