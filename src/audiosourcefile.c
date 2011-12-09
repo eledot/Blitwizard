@@ -36,6 +36,7 @@ struct audiosourcefile_internaldata {
 
 static void audiosourcefile_Rewind(struct audiosource* source) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;
+	printf("file rewind\n");
 	idata->eof = 0;
 	if (idata->file) {
 		fclose(idata->file);

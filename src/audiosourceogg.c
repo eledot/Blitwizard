@@ -33,12 +33,12 @@ struct audiosourceogg_internaldata {
 	struct audiosource* filesource;
 	int filesourceeof;
 	char fetchedbuf[4096];
-	int fetchedbytes;
+	unsigned int fetchedbytes;
 	int fetchedbufreadoffset;
 	int eof;
 	int returnerroroneof;
 	char decodedbuf[512];
-	int decodedbytes;
+	unsigned int decodedbytes;
 	
 	int vorbisopened;
 	OggVorbis_File vorbisfile;
@@ -49,6 +49,7 @@ struct audiosourceogg_internaldata {
 static void audiosourceogg_Rewind(struct audiosource* source) {
 	struct audiosourceogg_internaldata* idata = source->internaldata;
 	if (!idata->eof || !idata->returnerroroneof) {
+		printf("Ogg rewind\n");
 		if (idata->vorbisopened) {
 			ov_clear(&idata->vorbisfile);
 			idata->vorbisopened = 0;
@@ -61,6 +62,8 @@ static void audiosourceogg_Rewind(struct audiosource* source) {
 		idata->fetchedbufreadoffset = 0;
 		idata->fetchedbytes = 0;
 		idata->decodedbytes = 0;
+	}else{
+		printf("Ogg no rewind\n");
 	}
 }
 
@@ -99,7 +102,7 @@ static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *dat
 	
 	printf("vorbis reader: %d/%d\n",size,nmemb);
 	
-	int writtenchunks = 0;
+	unsigned int writtenchunks = 0;
 	while (writtenchunks < nmemb) {
 		printf("written chunks: %d\n",writtenchunks);
 		//read new bytes
@@ -108,7 +111,7 @@ static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *dat
 		}
 	
 		//see how many bytes we have now
-		int amount = size * nmemb;
+		unsigned int amount = size * nmemb;
 		if (amount > idata->fetchedbytes) {amount = idata->fetchedbytes;}
 		
 		//is it sufficient for a chunk?
@@ -130,6 +133,7 @@ static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *dat
 			idata->fetchedbytes -= chunks * size;
 			idata->fetchedbufreadoffset += chunks * size;
 			printf("new fetched bytes: %d\n",idata->fetchedbytes);
+			printf("(%d chunks)\n",chunks);
 		}
 	}
 	printf("vorbis reader result: %d\n",writtenchunks);
@@ -167,7 +171,9 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 	
 	//open up ogg file if we don't have one yet
 	if (!idata->vorbisopened) {
+		printf("Doing initogg\n");
 		if (!audiosourceogg_InitOgg(source)) {
+			printf("init ogg fail\n");
 			idata->eof = 1;
 			source->samplerate = -1;
 			source->channels = -1;
@@ -193,13 +199,15 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 			return -1;
 		}
 		idata->vorbisopened = 1;
+		printf("init ogg end\n");
 	}
 	
 	//if no bytes were requested, don't do anything
 	if (bytes <= 0) {
+		printf("no bytes requested.\n");
 		return 0;
 	}
-	
+
 	//read bytes
 	audiosourceogg_ReadUndecoded(idata);
 	
@@ -222,6 +230,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 			
 			long ret = ov_read_float(&idata->vorbisfile, &pcm, decodesamples, &idata->vbitstream);
 			if (ret < 0) {
+				printf("vorbis error\n");
 				if (ret == OV_HOLE) {
 					//a "jump" or temporary decoding problem - ignore this
 					continue;
@@ -243,6 +252,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 						i++;
 					}
 				}else{
+					printf("vorbis eof\n");
 					//regular eof
 					idata->vorbiseof = 1;
 				}
@@ -260,6 +270,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 		//see vorbis end of file
 		if (amount <= 0) {
 			if (byteswritten <= 0) {
+				printf("ogg eof (%d)\n",idata->returnerroroneof);
 				idata->eof = 1;
 				if (idata->returnerroroneof) {
 					return -1;

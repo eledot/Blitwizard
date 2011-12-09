@@ -59,10 +59,14 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 		int i = 0;
 		if (!idata->sourceeof) {
 			i = idata->source->read(idata->source, buffer, bytes);
+			if (i <= 0) {
+				printf("LOOP END: %d, looping: %d, rewinded: %d\n",i,idata->looping,rewinded);
+			}
 			if (i == 0 && idata->looping == 1 && !rewinded) {
 				rewinded = 1;
 				idata->sourceeof = 0;
 				idata->source->rewind(idata->source);
+				printf("Attempting a loop");
 				continue;
 			}
 		}

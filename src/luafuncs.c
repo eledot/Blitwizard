@@ -33,6 +33,7 @@
 #include "timefuncs.h"
 #include "luastate.h"
 #include "audio.h"
+#include "audiomixer.h"
 
 int drawingallowed = 0;
 
@@ -264,7 +265,7 @@ int luafuncs_play(lua_State* l) {
 	}
 	if (lua_gettop(l) >= 4) {
 		if (lua_type(l,4) != LUA_TBOOLEAN) {
-			lua_pushstring(l,"Fourth parameter is not a valid alpha number");
+			lua_pushstring(l,"Fourth parameter is not a valid loop boolean");
 			return lua_error(l);
 		}
 		if (lua_toboolean(l, 4)) {

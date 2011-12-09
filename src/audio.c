@@ -65,7 +65,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 	}
 
 	fmt.freq = 48000;
-	fmt.format = AUDIO_S16;
+	fmt.format = AUDIO_F32SYS;
 	fmt.channels = 2;
 	fmt.samples = custombuffersize;
 	fmt.callback = audiocallback;
