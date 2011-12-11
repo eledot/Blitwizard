@@ -1,5 +1,14 @@
 #!/bin/bash
 
+#Set the native compiler here
+CC="gcc34"
+
+#Set the cross compilation toolchain name here
+CROSSCCHOST="i686-pc-mingw32"
+
+
+
+
 if [ -z "$1" ]; then
     echo "You need to specify a release name, e.g. 1.0."
     exit
@@ -12,7 +21,7 @@ DOSOURCERELEASE="yes"
 TARGETHOST=""
 if [ "$2" == "linux-to-win" ]; then
 	echo "Building with MinGW cross compiler... (Please set TARGETHOST in this script properly!)";
-	TARGETHOST="i686-pc-mingw32"
+	TARGETHOST="$CROSSCC"
 	BINRELEASENAME="win32"
 	DOSOURCERELEASE="no"
 else
@@ -49,8 +58,9 @@ rm deps.zip
 wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip"; exit 1; }
 unzip deps.zip
 if [ "$TARGETHOST" == "" ]; then
-	./configure || { echo "./configure failed."; exit 1; }
+	CC="$CC" ./configure || { echo "./configure failed."; exit 1; }
 else
+	unset $CC
 	./configure --host="$TARGETHOST" || { echo "./configure failed"; exit 1;}
 fi
 make
@@ -58,6 +68,8 @@ cd ..
 mkdir ./blitwizard-bin || { echo "Failed to create blitwizard-bin directory."; exit 1; }
 cd blitwizard-bin
 mkdir bin
+cp -R ../blitwizard/bin/samplebrowser ./bin/samplebrowser
+cp ../blitwizard/bin/game.lua ./bin/game.lua
 cp ../blitwizard/bin/blitwizard* ./bin
 cp ../blitwizard/README-libs.txt ./
 cp ../blitwizard/Ship-your-game.txt ./

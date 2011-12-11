@@ -11,6 +11,6 @@ $CC -o scripts/ssetest -msse -msse2 -mfpmath=both scripts/ssetest.c &> /dev/null
 
 scripts/ssetest &> /dev/null || { rm -f scripts/ssetest.c; rm -rf scripts/ssetest; echo ""; exit 0; }
 
-echo " -msse -msse2 -ftree-vectorize -mfpmath=both "
+echo " -msse -msse2 -mfpmath=both "
 
 exit 0;

@@ -6,7 +6,8 @@ if [ -z "$1" ]; then
 fi
 
 echo "Please note this script should run on a linux machine with a proper cross-compiler to allow for the Windows compilation.";
-echo "Set the cross-compiler in create-release-archive.sh before proceeding.";
+echo "Also the native compiler used is an unusual one (for compatibilty with older systems)."
+echo "Set the compilers in create-release-archive.sh before proceeding.";
 
 echo "Ready to proceed? [y/N]";
 
