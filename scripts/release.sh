@@ -18,5 +18,5 @@ fi
 
 echo "Creating linux archive."
 sh ./create-release-archive.sh $1 || { echo "Linux release failed."; exit 1; }
-sh ./create-release-archive.sh $2 linux-to-win || { echo "Windows release failed"; exit 1; }
+sh ./create-release-archive.sh $1 linux-to-win || { echo "Windows release failed"; exit 1; }
 

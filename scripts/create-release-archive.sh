@@ -7,17 +7,21 @@ fi
 
 BINRELEASENAME="linux"
 RELEASEVERSION=$1
+DOSOURCERELEASE="yes"
 
 TARGETHOST=""
 if [ "$2" == "linux-to-win" ]; then
 	echo "Building with MinGW cross compiler... (Please set TARGETHOST in this script properly!)";
 	TARGETHOST="i686-pc-mingw32"
 	BINRELEASENAME="win32"
+	DOSOURCERELEASE="no"
 else
 	echo "Building with native compiler";
 fi
 
-rm blitwizard-$RELEASEVERSION-src.zip
+if [ "$DOSOURCERELEASE" == "yes" ]; then
+	rm blitwizard-$RELEASEVERSION-src.zip
+fi
 rm blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip
 rm deps.zip
 rm -r tarball/
@@ -37,7 +41,9 @@ rm src/imgloader/zlib/.gitignore
 cd ..
 rm -r blitwizard/
 mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
-zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/
+if [ "$DOSOURCERELEASE" == "yes" ]; then
+	zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/
+fi
 cd blitwizard
 rm deps.zip
 wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip"; exit 1; }
@@ -52,7 +58,7 @@ cd ..
 mkdir ./blitwizard-bin || { echo "Failed to create blitwizard-bin directory."; exit 1; }
 cd blitwizard-bin
 mkdir bin
-cp ../blitwizard/src/blitwizard* ./bin
+cp ../blitwizard/bin/blitwizard* ./bin
 cp ../blitwizard/README-libs.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./

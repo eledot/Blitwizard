@@ -1,2 +1,5 @@
 *
 !.gitignore
+!samplebrowser/
+!samplebrowser/*
+!game.lua
