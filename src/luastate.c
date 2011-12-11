@@ -83,6 +83,7 @@ static lua_State* luastate_New() {
 	luaopen_table(l);
 	luaopen_math(l);
 	luaopen_os(l);
+	luaopen_io(l);
 	
 	//own dofile/loadfile	
 	lua_pushcfunction(l, &luafuncs_loadfile);
