@@ -9,7 +9,7 @@ BINRELEASENAME="linux"
 RELEASEVERSION=$1
 
 TARGETHOST=""
-if [ $2 == "linux-to-win" ]; then
+if [ "$2" == "linux-to-win" ]; then
 	echo "Building with MinGW cross compiler... (Please set TARGETHOST in this script properly!)";
 	TARGETHOST="i686-pc-mingw32"
 	BINRELEASENAME="win32"
@@ -18,7 +18,7 @@ else
 fi
 
 rm blitwizard-$RELEASEVERSION-src.zip
-rm blitwizard-$RELEASEVERSION-$BINVERSIONNAME.zip
+rm blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip
 rm deps.zip
 rm -r tarball/
 mkdir -p tarball
@@ -34,6 +34,7 @@ rm src/ogg/.gitignore
 rm src/lua/.gitignore
 rm src/imgloader/png/.gitignore
 rm src/imgloader/zlib/.gitignore
+rm README-git.txt
 cd ..
 rm -r blitwizard/
 mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
@@ -55,6 +56,8 @@ mkdir bin
 cp ../blitwizard/src/blitwizard* ./bin
 cp ../blitwizard/README-libs.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
+cp ../blitwizard/README.txt ./
+unix2dos ./README*.txt || { echo "unix2dos not available."; exit 1; }
 cp -R ../blitwizard/examples ./examples/
 cd ..
 zip -r -9 ./blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip ./blitwizard-bin/

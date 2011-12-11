@@ -8,7 +8,7 @@ fi
 echo "Please note this script should run on a linux machine with a proper cross-compiler to allow for the Windows compilation.";
 echo "Set the cross-compiler in create-release-archive.sh before proceeding.";
 
-echo "Ready to proceed? [n/Y]";
+echo "Ready to proceed? [y/N]";
 
 read a
 if [[ $a != "Y" && $a != "y" ]]; then
@@ -17,6 +17,6 @@ if [[ $a != "Y" && $a != "y" ]]; then
 fi
 
 echo "Creating linux archive."
-sh ./create-release-archive.sh $1
-sh ./create-release.archive.sh $2 linux-to-win
+sh ./create-release-archive.sh $1 || { echo "Linux release failed."; exit 1; }
+sh ./create-release-archive.sh $2 linux-to-win || { echo "Windows release failed"; exit 1; }
 
