@@ -74,16 +74,22 @@ static void luastate_CreateTimeTable(lua_State* l) {
 	lua_settable(l, -3);
 }
 
+static int luastate_AddStdFuncs(lua_State* l) {
+    luaopen_base(l);
+    luaopen_string(l);
+    luaopen_table(l);
+    luaopen_math(l);
+    luaopen_os(l);
+    luaopen_io(l);
+	return 0;
+}
+
 static lua_State* luastate_New() {
 	lua_State* l = luaL_newstate();
 	
 	//standard libs
-	luaopen_base(l);
-	luaopen_string(l);
-	luaopen_table(l);
-	luaopen_math(l);
-	luaopen_os(l);
-	luaopen_io(l);
+	lua_pushcfunction(l, &luastate_AddStdFuncs);
+	lua_pcall(l, 0, 0, 0);
 	
 	//own dofile/loadfile	
 	lua_pushcfunction(l, &luafuncs_loadfile);
