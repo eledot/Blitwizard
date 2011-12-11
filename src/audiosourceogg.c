@@ -62,6 +62,7 @@ static void audiosourceogg_Rewind(struct audiosource* source) {
 		idata->fetchedbufreadoffset = 0;
 		idata->fetchedbytes = 0;
 		idata->decodedbytes = 0;
+		idata->vorbiseof = 0;
 	}else{
 		printf("Ogg no rewind\n");
 	}
@@ -214,7 +215,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 		
 		//decode from encoded fetched bytes
 		unsigned int decodesamples = decodeamount/(source->channels * sizeof(float));
-		if (decodesamples * (source->channels * sizeof(float)) < decodeamount && decodesamples * (source->channels * sizeof(float)) <= (int)(sizeof(idata->decodedbuf) - sizeof(float) * source->channels)) {
+		if (decodesamples * (source->channels * sizeof(float)) < decodeamount && decodesamples * (source->channels * sizeof(float)) <= (sizeof(idata->decodedbuf) - sizeof(float) * source->channels)) {
 			//make sure we cover all desired bytes even for half-sample requests or something
 			decodesamples++;
 		}

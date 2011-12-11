@@ -30,18 +30,18 @@ AS_IF([test -z "$maybeos"],[
 	AC_MSG_NOTICE([Trying to compile for a Unix target.]) 
 	# >> Unix
 
-	CFLAGS="$CFLAGS -rdynamic"
 	MACTEST=`uname -a | grep Darwin`
 	AS_IF([test -z "$MACTEST"],[
 		LIBS="-lpthread -ldl -lm"
-                WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+        WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	],[
 		LIBS="$LIBS -lpthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
-                WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
+        WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
 	])
 
 	echo -e "$WRITELINE" > scripts/.buildinfo
-	
+	CFLAGS="$CFLAGS `cd scripts && sh ./checksse.sh`"	
+
 	AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 	#AC_CHECK_LIB([sqlite3], [sqlite3_prepare_v2],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 
@@ -78,7 +78,7 @@ AS_IF([test -z "$maybeos"],[
 	WRITELINE="\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	echo -e "$WRITELINE" > scripts/.buildinfo
 
-	CFLAGS="$CFLAGS -D_WIN32_WINNT=0x0501 -DWIN -mwindows -L../ -I../"
+	CFLAGS="$CFLAGS -D_WIN32_WINNT=0x0501 -DWIN -mwindows -L../ -I../ `cd scripts && sh ./checksse.sh`"
 	LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lole32 -lwinmm -luuid -lversion"
 
 	AC_CHECK_HEADERS([windows.h string.h stdio.h unistd.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))

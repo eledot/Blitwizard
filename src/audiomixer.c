@@ -39,6 +39,7 @@
 int lastusedsoundid = -1;
 
 struct soundchannel {
+	struct audiosource* mixsource;
 	struct audiosource* fadepanvolsource;
 	struct audiosource* loopsource;
 	
@@ -55,8 +56,9 @@ void audiomixer_Init() {
 }
 
 static void audiomixer_CancelChannel(int slot) {
-	if (channels[slot].loopsource) {
-		channels[slot].loopsource->close(channels[slot].loopsource);
+	if (channels[slot].mixsource) {
+		channels[slot].mixsource->close(channels[slot].mixsource);
+		channels[slot].mixsource = NULL;
 		channels[slot].loopsource = NULL;
 		channels[slot].fadepanvolsource = NULL;
 		channels[slot].id = 0;
@@ -67,14 +69,15 @@ static int audiomixer_GetFreeChannelSlot(int priority) {
 	int i = 0;
 	//first, attempt to find an empty slot
 	while (i < MAXCHANNELS) {
-		if (!channels[i].loopsource) {
+		if (!channels[i].mixsource) {
 			return i;
 		}
 		i++;
 	}
 	//then override one
+	i = 0;
 	while (i < MAXCHANNELS) {
-		if (channels[i].loopsource) {
+		if (channels[i].mixsource) {
 			if (channels[i].priority <= priority) {
 				audiomixer_CancelChannel(priority);
 				return i;
@@ -88,7 +91,7 @@ static int audiomixer_GetFreeChannelSlot(int priority) {
 static int audiomixer_GetChannelSlotById(int id) {
 	int i = 0;
 	while (i < MAXCHANNELS) {
-		if (channels[i].id == id) {
+		if (channels[i].id == id && channels[i].mixsource) {
 			return i;
 		}
 		i++;
@@ -103,7 +106,7 @@ static int audiomixer_FreeSoundId() {
 			lastusedsoundid = -1;
 			continue;
 		}
-		if (audiomixer_GetChannelSlotById(lastusedsoundid)) {
+		if (audiomixer_GetChannelSlotById(lastusedsoundid) >= 0) {
 			continue;
 		}
 		break;
@@ -134,6 +137,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 		audiosourcefadepanvol_StartFade(channels[slot].fadepanvolsource, fadeinseconds, volume, 0);
 	}
 	
+	
 	channels[slot].loopsource = audiosourceloop_Create(channels[slot].fadepanvolsource);
 	if (!channels[slot].loopsource) {
 		channels[slot].fadepanvolsource->close(channels[slot].fadepanvolsource);
@@ -143,6 +147,8 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 
 	audiosourceloop_SetLooping(channels[slot].loopsource, loop);
 	
+	channels[slot].mixsource = channels[slot].loopsource;
+
 	audio_UnlockAudioThread();
 	return id;
 }
@@ -182,17 +188,15 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 		return;
 	}
 
-	//clear out the samples first
-	memset(mixbuf + filledbytes, 0, sampleamount * sizeof(MIXTYPE));
+	//keep in mind how much of the buffer is properly initialised
+	unsigned int bufferinitialisedsamples = 0;
 	
 	//cycle all channels and mix them into the buffer
 	unsigned int i = 0;
 	while (i <= MAXCHANNELS) {
-		if (channels[i].loopsource && channels[i].fadepanvolsource) {
+		if (channels[i].mixsource) {
 			//read bytes
-			printf("Reading %u samples/%u bytes for mixing\n",sampleamount, sampleamount * sizeof(MIXTYPE));
-			int k = channels[i].loopsource->read(channels[i].loopsource, mixbuf2, sampleamount * sizeof(MIXTYPE));
-			printf("k: %d\n",k);
+			int k = channels[i].mixsource->read(channels[i].mixsource, mixbuf2, sampleamount * sizeof(float));
 			if (k <= 0) {
 				audiomixer_HandleChannelEOF(i, k);
 				i++;
@@ -204,22 +208,28 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 			while (mixsamples * sizeof(MIXTYPE) > (unsigned int)k) {
 				mixsamples--;
 			}
-			printf("mixsamples: %u\n",mixsamples);
 
 			//mix samples
 			MIXTYPE* mixtarget = (MIXTYPE*)((char*)mixbuf + filledbytes);
-			MIXTYPE* mixsource = (MIXTYPE*)mixbuf2;
+			float* mixsource = (float*)mixbuf2;
 			unsigned int r = 0;
 			while (r < mixsamples) {
 				double sourcevalue = *mixsource;
 				sourcevalue = (sourcevalue + 1)/2;
 				double targetvalue = *mixtarget;
 				targetvalue = (targetvalue + 1)/2;
+
+				if (bufferinitialisedsamples <= r) {
+					bufferinitialisedsamples = r + 1;
+					targetvalue = 0;
+				}
+				
 				double result = -(targetvalue * sourcevalue) + (targetvalue + sourcevalue);
 				result = (result * 2) - 1;
 				*mixtarget = (MIXTYPE)result;
 				r++;
-				mixsource++;mixtarget++;
+				mixsource++;
+				mixtarget++;
 				filledmixfull++;
 			}
 		}
@@ -231,7 +241,6 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 char* streambuf = NULL;
 unsigned int streambuflen = 0;
 void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
-	printf("Mixing %u bytes...\n",len);
 	if (streambuflen != len && (streambuflen < len || streambuflen > len * 2)) {
 		if (streambuf) {free(streambuf);}
 		streambuf = malloc(len);
@@ -241,17 +250,14 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
 
 	char* p = streambuf;
 	while (len > 0) {
-		printf("len: %d\n",len);
 		audiomixer_RequestMix(len);
 		
 		//see how much bytes we can get
-		printf("partial: %u, full: %u\n",filledmixpartial, filledmixfull);
 		unsigned int filledbytes = filledmixpartial + filledmixfull * sizeof(MIXTYPE);
 		unsigned int amount = len;
 		if (amount > filledbytes) {
 			amount = filledbytes;
 		}
-		printf("Available bytes for mixing: %u\n",amount);
 		if (amount <= 0) {break;}
 
 		//copy the amount of bytes we have
@@ -287,11 +293,8 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
 				filledmixfull--;
 			}
 		}
-
-		len -= amount;
 	}
 	
-	printf("Returning mix of %u bytes\n",len);
 	return streambuf;
 }
 

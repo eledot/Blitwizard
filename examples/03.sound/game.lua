@@ -17,7 +17,8 @@ function blitwiz.on_init()
 	blitwiz.graphics.loadImage("background.png")
 
 	-- Play song
-	blitwiz.sound.play("blitwizarddemosongloop.ogg", 1.0, -0.2, true) -- play sound "blitwizarddemosongloop.ogg" with volume 1.0 (full), panning -0.2 (slightly left) and repeat true (enabled, so will repeat forever)
+	blitwiz.sound.play("blitwizarddemosongloop.ogg", 1.0, -0.2, true)    -- This will play sound "blitwizarddemosongloop.ogg" with volume 1.0 (full),
+	-- panning -0.2 (slightly left) and repeat true (enabled, so will repeat forever)
 end
 
 function blitwiz.on_keydown(key)

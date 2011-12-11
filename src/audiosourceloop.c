@@ -66,7 +66,7 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 				rewinded = 1;
 				idata->sourceeof = 0;
 				idata->source->rewind(idata->source);
-				printf("Attempting a loop");
+				printf("Attempting a loop\n");
 				continue;
 			}
 		}
@@ -89,12 +89,10 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 						return 0;
 					}
 				}
-				printf("loop result: %u\n",byteswritten);
 				return byteswritten;
 			}
 		}
 	}
-	printf("loop result: %u\n",byteswritten);
 	return byteswritten;
 }
 

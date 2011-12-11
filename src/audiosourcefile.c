@@ -59,12 +59,15 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 	}
 	
 	int bytesread = fread(buffer, 1, bytes, idata->file);
-	if (bytesread >= 0) {
+	if (bytesread > 0) {
 		return bytesread;
 	}else{
 		fclose(idata->file);
 		idata->file = NULL;
 		idata->eof = 1;
+		if (bytesread < 0) {
+			return -1;
+		}
 		return 0;
 	}
 }

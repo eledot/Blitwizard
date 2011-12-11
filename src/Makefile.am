@@ -9,9 +9,10 @@ blitwizard_SOURCES = audio.c audiomixer.c audiosourcefadepanvol.c audiosourcefil
 blitwizard_LDADD = -limglib -lblitwizardSDL -lblitwizardpng -lblitwizardzlib -lblitwizardvorbisfile -lblitwizardvorbis -lblitwizardogg -lblitwizardlua
 blitwizard_LDFLAGS = 
 
-AM_CFLAGS = -fno-PIC -O2 -Wall -Wextra -g -fno-stack-protector -Wl,-Bsymbolic -Isdl/include/ -Iimgloader/ -L../libs -Ilua/src/ -Ivorbis/include/ -Iogg/include/
+AM_CFLAGS = -fno-PIC -O2 -Wall -Wextra -g -fomit-frame-pointer -fno-stack-protector -Wl,-Bsymbolic -Isdl/include/ -Iimgloader/ -L../libs -Ilua/src/ -Ivorbis/include/ -Iogg/include/
 # The -fno-stack-protector option is only put here for increased binary compatibility with some older Linux systems:
 # -fno-PIC is only added for some extra speed, same as -O2.
 
 all-local:
-	cp ./blitwizard* ../bin/
+	-mv ./blitwizard ../bin/
+	-mv ./blitwizard.exe ../bin/

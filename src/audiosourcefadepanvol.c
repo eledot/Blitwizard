@@ -95,7 +95,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 		unsigned int i = unprocessedstart;
 		float faderange = (-idata->fadesamplestart + idata->fadesampleend);
 		float fadeprogress = idata->fadesampleend;
-		while (i <= (idata->processedsamplesbytes - (sizeof(float) * 2))) {
+		while ((int)i <= ((int)idata->processedsamplesbytes - ((int)sizeof(float) * 2))) {
 			float leftchannel = *((float*)((char*)idata->processedsamplesbuf+i));
 			float rightchannel = *((float*)((float*)((char*)idata->processedsamplesbuf+i))+1);
 	
@@ -163,7 +163,6 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 			idata->processedsamplesbytes -= returnbytes;
 		}
 	}
-	printf("fadepanvol result: %u\n",byteswritten);
 	return byteswritten;
 }
 
