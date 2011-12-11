@@ -5,9 +5,7 @@ You got blitwizard at your hands, a 2d engine that runs Lua scripts
 you write to specify the behaviour of your game/multimedia application.
 
 If you don't have a binary release, you need to build blitwizard first.
-Please check out README-build.txt for the normal source code release or
-README-git.txt for the git version (which you don't have if that file
-isn't in this archive).
+Please check out README-build.txt for this.
 
 If you have the binary release or succeeded in compilation, simply
 enter the bin/ sub folder and run blitwizard in there to get the

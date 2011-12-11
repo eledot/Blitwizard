@@ -34,7 +34,6 @@ rm src/ogg/.gitignore
 rm src/lua/.gitignore
 rm src/imgloader/png/.gitignore
 rm src/imgloader/zlib/.gitignore
-rm README-git.txt
 cd ..
 rm -r blitwizard/
 mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }

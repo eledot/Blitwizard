@@ -1,18 +1,20 @@
 
---------
- README
---------
-This is the README for building blitwizard (release version).
-If you have a git version instead, please read README-git.txt.
-If that file doesn't exist, then you don't have a git version :-)
+--------------
+ BUILD README
+--------------
 
-== Build guide ==
+This is the README for building blitwizard.
 
-(1) Dependencies
+If you have a git version, please consult README-gitdeps.txt
+first for getting the required dependencies.
+BUT if you have an official source code release, you should check
+that file anyway:
 
-Not required for the release version, only for the git version.
+The DEPS CAN BE OUTDATED (which are included in the release version).
+It is up to you to check if the provided deps are new enough for you,
+also regarding fatal/security-relevant bugs.
 
-(2) Appropriate tools
+== Get required tools  ==
 
 If you are on Unix (Linux or Mac), please open a bash terminal now.
 Then cd to the root directory of blitwizard. Please note gcc has
@@ -34,7 +36,7 @@ Then open the MSYS shell and type (please note the leading slash):
    cd /blitwizard/
 to get into that folder.
 
-(3) Configuration step
+== Configuration step ==
 
 Type ./configure into your Unix bash or MSYS shell.
 If you use the git code (not an official release), you will need to
@@ -51,8 +53,9 @@ Please note there are options you can change if you want to do so,
 type ./configure --help to view them (you don't need to however).
 If you aren't sure what they mean, just leave them alone :-)
 
-(4) Compilation step
+== Compilation step ==
 
 Type make into your Unix bash or MSYS shell to compile.
 You should now have a blitwizard binary in your bin directory in
 the blitwizard folder. Have fun!
+
