@@ -17,7 +17,9 @@ if [ -n "$EXEEXT" ]; then
 #	export WINEDEBUG=-all
 fi
 
-${WINECMD}scripts/ssetest$EXEEXT &> /dev/null || { rm -f scripts/ssetest.c; rm -rf scripts/ssetest$EXEEXT; exit 0; }
+scripts/ssetest$EXEEXT &> /dev/null || {
+	${WINECMD}scripts/ssetest$EXEEXT &> /dev/null || {rm -f scripts/ssetest.c; rm -rf scripts/ssetest$EXEEXT; exit 0;}
+}
 
 echo " -msse -msse2 -mfpmath=both "
 
