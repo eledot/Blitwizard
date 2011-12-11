@@ -36,7 +36,7 @@ AS_IF([test -z "$maybeos"],[
         WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	],[
 		LIBS="$LIBS -lpthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
-        WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
+        WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
 	])
 
 	echo -e "$WRITELINE" > scripts/.buildinfo
@@ -75,7 +75,7 @@ AS_IF([test -z "$maybeos"],[
 	TGHOST="$host_alias"
 	AC_SUBST(TGHOST)
 	
-	WRITELINE="\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+	WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	echo -e "$WRITELINE" > scripts/.buildinfo
 
 	CFLAGS="$CFLAGS -D_WIN32_WINNT=0x0501 -DWIN -mwindows -L../ -I../ `cd scripts && sh ./checksse.sh`"

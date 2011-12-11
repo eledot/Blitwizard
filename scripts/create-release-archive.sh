@@ -21,7 +21,7 @@ DOSOURCERELEASE="yes"
 TARGETHOST=""
 if [ "$2" == "linux-to-win" ]; then
 	echo "Building with MinGW cross compiler... (Please set TARGETHOST in this script properly!)";
-	TARGETHOST="$CROSSCC"
+	TARGETHOST="$CROSSCCHOST"
 	BINRELEASENAME="win32"
 	DOSOURCERELEASE="no"
 else
