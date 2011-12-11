@@ -13,14 +13,15 @@ $CC -o scripts/ssetest$EXEEXT -msse -msse2 -mfpmath=both scripts/ssetest.c &> /d
 WINECMD=""
 
 if [ -n "$EXEEXT" ]; then
-	WINECMD="WINEDEBUG=-all wine "
+	WINECMD="wine "
+#	export WINEDEBUG=-all
 fi
 
-${WINECMD}scripts/ssetest &> /dev/null || { rm -f scripts/ssetest.c; rm -rf scripts/ssetest$EXEEXT; echo ""; exit 0; }
+${WINECMD}scripts/ssetest$EXEEXT &> /dev/null || { rm -f scripts/ssetest.c; rm -rf scripts/ssetest$EXEEXT; exit 0; }
 
 echo " -msse -msse2 -mfpmath=both "
 
 rm scripts/ssetest.c
-rm scripts/ssetest$(EXEEXT)
+rm scripts/ssetest$EXEEXT
 
 exit 0;
