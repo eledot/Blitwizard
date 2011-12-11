@@ -70,15 +70,23 @@ int file_Cwd(const char* path) {
 	if (strcasecmp(path, "") == 0 || strcasecmp(path, ".") == 0) {
 		return 1;
 	}
+	char* pathcopy = strdup(path);
+	if (!pathcopy) {
+		return 0;
+	}
+	file_MakeSlashesNative(pathcopy);
 #ifdef WIN
-	if (SetCurrentDirectory(path) == 0) {
+	if (SetCurrentDirectory(pathcopy) == 0) {
+		free(pathcopy);
 		return 0;
 	}
 #else
-	if (chdir(path) != 0) {
+	if (chdir(pathcopy) != 0) {
+		free(pathcopy);
 		return 0;
 	}
 #endif
+	free(pathcopy);
 	return 1;
 }
 

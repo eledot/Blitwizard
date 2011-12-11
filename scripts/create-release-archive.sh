@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #Set the native compiler here
-CC="gcc34"
+CC="gcc"
 
 #Set the cross compilation toolchain name here
 CROSSCCHOST="i686-pc-mingw32"
