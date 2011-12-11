@@ -233,6 +233,22 @@ int luafuncs_drawImage(lua_State* l) {
 	return 0;
 }
 
+int luafuncs_chdir(lua_State* l) {
+	const char* p = lua_tostring(l,1);
+	if (!p) {
+		lua_pushstring(l, "First parameter is not a directory string");
+		return lua_error(l);
+	}
+	if (!file_Cwd(p)) {
+		char errmsg[512];
+		snprintf(errmsg,sizeof(errmsg)-1,"Failed to change directory to: %s",p);
+		errmsg[sizeof(errmsg)-1] = 0;
+		lua_pushstring(l, errmsg);
+		return lua_error(l);
+	}
+	return 0;
+}
+
 
 int luafuncs_play(lua_State* l) {
 	const char* p = lua_tostring(l,1);
@@ -301,4 +317,5 @@ int luafuncs_play(lua_State* l) {
 	}
 	return 1;
 }
+
 

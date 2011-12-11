@@ -56,7 +56,7 @@ static int file_IsDirectorySeparator(char c) {
 }
 
 void file_MakeSlashesNative(char* path) {
-	int i = 0;
+	unsigned int i = 0;
 	while (i < strlen(path)) {
 		if (file_IsDirectorySeparator(path[i])) {path[i] = file_NativeSlash();}
 		i++;
@@ -66,7 +66,7 @@ void file_MakeSlashesNative(char* path) {
 int file_Cwd(const char* path) {
 	while (path[0] == '.' && strlen(path) > 1 && file_IsDirectorySeparator(path[1])) {
 		path += 2;
-	}	
+	}
 	if (strcasecmp(path, "") == 0 || strcasecmp(path, ".") == 0) {
 		return 1;
 	}
@@ -154,7 +154,7 @@ static void file_CutOffOneElement(char* path) {
 			path[0] = 0;
 			return;
 		}else{
-			if (i == strlen(path)-1) {
+			if (i == (int)strlen(path)-1) {
 				//slash is at the end (directory path).
 				path[i] = 0;
 				if (strlen(path) > 0) {
@@ -310,7 +310,7 @@ int file_ContentToBuffer(const char* path, char** buf, size_t* buflen) {
 	int i = fread(fbuf, 1, size, r);
 	fclose(r);
 	//check data
-	if (i != size) {
+	if (i != (int)size) {
 		free(fbuf);
 		return 0;
 	}

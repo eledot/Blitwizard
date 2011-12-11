@@ -543,6 +543,44 @@ Parameters:
 
 </ul>
 <a name="5os"><h1>5. <i>os</i> standard namespace extension</h1></a>
+<ul>
+
+<li><h2><a name="os.chdir">os.chdir</a>(path <i>(string)</i>)</h2>
+<p>
+Change the Current Working Directory to the given path.
+The path can be a relative path to the current working dir,
+or an absolute folder path.
+</p>
+<p>
+The target must be a folder obviously. If changing the directory
+fails (e.g. due to insufficient privilegues), an error is thrown.
+</p>
+<p>
+<b>Important:</b>
+You should use / as a cross-platform folder delimeter in blitwizard,
+NOT \ which is only safe on Windows:
+<div style="font-style:italic">Correct:</div>
+<div class="code">folder/subfolder/
+C:/testfolder/
+</div>
+<div style="font-style:italic">Wrong:</div>
+<div class="code">C:\testfolder\
+</div>
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>path <i>(string)</i> &mdash; the path to change the current working directory to</li>
+</ul>
+</p>
+</li>
+
+</ul>
 <a name="6string"><h1>6. <i>string</i> standard namespace extension<h1></a>
+<ul>
+
+
+
+</ul>
 </body>
 </html>

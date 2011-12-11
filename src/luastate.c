@@ -110,6 +110,16 @@ static lua_State* luastate_New() {
 	lua_settable(l,-3);
 
 	lua_setglobal(l, "blitwiz");
+
+	//os namespace extensions
+	lua_pushstring(l, "os");
+	lua_gettable(l, LUA_GLOBALSINDEX);
+
+	lua_pushstring(l, "chdir");
+	lua_pushcfunction(l, &luafuncs_chdir);
+	lua_settable(l, -3);
+
+	lua_setglobal(l, "os");
 	
 	return l;
 }
@@ -158,7 +168,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 	//look up table components of our function name (e.g. namespace.func())
 	int tablerecursion = 0;
 	while (recursivetables && tablerecursion < 5) {
-		int r = 0;
+		unsigned int r = 0;
 		int recursed = 0;
 		while (r < strlen(function)) {
 			if (function[r] == '.') {
