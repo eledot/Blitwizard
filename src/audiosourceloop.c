@@ -59,14 +59,10 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 		int i = 0;
 		if (!idata->sourceeof) {
 			i = idata->source->read(idata->source, buffer, bytes);
-			if (i <= 0) {
-				printf("LOOP END: %d, looping: %d, rewinded: %d\n",i,idata->looping,rewinded);
-			}
 			if (i == 0 && idata->looping == 1 && !rewinded) {
 				rewinded = 1;
 				idata->sourceeof = 0;
 				idata->source->rewind(idata->source);
-				printf("Attempting a loop\n");
 				continue;
 			}
 		}
@@ -113,17 +109,14 @@ static void audiosourceloop_Close(struct audiosource* source) {
 
 struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 	if (!source) {
-		printf("loop: no source\n");
 		//no source given
 		return NULL;
 	}
 	if (source->channels != 2) {
-		printf("loop: not stereo\n");
 		//we only support stereo audio
 		source->close(source);
 		return NULL;
 	}
-	printf("loop: init...\n");
 
 	//allocate visible data struct
 	struct audiosource* a = malloc(sizeof(*a));

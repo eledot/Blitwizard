@@ -39,36 +39,39 @@ static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_newtable(l);
 	lua_pushstring(l, "setWindow");
 	lua_pushcfunction(l, &luafuncs_setWindow);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 	lua_pushstring(l, "loadImage");
 	lua_pushcfunction(l, &luafuncs_loadImage);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 	lua_pushstring(l, "loadImageAsync");
 	lua_pushcfunction(l, &luafuncs_loadImageAsync);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 	lua_pushstring(l, "getImageSize");
 	lua_pushcfunction(l, &luafuncs_getImageSize);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 	lua_pushstring(l, "getWindowSize");
 	lua_pushcfunction(l, &luafuncs_getWindowSize);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 	lua_pushstring(l, "drawImage");
 	lua_pushcfunction(l, &luafuncs_drawImage);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
+	lua_pushstring(l, "drawRectangle");
+	lua_pushcfunction(l, &luafuncs_drawRectangle);
+	lua_settable(l, -3);
 }
 
 static void luastate_CreateSoundTable(lua_State* l) {
 	lua_newtable(l);
 	lua_pushstring(l, "play");
 	lua_pushcfunction(l, &luafuncs_play);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 }
 
 static void luastate_CreateTimeTable(lua_State* l) {
 	lua_newtable(l);
 	lua_pushstring(l, "getTime");
 	lua_pushcfunction(l, &luafuncs_getTime);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 }
 
 static lua_State* luastate_New() {
@@ -83,31 +86,31 @@ static lua_State* luastate_New() {
 	
 	//own dofile/loadfile	
 	lua_pushcfunction(l, &luafuncs_loadfile);
-	lua_setglobal(l,"loadfile");
+	lua_setglobal(l, "loadfile");
 	lua_pushcfunction(l, &luafuncs_dofile);
-	lua_setglobal(l,"dofile");
+	lua_setglobal(l, "dofile");
 
 	//blitwiz namespace
 	lua_newtable(l);
 
-	lua_pushstring(l,"graphics");
+	lua_pushstring(l, "graphics");
 	luastate_CreateGraphicsTable(l);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 	
 	lua_pushstring(l, "sound");
 	luastate_CreateSoundTable(l);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 
-	lua_pushstring(l,"callback");
+	lua_pushstring(l, "callback");
 	lua_newtable(l);
 		lua_pushstring(l, "event");
 		lua_newtable(l);
-		lua_settable(l,-3);
-	lua_settable(l,-3);
+		lua_settable(l,  -3);
+	lua_settable(l, -3);
 
 	lua_pushstring(l, "time");
 	luastate_CreateTimeTable(l);
-	lua_settable(l,-3);
+	lua_settable(l, -3);
 
 	lua_setglobal(l, "blitwiz");
 

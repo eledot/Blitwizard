@@ -96,7 +96,7 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 	SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
 	if (!t) {
 		fprintf(stderr, "Warning: SDL failed to create texture: %s\n",SDL_GetError());
-                return 0;
+		return 0;
 	}
 
 	//lock texture
@@ -202,12 +202,25 @@ int graphics_TransferTexturesToSDL() {
 	return 1;
 }
 
+void graphics_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a) {
+	SDL_SetRenderDrawColor(mainrenderer, (int)((float)r * 255.0f),
+	(int)((float)g * 255.0f), (int)((float)b * 255.0f), (int)((float)a * 255.0f));
+	SDL_Rect rect;
+	memset(&rect, 0, sizeof(rect));
+	rect.x = x;
+	rect.y = y;
+	rect.w = width;
+	rect.h = height;
+	
+	SDL_RenderFillRect(mainrenderer, &rect);
+}
+
 int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight) {
 	struct graphicstexture* gt = graphics_GetTextureByName(texname);
 	if (!gt || gt->threadingptr || !gt->tex) {
 		return 0;
 	}
-	
+
 	if (alpha <= 0) {return 1;}
 	if (alpha > 1) {alpha = 1;}
 	
@@ -215,6 +228,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	SDL_Rect src,dest;
 	src.x = sourcex;
 	src.y = sourcey;
+
 	if (sourcewidth > 0) {
 		src.w = sourcewidth;
 	}else{
@@ -231,6 +245,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	dest.w = src.w;dest.h = src.h;
 	
 	//render
+	//SDL_SetRenderDrawColor(mainrenderer, 255, 255, 255, 255);
 	int i = (int)((float)255.0f * alpha);
 	if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
 		fprintf(stderr,"Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());

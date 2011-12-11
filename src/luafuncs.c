@@ -34,6 +34,7 @@
 #include "luastate.h"
 #include "audio.h"
 #include "audiomixer.h"
+#include "file.h"
 
 int drawingallowed = 0;
 
@@ -183,8 +184,8 @@ int luafuncs_getImageSize(lua_State* l) {
 		lua_pushstring(l, "Failed to get image size");
 		return lua_error(l);
 	}
-	lua_pushnumber(l,w);
-	lua_pushnumber(l,h);
+	lua_pushnumber(l, w);
+	lua_pushnumber(l, h);
 	return 2;
 }
 
@@ -194,9 +195,77 @@ int luafuncs_getWindowSize(lua_State* l) {
 		lua_pushstring(l, "Failed to get window size");
 		return lua_error(l);
 	}
-	lua_pushnumber(l,w);
-	lua_pushnumber(l,h);
+	lua_pushnumber(l, w);
+	lua_pushnumber(l, h);
 	return 2;
+}
+
+int luafuncs_drawRectangle(lua_State* l) {
+    //rectangle position
+	int x,y;
+    float alpha = 1;
+    if (lua_type(l, 1) != LUA_TNUMBER) {
+        lua_pushstring(l, "First parameter is not a valid x position number");
+        return lua_error(l);
+    }
+    if (lua_type(l, 2) != LUA_TNUMBER) {
+        lua_pushstring(l, "Second parameter is not a valid y position number");
+        return lua_error(l);
+    }
+    x = (int)((float)lua_tonumber(l, 1)+0.5f);
+    y = (int)((float)lua_tonumber(l, 2)+0.5f);
+
+	//rectangle widths
+	int width,height;
+    if (lua_type(l, 3) != LUA_TNUMBER) {
+        lua_pushstring(l, "Third parameter is not a valid width number");
+        return lua_error(l);
+    }
+    if (lua_type(l, 4) != LUA_TNUMBER) {
+        lua_pushstring(l, "Fourth parameter is not a valid height number");
+        return lua_error(l);
+    }
+    width = (int)((float)lua_tonumber(l, 3)+0.5f);
+    height = (int)((float)lua_tonumber(l, 4)+0.5f);
+
+	//see if we are on screen anyway
+	if (width <= 0 || height <= 0) {return 0;}
+	if (x + width < 0 || y + height < 0) {return 0;}
+
+	//read rectangle colors
+	float r,g,b;
+	if (lua_type(l, 5) != LUA_TNUMBER) {
+		lua_pushstring(l, "Fifth parameter is not a valid red color number");
+		return lua_error(l);
+	}
+	if (lua_type(l, 6) != LUA_TNUMBER) {
+        lua_pushstring(l, "Sixth parameter is not a valid red color number");
+        return lua_error(l);
+    }
+	if (lua_type(l, 7) != LUA_TNUMBER) {
+        lua_pushstring(l, "Seventh parameter is not a valid red color number");
+        return lua_error(l);
+    }
+	r = lua_tonumber(l, 5);
+	g = lua_tonumber(l, 6);
+	b = lua_tonumber(l, 7);
+	if (r < 0) {r = 0;}
+	if (r > 1) {r = 1;}
+	if (g < 0) {g = 0;}
+	if (g > 1) {g = 1;}
+	if (b < 0) {b = 0;}
+	if (b > 1) {b = 1;}
+
+	//obtain alpha if given
+	if (lua_gettop(l) >= 8) {
+		lua_pushstring(l, "Eighth parameter is not a valid alpha number");
+		alpha = lua_tonumber(l, 5);
+		if (alpha < 0) {alpha = 0;}
+		if (alpha > 1) {alpha = 1;}
+	}
+
+	graphics_DrawRectangle(x, y, width, height, r, g, b, alpha);
+	return 0;
 }
 
 int luafuncs_drawImage(lua_State* l) {
@@ -205,20 +274,24 @@ int luafuncs_drawImage(lua_State* l) {
 		lua_pushstring(l, "First parameter is not a valid image name string");
 		return lua_error(l);
 	}
+	
+	//get position parameters
 	int x,y;
 	float alpha = 1;
-	if (lua_type(l,2) != LUA_TNUMBER) {
+	if (lua_type(l, 2) != LUA_TNUMBER) {
 		lua_pushstring(l, "Second parameter is not a valid x position number");
 		return lua_error(l);
 	}
-	if (lua_type(l,3) != LUA_TNUMBER) {
+	if (lua_type(l, 3) != LUA_TNUMBER) {
 		lua_pushstring(l, "Third parameter is not a valid y position number");
 		return lua_error(l);
 	}
-	x = lua_tointeger(l,2);
-	y = lua_tointeger(l,3);
-	if (lua_gettop(l) >= 4) {
-		if (lua_type(l,4) != LUA_TNUMBER) {
+	x = (int)((float)lua_tonumber(l,2)+0.5f);
+	y = (int)((float)lua_tonumber(l,3)+0.5f);
+
+	//get alpha parameter
+	if (lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL) {
+		if (lua_type(l, 4) != LUA_TNUMBER) {
 			lua_pushstring(l,"Fourth parameter is not a valid alpha number");
 			return lua_error(l);
 		}
@@ -226,7 +299,78 @@ int luafuncs_drawImage(lua_State* l) {
 		if (alpha < 0) {alpha = 0;}
 		if (alpha > 1) {alpha = 1;}
 	}
-	if (!graphics_Draw(p, x, y, alpha)) {
+	
+	//read cut rectangle parameters
+	int cutx = 0;
+	int cuty = 0;
+	int cutwidth = -1;
+	int cutheight = -1;
+	if (lua_gettop(l) >= 5 && lua_type(l, 5) != LUA_TNIL) {
+		if (lua_type(l, 5) != LUA_TNUMBER) {
+			lua_pushstring(l, "Fifth parameter is not a valid cutx number");
+			return lua_error(l);
+		}
+		cutx = (int)((float)lua_tonumber(l, 5)+0.5f);
+	}
+    if (lua_gettop(l) >= 6 && lua_type(l, 6) != LUA_TNIL) {
+        if (lua_type(l, 6) != LUA_TNUMBER) {
+            lua_pushstring(l, "Sixth parameter is not a valid cutx number");
+            return lua_error(l);
+        }
+        cuty = (int)((float)lua_tonumber(l, 5)+0.5f);
+    }
+    if (lua_gettop(l) >= 7 && lua_type(l, 7) != LUA_TNIL) {
+        if (lua_type(l, 8) != LUA_TNUMBER) {
+            lua_pushstring(l, "Seventh parameter is not a valid cutwidth number");
+            return lua_error(l);
+        }
+        cutwidth = (int)((float)lua_tonumber(l, 5)+0.5f);
+		if (cutwidth < 0) {cutwidth = 0;}
+    }
+    if (lua_gettop(l) >= 8 && lua_type(l, 8) != LUA_TNIL) {
+        if (lua_type(l, 8) != LUA_TNUMBER) {
+            lua_pushstring(l, "Eighth parameter is not a valid cutheight number");
+            return lua_error(l);
+        }
+        cutheight = (int)((float)lua_tonumber(l, 5)+0.5f);
+		if (cutheight < 0) {cutheight = 0;}
+    }
+
+	//proceess negative cut positions and adjust output position accordingly
+	if (cutx < 0) {
+		if (cutwidth > 0) {
+			cutwidth += cutx;
+			x -= cutx;
+			if (cutwidth < 0) {
+				cutwidth = 0;
+			}
+		}
+		cutx = 0;
+	}
+	if (cuty < 0) {
+		if (cutheight > 0) {
+			cutheight += cuty;
+			x -= cuty;
+			if (cutheight < 0) {
+				cutheight = 0;
+			}
+		}
+		cuty = 0;
+	}
+
+	//empty draw calls aren't possible, but we will "emulate" it to provide an error on a missing texture anyway
+	if (cutwidth == 0 || cutheight == 0) {
+		if (graphics_IsTextureLoaded(p)) {
+			lua_pushstring(l, "Requested texture isn't loaded or available");
+			return lua_error(l);
+		}
+	}
+
+	if (cutwidth < 0) {cutwidth = 0;}
+	if (cutheight < 0) {cutheight = 0;}
+
+	//draw:
+	if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight)) {
 		lua_pushstring(l, "Requested texture isn't loaded or available");
 		return lua_error(l);
 	}

@@ -57,6 +57,9 @@ void graphics_StartFrame();
 int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight);
 //Draw a texture cropped. Returns 1 on success, 0 when there is no such texture.
 
+void graphics_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a);
+//Draw a colored rectangle.
+
 int graphics_Draw(const char* texname, int x, int y, float alpha);
 //Draw a texture. Returns 1 on success, 0 when there is no such texture.
 
