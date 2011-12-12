@@ -98,7 +98,15 @@ function blitwiz.on_mousedown(button, mousex, mousey)
 	updatemenufocus(mousex, mousey)
 	if menufocus > 0 then
 		os.chdir("../../examples/" .. examples[menufocus] .. "/")
+		-- Delete our previous event functions
+		blitwiz.on_close = nil
+		blitwiz.on_mousedown = nil
+		blitwiz.on_mousemove = nil
+		blitwiz.on_init = nil
+		blitwiz.on_draw = nil
+		-- Load example
 		dofile("game.lua")
+		-- Run example
 		blitwiz.on_init()
 	end
 end
