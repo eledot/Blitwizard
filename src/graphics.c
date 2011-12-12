@@ -458,6 +458,11 @@ void graphics_Quit() {
 	}
 }
 
+int graphics_IsFullscreen() {
+	//FIXME
+	return 0;
+}
+
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
 	char errormsg[512];
 	//initialize SDL video if not done yet
@@ -504,6 +509,18 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 				break;
 			}
 			r++;
+		}
+	}
+	//see if anything changes at all
+	unsigned int oldw = 0;
+	unsigned int oldh = 0;
+	graphics_GetWindowDimensions(&oldw,&oldh);
+	if (mainwindow && graphics_IsFullscreen() == fullscreen && width == (int)oldw && height == (int)oldh) {
+		SDL_RendererInfo info;
+        SDL_GetRendererInfo(mainrenderer, &info);
+		if (strlen(preferredrenderer) <= 0 || strcasecmp(preferredrenderer, info.name) == 0) {
+			//same renderer and resolution
+			return 1;
 		}
 	}
 	//preserve textures by managing them on our own for now
