@@ -524,11 +524,14 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	unsigned int oldw = 0;
 	unsigned int oldh = 0;
 	graphics_GetWindowDimensions(&oldw,&oldh);
-	if (mainwindow && graphics_IsFullscreen() == fullscreen && width == (int)oldw && height == (int)oldh) {
+	if (mainwindow && mainrenderer && graphics_IsFullscreen() == fullscreen && width == (int)oldw && height == (int)oldh) {
 		SDL_RendererInfo info;
         SDL_GetRendererInfo(mainrenderer, &info);
 		if (strlen(preferredrenderer) <= 0 || strcasecmp(preferredrenderer, info.name) == 0) {
 			//same renderer and resolution
+			if (strcmp(SDL_GetWindowTitle(mainwindow), title) != 0) {
+				SDL_SetWindowTitle(mainwindow, title);
+			}
 			return 1;
 		}
 	}

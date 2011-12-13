@@ -120,7 +120,7 @@ int luafuncs_setWindow(lua_State* l) {
 	
 	const char* renderer = lua_tostring(l,5);
 	char* error;
-	if (!graphics_SetMode(x, y, fullscreen, 0, defaulttitle, renderer, &error)) {
+	if (!graphics_SetMode(x, y, fullscreen, 0, title, renderer, &error)) {
 		if (error) {
 			lua_pushstring(l, error);
 			free(error);
