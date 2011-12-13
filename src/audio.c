@@ -36,12 +36,20 @@ void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
 	//memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
 }
 
+const char* audio_GetCurrentBackendName() {
+	return NULL;
+}
+
 int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, char** error) {
 	char errbuf[512];
 	char preferredbackend[20] = "";
 #ifdef WIN
+	strcpy(preferredbackend, "waveout"); //this is a more safe choice.
 	if (backend && strcasecmp(backend, "waveout") == 0) {
 		strcpy(preferredbackend, "waveout");
+	}
+	if (backend && strcasecmp(backend, "directsound") == 0) {
+		strcpy(preferredbackend, "directsound");
 	}
 #else
 #if defined(__linux) || defined(linux)

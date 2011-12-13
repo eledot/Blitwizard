@@ -53,14 +53,15 @@ ul {
 <li><a href="#2summary">2. API summary and document structure</a></li>
 <li><a href="#3blitwiz.graphics">3. <i>blitwiz.graphics</i> namespace</a></li>
 <li><a href="#4blitwiz.on_*">4. Event callbacks</a></li>
-<li><a href="#5os">5. <i>os</i> standard namespace extension</a></li>
-<li><a href="#6string">6. <i>string</i> standard namespace extension</a></li>
+<li><a href="#5blitwiz.sound">5. <i>blitwiz.sound</i> namespace</a></li>
+<li><a href="#6os">6. <i>os</i> standard namespace extension</a></li>
+<li><a href="#7string">7. <i>string</i> standard namespace extension</a></li>
 </ul>
 <a name="1introduction"><h1>1. Introduction</h1></a>
 <p>This document describes the blitwizard Lua api with all provided functions.
 Since blitwizard is intended for use with Lua 5 (which it includes),
 those are mainly the functions you will use to program your games.</p>
-<p>Event callbacks are also listed in the <a href="">event section</a>.</p>
+<p>Event callbacks are also listed in the <a href="#4blitwiz.on_*">event section</a>.</p>
 <p>If this document refers to namespaces, this actually means the Lua tables in
 the global space that hold sub functions and variables conveniently packed into
 common modules, e.g. the string table or the os table of the standard lib.</p>
@@ -73,7 +74,7 @@ here but nevertheless important for using Lua, so
 if you aren't familiar with them.</p>
 <p>The blitwizard extensions to the standard library however, consisting of additional
 functions added to the Lua 5 standard namespaces,
-e.g. <a href="#6string">additional string functions</a>, are described in this document.</p>
+e.g. <a href="#7string">additional string functions</a>, are described in this document.</p>
 <p>All functions listed in this document are listed with their names, parameters and return value,
 whereas a parameter type and return value type
 is specified.
@@ -84,6 +85,11 @@ in brackets behind the parameters like this: <i>(number)</i>. The return value i
 described in the more lengthy description which
 follows each listed function.</p>
 <p>Those types refer to standard Lua 5 variable types: <i>number, string, boolean, nil</i></p>
+<p>Those types are special blitwizard types which you can only use with blitwizard functions:
+<ul>
+<li><i><a name="sound_handle">sound handle</a></i> &mdash; specifies a played sound. You can use the handle to check whether it still plays or whether it stopped and it allows you to modify some things afterwards (e.g. abort the sound). If you play the same sound file many times, you will always get different sound handles for each separately played sound</li>
+</ul>
+</p>
 <p>The Lua 5 of blitwizard is mostly compiled with standard settings, e.g. numbers
 being double 64bit floating point numbers. Null bytes in strings are generally not
 supported by functions in the blitwiz namespace (those will cut the string off at the
@@ -471,7 +477,7 @@ Parameters:
 Example:
 <div class="code">--Terminate the program when the user clicks the upper left corner of the drawing area:
 function blitwiz.on_mousedown(button, x, y)
-	if x < 50 and y < 50 then
+	if x &lt; 50 and y &lt; 50 then
 		-- Quit the program
 		os.exit(0)
 	end
@@ -534,7 +540,7 @@ much you're doing, you should keep this limitation in mind.
 Example:
 <div class="code">--Terminate the program when the user clicks the upper left corner of the drawing area:
 function blitwiz.on_mousedown(button, x, y)
-	if x < 50 and y < 50 then
+	if x &lt; 50 and y &lt; 50 then
 		-- Quit the program
 		os.exit(0)
 	end
@@ -572,7 +578,61 @@ Parameters:
 </li>
 
 </ul>
-<a name="5os"><h1>5. <i>os</i> standard namespace extension</h1></a>
+<a name="5blitwiz.sound"><h1>5. <i>blitwiz.sound</i> namespace</h1></a>
+<ul>
+
+<li><h2><a name="blitwiz.sound.getBackendName">blitwiz.sound.getBackendName</a>()</h2>
+<p>
+Get the name of the currently active audio backend, which can be e.g. "directsound" or "waveout" on Windows, "alsa" or "oss" on Linux, or "coreaudio" for Mac.
+</p>
+<p>Parameters: None</p>
+<p>Return values: backend name <i>(string)</i></p>
+</li>
+
+<li><h2><a name="blitwiz.sound.play">blitwiz.sound.play</a>(path <i>(string)</i>, volume <i>(number)</i>, panning <i>(number)</i>, loop <i>(boolean)</i>, priority <i>(number)</i>, fadein <i>(number)</i>)</h2>
+<p>
+Play the sound file found at the given path. The sound will be decoded and read on-the-fly,
+so this function usually causes no load delay.
+</p>
+<p>
+Currently supported audio file formats: .ogg<br>
+<br>(mp3 is <b>not</b> supported)</small>
+</p>
+<p>If a sound fails to play because the file on disk cannot be opened/read, it will throw an error. If a sound fails to play because all slots are used by higher priority sounds (see remark on the priority parameter below), it will return a sound handle without error but simply not play the sound.
+<p>
+Parameters:
+<ul class="parameters">
+<li>path <i>(string)</i> &mdash; the path to the audio file</li>
+<li>volume <i>(number, optional)</i> &mdash; volume from 0 (silent) to 1 (full volume), default is 1</li>
+<li>panning <i>(number, optional)</i> &mdash; stereo panning from -1 (left) to 1 (right), default is 0 (center)</li>
+<li>loop <i>(boolean, optional)</i> &mdash; specify whether the sound should be looped forever with true, or just played once with false. default is false</li>
+<li>priority <i>(number, optional)</i> &mdash; specify the priority of a sound. The amount of sounds that can play at once is limited, and a higher priority sound will always kill a lower priority sound to gain a slot. A lower priority sound might not be played at all if all slots are occupied with higher priority sounds. Using high priority for music is suggested. The priority is a positive number starting from 0 upwards (higher number is higher priority). If you specify no priority (default), the sound is even less priority than a sound with any specified priority</li>
+<li>fadein <i>(number, optional)</i> &mdash; the amount of seconds to use for a fadein effect. E.g. specify 1.5 to fade in from silent to the specified volume in 1.5 seconds. Default: 0 (instant full volume)</li>
+</ul>
+</p>
+<p>
+Return values: sound handle <i>(<a href="#sound_handle">sound handle</a>)</i>
+</p>
+<p>
+Examples:
+<div class="code">-- Simply play a sound:
+blitwiz.sound.play("buzz.ogg")
+</div>
+&nbsp;
+<div class="code">-- Play a long ambient sound at 50% volume with 25% panning to the left, looping forever:
+blitwiz.sound.play("ambient.ogg", 0.5, -0.5, true)
+</div>
+&nbsp;
+<div class="code">-- Play a music track at 80% volume, looping forever with high priority
+blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
+</div>
+</p>
+</li>
+
+</ul>
+
+
+<a name="6os"><h1>6. <i>os</i> standard namespace extension</h1></a>
 <ul>
 
 <li><h2><a name="os.chdir">os.chdir</a>(path <i>(string)</i>)</h2>
@@ -606,7 +666,7 @@ Parameters:
 </li>
 
 </ul>
-<a name="6string"><h1>6. <i>string</i> standard namespace extension<h1></a>
+<a name="7string"><h1>6. <i>string</i> standard namespace extension<h1></a>
 <ul>
 
 

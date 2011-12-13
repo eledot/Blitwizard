@@ -10,6 +10,8 @@ print("Sound example in blitwizard")
 
 
 function blitwiz.on_init()
+	print("Sound backend: " .. blitwiz.sound.getBackendName())
+	
 	-- Open a window
 	blitwiz.graphics.setWindow(640,480,"Sound", false) -- resolution/size: 640x480, title: "Hello World", fullscreen: false/no
 

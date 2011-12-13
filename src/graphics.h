@@ -31,6 +31,10 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 //Renderer can be NULL (for any), "software", "opengl" or "direct3d".
 //If you want the best for your system, go for NULL.
 
+const char* graphics_GetCurrentRendererName();
+//Get the renderer currently used for the active graphics mode.
+//Returns NULL when no mode has been set.
+
 int graphics_Init(char** error);
 
 int graphics_PromptTextureLoading(const char* texture);
@@ -50,6 +54,9 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 
 void graphics_Quit();
 //Quit the graphics subsystem
+
+int graphics_IsFullscreen();
+//Return if the graphics are currently running at full screen. 1: yes, 0: no. Undefined result when no graphics mode set
 
 void graphics_StartFrame();
 //Clears the screen to prepare for the next frame.

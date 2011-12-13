@@ -458,8 +458,14 @@ void graphics_Quit() {
 	}
 }
 
+const char* graphics_GetCurrentRendererName() {
+
+}
+
 int graphics_IsFullscreen() {
-	//FIXME
+	if (mainwindow) {
+
+	}
 	return 0;
 }
 

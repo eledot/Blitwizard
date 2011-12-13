@@ -35,6 +35,7 @@
 #include "audio.h"
 #include "audiomixer.h"
 #include "file.h"
+#include "main.h"
 
 int drawingallowed = 0;
 
@@ -393,8 +394,20 @@ int luafuncs_chdir(lua_State* l) {
 	return 0;
 }
 
+int luafuncs_getAudioBackend(lua_State* l) {
+	main_InitAudio();
+	const char* p = audio_GetCurrentBackendName();
+	if (p) {
+		lua_pushstring(l, p);
+	}else{
+		lua_pushstring(l, "null driver");
+	}
+	return 1;
+}
+
 
 int luafuncs_play(lua_State* l) {
+	main_InitAudio();
 	const char* p = lua_tostring(l,1);
 	if (!p) {
 		lua_pushstring(l, "First parameter is not a valid sound name string");

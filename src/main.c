@@ -70,8 +70,10 @@ void main_InitAudio() {
     if (audioinitialised) {return;}
     audioinitialised = 1;
     char* error;
+	//get audio backend
+	const char* p = luastate_GetPreferredAudioBackend();
     //initialise audio
-    if (!audio_Init(&audiomixer_GetBuffer, 0, NULL, &error)) {
+    if (!audio_Init(&audiomixer_GetBuffer, 0, p, &error)) {
         printwarning("Warning: Failed to initialise audio: %s\n",error);
         free(error);
         //non-fatal: we will simulate audio manually:

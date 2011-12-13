@@ -32,6 +32,9 @@ int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersi
 //The raw audio data will be requested through the callback.
 //The amount of requested bytes is not guaranteed to be fitting to the samples.
 
+const char* audio_GetCurrentBackendName();
+//Get the name of the currently active audio backend, or NULL for none.
+
 void audio_LockAudioThread();
 //Call this to make sure the audio callback you supply in audio_Init() isn't currently running.
 //Will block and wait if the callback is currently running, then prevent it from running
