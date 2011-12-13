@@ -28,6 +28,7 @@
 #define MAXSOUNDBUFFERSIZE (1024 * 10)
 
 static void*(*samplecallbackptr)(unsigned int) = NULL;
+static int soundenabled = 0;
 
 void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
 	memset(stream, 0, (unsigned int)len);
@@ -37,10 +38,15 @@ void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
 }
 
 const char* audio_GetCurrentBackendName() {
+	if (!soundenabled) {return NULL;}
 	return SDL_GetCurrentAudioDriver();
 }
 
 int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, char** error) {
+	if (soundenabled) {
+		//quit old sound first
+		SDL_AudioQuit();
+	}
 	char errbuf[512];
 	char preferredbackend[20] = "";
 #ifdef WIN
@@ -95,9 +101,11 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		snprintf(errbuf,sizeof(errbuf),"Failed to open SDL audio: %s", SDL_GetError());
 		errbuf[sizeof(errbuf)-1] = 0;
 		*error = strdup(errbuf);
+		SDL_AudioQuit();
 		return 0;
 	}
 	
+	soundenabled = 1;
 	SDL_PauseAudio(0);
 	return 1;
 }

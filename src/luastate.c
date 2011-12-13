@@ -93,7 +93,8 @@ static int luastate_AddStdFuncs(lua_State* l) {
 const char* luastate_GetPreferredAudioBackend() {
 	lua_pushstring(scriptstate, "audiobackend");
 	lua_gettable(scriptstate, LUA_GLOBALSINDEX);
-	return lua_tostring(scriptstate, -1);
+	const char* p = lua_tostring(scriptstate, -1);
+	return p;
 }
 
 static lua_State* luastate_New() {

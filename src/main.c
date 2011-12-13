@@ -309,7 +309,7 @@ int main(int argc, char** argv) {
 			if (simulateaudio) {
 				while (simulateaudiotime < time_GetMilliSeconds()) {
 					audiomixer_GetBuffer(48 * 2 * 2);
-					time += 1; // 48 * 1000 times * 2 byte * 2 channels per second = simulated 48kHz 16bit stereo audio
+					simulateaudiotime += 1; // 48 * 1000 times * 2 byte * 2 channels per second = simulated 48kHz 16bit stereo audio
 				}
 			}
 
