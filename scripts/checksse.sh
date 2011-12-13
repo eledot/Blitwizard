@@ -18,7 +18,7 @@ if [ -n "$EXEEXT" ]; then
 fi
 
 scripts/ssetest$EXEEXT &> /dev/null || {
-	${WINECMD}scripts/ssetest$EXEEXT &> /dev/null || {rm -f scripts/ssetest.c; rm -rf scripts/ssetest$EXEEXT; exit 0;}
+	${WINECMD}scripts/ssetest$EXEEXT &> /dev/null || { rm -f scripts/ssetest.c; rm -rf scripts/ssetest$EXEEXT; exit 0; }
 }
 
 echo " -msse -msse2 -mfpmath=both "

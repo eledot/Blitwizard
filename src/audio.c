@@ -50,11 +50,10 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 	char errbuf[512];
 	char preferredbackend[20] = "";
 #ifdef WIN
-	strcpy(preferredbackend, "waveout"); //this is a more safe choice.
 	if (backend && strcasecmp(backend, "waveout") == 0) {
 		strcpy(preferredbackend, "waveout");
 	}
-	if (backend && strcasecmp(backend, "directsound") == 0) {
+	if (backend && (strcasecmp(backend, "directsound") == 0 || strcasecmp(backend, "dsound") == 0)) {
 		strcpy(preferredbackend, "directsound");
 	}
 #else
