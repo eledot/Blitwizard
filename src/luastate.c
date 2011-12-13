@@ -37,6 +37,9 @@ static lua_State* scriptstate = NULL;
 
 static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_newtable(l);
+	lua_pushstring(l, "getRendererName");
+	lua_pushcfunction(l, &luafuncs_getRendererName);
+	lua_settable(l, -3);
 	lua_pushstring(l, "setWindow");
 	lua_pushcfunction(l, &luafuncs_setWindow);
 	lua_settable(l, -3);
@@ -66,7 +69,7 @@ static void luastate_CreateSoundTable(lua_State* l) {
 	lua_pushcfunction(l, &luafuncs_play);
 	lua_settable(l, -3);
 	lua_pushstring(l, "getBackendName");
-	lua_pushcfunction(l, &luafuncs_getAudioBackend);
+	lua_pushcfunction(l, &luafuncs_getBackendName);
 	lua_settable(l, -3);
 }
 

@@ -37,7 +37,7 @@ void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
 }
 
 const char* audio_GetCurrentBackendName() {
-	return NULL;
+	return SDL_GetCurrentAudioDriver();
 }
 
 int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, char** error) {

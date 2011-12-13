@@ -458,8 +458,11 @@ void graphics_Quit() {
 	}
 }
 
+SDL_RendererInfo info;
 const char* graphics_GetCurrentRendererName() {
-
+	if (!mainrenderer) {return NULL;}
+	SDL_GetRendererInfo(mainrenderer, &info);
+	return info.name;
 }
 
 int graphics_IsFullscreen() {

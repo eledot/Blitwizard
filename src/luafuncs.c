@@ -394,7 +394,18 @@ int luafuncs_chdir(lua_State* l) {
 	return 0;
 }
 
-int luafuncs_getAudioBackend(lua_State* l) {
+int luafuncs_getRendererName(lua_State* l) {
+	const char* p = graphics_GetCurrentRendererName();
+	if (!p) {
+		lua_pushnil(l);
+		return 1;
+	}else{
+		lua_pushstring(l, p);
+		return 1;
+	}
+}
+
+int luafuncs_getBackendName(lua_State* l) {
 	main_InitAudio();
 	const char* p = audio_GetCurrentBackendName();
 	if (p) {
