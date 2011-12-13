@@ -8,6 +8,7 @@
 
 print("Sound example in blitwizard")
 
+audiobackend = "oss"
 
 function blitwiz.on_init()
 	print("Sound backend: " .. blitwiz.sound.getBackendName())

@@ -56,6 +56,9 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 	if (backend && strcasecmp(backend, "alsa") == 0) {
 		strcpy(preferredbackend, "alsa");
 	}
+	if (backend && (strcasecmp(backend, "oss") == 0 || strcasecmp(backend, "dsp") == 0)) {
+		strcpy(preferredbackend, "dsp");
+	}
 #endif
 #endif
 	const char* b = preferredbackend;
