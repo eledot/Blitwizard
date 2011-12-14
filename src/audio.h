@@ -21,14 +21,15 @@
 
 */
 
-int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersize, const char* backend, char** error);
+int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersize, const char* backend, int s16, char** error);
 //Initialise audio. Returns 1 on success, 0 on error (in which case
 //error will be modified so *error points at an error message you
 //must free() yourself).
 //Pass either 0/NULL to buffersize/backend, or:
 // buffersize: preferred sound buffer size (lower = less stable but less latency)
 // backend: available alternative backends like "waveout" on windows.
-//Wants to be fed with 16bit signed int stereo audio.
+// s16: if 1, you will need to feed 16bit signed int audio.
+//      if 0, you need to feed 32bit float audio.
 //The raw audio data will be requested through the callback.
 //The amount of requested bytes is not guaranteed to be fitting to the samples.
 

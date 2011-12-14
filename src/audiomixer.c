@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
+#include <stdint.h>
 
 #include "audio.h"
 #include "audiosource.h"
@@ -237,10 +238,15 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 	}
 }
 
+int s16mixmode = 0;
 
 char* streambuf = NULL;
 unsigned int streambuflen = 0;
 void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
+	if (s16mixmode) {
+		len *= 2; //get twice the amount of float 32 samples
+	}
+
 	if (streambuflen != len && (streambuflen < len || streambuflen > len * 2)) {
 		if (streambuf) {free(streambuf);}
 		streambuf = malloc(len);
@@ -292,6 +298,19 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
 				filledmixpartial -= sizeof(MIXTYPE);
 				filledmixfull--;
 			}
+		}
+	}
+
+	//FIXME: this assumes that only complete samples are fetched
+	if (s16mixmode) {
+		unsigned int i = 0;
+		unsigned int i2 = 0;
+		while (i < len) {
+			float fval = *((float*)((char*)streambuf+i));
+			fval *= 32767;
+			*((int16_t*)((char*)streambuf+i2)) = (int16_t)fval;
+			i += sizeof(MIXTYPE);
+			i2 += sizeof(int16_t);
 		}
 	}
 	

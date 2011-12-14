@@ -42,7 +42,7 @@ const char* audio_GetCurrentBackendName() {
 	return SDL_GetCurrentAudioDriver();
 }
 
-int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, char** error) {
+int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
 	if (soundenabled) {
 		//quit old sound first
 		SDL_AudioQuit();
@@ -88,7 +88,11 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 
 	memset(&fmt,0,sizeof(fmt));
 	fmt.freq = 48000;
-	fmt.format = AUDIO_F32SYS;
+	if (!s16) {
+		fmt.format = AUDIO_F32SYS;
+	}else{
+		fmt.format = AUDIO_S16;
+	}
 	fmt.channels = 2;
 	fmt.samples = custombuffersize;
 	fmt.callback = audiocallback;

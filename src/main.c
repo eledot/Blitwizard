@@ -94,12 +94,21 @@ void main_InitAudio() {
     char* error;
 	//get audio backend
 	const char* p = luastate_GetPreferredAudioBackend();
-    //initialise audio
-    if (!audio_Init(&audiomixer_GetBuffer, 0, p, &error)) {
-        printwarning("Warning: Failed to initialise audio: %s\n",error);
-        free(error);
-        //non-fatal: we will simulate audio manually:
-        simulateaudio = 1;
+    //initialise audio - try 32bit first
+    s16mixmode = 0;
+	if (!audio_Init(&audiomixer_GetBuffer, 0, p, 0, &error)) {
+		if (error) {free(error);}
+		//try 16bit now
+    	s16mixmode = 1;
+   	 	if (!audio_Init(&audiomixer_GetBuffer, 0, p, 1, &error)) {
+        	printwarning("Warning: Failed to initialise audio: %s\n",error);
+        	if (error) {
+				free(error);
+			}
+        	//non-fatal: we will simulate audio manually:
+        	simulateaudio = 1;
+			s16mixmode = 0;
+		}
     }
 }
 
