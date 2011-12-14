@@ -26,8 +26,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
+#ifdef WIN
+#include <windows.h>
+#endif
 
 #include "SDL.h"
+#include "SDL_syswm.h"
 #include "graphics.h"
 #include "imgloader.h"
 #include "timefuncs.h"
@@ -465,12 +469,30 @@ const char* graphics_GetCurrentRendererName() {
 	return info.name;
 }
 
+void graphics_MinimizeWindow() {
+	
+}
+
 int graphics_IsFullscreen() {
 	if (mainwindow) {
 
 	}
 	return 0;
 }
+
+#ifdef WIN
+HWND graphics_GetWindowHWND() {
+	if (!mainwindow) {return NULL;}
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	if (SDL_GetWindowWMInfo(mainwindow, &info)) {
+		if (info.subsystem == SDL_SYSWM_WINDOWS) {
+			return info.info.win.window;
+		}
+	}
+	return NULL;
+}
+#endif
 
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
 	char errormsg[512];

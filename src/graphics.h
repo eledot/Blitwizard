@@ -37,6 +37,12 @@ const char* graphics_GetCurrentRendererName();
 
 int graphics_Init(char** error);
 
+#ifdef WIN
+#ifdef _WINDOWS_
+HWND graphics_GetWindowHWND(); //get win32 HWND handle for the window
+#endif
+#endif
+
 int graphics_PromptTextureLoading(const char* texture);
 //Prompt texture loading.
 //Returns 0 on fatal error (e.g. out of memory), 1 for operation in progress,
@@ -57,6 +63,9 @@ void graphics_Quit();
 
 int graphics_IsFullscreen();
 //Return if the graphics are currently running at full screen. 1: yes, 0: no. Undefined result when no graphics mode set
+
+void graphics_MinimizeWindow();
+//Minimize the window
 
 void graphics_StartFrame();
 //Clears the screen to prepare for the next frame.
