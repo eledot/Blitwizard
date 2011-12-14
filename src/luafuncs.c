@@ -435,7 +435,7 @@ int luafuncs_play(lua_State* l) {
 	int priority = -1;
 	int looping = 0;
 	float fadein = -1;
-	if (lua_gettop(l) >= 2) {
+	if (lua_gettop(l) >= 2 && lua_type(l, 2) != LUA_TNIL) {
 		if (lua_type(l,2) != LUA_TNUMBER) {
 			lua_pushstring(l, "Second parameter is not a valid volume number");
 			return lua_error(l);
@@ -444,7 +444,7 @@ int luafuncs_play(lua_State* l) {
 		if (volume < 0) {volume = 0;}
 		if (volume > 1) {volume = 1;}
 	}
-	if (lua_gettop(l) >= 3) {
+	if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
 		if (lua_type(l,3) != LUA_TNUMBER) {
 			lua_pushstring(l, "Third parameter is not a valid panning number");
 			return lua_error(l);
@@ -453,8 +453,8 @@ int luafuncs_play(lua_State* l) {
 		if (panning < -1) {panning = -1;}
 		if (panning > 1) {panning = 1;}
 	}
-	if (lua_gettop(l) >= 4) {
-		if (lua_type(l,4) != LUA_TBOOLEAN) {
+	if (lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL) {
+		if (lua_type(l, 4) != LUA_TBOOLEAN) {
 			lua_pushstring(l,"Fourth parameter is not a valid loop boolean");
 			return lua_error(l);
 		}
@@ -462,7 +462,7 @@ int luafuncs_play(lua_State* l) {
 			looping = 1;
 		}
 	}
-	if (lua_gettop(l) >= 5) {
+	if (lua_gettop(l) >= 5 && lua_type(l, 5) != LUA_TNIL) {
 		if (lua_type(l,5) != LUA_TNUMBER) {
 			lua_pushstring(l, "Fifth parameter is not a valid priority index number");
 			return lua_error(l);
@@ -470,7 +470,7 @@ int luafuncs_play(lua_State* l) {
 		priority = lua_tointeger(l, 5);
 		if (priority < 0) {priority = 0;}
 	}
-	if (lua_gettop(l) >= 6) {
+	if (lua_gettop(l) >= 6 && lua_type(l, 6) != LUA_TNIL) {
 		if (lua_type(l,6) != LUA_TNUMBER) {
 			lua_pushstring(l, "Sixth parameter is not a valid fade-in seconds number");
 			return lua_error(l);
