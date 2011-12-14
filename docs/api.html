@@ -673,6 +673,27 @@ Parameters:
 </p>
 </li>
 
+<li><h2><a name="os.openConsole">os.openConsole</a>()</h2>
+<p>
+On a Windows platform, open a console window since blitwizard will
+otherwise run without console.
+stdout will then go to that console window which can
+help if you need to have an easily usable console window for debug output.
+Most other platforms (notably Linux, Mac) allow running blitwizard with
+working stdout console output anyway, so this call is not required (and will
+simply do nothing on those platforms).
+</p>
+<p>
+Parmaters: None
+</p>
+<p>
+Return value: None
+</p>
+<p>Examples:
+<div class="code">os.openConsole()</div>
+</p>
+</li>
+
 </ul>
 <a name="7string"><h1>6. <i>string</i> standard namespace extension<h1></a>
 <ul>

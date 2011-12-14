@@ -36,6 +36,7 @@
 #include "audiomixer.h"
 #include "file.h"
 #include "main.h"
+#include "win32console.h"
 
 int drawingallowed = 0;
 
@@ -416,6 +417,11 @@ int luafuncs_getBackendName(lua_State* l) {
 	return 1;
 }
 
+int luafuncs_openConsole(lua_State* l) {
+	win32console_Launch();
+	return 0;
+}
+
 
 int luafuncs_play(lua_State* l) {
 	main_InitAudio();
@@ -485,5 +491,6 @@ int luafuncs_play(lua_State* l) {
 	}
 	return 1;
 }
+
 
 

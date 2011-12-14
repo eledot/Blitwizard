@@ -50,7 +50,10 @@ static int file_IsDirectorySeparator(char c) {
 #ifdef WIN
 	if (c == '/' || c == '\\') {return 1;}
 #else
-	if (file_NativeSlash() == c) {return 1;}
+	if (file_NativeSlash() == c
+	|| c == '\\' /* this is actually wrong for mac/linux, but we want to support
+                    paths written by thoughtless windows people aswell. */
+	) {return 1;}
 #endif
 	return 0;
 }

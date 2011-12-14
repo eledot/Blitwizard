@@ -21,26 +21,6 @@
 
 */
 
-//os:
-int luafuncs_chdir(lua_State* l);
-int luafuncs_openConsole(lua_State* l);
-
-//base:
-int luafuncs_loadfile(lua_State* l);
-int luafuncs_dofile(lua_State* l);
-
-//Graphics:
-int luafuncs_getRendererName(lua_State* l);
-int luafuncs_setWindow(lua_State* l);
-int luafuncs_loadImage(lua_State* l);
-int luafuncs_loadImageAsync(lua_State* l);
-int luafuncs_getTime(lua_State* l);
-int luafuncs_getImageSize(lua_State* l);
-int luafuncs_getWindowSize(lua_State* l);
-int luafuncs_drawImage(lua_State* l);
-int luafuncs_drawRectangle(lua_State* l);
-
-//Sound:
-int luafuncs_getBackendName(lua_State* l);
-int luafuncs_play(lua_State* l);
+void win32console_Launch();
+void win32console_Close();
 

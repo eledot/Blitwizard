@@ -21,26 +21,40 @@
 
 */
 
-//os:
-int luafuncs_chdir(lua_State* l);
-int luafuncs_openConsole(lua_State* l);
+#ifdef WIN
+#include <windows.h>
+#include <stdio.h>
+#include <io.h>
+#include <fcntl.h>
+#endif
 
-//base:
-int luafuncs_loadfile(lua_State* l);
-int luafuncs_dofile(lua_State* l);
+#include "win32console.h"
 
-//Graphics:
-int luafuncs_getRendererName(lua_State* l);
-int luafuncs_setWindow(lua_State* l);
-int luafuncs_loadImage(lua_State* l);
-int luafuncs_loadImageAsync(lua_State* l);
-int luafuncs_getTime(lua_State* l);
-int luafuncs_getImageSize(lua_State* l);
-int luafuncs_getWindowSize(lua_State* l);
-int luafuncs_drawImage(lua_State* l);
-int luafuncs_drawRectangle(lua_State* l);
+static int consoleopen = 0;
 
-//Sound:
-int luafuncs_getBackendName(lua_State* l);
-int luafuncs_play(lua_State* l);
+void win32console_Launch() {
+#ifdef WIN
+	if (consoleopen) {return;}
+
+	AllocConsole();
+
+    HANDLE outhandle = GetStdHandle(STD_OUTPUT_HANDLE);
+    int outfhandle = _open_osfhandle((long)outhandle, _O_TEXT);
+    FILE* outfile = _fdopen(outfhandle, "w");
+    setvbuf(outfile, NULL, _IONBF, 1);
+    *stdout = *outfile;
+	
+	consoleopen = 1;
+#endif
+}
+
+void win32console_Close() {
+#ifdef WIN
+	if (!consoleopen) {return;}
+
+	fclose(stdout);
+	FreeConsole();
+	consoleopen = 0;
+#endif
+}
 
