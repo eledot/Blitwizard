@@ -243,8 +243,10 @@ int s16mixmode = 0;
 char* streambuf = NULL;
 unsigned int streambuflen = 0;
 void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
+	unsigned int s16downmixlen;
 	if (s16mixmode) {
 		len *= 2; //get twice the amount of float 32 samples
+		s16downmixlen = len;
 	}
 
 	if (streambuflen != len && (streambuflen < len || streambuflen > len * 2)) {
@@ -302,10 +304,11 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
 	}
 
 	//FIXME: this assumes that only complete samples are fetched
+	// (which isn't guaranteed)
 	if (s16mixmode) {
 		unsigned int i = 0;
 		unsigned int i2 = 0;
-		while (i < len) {
+		while (i + sizeof(MIXTYPE) <= s16downmixlen) {
 			float fval = *((float*)((char*)streambuf+i));
 			fval *= 32767;
 			*((int16_t*)((char*)streambuf+i2)) = (int16_t)fval;
