@@ -84,7 +84,7 @@ int graphics_Init(char** error) {
 		*error = strdup("Failed to allocate texture hash map");
 		return 0;
 	}
-	if (SDL_Init(SDL_INIT_TIMER|SDL_INIT_AUDIO) < 0) {
+	if (SDL_Init(SDL_INIT_TIMER) < 0) {
 		snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL: %s", SDL_GetError());
 		errormsg[sizeof(errormsg)-1] = 0;
 		*error = strdup(errormsg);
