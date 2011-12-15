@@ -20,12 +20,15 @@ DOSOURCERELEASE="yes"
 
 TARGETHOST=""
 if [ "$2" == "linux-to-win" ]; then
-	echo "Building with MinGW cross compiler... (Please set TARGETHOST in this script properly!)";
+	echo "Building with MinGW cross compiler... (Please set CROSSCCHOST in this script properly!)";
 	TARGETHOST="$CROSSCCHOST"
 	BINRELEASENAME="win32"
 	DOSOURCERELEASE="no"
 else
 	echo "Building with native compiler";
+	if [ "$2" == "win" ]; then
+		BINRELEASENAME="win32"
+	fi
 fi
 
 if [ "$DOSOURCERELEASE" == "yes" ]; then
@@ -75,7 +78,12 @@ cp ../blitwizard/README-libs.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
 unix2dos ./README*.txt || { echo "unix2dos not available."; exit 1; }
+unix2dos ./Ship-your-game.txt
 cp -R ../blitwizard/examples ./examples/
+unix2dos ./examples/01.helloworld/*.lua
+unix2dos ./examples/02.simplecar/*.lua
+unix2dos ./examples/03.sound/*.lua
+unix2dos ./examples/04.simplecar.async/*.lua
 cd ..
 zip -r -9 ./blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip ./blitwizard-bin/
 rm -rf ./blitwizard/
