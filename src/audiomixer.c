@@ -194,7 +194,7 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 	
 	//cycle all channels and mix them into the buffer
 	unsigned int i = 0;
-	while (i <= MAXCHANNELS) {
+	while (i < MAXCHANNELS) {
 		if (channels[i].mixsource) {
 			//read bytes
 			int k = channels[i].mixsource->read(channels[i].mixsource, mixbuf2, sampleamount * sizeof(float));
