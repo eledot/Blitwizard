@@ -19,19 +19,19 @@ RELEASEVERSION=$1
 DOSOURCERELEASE="yes"
 
 TARGETHOST=""
-if [ "$2" == "linux-to-win" ]; then
+if [ "$2" = "linux-to-win" ]; then
 	echo "Building with MinGW cross compiler... (Please set CROSSCCHOST in this script properly!)";
 	TARGETHOST="$CROSSCCHOST"
 	BINRELEASENAME="win32"
 	DOSOURCERELEASE="no"
 else
 	echo "Building with native compiler";
-	if [ "$2" == "win" ]; then
+	if [ "$2" = "win" ]; then
 		BINRELEASENAME="win32"
 	fi
 fi
 
-if [ "$DOSOURCERELEASE" == "yes" ]; then
+if [ "$DOSOURCERELEASE" = "yes" ]; then
 	rm blitwizard-$RELEASEVERSION-src.zip
 fi
 rm blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip
@@ -53,14 +53,14 @@ rm src/imgloader/zlib/.gitignore
 cd ..
 rm -r blitwizard/
 mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
-if [ "$DOSOURCERELEASE" == "yes" ]; then
-	zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/
+if [ "$DOSOURCERELEASE" = "yes" ]; then
+	zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/ || { echo "zip doesn't work as expected - is zip installed?"; exit 1; }
 fi
 cd blitwizard
 rm deps.zip
-wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip"; exit 1; }
+wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
 unzip deps.zip
-if [ "$TARGETHOST" == "" ]; then
+if [ "$TARGETHOST" = "" ]; then
 	CC="$CC" ./configure || { echo "./configure failed."; exit 1; }
 else
 	unset $CC
@@ -68,6 +68,7 @@ else
 fi
 make
 cd ..
+rm -r blitwizard-bin
 mkdir ./blitwizard-bin || { echo "Failed to create blitwizard-bin directory."; exit 1; }
 cd blitwizard-bin
 mkdir bin
@@ -77,13 +78,21 @@ cp ../blitwizard/bin/blitwizard* ./bin
 cp ../blitwizard/README-libs.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
-unix2dos ./README*.txt || { echo "unix2dos not available."; exit 1; }
-unix2dos ./Ship-your-game.txt
+
+# detect todos or unix2dos
+UNIXTODOS="unix2dos"
+$UNIXTODOS ./README*.txt || {
+	UNIXTODOS="todos"
+	$UNIXTODOS ./README*.txt || { echo "unix2dos/todos not working - is any of them installed?"; exit 1; }
+}
+$UNIXTODOS ./Ship-your-game.txt
 cp -R ../blitwizard/examples ./examples/
-unix2dos ./examples/01.helloworld/*.lua
-unix2dos ./examples/02.simplecar/*.lua
-unix2dos ./examples/03.sound/*.lua
-unix2dos ./examples/04.simplecar.async/*.lua
+
+$UNIXTODOS ./examples/01.helloworld/*.lua
+$UNIXTODOS ./examples/02.simplecar/*.lua
+$UNIXTODOS ./examples/03.sound/*.lua
+$UNIXTODOS ./examples/04.simplecar.async/*.lua
+
 cd ..
 zip -r -9 ./blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip ./blitwizard-bin/
 rm -rf ./blitwizard/
