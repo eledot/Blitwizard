@@ -492,5 +492,26 @@ int luafuncs_play(lua_State* l) {
 	return 1;
 }
 
-
+int luafuncs_getDisplayModes(lua_State* l) {
+	int c = graphics_GetNumberOfVideoModes();
+	lua_createtable(l, 5, 0);
+	int i = 0;
+	while (i < c) {
+		int w,h;
+		graphics_GetVideoMode(i, &w, &h);
+		
+		lua_createtable(l, 3, 0);
+		lua_pushnumber(l, 1);
+		lua_pushnumber(l, w);
+		lua_settable(l, -3);
+		lua_pushnumber(l, 2);
+		lua_pushnumber(l, h);
+		lua_settable(l, -3);
+		
+		lua_pushnumber(l, i);
+		lua_settable(l, -3);
+		i++;
+	}
+	return 1;
+}
 

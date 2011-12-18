@@ -158,6 +158,22 @@ blitwiz.graphics.drawRectangle(0, 0, w, h, 0, 0.5, 1)
 </p>
 </li>
 
+<li><h2><a name="blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes()</a></li>
+<p>
+Get a table of display modes which are supported for fullscreen windows.
+</p>
+<p>Parameters: None</p>
+<p>Return values: table containing display modes (each display mode is itself a table containing two values representing width and height in pixels)</p>
+<p>Example:
+<div class="code">-- Print out all available screen resolutions
+local displaymodes = blitwiz.graphics.getDisplayModes()
+local i = 1
+while i <= #displaymodes do
+	print("Display mode: " .. tostring(displaymodes[i][1]) .. "x" .. tostring(displaymodes[i][2]))
+end
+</div>
+</p>
+
 <li><h2><a name="blitwiz.graphics.getImageSize">blitwiz.graphics.getImageSize</a>(filename <i>(string)</i>)</h2>
 <p>
 Returns the size of a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#blitwiz.on_image">on_image</a>).
@@ -310,7 +326,7 @@ Parameters:
 <li>width <i>(number)</i> &mdash; specify the width (in pixels) of the output window</li>
 <li>height <i>(number)</i> &mdash; specify the height (in pixels) of the output window</li>
 <li>title <i>(string, optional)</i> &mdash; specify a window title for the title bar</li>
-<li>fullscreen <i>(boolean, optional)</i> &mdash; specify if the window should be fullscreen (true) or not (false) - default is false</li>
+<li>fullscreen <i>(boolean, optional)</i> &mdash; specify if the window should be fullscreen (true) or not (false) - default is false. For fullscreen windows, width and height need to be listed in the output of <a href="#blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes()</a></li>
 <li>renderer <i>string</i> &mdash; specify a preferred renderer. this specifies the
 backend blitwizard will use to output the graphics, which can be one of the following:
 "software", "direct3d", "opengl". Please note that "direct3d" is only available on Windows systems!
@@ -382,7 +398,7 @@ calls into this function. Put any game logic and physics into
 <li><h2><a name="blitwiz.on_image">blitwiz.on_image</a>(texture name <i>(string)</i>, result <i>(boolean)</i>)</h2>
 <p>
 If you define this function in your program in the global space, it will be called
-as soon as an image from a <a href="#blitwiz.grapihcs.loadImageAsync">blitwiz.graphics.loadImageAsync</a>
+as soon as an image from a <a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>
 has either finished loading and is now available for drawing
 operations, or if an image has failed loading and won't be available at all.
 </p>
