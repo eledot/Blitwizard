@@ -64,6 +64,9 @@ int graphics_GetNumberOfVideoModes();
 void graphics_GetVideoMode(int index, int* width, int* height);
 //Get the video mode at the given index (0..graphics_GetNumberOfVideoMode()-1)
 
+void graphics_GetDesktopVideoMode(int* x, int* y);
+//Get the current video mode of the desktop
+
 void graphics_Quit();
 //Quit the graphics subsystem
 

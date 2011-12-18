@@ -64,6 +64,9 @@ static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_pushstring(l, "getDisplayModes");
 	lua_pushcfunction(l, &luafuncs_getDisplayModes);
 	lua_settable(l, -3);
+	lua_pushstring(l, "getDesktopDisplayMode");
+	lua_pushcfunction(l, &luafuncs_getDesktopDisplayMode);
+	lua_settable(l, -3);
 }
 
 static void luastate_CreateSoundTable(lua_State* l) {

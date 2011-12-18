@@ -542,6 +542,16 @@ void graphics_GetVideoMode(int index, int* x, int* y) {
 	*y = videomodesy[index];
 }
 
+void graphics_GetDesktopVideoMode(int* x, int* y) {
+	SDL_DisplayMode m;
+	*x = 0;
+	*y = 0;
+	if (SDL_GetDesktopDisplayMode(0, &m) == 0) {
+		*x = m.w;
+		*y = m.h;
+	}
+}
+
 void graphics_MinimizeWindow() {
 	if (!mainwindow) {return;}
 	SDL_MinimizeWindow(mainwindow);

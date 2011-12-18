@@ -492,6 +492,14 @@ int luafuncs_play(lua_State* l) {
 	return 1;
 }
 
+int luafuncs_getDesktopDisplayMode(lua_State* l) {
+	int w,h;
+	graphics_GetDesktopVideoMode(&w, &h);
+	lua_pushnumber(l, w);
+	lua_pushnumber(l, h);
+	return 2;
+}
+
 int luafuncs_getDisplayModes(lua_State* l) {
 	int c = graphics_GetNumberOfVideoModes();
 	lua_createtable(l, 5, 0);

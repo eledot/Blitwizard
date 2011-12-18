@@ -158,6 +158,20 @@ blitwiz.graphics.drawRectangle(0, 0, w, h, 0, 0.5, 1)
 </p>
 </li>
 
+<li><h2><a name="blitwiz.graphics.getDesktopDisplayMode">blitwiz.graphics.getDesktopDisplayMode()</a></li>
+<p>
+Get the current display mode of the desktop. Simply returns the fullscreen video mode if you have a fullscreen window opened.
+</p>
+<p>Parameters: None</p>
+<p>Return values: width <i>(number)</i>, height <i>(number)</i></p>
+<p>Example:
+<div class="code">-- Obtain the desktop display mode
+local w,h = blitwiz.graphics.getDesktopDisplayMode()
+print("Current display mode of the desktop: " .. w .. "x" .. h)
+</div>
+</p>
+</li>
+
 <li><h2><a name="blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes()</a></li>
 <p>
 Get a table of display modes which are supported for fullscreen windows.
