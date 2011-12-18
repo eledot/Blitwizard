@@ -225,7 +225,7 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	return a;
 }
 
-void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float pan, float vol) {
+void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float vol, float pan) {
 	struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
 	if (pan < -1) {pan = -1;}
 	if (pan > 1) {pan = 1;}

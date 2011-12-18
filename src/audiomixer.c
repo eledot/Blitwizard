@@ -116,6 +116,24 @@ static int audiomixer_FreeSoundId() {
 }
 
 
+void audiomixer_StopSound(int id) {
+	audio_LockAudioThread();
+	int slot = audiomixer_GetChannelSlotById(id);
+	if (slot >= 0) {
+		audiomixer_CancelChannel(slot);
+	}
+	audio_UnlockAudioThread();
+}
+
+void audiomixer_AdjustSound(int id, float volume, float panning) {
+	audio_LockAudioThread();
+	int slot = audiomixer_GetChannelSlotById(id);
+	if (slot >= 0) {
+		audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning);
+	}
+	audio_UnlockAudioThread();
+}
+
 
 int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, float panning, float fadeinseconds, int loop) {
 	audio_LockAudioThread();
@@ -133,7 +151,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 		return -1;
 	}
 	
-	audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, panning, volume);
+	audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning);
 	if (fadeinseconds > 0) {
 		audiosourcefadepanvol_StartFade(channels[slot].fadepanvolsource, fadeinseconds, volume, 0);
 	}

@@ -643,7 +643,7 @@ Parameters:
 <ul class="parameters">
 <li>path <i>(string)</i> &mdash; the path to the audio file</li>
 <li>volume <i>(number, optional)</i> &mdash; volume from 0 (silent) to 1 (full volume), default is 1</li>
-<li>panning <i>(number, optional)</i> &mdash; stereo panning from -1 (left) to 1 (right), default is 0 (center)</li>
+<li>panning <i>(number, optional)</i> &mdash; stereo panning from 1 (left) to -1 (right), default is 0 (center)</li>
 <li>loop <i>(boolean, optional)</i> &mdash; specify whether the sound should be looped forever with true, or just played once with false. default is false</li>
 <li>priority <i>(number, optional)</i> &mdash; specify the priority of a sound. The amount of sounds that can play at once is limited, and a higher priority sound will always kill a lower priority sound to gain a slot. A lower priority sound might not be played at all if all slots are occupied with higher priority sounds. Using high priority for music is suggested. The priority is a positive number starting from 0 upwards (higher number is higher priority). If you specify no priority (default), the sound is even less priority than a sound with any specified priority</li>
 <li>fadein <i>(number, optional)</i> &mdash; the amount of seconds to use for a fadein effect. E.g. specify 1.5 to fade in from silent to the specified volume in 1.5 seconds. Default: 0 (instant full volume)</li>
@@ -658,7 +658,7 @@ Examples:
 blitwiz.sound.play("buzz.ogg")
 </div>
 &nbsp;
-<div class="code">-- Play a long ambient sound at 50% volume with 25% panning to the left, looping forever:
+<div class="code">-- Play a long ambient sound at 50% volume with 50% panning to the right, looping forever:
 blitwiz.sound.play("ambient.ogg", 0.5, -0.5, true)
 </div>
 &nbsp;

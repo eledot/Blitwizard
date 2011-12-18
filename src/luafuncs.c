@@ -417,11 +417,62 @@ int luafuncs_getBackendName(lua_State* l) {
 	return 1;
 }
 
-int luafuncs_openConsole(lua_State* l) {
+int luafuncs_openConsole(lua_State* intentionally_unused) {
 	win32console_Launch();
 	return 0;
 }
 
+static int soundfromstack(lua_State* l, int index) {
+	if (lua_type(l, index) != LUA_TUSERDATA) {
+		return -1;
+	}
+	if (lua_objlen(l, index) != sizeof(struct luaidref)) {
+		return -1;
+	}
+	struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
+	if (!idref || idref->magic != IDREF_MAGIC || idref->type != IDREF_SOUND) {
+		return -1;
+	}
+	return idref->id;
+}
+
+int luafuncs_stop(lua_State* l) {
+	main_InitAudio();
+	int id = soundfromstack(l, 1);
+	if (id < 0) {
+		lua_pushstring(l, "First parameter is not a valid sound handle");
+		return lua_error(l);
+	}
+	audiomixer_StopSound(id);
+	return 0;
+}
+
+int luafuncs_adjust(lua_State* l) {
+	main_InitAudio();
+	int id = soundfromstack(l, 1);
+	if (id < 0) {
+        lua_pushstring(l, "First parameter is not a valid sound handle");
+        return lua_error(l);
+    }
+	if (lua_type(l, 2) != LUA_TNUMBER) {
+		lua_pushstring(l, "Second parameter is not a valid volume number");
+		return lua_error(l);
+	}
+	float volume = lua_tonumber(l, 2);
+	if (volume < 0) {volume = 0;}
+	if (volume > 1) {volume = 1;}
+	if (lua_type(l, 3) != LUA_TNUMBER) {
+		lua_pushstring(l, "Third parameter is not a valid panning number");
+		return lua_error(l);
+	}
+	float panning = lua_tonumber(l, 3);
+	if (panning < -1) {panning = -1;}
+	if (panning > 1) {panning = 1;}
+
+	audiomixer_AdjustSound(id, volume, panning);
+
+	return 0;
+}
 
 int luafuncs_play(lua_State* l) {
 	main_InitAudio();
@@ -482,6 +533,7 @@ int luafuncs_play(lua_State* l) {
 	}
 	struct luaidref* iref = lua_newuserdata(l, sizeof(*iref));
 	memset(iref,0,sizeof(*iref));
+	iref->magic = IDREF_MAGIC;
 	iref->type = IDREF_SOUND;
 	iref->id = audiomixer_PlaySoundFromDisk(p, priority, volume, panning, fadein, looping);
 	if (iref->id < 0) {
