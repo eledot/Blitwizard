@@ -52,8 +52,8 @@ ul {
 <li><a href="#1introduction">1. Introduction</a></li>
 <li><a href="#2summary">2. API summary and document structure</a></li>
 <li><a href="#3blitwiz.graphics">3. <i>blitwiz.graphics</i> namespace</a></li>
-<li><a href="#4blitwiz.on_*">4. Event callbacks</a></li>
-<li><a href="#5blitwiz.sound">5. <i>blitwiz.sound</i> namespace</a></li>
+<li><a href="#4blitwiz.sound">4. <i>blitwiz.sound</i> namespace</a></li>
+<li><a href="#5blitwiz.on_*">5. Event callbacks</a></li>
 <li><a href="#6os">6. <i>os</i> standard namespace extension</a></li>
 <li><a href="#7string">7. <i>string</i> standard namespace extension</a></li>
 </ul>
@@ -375,7 +375,81 @@ end
 </li>
 
 </ul>
-<a name="4blitwiz.on_*"><h1>4. Event callbacks</h1></a>
+<a name="4blitwiz.sound"><h1>4. <i>blitwiz.sound</i> namespace</h1></a>
+<ul>
+
+<li><h2><a name="blitwiz.sound.getBackendName">blitwiz.sound.getBackendName</a>()</h2>
+<p>
+Get the name of the currently active audio backend, which can be e.g. "directsound" or "waveout" on Windows, "alsa" or "oss" on Linux, or "coreaudio" for Mac.
+</p>
+<p>Parameters: None</p>
+<p>Return values: backend name <i>(string)</i></p>
+</li>
+
+<li><h2><a name="blitwiz.sound.adjust">blitwiz.sound.adjust</a>(sound <a href="#sound_handle"><i>(sound handle)</i></a>, volume <i>(number)</i>, panning <i>(number)</i>)</h2>
+<p>Adjust the parameters of a playing sound: You can change the volume and the panning (stereo placement). Does nothing if the sound is no longer playing.</p>
+<p>Parameters:
+<ul>
+<li>sound <a href="#sound_handle"><i>(sound handle)</i></a> &mdash; the sound for which the parameters should be adjusted</li>
+<li>volume <i>(number)</i> &mdash; the volume, specified in a range from 0 (quiet) to 1 (full volume)</li>
+<li>panning <i>(number)</i> &mdash; panning for the sound in a range from 1 (left) to -1 (right)</li>
+</ul>
+</p>
+<p>Return value: None</p>
+</li>
+
+<li><h2><a name="blitwiz.sound.play">blitwiz.sound.play</a>(path <i>(string)</i>, volume <i>(number)</i>, panning <i>(number)</i>, loop <i>(boolean)</i>, priority <i>(number)</i>, fadein <i>(number)</i>)</h2>
+<p>
+Play the sound file found at the given path. The sound will be decoded and read on-the-fly,
+so this function usually causes no load delay.
+</p>
+<p>
+Currently supported audio file formats: .ogg<br>
+<br>(mp3 is <b>not</b> supported)</small>
+</p>
+<p>If a sound fails to play because the file on disk cannot be opened/read, it will throw an error. If a sound fails to play because all slots are used by higher priority sounds (see remark on the priority parameter below), it will return a sound handle without error but simply not play the sound.
+<p>
+Parameters:
+<ul class="parameters">
+<li>path <i>(string)</i> &mdash; the path to the audio file</li>
+<li>volume <i>(number, optional)</i> &mdash; volume from 0 (silent) to 1 (full volume), default is 1</li>
+<li>panning <i>(number, optional)</i> &mdash; stereo panning from 1 (left) to -1 (right), default is 0 (center)</li>
+<li>loop <i>(boolean, optional)</i> &mdash; specify whether the sound should be looped forever with true, or just played once with false. default is false</li>
+<li>priority <i>(number, optional)</i> &mdash; specify the priority of a sound. The amount of sounds that can play at once is limited, and a higher priority sound will always kill a lower priority sound to gain a slot. A lower priority sound might not be played at all if all slots are occupied with higher priority sounds. Using high priority for music is suggested. The priority is a positive number starting from 0 upwards (higher number is higher priority). If you specify no priority (default), the sound is even less priority than a sound with any specified priority</li>
+<li>fadein <i>(number, optional)</i> &mdash; the amount of seconds to use for a fadein effect. E.g. specify 1.5 to fade in from silent to the specified volume in 1.5 seconds. Default: 0 (instant full volume)</li>
+</ul>
+</p>
+<p>
+Return values: sound handle <i>(<a href="#sound_handle">sound handle</a>)</i>
+</p>
+<p>
+Examples:
+<div class="code">-- Simply play a sound:
+blitwiz.sound.play("buzz.ogg")
+</div>
+&nbsp;
+<div class="code">-- Play a long ambient sound at 50% volume with 50% panning to the right, looping forever:
+blitwiz.sound.play("ambient.ogg", 0.5, -0.5, true)
+</div>
+&nbsp;
+<div class="code">-- Play a music track at 80% volume, looping forever with high priority
+blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
+</div>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.sound.stop">blitwiz.sound.stop</a>(sound <a href="#sound_handle"><i>(sound handle)</i></a>)</h2>
+<p>Stop a playing sound. Does nothing if the sound has already stopped.</p>
+<p>Parameters:
+<ul>
+<li>sound <a href="#sound_handle"><i>(sound handle)</i></a> &mdash; the sound which should be stopped</li>
+</ul>
+</p>
+<p>Return value: None</p>
+</li>
+
+</ul>
+<a name="5blitwiz.on_*"><h1>5. Event callbacks</h1></a>
 <ul>
 
 <li><h2><a name="blitwiz.on_close">blitwiz.on_close</a>()</h2>
@@ -617,59 +691,6 @@ Parameters:
 </li>
 
 </ul>
-<a name="5blitwiz.sound"><h1>5. <i>blitwiz.sound</i> namespace</h1></a>
-<ul>
-
-<li><h2><a name="blitwiz.sound.getBackendName">blitwiz.sound.getBackendName</a>()</h2>
-<p>
-Get the name of the currently active audio backend, which can be e.g. "directsound" or "waveout" on Windows, "alsa" or "oss" on Linux, or "coreaudio" for Mac.
-</p>
-<p>Parameters: None</p>
-<p>Return values: backend name <i>(string)</i></p>
-</li>
-
-<li><h2><a name="blitwiz.sound.play">blitwiz.sound.play</a>(path <i>(string)</i>, volume <i>(number)</i>, panning <i>(number)</i>, loop <i>(boolean)</i>, priority <i>(number)</i>, fadein <i>(number)</i>)</h2>
-<p>
-Play the sound file found at the given path. The sound will be decoded and read on-the-fly,
-so this function usually causes no load delay.
-</p>
-<p>
-Currently supported audio file formats: .ogg<br>
-<br>(mp3 is <b>not</b> supported)</small>
-</p>
-<p>If a sound fails to play because the file on disk cannot be opened/read, it will throw an error. If a sound fails to play because all slots are used by higher priority sounds (see remark on the priority parameter below), it will return a sound handle without error but simply not play the sound.
-<p>
-Parameters:
-<ul class="parameters">
-<li>path <i>(string)</i> &mdash; the path to the audio file</li>
-<li>volume <i>(number, optional)</i> &mdash; volume from 0 (silent) to 1 (full volume), default is 1</li>
-<li>panning <i>(number, optional)</i> &mdash; stereo panning from 1 (left) to -1 (right), default is 0 (center)</li>
-<li>loop <i>(boolean, optional)</i> &mdash; specify whether the sound should be looped forever with true, or just played once with false. default is false</li>
-<li>priority <i>(number, optional)</i> &mdash; specify the priority of a sound. The amount of sounds that can play at once is limited, and a higher priority sound will always kill a lower priority sound to gain a slot. A lower priority sound might not be played at all if all slots are occupied with higher priority sounds. Using high priority for music is suggested. The priority is a positive number starting from 0 upwards (higher number is higher priority). If you specify no priority (default), the sound is even less priority than a sound with any specified priority</li>
-<li>fadein <i>(number, optional)</i> &mdash; the amount of seconds to use for a fadein effect. E.g. specify 1.5 to fade in from silent to the specified volume in 1.5 seconds. Default: 0 (instant full volume)</li>
-</ul>
-</p>
-<p>
-Return values: sound handle <i>(<a href="#sound_handle">sound handle</a>)</i>
-</p>
-<p>
-Examples:
-<div class="code">-- Simply play a sound:
-blitwiz.sound.play("buzz.ogg")
-</div>
-&nbsp;
-<div class="code">-- Play a long ambient sound at 50% volume with 50% panning to the right, looping forever:
-blitwiz.sound.play("ambient.ogg", 0.5, -0.5, true)
-</div>
-&nbsp;
-<div class="code">-- Play a music track at 80% volume, looping forever with high priority
-blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
-</div>
-</p>
-</li>
-
-</ul>
-
 
 <a name="6os"><h1>6. <i>os</i> standard namespace extension</h1></a>
 <ul>

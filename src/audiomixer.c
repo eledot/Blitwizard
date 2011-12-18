@@ -156,7 +156,6 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 		audiosourcefadepanvol_StartFade(channels[slot].fadepanvolsource, fadeinseconds, volume, 0);
 	}
 	
-	
 	channels[slot].loopsource = audiosourceloop_Create(channels[slot].fadepanvolsource);
 	if (!channels[slot].loopsource) {
 		channels[slot].fadepanvolsource->close(channels[slot].fadepanvolsource);
