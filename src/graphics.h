@@ -58,6 +58,12 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 //For the callback, success will be 1 for images loaded successfully,
 //otherwise 0. texture will contain the texure's name.
 
+int graphics_GetNumberOfVideoModes();
+//Get the number of supported video modes (= the modes usable in fullscreen)
+
+void graphics_GetVideoMode(int index, int* width, int* height);
+//Get the video mode at the given index (0..graphics_GetNumberOfVideoMode()-1)
+
 void graphics_Quit();
 //Quit the graphics subsystem
 

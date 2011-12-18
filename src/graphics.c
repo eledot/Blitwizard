@@ -38,6 +38,7 @@
 #include "hash.h"
 
 static SDL_Window* mainwindow;
+static int mainwindowfullscreen;
 static SDL_Renderer* mainrenderer;
 static int softwarerendering = 0;
 static int sdlvideoinit = 0;
@@ -469,15 +470,103 @@ const char* graphics_GetCurrentRendererName() {
 	return info.name;
 }
 
+int* videomodesx = NULL;
+int* videomodesy = NULL;
+
+static void graphics_ReadVideoModes() {
+	//free old video mode data
+	if (videomodesx) {
+		free(videomodesx);
+		videomodesx = 0;
+	}
+	if (videomodesy) {
+		free(videomodesy);
+		videomodesy = 0;
+	}
+
+	//allocate space for video modes
+	int d = SDL_GetNumVideoDisplays();
+	if (d < 1) {return;}
+	int c = SDL_GetNumDisplayModes(0);
+	int i = 0;
+	videomodesx = malloc((c+1)*sizeof(int));
+	videomodesy = malloc((c+1)*sizeof(int));
+	if (!videomodesx || !videomodesy) {
+		if (videomodesx) {free(videomodesx);}
+		if (videomodesy) {free(videomodesy);}
+		return;
+	}
+	memset(videomodesx, 0, (c+1) * sizeof(int));
+	memset(videomodesy, 0, (c+1) * sizeof(int));
+
+	//read video modes
+	int lastusedindex = -1;
+	while (i < c) {
+		SDL_DisplayMode m;
+		if (SDL_GetDisplayMode(0, i, &m) == 0) {
+			if (m.w > 0 && m.h > 0) {
+				//first, check for duplicates
+				int isduplicate = 0;
+				int j = 0;
+				while (j <= lastusedindex && videomodesx[j] > 0 && videomodesy[j] > 0) {
+					if (videomodesx[j] == m.w && videomodesy[j] == m.h) {
+						isduplicate = 1;
+						break;
+					}
+					j++;	
+				}
+				if (isduplicate) {i++;continue;}
+
+				//add mode
+				lastusedindex++;
+				videomodesx[lastusedindex] = m.w;
+				videomodesy[lastusedindex] = m.h;
+			}
+		}
+		i++;
+	}
+}
+
+int graphics_GetNumberOfVideoModes() {
+	graphics_ReadVideoModes();
+	int i = 0;
+	while (videomodesx && videomodesx[i] > 0 && videomodesy && videomodesy[i] > 0) {
+		i++;
+	}
+	return i; 
+}
+
+void graphics_GetVideoMode(int index, int* x, int* y) {
+	graphics_ReadVideoModes();
+	*x = videomodesx[index];
+	*y = videomodesy[index];
+}
+
 void graphics_MinimizeWindow() {
-	
+	if (!mainwindow) {return;}
+	SDL_MinimizeWindow(mainwindow);
 }
 
 int graphics_IsFullscreen() {
 	if (mainwindow) {
-
+		return mainwindowfullscreen;
 	}
 	return 0;
+}
+
+void graphics_ToggleFullscreen() {
+	if (!mainwindow) {return;}
+	SDL_bool wantfull = SDL_TRUE;
+	if (mainwindowfullscreen) {
+		wantfull = SDL_FALSE;
+	}
+	if (SDL_SetWindowFullscreen(mainwindow, wantfull) == 0) {
+		if (wantfull == SDL_TRUE) {
+			mainwindowfullscreen = 1;
+		}else{
+			mainwindowfullscreen = 0;
+		}
+	}
 }
 
 #ifdef WIN
@@ -512,16 +601,20 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 #else
 	char preferredrenderer[20] = "direct3d";
 #endif
+	int preferredset = 0;
 	softwarerendering = 0;
 	if (renderer) {
 		if (strcasecmp(renderer, "software") == 0) {
+			preferredset = 1;
 			softwarerendering = 1;
 		}else{
 			if (strcasecmp(renderer, "opengl") == 0) {
+				preferredset = 1;
 				strcpy(preferredrenderer, "opengl");
 			}
 #ifdef WIN
 			if (strcasecmp(renderer,"direct3d") == 0) {
+				preferredset = 1;
 				strcpy(preferredrenderer, "direct3d");
 			}
 #endif
@@ -546,16 +639,38 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	unsigned int oldw = 0;
 	unsigned int oldh = 0;
 	graphics_GetWindowDimensions(&oldw,&oldh);
-	if (mainwindow && mainrenderer && graphics_IsFullscreen() == fullscreen && width == (int)oldw && height == (int)oldh) {
+	if (mainwindow && mainrenderer && width == (int)oldw && height == (int)oldh) {
 		SDL_RendererInfo info;
         SDL_GetRendererInfo(mainrenderer, &info);
-		if (strlen(preferredrenderer) <= 0 || strcasecmp(preferredrenderer, info.name) == 0) {
+		if (!preferredset || strcasecmp(preferredrenderer, info.name) == 0) {
 			//same renderer and resolution
 			if (strcmp(SDL_GetWindowTitle(mainwindow), title) != 0) {
 				SDL_SetWindowTitle(mainwindow, title);
 			}
+			//toggle fullscreen if desired
+			if (graphics_IsFullscreen() != fullscreen) {
+				graphics_ToggleFullscreen();
+			}
 			return 1;
 		}
+	}
+	//Check if we support the video mode for fullscreen -
+	//  This is done to avoid SDL allowing impossible modes and
+	//  giving us a fake resized/padded/whatever output we don't want.
+	if (fullscreen) {
+		int count = graphics_GetNumberOfVideoModes();
+		int i = 0;
+		int supportedmode = 0;
+		while (i < count) {
+			int w,h;
+			graphics_GetVideoMode(i, &w, &h);
+			if (w == width && h == height) {
+				supportedmode = 1;
+				break;
+			}
+			i++;
+		}
+		if (!supportedmode) {return 0;}
 	}
 	//preserve textures by managing them on our own for now
 	graphics_TransferTexturesFromSDL();
@@ -564,8 +679,10 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	//create window
 	if (fullscreen) {
 		mainwindow = SDL_CreateWindow(title, 0,0, width, height, SDL_WINDOW_FULLSCREEN);
+		mainwindowfullscreen = 1;
 	}else{
 		mainwindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, width, height, 0);
+		mainwindowfullscreen = 1;
 	}
 	if (!mainwindow) {
 		snprintf(errormsg,sizeof(errormsg),"Failed to open SDL window: %s", SDL_GetError());
