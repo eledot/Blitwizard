@@ -33,6 +33,7 @@
 
 int wantquit = 0;
 int suppressfurthererrors = 0;
+int quitsdl = 0;
 extern int drawingallowed; //stored in luafuncs.c
 #include "luastate.h"
 #include "file.h"
@@ -48,6 +49,9 @@ extern int drawingallowed; //stored in luafuncs.c
 void fatalscripterror() {
 	wantquit = 1;
 	suppressfurthererrors = 1;
+	if (quitsdl) {
+		SDL_Quit();
+	}
 }
 
 void printerror(const char* fmt, ...) {
@@ -303,6 +307,7 @@ int main(int argc, char** argv) {
 		fatalscripterror();
 		return -1;
 	}
+	quitsdl = 1;
 	
 	//open and run provided file
 	if (!luastate_DoInitialFile(script, &error)) {
