@@ -183,13 +183,11 @@ static void audiosourcefadepanvol_Close(struct audiosource* source) {
 
 struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	if (!source) {
-		printf("fadepanvol: no source\n");
 		//no source given
 		return NULL;
 	}
 	if (source->channels != 2) {
 		//we only support stereo audio
-		printf("fadepanvol: no stereo\n");
 		source->close(source);
 		return NULL;
 	}
