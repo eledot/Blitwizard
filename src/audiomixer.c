@@ -115,6 +115,15 @@ static int audiomixer_FreeSoundId() {
 	return lastusedsoundid;
 }
 
+int audiomixer_IsSoundPlaying(int id) {
+	audio_LockAudioThread();
+	if (audiomixer_GetChannelSlotById(id) >= 0) {
+		audio_UnlockAudioThread();
+		return 1;
+	}
+	audio_UnlockAudioThread();
+	return 0;
+}
 
 void audiomixer_StopSound(int id) {
 	audio_LockAudioThread();

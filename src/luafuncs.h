@@ -45,6 +45,7 @@ int luafuncs_getDesktopDisplayMode(lua_State* l);
 //Sound:
 int luafuncs_getBackendName(lua_State* l);
 int luafuncs_play(lua_State* l);
+int luafuncs_playing(lua_State* l);
 int luafuncs_stop(lua_State* l);
 int luafuncs_adjust(lua_State* l);
 

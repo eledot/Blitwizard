@@ -447,6 +447,21 @@ int luafuncs_stop(lua_State* l) {
 	return 0;
 }
 
+int luafuncs_playing(lua_State* l) {
+	main_InitAudio();
+    int id = soundfromstack(l, 1);
+    if (id < 0) {
+        lua_pushstring(l, "First parameter is not a valid sound handle");
+        return lua_error(l);
+    }
+	if (audiomixer_IsSoundPlaying(id)) {
+		lua_pushboolean(l, 1);
+	}else{
+		lua_pushboolean(l, 0);
+	}
+	return 1;
+}
+
 int luafuncs_adjust(lua_State* l) {
 	main_InitAudio();
 	int id = soundfromstack(l, 1);

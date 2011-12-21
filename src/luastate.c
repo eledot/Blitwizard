@@ -74,6 +74,15 @@ static void luastate_CreateSoundTable(lua_State* l) {
 	lua_pushstring(l, "play");
 	lua_pushcfunction(l, &luafuncs_play);
 	lua_settable(l, -3);
+	lua_pushstring(l, "adjust");
+	lua_pushcfunction(l, &luafuncs_adjust);
+	lua_settable(l, -3);
+    lua_pushstring(l, "stop");
+    lua_pushcfunction(l, &luafuncs_stop);
+	lua_settable(l, -3);
+	lua_pushstring(l, "playing");
+    lua_pushcfunction(l, &luafuncs_playing);
+	lua_settable(l, -3);
 	lua_pushstring(l, "getBackendName");
 	lua_pushcfunction(l, &luafuncs_getBackendName);
 	lua_settable(l, -3);
