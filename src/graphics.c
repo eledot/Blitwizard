@@ -30,6 +30,7 @@
 #include <windows.h>
 #endif
 
+#include "logging.h"
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "graphics.h"
@@ -78,6 +79,21 @@ int graphics_AreGraphicsRunning() {
 	return graphicsvisible;
 }
 
+static int graphics_InitVideoSubsystem(char** error) {
+	char errormsg[512];
+	//initialize SDL video if not done yet
+    if (!sdlvideoinit) {
+        if (SDL_VideoInit(NULL) < 0) {
+            snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL video: %s", SDL_GetError());
+            errormsg[sizeof(errormsg)-1] = 0;
+            *error = strdup(errormsg);
+            return 0;
+        }
+        sdlvideoinit = 1;
+    }
+	return 1;
+}
+
 int graphics_Init(char** error) {
 	char errormsg[512];
 	texhashmap = hashmap_New(2048);
@@ -91,6 +107,7 @@ int graphics_Init(char** error) {
 		*error = strdup(errormsg);
 		return 0;
 	}
+	atexit(SDL_Quit);
 	return 1;
 }
 
@@ -528,6 +545,12 @@ static void graphics_ReadVideoModes() {
 }
 
 int graphics_GetNumberOfVideoModes() {
+	char* error;
+	if (!graphics_InitVideoSubsystem(&error)) {
+        printwarning("Failed to initialise video subsystem: %s", error);
+        if (error) {free(error);}
+        return 0;
+    }
 	graphics_ReadVideoModes();
 	int i = 0;
 	while (videomodesx && videomodesx[i] > 0 && videomodesy && videomodesy[i] > 0) {
@@ -543,12 +566,20 @@ void graphics_GetVideoMode(int index, int* x, int* y) {
 }
 
 void graphics_GetDesktopVideoMode(int* x, int* y) {
-	SDL_DisplayMode m;
+	char* error;
 	*x = 0;
 	*y = 0;
+	if (!graphics_InitVideoSubsystem(&error)) {
+		printwarning("Failed to initialise video subsystem: %s", error);
+		if (error) {free(error);}
+		return;
+	}
+	SDL_DisplayMode m;
 	if (SDL_GetDesktopDisplayMode(0, &m) == 0) {
 		*x = m.w;
 		*y = m.h;
+	}else{
+		printwarning("Unable to determine desktop video mode: %s", SDL_GetError());
 	}
 }
 
@@ -596,15 +627,7 @@ HWND graphics_GetWindowHWND() {
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
 	char errormsg[512];
 	//initialize SDL video if not done yet
-	if (!sdlvideoinit) {
-		if (SDL_VideoInit(NULL) < 0) {
-			snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL video: %s", SDL_GetError());
-			errormsg[sizeof(errormsg)-1] = 0;
-			*error = strdup(errormsg);
-			return 0;
-		}
-		sdlvideoinit = 1;
-	}
+	if (!graphics_InitVideoSubsystem(error)) {return 0;}
 	//think about the renderer we want
 #ifndef WIN
 	char preferredrenderer[20] = "opengl";
@@ -785,8 +808,8 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 			if (e.type == SDL_KEYUP) {release = 1;}
 			char keybuf[30] = "";
 			if (e.key.keysym.sym >= SDLK_F1 && e.key.keysym.sym <= SDLK_F12) {
-                                sprintf(keybuf, "F%d", (e.key.keysym.sym+1)-SDLK_F1);
-                        }
+                sprintf(keybuf, "f%d", (e.key.keysym.sym+1)-SDLK_F1);
+            }
 			if (e.key.keysym.sym >= SDLK_0 && e.key.keysym.sym <= SDLK_9) {
 				sprintf(keybuf, "%d", e.key.keysym.sym - SDLK_0);
 			}

@@ -41,6 +41,7 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "audio.h"
 #include "main.h"
 #include "audiomixer.h"
+#include "logging.h"
 
 #define TIMESTEP 16
 
@@ -56,7 +57,7 @@ void printerror(const char* fmt, ...) {
 	vsnprintf(printline, sizeof(printline)-1, fmt, a);
 	printline[sizeof(printline)-1] = 0;
 	va_end(a);
-	fprintf(stderr,"%s",printline);
+	fprintf(stderr,"%s\n",printline);
 	fflush(stderr);
 #ifdef WIN
 	//we want graphical error messages for windows
@@ -82,7 +83,7 @@ void printwarning(const char* fmt, ...) {
 	vsnprintf(printline, sizeof(printline)-1, fmt, a);
 	printline[sizeof(printline)-1] = 0;
 	va_end(a);
-	fprintf(stderr,"%s",printline);
+	fprintf(stderr,"%s\n",printline);
 	fflush(stderr);
 }
 
@@ -101,7 +102,7 @@ void main_InitAudio() {
 		//try 16bit now
     	s16mixmode = 1;
    	 	if (!audio_Init(&audiomixer_GetBuffer, 0, p, 1, &error)) {
-        	printwarning("Warning: Failed to initialise audio: %s\n",error);
+        	printwarning("Warning: Failed to initialise audio: %s",error);
         	if (error) {
 				free(error);
 			}
@@ -116,7 +117,7 @@ void main_InitAudio() {
 static void quitevent() {
 	char* error;
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_close", 0, 1, 1, &error)) {
-		printerror("Error when calling blitwiz.on_close: %s\n",error);
+		printerror("Error when calling blitwiz.on_close: %s",error);
 		if (error) {free(error);}
 		fatalscripterror();
 		return;
@@ -130,22 +131,22 @@ static void mousebuttonevent(int button, int release, int x, int y) {
 		funcname = onmouseup;
 	}
 	if (!luastate_PushFunctionArgumentToMainstate_Double(button)) {
-        printerror("Error when pushing func args to %s\n",funcname);
+        printerror("Error when pushing func args to %s",funcname);
         fatalscripterror();
         return;
     }
 	if (!luastate_PushFunctionArgumentToMainstate_Double(x)) {
-		printerror("Error when pushing func args to %s\n",funcname);
+		printerror("Error when pushing func args to %s",funcname);
 		fatalscripterror();
 		return;
 	}
 	if (!luastate_PushFunctionArgumentToMainstate_Double(y)) {
-		printerror("Error when pushing func args to %s\n",funcname);
+		printerror("Error when pushing func args to %s",funcname);
         fatalscripterror();
         return;
     }
     if (!luastate_CallFunctionInMainstate(funcname, 3, 1, 1, &error)) {
-        printerror("Error when calling %s: %s\n", funcname, error);
+        printerror("Error when calling %s: %s", funcname, error);
         if (error) {free(error);}
         fatalscripterror();
         return;
@@ -154,17 +155,17 @@ static void mousebuttonevent(int button, int release, int x, int y) {
 static void mousemoveevent(int x, int y) {
 	char* error;
 	if (!luastate_PushFunctionArgumentToMainstate_Double(x)) {
-		printerror("Error when pushing func args to blitwiz.on_mousemove\n");
+		printerror("Error when pushing func args to blitwiz.on_mousemove");
 		fatalscripterror();
 		return;
 	}
 	if (!luastate_PushFunctionArgumentToMainstate_Double(y)) {
-		printerror("Error when pushing func args to blitwiz.on_mousemove\n");
+		printerror("Error when pushing func args to blitwiz.on_mousemove");
 		fatalscripterror();
 		return;
 	}
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_mousemove", 2, 1, 1, &error)) {
-		printerror("Error when calling blitwiz.on_mousemove: %s\n", error);
+		printerror("Error when calling blitwiz.on_mousemove: %s", error);
 		if (error) {free(error);}
 		fatalscripterror();
 		return;
@@ -176,12 +177,12 @@ static void keyboardevent(const char* button, int release) {
 	const char* funcname = "blitwiz.on_keydown";
 	if (release) {funcname = onkeyup;}
 	if (!luastate_PushFunctionArgumentToMainstate_String(button)) {
-		printerror("Error when pushing func args to %s\n", funcname);
+		printerror("Error when pushing func args to %s", funcname);
 		fatalscripterror();
 		return;
 	}
 	if (!luastate_CallFunctionInMainstate(funcname, 1, 1, 1, &error)) {
-		printerror("Error when calling %s: %s\n", funcname, error);
+		printerror("Error when calling %s: %s", funcname, error);
 		if (error) {free(error);}
 		fatalscripterror();
 		return;
@@ -190,12 +191,12 @@ static void keyboardevent(const char* button, int release) {
 static void textevent(const char* text) {
 	char* error;
 	if (!luastate_PushFunctionArgumentToMainstate_String(text)) {
-		printerror("Error when pushing func args to blitwiz.on_text\n");
+		printerror("Error when pushing func args to blitwiz.on_text");
 		fatalscripterror();
 		return;
 	}
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_text", 1, 1, 1, &error)) {
-		printerror("Error when calling blitwiz.on_text: %s\n", error);
+		printerror("Error when calling blitwiz.on_text: %s", error);
 		if (error) {free(error);}
 		fatalscripterror();
 		return;
@@ -206,17 +207,17 @@ static void textevent(const char* text) {
 static void imgloaded(int success, const char* texture) {
 	char* error;
 	if (!luastate_PushFunctionArgumentToMainstate_String(texture)) {
-		printerror("Error when pushing func args to blitwiz.on_image\n");
+		printerror("Error when pushing func args to blitwiz.on_image");
 		fatalscripterror();
 		return;
 	}
 	if (!luastate_PushFunctionArgumentToMainstate_Bool(success)) {
-        printerror("Error when pushing func args to blitwiz.on_image\n");
+        printerror("Error when pushing func args to blitwiz.on_image");
         fatalscripterror();
         return;
     }
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_image", 2, 1, 1, &error)) {
-		printerror("Error when calling blitwiz.on_image: %s\n", error);
+		printerror("Error when calling blitwiz.on_image: %s", error);
 		if (error) {free(error);}
 		fatalscripterror();
 		return;
@@ -245,7 +246,7 @@ int main(int argc, char** argv) {
 				i++;
 				continue;
 			}
-			printerror("Error: Unknown option: %s\n",argv[i]);
+			printerror("Error: Unknown option: %s",argv[i]);
 			return -1;
 		}else{
 			if (!scriptargfound) {
@@ -274,20 +275,20 @@ int main(int argc, char** argv) {
 	if (option_changedir) {
 		char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
 		if (!p) {
-			printerror("Error: NULL returned for absolute directory\n");
+			printerror("Error: NULL returned for absolute directory");
 			return -1;
 		}
 		char* newfilenamebuf = file_GetFileNameFromFilePath(script);
 		if (!newfilenamebuf) {
 			free(p);
-			printerror("Error: NULL returned for file name\n");
+			printerror("Error: NULL returned for file name");
 			return -1;
 		}
 		if (filenamebuf) {free(filenamebuf);}
 		filenamebuf = newfilenamebuf;
 		if (!file_Cwd(p)) {
 			free(filenamebuf);
-			printerror("Error: Cannot cd to \"%s\"\n",p);
+			printerror("Error: Cannot cd to \"%s\"",p);
 			free(p);
 			return -1;
 		}
@@ -297,7 +298,7 @@ int main(int argc, char** argv) {
 
 	//initialise graphics
 	if (!graphics_Init(&error)) {
-		printerror("Error: Failed to initialise graphics: %s\n",error);
+		printerror("Error: Failed to initialise graphics: %s",error);
 		free(error);
 		fatalscripterror();
 		return -1;
@@ -308,7 +309,7 @@ int main(int argc, char** argv) {
 		if (error == NULL) {
 			error = outofmem;
 		}
-		printerror("Error: An error occured when running \"%s\": %s\n",script,error);
+		printerror("Error: An error occured when running \"%s\": %s",script,error);
 		free(error);
 		fatalscripterror();
 		return -1;
@@ -316,7 +317,7 @@ int main(int argc, char** argv) {
 
 	//call init
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error)) {
-		printerror("Error: An error occured when calling blitwiz.on_init: %s\n",error);
+		printerror("Error: An error occured when calling blitwiz.on_init: %s",error);
 		free(error);
 		fatalscripterror();
 		return -1;
@@ -355,7 +356,7 @@ int main(int argc, char** argv) {
 			//first, call the step function
 			while (logictimestamp < time) {
 				if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error)) {
-					printerror("Error: An error occured when calling blitwiz.on_step: %s\n", error);
+					printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
 					if (error) {free(error);}
 					fatalscripterror();
 					return -1;
@@ -375,7 +376,7 @@ int main(int argc, char** argv) {
 			
 			//call the drawing function
 			if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error)) {
-				printerror("Error: An error occured when calling blitwiz.on_draw: %s\n",error);
+				printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
 				if (error) {free(error);}
 				fatalscripterror();
 				return -1;
