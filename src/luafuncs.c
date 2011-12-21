@@ -50,7 +50,9 @@ int luafuncs_loadfile(lua_State* l) {
 	if (r != 0) {
 		char errormsg[512];
 		if (r == LUA_ERRFILE) {
-			lua_pushstring(l, "Cannot open file");
+			snprintf(errormsg, sizeof(errormsg), "Cannot open file \"%s\"", p);
+			errormsg[sizeof(errormsg)-1] = 0;
+			lua_pushstring(l, errormsg);
 			return lua_error(l);
 		}
 		if (r == LUA_ERRSYNTAX) {

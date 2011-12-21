@@ -468,10 +468,11 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 			if (img_CheckSuccess(gt->threadingptr)) {
 				graphics_FinishImageLoading(gt,gtprev,callback);
 			}
-		}
-		if (!gt->name) {
-			//delete abandoned textures
-			graphics_FreeTexture(gt, gtprev);
+		}else{
+			if (!gt->name) {
+				//delete abandoned textures
+				graphics_FreeTexture(gt, gtprev);
+			}
 		}
 		gtprev = gt;
 		gt = gtnext;
