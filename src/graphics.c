@@ -724,7 +724,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		mainwindowfullscreen = 1;
 	}else{
 		mainwindow = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED, width, height, 0);
-		mainwindowfullscreen = 1;
+		mainwindowfullscreen = 0;
 	}
 	if (!mainwindow) {
 		snprintf(errormsg,sizeof(errormsg),"Failed to open SDL window: %s", SDL_GetError());
