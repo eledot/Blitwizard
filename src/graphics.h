@@ -82,14 +82,14 @@ void graphics_MinimizeWindow();
 void graphics_StartFrame();
 //Clears the screen to prepare for the next frame.
 
-int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight);
+int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight);
 //Draw a texture cropped. Returns 1 on success, 0 when there is no such texture.
+
+int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight);
+//Draw a texture. Returns 1 on success, 0 when there is no such texture.
 
 void graphics_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a);
 //Draw a colored rectangle.
-
-int graphics_Draw(const char* texname, int x, int y, float alpha);
-//Draw a texture. Returns 1 on success, 0 when there is no such texture.
 
 void graphics_CompleteFrame();
 //Update the current drawing changes to screen.

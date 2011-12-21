@@ -319,14 +319,14 @@ int luafuncs_drawImage(lua_State* l) {
             lua_pushstring(l, "Sixth parameter is not a valid cutx number");
             return lua_error(l);
         }
-        cuty = (int)((float)lua_tonumber(l, 5)+0.5f);
+        cuty = (int)((float)lua_tonumber(l, 6)+0.5f);
     }
     if (lua_gettop(l) >= 7 && lua_type(l, 7) != LUA_TNIL) {
-        if (lua_type(l, 8) != LUA_TNUMBER) {
+        if (lua_type(l, 7) != LUA_TNUMBER) {
             lua_pushstring(l, "Seventh parameter is not a valid cutwidth number");
             return lua_error(l);
         }
-        cutwidth = (int)((float)lua_tonumber(l, 5)+0.5f);
+        cutwidth = (int)((float)lua_tonumber(l, 7)+0.5f);
 		if (cutwidth < 0) {cutwidth = 0;}
     }
     if (lua_gettop(l) >= 8 && lua_type(l, 8) != LUA_TNIL) {
@@ -334,34 +334,53 @@ int luafuncs_drawImage(lua_State* l) {
             lua_pushstring(l, "Eighth parameter is not a valid cutheight number");
             return lua_error(l);
         }
-        cutheight = (int)((float)lua_tonumber(l, 5)+0.5f);
+        cutheight = (int)((float)lua_tonumber(l, 8)+0.5f);
 		if (cutheight < 0) {cutheight = 0;}
     }
+    
+    //obtain scale parameters
+    float scalex = 0;
+    float scaley = 0;
+    if (lua_gettop(l) >= 9 && lua_type(l, 9) != LUA_TNIL) {
+        if (lua_type(l, 9) != LUA_TNUMBER) {
+            lua_pushstring(l, "Ninth parameter is not a valid x scale number");
+            return lua_error(l);
+        }
+        scalex = lua_tonumber(l, 9);
+    }
+    if (lua_gettop(l) >= 10 && lua_type(l, 10) != LUA_TNIL) {
+        if (lua_type(l, 10) != LUA_TNUMBER) {
+            lua_pushstring(l, "Tenth parameter is not a valid y scale number");
+            return lua_error(l);
+        }
+        scaley = lua_tonumber(l, 10);
+    }
 
-	//proceess negative cut positions and adjust output position accordingly
+	//process negative cut positions and adjust output position accordingly
 	if (cutx < 0) {
-		if (cutwidth > 0) {
+		if (cutwidth > 0) { //decrease draw width accordingly
 			cutwidth += cutx;
-			x -= cutx;
 			if (cutwidth < 0) {
 				cutwidth = 0;
 			}
 		}
+		//move position to the right
 		cutx = 0;
+		x -= cutx;
 	}
 	if (cuty < 0) {
-		if (cutheight > 0) {
+		if (cutheight < 0) { //decrease draw height accordingly
 			cutheight += cuty;
-			x -= cuty;
 			if (cutheight < 0) {
 				cutheight = 0;
 			}
 		}
 		cuty = 0;
+		x -= cuty;
 	}
 
 	//empty draw calls aren't possible, but we will "emulate" it to provide an error on a missing texture anyway
-	if (cutwidth == 0 || cutheight == 0) {
+	if (scalex <= 0 || scaley <= 0 || cutwidth == 0 || cutheight == 0) {
 		if (graphics_IsTextureLoaded(p)) {
 			lua_pushstring(l, "Requested texture isn't loaded or available");
 			return lua_error(l);
@@ -371,8 +390,21 @@ int luafuncs_drawImage(lua_State* l) {
 	if (cutwidth < 0) {cutwidth = 0;}
 	if (cutheight < 0) {cutheight = 0;}
 
+	int imgdraww = cutwidth;
+	int imgdrawh = cutheight;
+
+	if (imgdraww == 0 || imgdrawh == 0) {
+		unsigned int w,h;
+		if (graphics_GetTextureDimensions(p, &w, &h)) {
+			if (imgdraww == 0) {imgdraww = w;}
+			if (imgdrawh == 0) {imgdrawh = h;}
+		}
+	}	
+	unsigned int drawwidth = (unsigned int)((float)(imgdraww) * scalex + 0.5f);
+	unsigned int drawheight = (unsigned int)((float)(imgdrawh) * scaley + 0.5f);
+
 	//draw:
-	if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight)) {
+	if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight)) {
 		lua_pushstring(l, "Requested texture isn't loaded or available");
 		return lua_error(l);
 	}

@@ -116,6 +116,8 @@ Parameters:
 <li>cuty <i>(number, optional)</i> &mdash; cut off the given amount of pixels from the top border of the image before drawing it. Default is 0 (no cutoff)</li>
 <li>cutwidth <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum width before drawing it. Default is infinite (no cutoff)</li>
 <li>cutheight <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum height before drawing it. Default is infinite (no cutoff)</li>
+<li>scalex <i>(number, optional)</i> &mdash; scale the final resulting image or image part (after cut was applied) horizontally by the given factor. Default is 1 (normal horizontal size)</li>
+<li>scaley <i>(number, optional)</i> &mdash; scale the final resulting image or image part vertically by the given factor. Default is 1 (normal vertical size)</li>
 </ul>
 </p>
 <p>
@@ -383,7 +385,7 @@ end
 Get the name of the currently active audio backend, which can be e.g. "directsound" or "waveout" on Windows, "alsa" or "oss" on Linux, or "coreaudio" for Mac.
 </p>
 <p>Parameters: None</p>
-<p>Return values: backend name <i>(string)</i></p>
+<p>Return value: backend name <i>(string)</i></p>
 </li>
 
 <li><h2><a name="blitwiz.sound.adjust">blitwiz.sound.adjust</a>(sound <a href="#sound_handle"><i>(sound handle)</i></a>, volume <i>(number)</i>, panning <i>(number)</i>)</h2>

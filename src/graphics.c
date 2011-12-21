@@ -96,18 +96,24 @@ static int graphics_InitVideoSubsystem(char** error) {
 
 int graphics_Init(char** error) {
 	char errormsg[512];
+	
+	//set scaling settings
+	SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_NORMAL);
+		
+	//initialize name string -> texture slot hashmap
 	texhashmap = hashmap_New(2048);
 	if (!texhashmap) {
 		*error = strdup("Failed to allocate texture hash map");
 		return 0;
 	}
+	
+	//initialize SDL
 	if (SDL_Init(SDL_INIT_TIMER) < 0) {
 		snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL: %s", SDL_GetError());
 		errormsg[sizeof(errormsg)-1] = 0;
 		*error = strdup(errormsg);
 		return 0;
 	}
-	atexit(SDL_Quit);
 	return 1;
 }
 
@@ -237,7 +243,7 @@ void graphics_DrawRectangle(int x, int y, int width, int height, float r, float 
 	SDL_RenderFillRect(mainrenderer, &rect);
 }
 
-int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight) {
+int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight) {
 	struct graphicstexture* gt = graphics_GetTextureByName(texname);
 	if (!gt || gt->threadingptr || !gt->tex) {
 		return 0;
@@ -245,6 +251,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 
 	if (alpha <= 0) {return 1;}
 	if (alpha > 1) {alpha = 1;}
+	
 	
 	//calculate source dimensions
 	SDL_Rect src,dest;
@@ -264,7 +271,11 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	
 	//set target dimensinos
 	dest.x = x; dest.y = y;
-	dest.w = src.w;dest.h = src.h;
+	if (drawwidth <= 0 || drawheight <= 0) {
+		dest.w = src.w;dest.h = src.h;
+	}else{
+		dest.w = drawwidth; dest.h = drawheight;
+	}
 	
 	//render
 	//SDL_SetRenderDrawColor(mainrenderer, 255, 255, 255, 255);
@@ -276,8 +287,8 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	return 1;
 }
 
-int graphics_Draw(const char* texname, int x, int y, float alpha) {
-	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0);
+int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight) {
+	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0, drawwidth, drawheight);
 }
 
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
