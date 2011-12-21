@@ -153,6 +153,9 @@ static lua_State* luastate_New() {
 	lua_pushstring(l, "os");
 	lua_gettable(l, LUA_GLOBALSINDEX);
 
+	lua_pushstring(l, "exit");
+	lua_pushcfunction(l, &luafuncs_exit);
+	lua_settable(l, -3);
 	lua_pushstring(l, "chdir");
 	lua_pushcfunction(l, &luafuncs_chdir);
 	lua_settable(l, -3);

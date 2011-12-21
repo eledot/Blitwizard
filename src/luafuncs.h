@@ -24,6 +24,7 @@
 //os:
 int luafuncs_chdir(lua_State* l);
 int luafuncs_openConsole(lua_State* l);
+int luafuncs_exit(lua_State* l);
 
 //base:
 int luafuncs_loadfile(lua_State* l);

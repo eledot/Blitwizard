@@ -467,7 +467,7 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 	}
 }
 
-void graphics_Quit() {
+void graphics_Close() {
 	graphicsvisible = 0;
 	if (mainrenderer) {
 		graphics_TransferTexturesFromSDL();
@@ -478,6 +478,15 @@ void graphics_Quit() {
 		SDL_DestroyWindow(mainwindow);
 		mainwindow = NULL;
 	}
+}
+
+void graphics_Quit() {
+	graphics_Close();
+	if (sdlvideoinit) {
+		SDL_VideoQuit();
+		sdlvideoinit = 0;
+	}
+	SDL_Quit();
 }
 
 SDL_RendererInfo info;
@@ -708,7 +717,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	//preserve textures by managing them on our own for now
 	graphics_TransferTexturesFromSDL();
 	//destroy old window/renderer if we got one
-	graphics_Quit();
+	graphics_Close();
 	//create window
 	if (fullscreen) {
 		mainwindow = SDL_CreateWindow(title, 0,0, width, height, SDL_WINDOW_FULLSCREEN);

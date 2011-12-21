@@ -33,7 +33,7 @@
 
 int wantquit = 0;
 int suppressfurthererrors = 0;
-int quitsdl = 0;
+static int sdlinitialised = 0;
 extern int drawingallowed; //stored in luafuncs.c
 #include "luastate.h"
 #include "file.h"
@@ -46,12 +46,17 @@ extern int drawingallowed; //stored in luafuncs.c
 
 #define TIMESTEP 16
 
+void main_Quit(int returncode) {
+	if (sdlinitialised) {
+		audio_Quit();
+		graphics_Quit();
+	}
+	exit(returncode);
+}
+
 void fatalscripterror() {
 	wantquit = 1;
 	suppressfurthererrors = 1;
-	if (quitsdl) {
-		SDL_Quit();
-	}
 }
 
 void printerror(const char* fmt, ...) {
@@ -305,9 +310,9 @@ int main(int argc, char** argv) {
 		printerror("Error: Failed to initialise graphics: %s",error);
 		free(error);
 		fatalscripterror();
-		return -1;
+		main_Quit(1);
 	}
-	quitsdl = 1;
+	sdlinitialised = 1;
 	
 	//open and run provided file
 	if (!luastate_DoInitialFile(script, &error)) {
@@ -317,7 +322,7 @@ int main(int argc, char** argv) {
 		printerror("Error: An error occured when running \"%s\": %s",script,error);
 		free(error);
 		fatalscripterror();
-		return -1;
+		main_Quit(1);
 	}
 
 	//call init
@@ -325,7 +330,7 @@ int main(int argc, char** argv) {
 		printerror("Error: An error occured when calling blitwiz.on_init: %s",error);
 		free(error);
 		fatalscripterror();
-		return -1;
+		main_Quit(1);
 	}
 	
 	//when graphics or audio is open, run the main loop
@@ -364,7 +369,7 @@ int main(int argc, char** argv) {
 					printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
 					if (error) {free(error);}
 					fatalscripterror();
-					return -1;
+					main_Quit(1);
 				}
 				logictimestamp += TIMESTEP;
 			}
@@ -384,7 +389,7 @@ int main(int argc, char** argv) {
 				printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
 				if (error) {free(error);}
 				fatalscripterror();
-				return -1;
+				main_Quit(1);
 			}
 			
 			//complete the drawing

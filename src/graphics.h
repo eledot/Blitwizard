@@ -67,8 +67,11 @@ void graphics_GetVideoMode(int index, int* width, int* height);
 void graphics_GetDesktopVideoMode(int* x, int* y);
 //Get the current video mode of the desktop
 
+void graphics_Close();
+//Close the graphics but keep them available for use
+
 void graphics_Quit();
-//Quit the graphics subsystem
+//Quit the graphics completely
 
 int graphics_IsFullscreen();
 //Return if the graphics are currently running at full screen. 1: yes, 0: no. Undefined result when no graphics mode set

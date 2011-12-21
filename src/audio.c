@@ -42,6 +42,15 @@ const char* audio_GetCurrentBackendName() {
 	return SDL_GetCurrentAudioDriver();
 }
 
+
+void audio_Quit() {
+	if (soundenabled) {
+		SDL_AudioQuit();
+		soundenabled = 0;
+	}
+}
+
+
 int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
 	if (soundenabled) {
 		//quit old sound first

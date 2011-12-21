@@ -590,3 +590,9 @@ int luafuncs_getDisplayModes(lua_State* l) {
 	return 1;
 }
 
+int luafuncs_exit(lua_State* l) {
+	int exitcode = lua_tonumber(l,1);
+	main_Quit(exitcode);
+	return 0;
+}
+

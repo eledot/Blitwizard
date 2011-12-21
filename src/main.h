@@ -22,4 +22,5 @@
 */
 
 void main_InitAudio();
+void main_Quit(int returncode);
 

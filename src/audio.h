@@ -44,3 +44,6 @@ void audio_LockAudioThread();
 void audio_UnlockAudioThread();
 //Call this to unlock and allow the audio callback thread again (see above).
 
+void audio_Quit();
+//Quit audio backend completely
+
