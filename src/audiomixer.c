@@ -181,6 +181,9 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 }
 
 static void audiomixer_HandleChannelEOF(int channel, int returnvalue) {
+	if (returnvalue) {
+		//FIXME: we probably want to emit some sort of warning here
+	}
 	audiomixer_CancelChannel(channel);
 }
 
@@ -269,7 +272,7 @@ int s16mixmode = 0;
 char* streambuf = NULL;
 unsigned int streambuflen = 0;
 void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
-	unsigned int s16downmixlen;
+	unsigned int s16downmixlen = 0;
 	if (s16mixmode) {
 		len *= 2; //get twice the amount of float 32 samples
 		s16downmixlen = len;
