@@ -32,7 +32,7 @@ blitwizard 2d engine - source code file
 
 ]]
 
-examples = {"01.helloworld", "02.simplecar", "03.sound", "04.simplecar.async"}
+examples = { "01.helloworld", "02.simplecar", "03.sound", "04.simplecar.async", "05.scale" }
 
 yoffset = 150
 yspacing = 5
@@ -43,7 +43,7 @@ function blitwiz.on_init()
 	blitwiz.graphics.setWindow(640,480,"blitwizard 2d engine", false)
 	blitwiz.graphics.loadImage("title.png")
 	local i = 1
-	while i <= 4 do
+	while i <= 5 do
 		blitwiz.graphics.loadImage("menu" .. i .. ".png")
 		i = i + 1
 	end
@@ -65,7 +65,7 @@ function blitwiz.on_draw()
 	blitwiz.graphics.drawImage("title.png", w/2 - imgw/2, 0)
 
 	local i = 1
-	while i <= 4 do
+	while i <= #examples do
 		imgw,imgh = blitwiz.graphics.getImageSize("menu" .. i .. ".png")
 		local x,y = getbuttonpos(i)
 		if menufocus == i then
@@ -82,7 +82,7 @@ end
 function updatemenufocus(mousex, mousey)
 	menufocus = 0
 	local i = 1
-	while i <= 4 do
+	while i <= #examples do
 		imgw,imgh = blitwiz.graphics.getImageSize("menu" .. i .. ".png")
 		local x,y = getbuttonpos(i)
 		if mousex >= x and mousex < x + imgw and

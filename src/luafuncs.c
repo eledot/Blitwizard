@@ -270,6 +270,13 @@ int luafuncs_drawRectangle(lua_State* l) {
 	return 0;
 }
 
+void luafuncs_pushnosuchtex(lua_State* l, const char* tex) {
+	char errmsg[512];
+    snprintf(errmsg,sizeof(errmsg), "Requested texture \"%s\" isn't loaded or available", tex);
+    errmsg[sizeof(errmsg)-1] = 0;
+    lua_pushstring(l, errmsg);
+}
+
 int luafuncs_drawImage(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
@@ -339,8 +346,8 @@ int luafuncs_drawImage(lua_State* l) {
     }
     
     //obtain scale parameters
-    float scalex = 0;
-    float scaley = 0;
+    float scalex = 1;
+    float scaley = 1;
     if (lua_gettop(l) >= 9 && lua_type(l, 9) != LUA_TNIL) {
         if (lua_type(l, 9) != LUA_TNUMBER) {
             lua_pushstring(l, "Ninth parameter is not a valid x scale number");
@@ -381,8 +388,8 @@ int luafuncs_drawImage(lua_State* l) {
 
 	//empty draw calls aren't possible, but we will "emulate" it to provide an error on a missing texture anyway
 	if (scalex <= 0 || scaley <= 0 || cutwidth == 0 || cutheight == 0) {
-		if (graphics_IsTextureLoaded(p)) {
-			lua_pushstring(l, "Requested texture isn't loaded or available");
+		if (!graphics_IsTextureLoaded(p)) {
+			luafuncs_pushnosuchtex(l, p);
 			return lua_error(l);
 		}
 	}
@@ -405,7 +412,7 @@ int luafuncs_drawImage(lua_State* l) {
 
 	//draw:
 	if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight)) {
-		lua_pushstring(l, "Requested texture isn't loaded or available");
+		luafuncs_pushnosuchtex(l, p);
 		return lua_error(l);
 	}
 	return 0;
