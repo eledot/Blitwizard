@@ -67,7 +67,7 @@ void printerror(const char* fmt, ...) {
 	//we want graphical error messages for windows
 	if (!suppressfurthererrors) {
 		//minimize drawing window if fullscreen
-		if (graphics_IsFullscreen()) {
+		if (graphics_AreGraphicsRunning() && graphics_IsFullscreen()) {
 			graphics_MinimizeWindow();
 		}
 		//show error msg
