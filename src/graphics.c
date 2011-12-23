@@ -150,6 +150,32 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 	return 1;
 }
 
+void graphics_AddTextureToHashmap(struct graphicstexture* gt) {
+    uint32_t i = hashmap_GetIndex(texhashmap, gt->name, strlen(gt->name), 1);
+    gt->hashbucketnext = (struct graphicstexture*)(texhashmap->items[i]);
+    texhashmap->items[i] = gt;
+}
+
+void graphics_RemoveTextureFromHashmap(struct graphicstexture* gt) {
+    uint32_t i = hashmap_GetIndex(texhashmap, gt->name, strlen(gt->name), 1);
+    struct graphicstexture* gt2 = (struct graphicstexture*)(texhashmap->items[i]);
+    struct graphicstexture* gtprev = NULL;
+    while (gt2) {
+        if (gt2 == gt) {
+            if (gtprev) {
+                gtprev->next = gt->hashbucketnext;
+            }else{
+                texhashmap->items[i] = gt->hashbucketnext;
+            }
+            gt->hashbucketnext = NULL;
+            return;
+        }
+
+        gtprev = gt2;
+        gt2 = gt2->hashbucketnext;
+    }
+}
+
 void graphics_TextureFromSDL(struct graphicstexture* gt) {
 	if (!gt->tex || gt->threadingptr || !gt->name) {return;}
 
@@ -159,6 +185,7 @@ void graphics_TextureFromSDL(struct graphicstexture* gt) {
 			//wipe this texture
 			SDL_DestroyTexture(gt->tex);
 			gt->tex = NULL;
+			graphics_RemoveTextureFromHashmap(gt);
 			free(gt->name);
 			gt->name = NULL;
 			return;
@@ -183,32 +210,6 @@ void graphics_TextureFromSDL(struct graphicstexture* gt) {
 		
 	SDL_DestroyTexture(gt->tex);
 	gt->tex = NULL;
-}
-
-void graphics_AddTextureToHashmap(struct graphicstexture* gt) {
-	uint32_t i = hashmap_GetIndex(texhashmap, gt->name, strlen(gt->name), 1);
-	gt->hashbucketnext = (struct graphicstexture*)(texhashmap->items[i]);
-	texhashmap->items[i] = gt;
-}
-
-void graphics_RemoveTextureFromHashmap(struct graphicstexture* gt) {
-	uint32_t i = hashmap_GetIndex(texhashmap, gt->name, strlen(gt->name), 1);
-	struct graphicstexture* gt2 = (struct graphicstexture*)(texhashmap->items[i]);
-	struct graphicstexture* gtprev = NULL;
-	while (gt2) {
-		if (gt2 == gt) {
-			if (gtprev) {
-				gtprev->next = gt->hashbucketnext;
-			}else{
-				texhashmap->items[i] = gt->hashbucketnext;
-			}
-			gt->hashbucketnext = NULL;
-			return;
-		}
-		
-		gtprev = gt2;
-		gt2 = gt2->hashbucketnext;
-	}
 }
 
 void graphics_TransferTexturesFromSDL() {
@@ -337,12 +338,12 @@ int graphics_PromptTextureLoading(const char* texture) {
 	}
 
 	//trigger image fetching thread
-        gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
-        if (!gt->threadingptr) {
-                free(gt->name);
-                free(gt);
-                return 0;
-        }
+    gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
+    if (!gt->threadingptr) {
+        free(gt->name);
+        free(gt);
+        return 0;
+    }
 	
 	//add us to the list
 	gt->next = texlist;
@@ -466,12 +467,20 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 		if (gt->threadingptr) {
 			//texture which is currently being loaded
 			if (img_CheckSuccess(gt->threadingptr)) {
-				graphics_FinishImageLoading(gt,gtprev,callback);
+				if (!graphics_FinishImageLoading(gt,gtprev,callback)) {
+					//keep old valid gtprev, this entry is deleted now
+					gt = gtnext;
+					continue;
+				}
 			}
 		}else{
 			if (!gt->name) {
 				//delete abandoned textures
 				graphics_FreeTexture(gt, gtprev);
+
+				//keep old valid gtprev
+				gt = gtnext;
+				continue;
 			}
 		}
 		gtprev = gt;
