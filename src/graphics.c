@@ -232,7 +232,6 @@ int graphics_TransferTexturesToSDL() {
 }
 
 void graphics_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a) {
-	printf("Rect fill with: %f, %f, %f, %f\n",r,g,b,a);
 	SDL_SetRenderDrawColor(mainrenderer, (int)((float)r * 255.0f),
 	(int)((float)g * 255.0f), (int)((float)b * 255.0f), (int)((float)a * 255.0f));
 	SDL_Rect rect;
