@@ -262,7 +262,10 @@ int luafuncs_drawRectangle(lua_State* l) {
 
 	//obtain alpha if given
 	if (lua_gettop(l) >= 8) {
-		lua_pushstring(l, "Eighth parameter is not a valid alpha number");
+		if (lua_type(l, 8) != LUA_TNUMBER) {
+			lua_pushstring(l, "Eighth parameter is not a valid alpha number");
+			return lua_error(l);
+		}
 		alpha = lua_tonumber(l, 5);
 		if (alpha < 0) {alpha = 0;}
 		if (alpha > 1) {alpha = 1;}
@@ -593,8 +596,11 @@ int luafuncs_play(lua_State* l) {
 	iref->type = IDREF_SOUND;
 	iref->id = audiomixer_PlaySoundFromDisk(p, priority, volume, panning, fadein, looping);
 	if (iref->id < 0) {
+		char errormsg[512];
+		snprintf(errormsg, sizeof(errormsg), "Cannot play sound \"%s\"", p);
+		errormsg[sizeof(errormsg)-1] = 0;
 		lua_pop(l,1);
-		lua_pushstring(l, "Cannot play sound");
+		lua_pushstring(l, errormsg);
 		return lua_error(l);
 	}
 	return 1;
