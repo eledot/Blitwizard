@@ -46,7 +46,12 @@ struct audiosourceffmpeg_internaldata {
 	struct audiosource* source;
 	int eof;
 	int returnerroroneof;
+	int ffmpegopened; //0: no, 1: yes, -1: failure
 };
+
+static void audiosourceffmpg_LoadFFmpeg() {
+	
+}
 
 static void audiosourceffmpeg_Rewind(struct audiosource* source) {
 	struct audiosourceffmpeg_internaldata* idata = source->internaldata;
