@@ -7,8 +7,12 @@ This is the README for obtaining the dependencies for the git version
 of blitwizard.
 Getting the deps is also required for the git version on Unix/Linux!
 
-Before you start, extract this whole archive to a folder.
-All relative parts specified are relative to the extracted folder.
+Before you start, extract the blitwizard archive (where this README is in)
+to a folder.
+All relative paths specified are relative to that extracted folder.
+
+Note on FFmpeg: blitwizard can use FFmpeg, but doesn't depend on it.
+If you want to use FFmpeg, please check README-build.txt for detals.
 
 == Dependencies ==
 

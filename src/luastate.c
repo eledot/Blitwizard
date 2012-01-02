@@ -97,11 +97,14 @@ static void luastate_CreateTimeTable(lua_State* l) {
 
 static int luastate_AddStdFuncs(lua_State* l) {
     luaopen_base(l);
+	luaopen_package(l);
     luaopen_string(l);
     luaopen_table(l);
     luaopen_math(l);
     luaopen_os(l);
     luaopen_io(l);
+	luaopen_bitlib(l);
+	luaopen_debug(l);
 	return 0;
 }
 

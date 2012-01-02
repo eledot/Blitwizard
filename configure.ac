@@ -24,7 +24,18 @@ maybeos=`echo $EXEEXT | grep exe`
 # Checks for libraries.
 
 
-# --- OS DEPENDENT STUFF ---
+# Check whether ffmpeg is available
+
+USE_FFMPEG=""
+AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
+	AC_MSG_NOTICE([FFmpeg source code appears to be present, will compile with FFFmpeg support.])
+	USE_FFMPEG="-DUSE_FFMPEG"
+],[
+	AC_MSG_NOTICE([FFmpeg source code is not present or not properly placed. Blitwizard will not have any FFmpeg support.])
+])
+
+
+# Os dependent stuff:
 
 AS_IF([test -z "$maybeos"],[
 	AC_MSG_NOTICE([Trying to compile for a Unix target.]) 
@@ -40,7 +51,7 @@ AS_IF([test -z "$maybeos"],[
 	])
 
 	echo -e "$WRITELINE" > scripts/.buildinfo
-	CFLAGS="$CFLAGS `cd scripts && sh ./checksse.sh`"	
+	CFLAGS="$CFLAGS $USE_FFMPEG `cd scripts && sh ./checksse.sh`"	
 
 	AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 	#AC_CHECK_LIB([sqlite3], [sqlite3_prepare_v2],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))

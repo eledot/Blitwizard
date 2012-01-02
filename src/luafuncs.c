@@ -266,7 +266,7 @@ int luafuncs_drawRectangle(lua_State* l) {
 			lua_pushstring(l, "Eighth parameter is not a valid alpha number");
 			return lua_error(l);
 		}
-		alpha = lua_tonumber(l, 5);
+		alpha = lua_tonumber(l, 8);
 		if (alpha < 0) {alpha = 0;}
 		if (alpha > 1) {alpha = 1;}
 	}

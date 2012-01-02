@@ -59,3 +59,21 @@ Type make into your Unix bash or MSYS shell to compile.
 You should now have a blitwizard binary in your bin directory in
 the blitwizard folder. Have fun!
 
+== Guide for FFmpeg support ==
+
+Blitwizard can use FFmpeg to support a huge amount of audio formats
+instead of just .ogg (see README.txt).
+
+Provide blitwizard with the FFmpeg source code before you do the
+configure step or it won't have FFmpeg support at runtime.
+
+Put the contents of a recent FFmpeg tarball (check http://ffmpeg.org/)
+into src/ffmpeg/ - the tarball has a main folder named "ffmpeg-XX"
+inside in which the contents are located. Extract the contents directly,
+without the ffmpeg-XX folder around them.
+
+Please note the FFmpeg version you use at this point is NOT that
+important. If you pick another (e.g. more recent) FFmpeg version for
+the runtime binaries you pass along with blitwizard, it shouldn't
+make any difference.
+

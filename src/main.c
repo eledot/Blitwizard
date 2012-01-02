@@ -313,13 +313,26 @@ int main(int argc, char** argv) {
 		main_Quit(1);
 	}
 	sdlinitialised = 1;
+
+	//run templates first if we can find them
+	if (file_DoesFileExist("templates/init.lua")) {
+		if (!luastate_DoInitialFile(script, &error)) {
+			if (error = NULL) {
+				error = outofmem;
+			}
+			printerror("Error: An error occured when running \"templates/init.lua\": %s", script, error);
+			free(error);
+			fatalscripterror();
+			main_Quit(1);
+		}
+	}
 	
 	//open and run provided file
 	if (!luastate_DoInitialFile(script, &error)) {
 		if (error == NULL) {
 			error = outofmem;
 		}
-		printerror("Error: An error occured when running \"%s\": %s",script,error);
+		printerror("Error: An error occured when running \"%s\": %s", script, error);
 		free(error);
 		fatalscripterror();
 		main_Quit(1);

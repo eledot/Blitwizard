@@ -153,27 +153,45 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 		audio_UnlockAudioThread();
 		return id;
 	}
+
+	//check audio format first
+	struct audiosource* decodesource = audiosourceogg_Create(audiosourcefile_Create(path));
+	if (!decodesource) {
+		decodesource = audiosourceffmpeg_Create(audiosourcefile_Create(path));
+		if (!decodesource) {
+			//unsupported audio format
+			audio_UnlockAudioThread();
+			return -1;
+		}
+	}
 	
-	channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(audiosourceresample_Create(audiosourceogg_Create(audiosourcefile_Create(path)), 48000));
+	//wrap up the decoded audio into the resampler and fade/pan/vol modifier
+	channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(audiosourceresample_Create(decodesource, 48000));
 
 	if (!channels[slot].fadepanvolsource) {
+		audio_UnlockAudioThread();
 		return -1;
 	}
 	
+	//set the options for the fade/pan/vol modifier
 	audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning);
 	if (fadeinseconds > 0) {
 		audiosourcefadepanvol_StartFade(channels[slot].fadepanvolsource, fadeinseconds, volume, 0);
 	}
 	
+	//wrap the fade/pan/vol modifier into a loop audio source
 	channels[slot].loopsource = audiosourceloop_Create(channels[slot].fadepanvolsource);
 	if (!channels[slot].loopsource) {
 		channels[slot].fadepanvolsource->close(channels[slot].fadepanvolsource);
 		channels[slot].fadepanvolsource = NULL;
+		audio_UnlockAudioThread();
 		return -1;
 	}	
 
+	//set the options for the loop audio source
 	audiosourceloop_SetLooping(channels[slot].loopsource, loop);
 	
+	//remember that loop audio source as final processed audio
 	channels[slot].mixsource = channels[slot].loopsource;
 
 	audio_UnlockAudioThread();
