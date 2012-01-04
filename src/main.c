@@ -43,6 +43,7 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "main.h"
 #include "audiomixer.h"
 #include "logging.h"
+#include "audiosourceffmpeg.h"
 
 #define TIMESTEP 16
 
@@ -268,6 +269,9 @@ int main(int argc, char** argv) {
 	
 	//This needs to be done at some point before we actually initialise audio
 	audiomixer_Init();
+
+	//Check for FFmpeg
+	audiosourceffmpeg_LoadFFmpeg();
 
 	//check the provided path:
 	char outofmem[] = "Out of memory";
