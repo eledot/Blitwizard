@@ -28,10 +28,10 @@ maybeos=`echo $EXEEXT | grep exe`
 
 USE_FFMPEG=""
 AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
-	AC_MSG_NOTICE([FFmpeg source code appears to be present, will compile with FFFmpeg support.])
+	AC_MSG_NOTICE([FFmpeg source code appears to be present, will compile with FFmpeg support.])
 	USE_FFMPEG="-DUSE_FFMPEG"
 ],[
-	AC_MSG_NOTICE([FFmpeg source code is not present or not properly placed. Blitwizard will not have any FFmpeg support.])
+	AC_MSG_WARNING([FFmpeg source code is not present or not properly placed. Blitwizard will NOT have any FFmpeg support.])
 ])
 
 

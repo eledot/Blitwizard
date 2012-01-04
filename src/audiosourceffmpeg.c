@@ -44,15 +44,17 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
 
 #else
 
-#define DECODEBUFSIZE (512+FF_INPUT_BUFFER_PADDING_SIZE)
-#define PROBEBUFSIZE 4096
+#define DECODEBUFSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
+#define DECODEBUFMINSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE)
 
 struct audiosourceffmpeg_internaldata {
 	struct audiosource* source;
+	int sourceeof;
 	int eof;
 	int returnerroroneof;
 
 	unsigned char* buf;
+	unsigned int bufbytes;
 	AVCodecContext* codeccontext;
 	AVFormatContext* formatcontext;
 	AVIOContext* iocontext;
@@ -60,19 +62,19 @@ struct audiosourceffmpeg_internaldata {
 	AVStream* audiostream;
 };
 
-int ffmpegopened = 0;
-void* avformatptr;
-void* avcodecptr;
-void* avutilptr;
+static int ffmpegopened = 0;
+static void* avformatptr;
+static void* avcodecptr;
+static void* avutilptr;
 
-void (*ffmpeg_av_register_all)(void);
-AVFormatContext* (*ffmpeg_avformat_alloc_context)(void);
-AVCodecContext* (*ffmpeg_avcodec_alloc_context3)(AVCodec*);
-void (*ffmpeg_av_free)(void*);
-void* (*ffmpeg_av_malloc)(void);
-AVIOContext* (*ffmpeg_avio_alloc_context)(void);
-int (*ffmpeg_avformat_find_streaminfo)(AVFormatContext*,AVDictionary**);
-int (*ffmpeg_av_find_best_stream)(AVFormatContext*, AVMediaType, int, int,AVCodec*, int);
+static void (*ffmpeg_av_register_all)(void);
+static AVFormatContext* (*ffmpeg_avformat_alloc_context)(void);
+static AVCodecContext* (*ffmpeg_avcodec_alloc_context3)(AVCodec*);
+static void (*ffmpeg_av_free)(void*);
+static void* (*ffmpeg_av_malloc)(void);
+static AVIOContext* (*ffmpeg_avio_alloc_context)(void);
+static int (*ffmpeg_avformat_find_streaminfo)(AVFormatContext*,AVDictionary**);
+static int (*ffmpeg_av_find_best_stream)(AVFormatContext*, AVMediaType, int, int,AVCodec*, int);
 
 int loadorfailstate = 0;
 static void loadorfail(void** ptr, void* lib, const char* name) {
@@ -102,7 +104,20 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
 }
 
 static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
-
+	struct audiosource* source = data;
+	struct audiosourceffmpeg_internaldata* idata = data->internaldata;
+	if (idata->sourceeof) {return 0;}
+	
+	if (idata->source) {
+		int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size); 
+		if (i < 0) {
+			idata->returnerroroneof = 1;
+		}
+		if (i == 0) {
+			idata->sourceeof = 1;
+		}
+	}
+	return -1;
 }
 
 static int audiosourceffmpeg_InitFFmpeg() {
@@ -166,6 +181,7 @@ static void audiosourceffmpeg_Rewind(struct audiosource* source) {
 	if (idata->source) {
 		idata->source->rewind(idata->source);
 	}
+	idata->sourceeof = 0;
 }
 
 static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
@@ -188,6 +204,7 @@ static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
 	if (idata->buf) {
 		ffmpeg_av_free(idata->buf);
 		idata->buf = NULL;
+		idata->bufbytes = 0;
 	}
 }
 
@@ -278,14 +295,49 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		idata->audiostream = idata->formatcontext->streams[stream];
 
 		//Allocate actual decoding buf
-		idata->buf = malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+		idata->buf = malloc(DECODEBUFSIZE);
 		if (!idata->buf) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
 	}
 
-	return -1;
+	int writtenbytes = 0;
+
+	while (bytes > 0) {
+		//decode with FFmpeg
+
+
+		//check how much we can return
+		unsigned int returnbytes = idata->bufbytes;
+		if (returnbytes > bytes) {
+			returnbytes = bytes;
+		}
+		
+		//return decoded bytes
+		if (returnbytes > 0) {
+			//write bytes to provided external buffer
+			memcpy(buffer, idata->buf, returnbytes);
+			buffer += returnbytes;
+
+			//remove written bytes from internal ->buf
+			writtenbytes += returnbytes;
+			memmove(idata->buf, idata->buf + returnbytes, DECODEBUFSIZE - returnbytes);
+			idata->bufbytes -= returnbytes;
+			bytes -= returnbytes;
+		}else{
+			if (writtenbytes > 0) {
+				return writtenbytes;
+			}else{
+				idata->eof = 1;
+				if (idata->returnerroroneof) {
+					return -1;
+				}
+				return 0;
+			}
+		}
+	}
+	return writtenbytes;
 }
 
 static void audiosourceffmpeg_Close(struct audiosource* source) {

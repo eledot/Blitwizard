@@ -34,6 +34,7 @@
 #include "audiosourceogg.h"
 #include "audiosourcefile.h"
 #include "audiosourceloop.h"
+#include "audiosourceffmpeg.h"
 
 #define MAXCHANNELS 32
 
