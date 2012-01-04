@@ -31,7 +31,7 @@ AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
 	AC_MSG_NOTICE([FFmpeg source code appears to be present, will compile with FFmpeg support.])
 	USE_FFMPEG="-DUSE_FFMPEG"
 ],[
-	AC_MSG_WARNING([FFmpeg source code is not present or not properly placed. Blitwizard will NOT have any FFmpeg support.])
+	AC_WARN([FFmpeg source code is not present or not properly placed. Blitwizard will NOT have any FFmpeg support.])
 ])
 
 

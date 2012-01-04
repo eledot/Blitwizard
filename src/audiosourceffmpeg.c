@@ -151,6 +151,7 @@ int audiosourceffmpg_LoadFFmpeg() {
 		/*if (avutilptr) {
 			library_Close(avutilptr);
 		}*/
+		printf("[FFmpeg] Library not found, FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
 		return 0;
 	}
@@ -159,6 +160,7 @@ int audiosourceffmpg_LoadFFmpeg() {
 	if (!audiosourceffmpeg_LoadFFmpegFunctions()) {
 		library_Close(avcodecptr);
 		library_Close(avformatptr);
+		printf("[FFmpeg] Library misses one or more expected symbols. FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
 		return 0;
 	}
@@ -167,10 +169,13 @@ int audiosourceffmpg_LoadFFmpeg() {
 	if (!audiosourceffmpeg_InitFFmpeg()) {
 		library_Close(avcodecptr);
 		library_Close(avformatptr);
+		printf("[FFmpeg] Library initialisation failed. FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
 		return 0;
 	}
 
+	printf("[FFmpeg] Library successfully loaded.\n");
+	
 	return 1;
 }
 
