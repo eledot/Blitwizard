@@ -27,6 +27,14 @@ void* library_Load(const char* name);
 //  Platform dependent library extension will be appended
 //  (.dll for Windows, .so for Linux, .dylib for Mac OS X)
 
+void* library_LoadSearch(const char* name);
+//Same as library_Load, but on Linux/BSD, this will do a more
+//intensive search also in /usr/lib and other places
+//for .so files with versions appended, e.g. .so.5.4 or
+//something like that.
+//Behaves exactly like library_Load() for other systems.
+//Use this when you are desparate to get the lib :-)
+
 void* library_GetSymbol(void* ptr, const char* name);
 //Get symbol from dynamically loaded library
 //  Returns symbol pointer or NULL in case of failure.

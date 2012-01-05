@@ -21,16 +21,24 @@
 
 */
 
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "filelist.h"
 #include "file.h"
 
 #ifdef WIN
-
+#include <windows.h>
 #else
+#include <stddef.h>
 #include <dirent.h>
+#include <errno.h>
 #endif
 
 struct filelistcontext {
+	char* path;
 #ifdef WIN
 	int reporterror;
 	WIN32_FIND_DATA finddata;
@@ -86,7 +94,7 @@ struct filelistcontext* filelist_Create(const char* path) {
 
 	//this size calculation is directly from linux' man 3 readdir:
 	size_t len = (offsetof(struct dirent, d_name) +
-                 pathconf(dirpath, _PC_NAME_MAX) + 1 + sizeof(long))
+                 pathconf(ctx->path, _PC_NAME_MAX) + 1 + sizeof(long))
                  & -sizeof(long);
 
     ctx->entrybuf = malloc(len);
@@ -135,15 +143,14 @@ struct filelistcontext* filelist_Create(const char* path) {
 int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t namebufsize, int* isdirectory) {
 	const char* filename;
     int setisdirectory = 1;
-    int originalisdirectoryvalue;
+    int originalisdirectoryvalue = 0;
     if (isdirectory) {
         originalisdirectoryvalue = *isdirectory;
     }
-
 #ifndef WIN
 	//read next file entry on Unix
 	struct dirent* result;
-	if (!readdir_r(ctx->directoryptr, ctx->entrybuf, &result)) {
+	if (readdir_r(ctx->directoryptr, ctx->entrybuf, &result) != 0) {
 		//an error occured.
 		return -1;
 	}
@@ -152,23 +159,11 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 	if (result == NULL) {
 		return 0;
 	}
-	
-	//obtain the length of the name
-	int length = 0;
-	int i = 0;
-	while (length < NAME_MAX) {
-		if (ctx->entrybuf->d_name == 0) {
-			break;
-		}
-		length++;
-	}
 
 	//check for . and .. which we want to omit
-	if (length < 10) {
-		if (strcasecmp(ctx->entrybuf->d_name, ".") == 0 || strcmp(ctx->entrybuf->d_name, "..") == 0) {
-			//this won't recurse a lot so it should be fine
-			return filelist_GetNextFile(ctx, namebuf, namebufsize, isdirectory);
-		}
+	if (memcmp(ctx->entrybuf->d_name, ".", 2) == 0 || memcmp(ctx->entrybuf->d_name, "..", 3) == 0) {
+		//this won't recurse a lot so it should be fine
+		return filelist_GetNextFile(ctx, namebuf, namebufsize, isdirectory);
 	}
 
 	//possible directory check shortcut
@@ -182,7 +177,6 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 		setisdirectory = 0;
 	}
 #endif
-
 	filename = ctx->entrybuf->d_name;
 #else
     //check if we actually have an empty dir
@@ -227,6 +221,15 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 		}
 		free(p);
 	}
+
+    //obtain the length of the name
+    unsigned int length = 0;
+    while (length < NAME_MAX) {
+        if (ctx->entrybuf->d_name == 0) {
+            break;
+        }
+        length++;
+    }
 
 	//copy the name
     if (length < namebufsize) {

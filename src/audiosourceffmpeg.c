@@ -33,6 +33,8 @@
 #include "audiosource.h"
 #include "audiosourceffmpeg.h"
 #include "library.h"
+#include "filelist.h"
+#include "file.h"
 
 #ifndef USE_FFMPEG
 
@@ -79,7 +81,7 @@ static AVIOContext* (*ffmpeg_avio_alloc_context)(
 	int(*write_packet)(void *opaque, uint8_t *buf, int buf_size),
 	int64_t(*seek)(void *opaque, int64_t offset, int whence)
 );
-static int (*ffmpeg_avformat_find_streaminfo)(AVFormatContext*,AVDictionary**);
+static int (*ffmpeg_av_find_stream_info)(AVFormatContext*,AVDictionary**);
 static int (*ffmpeg_av_find_best_stream)(AVFormatContext*, enum AVMediaType, int, int, AVCodec*, int);
 static int (*ffmpeg_avcodec_open2)(AVCodecContext*, AVCodec*, AVDictionary**);
 static int (*ffmpeg_avformat_open_input)(AVFormatContext**, const char*, AVInputFormat*, AVDictionary**);
@@ -90,6 +92,7 @@ static void loadorfail(void** ptr, void* lib, const char* name) {
 	*ptr = library_GetSymbol(lib, name);
 	
 	if (!*ptr) {
+		fprintf(stderr,"[FFmpeg] Failed to load symbol: %s\n",name);
 		loadorfailstate = 1;
 		return;
 	}
@@ -102,7 +105,7 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
 	loadorfail((void**)(&ffmpeg_av_free), avcodecptr, "av_free");
 	loadorfail((void**)(&ffmpeg_avio_alloc_context), avformatptr, "avio_alloc_context");
 	loadorfail((void**)(&ffmpeg_av_malloc), avformatptr, "av_malloc");
-	loadorfail((void**)(&ffmpeg_avformat_find_streaminfo), avformatptr, "avformat_find_streaminfo");
+	loadorfail((void**)(&ffmpeg_av_find_stream_info), avformatptr, "av_find_stream_info");
 	loadorfail((void**)(&ffmpeg_av_find_best_stream), avformatptr, "av_find_best_stream");
 	loadorfail((void**)(&ffmpeg_avcodec_open2), avcodecptr, "avcodec_open2");
 	loadorfail((void**)(&ffmpeg_avformat_open_input), avformatptr, "avformat_open_input");
@@ -146,8 +149,8 @@ int audiosourceffmpeg_LoadFFmpeg() {
 	}
 
 	//Load libraries
-	avcodecptr = library_Load("libavcodec");
-	avformatptr = library_Load("libavformat");
+	avcodecptr = library_LoadSearch("libavcodec");
+	avformatptr = library_LoadSearch("libavformat");
 	//avutilptr = library_Load("libavutil");
 
 	//Check library load state
@@ -161,6 +164,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
 		/*if (avutilptr) {
 			library_Close(avutilptr);
 		}*/
+	
 		printf("[FFmpeg] Library not found, FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
 		return 0;
@@ -275,7 +279,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		if (stream < 0) {
 			//We first need more detailed stream info
 			printf("Requiring more detailed stream info...");
-			if (ffmpeg_avformat_find_streaminfo(idata->formatcontext, NULL) < 0) {
+			if (ffmpeg_av_find_stream_info(idata->formatcontext, NULL) < 0) {
 				audiosourceffmpeg_FatalError(source);
 				return -1;
 			}
