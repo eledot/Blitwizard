@@ -103,14 +103,13 @@ static int luastate_AddStdFuncs(lua_State* l) {
     luaopen_math(l);
     luaopen_os(l);
     luaopen_io(l);
-	luaopen_bitlib(l);
+	luaopen_bit32(l);
 	luaopen_debug(l);
 	return 0;
 }
 
 const char* luastate_GetPreferredAudioBackend() {
-	lua_pushstring(scriptstate, "audiobackend");
-	lua_gettable(scriptstate, LUA_GLOBALSINDEX);
+	lua_getglobal(scriptstate, "audiobackend");
 	const char* p = lua_tostring(scriptstate, -1);
 	return p;
 }
@@ -153,8 +152,7 @@ static lua_State* luastate_New() {
 	lua_setglobal(l, "blitwiz");
 
 	//os namespace extensions
-	lua_pushstring(l, "os");
-	lua_gettable(l, LUA_GLOBALSINDEX);
+	lua_getglobal(l, "os");
 
 	lua_pushstring(l, "exit");
 	lua_pushcfunction(l, &luafuncs_exit);
@@ -172,8 +170,7 @@ static lua_State* luastate_New() {
 }
 
 static int luastate_DoFile(lua_State* l, const char* file, char** error) {
-	lua_pushstring(l, "dofile");
-	lua_gettable(l, LUA_GLOBALSINDEX); //first, push function
+	lua_getglobal(l, "dofile"); //first, push function
 	lua_pushstring(l, file); //then push file name as argument
 	int ret = lua_pcall(l, 1, 0, 0); //call returned function by loadfile
 	if (ret != 0) {
@@ -241,7 +238,9 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 				//lookup
 				if (tablerecursion == 0) {
 					//lookup on global table
-					lua_gettable(scriptstate, LUA_GLOBALSINDEX);
+					lua_getglobal(scriptstate, lua_tostring(scriptstate, -1));
+					lua_insert(scriptstate, -2);
+					lua_pop(scriptstate, 1);
 				}else{
 					//lookup nested on previous table
 					lua_gettable(scriptstate, -2);
@@ -263,8 +262,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 
 	//lookup function normally if there was no recursion lookup:
 	if (tablerecursion <= 0) {
-		lua_pushstring(scriptstate, function);
-		lua_gettable(scriptstate, LUA_GLOBALSINDEX);
+		lua_getglobal(scriptstate, function);
 	}else{
 		//get the function from our recursive lookup
 		lua_pushstring(scriptstate, function);

@@ -26,6 +26,8 @@
 #else
 #include <dlfcn.h>
 #endif
+#include <string.h>
+#include <stdlib.h>
 
 #include "library.h"
 
@@ -46,17 +48,17 @@ const char* library_GetFileExtension() {
 	#endif
 	#endif
 
-	retur fileext;
+	return fileext;
 }
 
-void* library_Open(const char* name) {
+void* library_Load(const char* libname) {
 	//Check if name ends with library extension
 	const char* ext = library_GetFileExtension();
-	int i = strlen(name)-strlen(ext);
-	int istart = i;
+	unsigned int i = strlen(libname)-strlen(ext);
+	unsigned int istart = i;
 	int matches = 1;
-	while (i < strlen(name)) {
-		if (name[i] != ext[i-istart]) {
+	while (i < strlen(libname)) {
+		if (libname[i] != ext[i-istart]) {
 			matches = 0;
 			break;
 		}
@@ -67,23 +69,23 @@ void* library_Open(const char* name) {
 	char* freename = NULL;
 	if (!matches) {
 		//Compose new name
-		freename = strdup(strlen(name) + strlen(ext) + 1),
+		freename = malloc(strlen(libname) + strlen(ext) + 1);
 		if (!freename) {
 			return NULL;
 		}
-		memcpy(freename, name, strlen(name));
-		memcpy(freename + strlen(name), ext, strlen(ext));
-		freename[strlen(name) + strlen(ext)] = 0;
+		memcpy(freename, libname, strlen(libname));
+		memcpy(freename + strlen(libname), ext, strlen(ext));
+		freename[strlen(libname) + strlen(ext)] = 0;
 
 		//Set it as name
-		name = (const char*)freename;
+		libname = (const char*)freename;
 	}
 
 	//Load library
 	#ifdef WIN
-	void* ptr = (void*)LoadLibrary(name);
+	void* ptr = (void*)LoadLibrary(libname);
 	#else
-	void* ptr = dlopen(name, RTLD_LAZY|RTLD_LOCAL);
+	void* ptr = dlopen(libname, RTLD_LAZY|RTLD_LOCAL);
 	#endif
 
 	//Clean up and return pointer

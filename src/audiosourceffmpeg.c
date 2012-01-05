@@ -71,12 +71,20 @@ static void (*ffmpeg_av_register_all)(void);
 static AVFormatContext* (*ffmpeg_avformat_alloc_context)(void);
 static AVCodecContext* (*ffmpeg_avcodec_alloc_context3)(AVCodec*);
 static void (*ffmpeg_av_free)(void*);
-static void* (*ffmpeg_av_malloc)(void);
-static AVIOContext* (*ffmpeg_avio_alloc_context)(void);
+static void* (*ffmpeg_av_malloc)(size_t);
+static AVIOContext* (*ffmpeg_avio_alloc_context)(
+	unsigned char* buffer, int buffer_size, int write_flag,
+	void* opaque,
+	int(*read_packet)(void *opaque, uint8_t *buf, int buf_size),
+	int(*write_packet)(void *opaque, uint8_t *buf, int buf_size),
+	int64_t(*seek)(void *opaque, int64_t offset, int whence)
+);
 static int (*ffmpeg_avformat_find_streaminfo)(AVFormatContext*,AVDictionary**);
-static int (*ffmpeg_av_find_best_stream)(AVFormatContext*, AVMediaType, int, int,AVCodec*, int);
+static int (*ffmpeg_av_find_best_stream)(AVFormatContext*, enum AVMediaType, int, int, AVCodec*, int);
+static int (*ffmpeg_avcodec_open2)(AVCodecContext*, AVCodec*, AVDictionary**);
+static int (*ffmpeg_avformat_open_input)(AVFormatContext**, const char*, AVInputFormat*, AVDictionary**);
 
-int loadorfailstate = 0;
+static int loadorfailstate = 0;
 static void loadorfail(void** ptr, void* lib, const char* name) {
 	if (loadorfailstate) {return;}
 	*ptr = library_GetSymbol(lib, name);
@@ -88,14 +96,16 @@ static void loadorfail(void** ptr, void* lib, const char* name) {
 }
 
 static int audiosourceffmpeg_LoadFFmpegFunctions() {
-	loadorfail(&ffmpeg_av_register_all, avformatptr, "av_register_all");
-	loadorfail(&ffmpeg_avformat_alloc_context, avformatptr, "avformat_alloc_context");
-	loadorfail(&ffmpeg_avcodec_alloc_context3, avcodecptr, "avcodec_alloc_context3");
-	loadorfail(&ffmpeg_av_free, avcodecptr, "av_free");
-	loadorfail(&ffmpeg_avio_alloc_context, avformatptr, "avio_alloc_context");
-	loadorfail(&ffmpeg_av_malloc, avformatptr, "av_malloc");
-	loadorfail(&ffmpeg_avformat_find_streaminfo, avformatptr, "avformat_find_streaminfo");
-	loadorfail(&ffmpeg_av_find_best_stream, avformatptr, "av_find_best_stream");
+	loadorfail((void**)(&ffmpeg_av_register_all), avformatptr, "av_register_all");
+	loadorfail((void**)(&ffmpeg_avformat_alloc_context), avformatptr, "avformat_alloc_context");
+	loadorfail((void**)(&ffmpeg_avcodec_alloc_context3), avcodecptr, "avcodec_alloc_context3");
+	loadorfail((void**)(&ffmpeg_av_free), avcodecptr, "av_free");
+	loadorfail((void**)(&ffmpeg_avio_alloc_context), avformatptr, "avio_alloc_context");
+	loadorfail((void**)(&ffmpeg_av_malloc), avformatptr, "av_malloc");
+	loadorfail((void**)(&ffmpeg_avformat_find_streaminfo), avformatptr, "avformat_find_streaminfo");
+	loadorfail((void**)(&ffmpeg_av_find_best_stream), avformatptr, "av_find_best_stream");
+	loadorfail((void**)(&ffmpeg_avcodec_open2), avcodecptr, "avcodec_open2");
+	loadorfail((void**)(&ffmpeg_avformat_open_input), avformatptr, "avformat_open_input");
 
 	if (loadorfailstate) {
 		return 0;
@@ -105,7 +115,7 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
 
 static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
 	struct audiosource* source = data;
-	struct audiosourceffmpeg_internaldata* idata = data->internaldata;
+	struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
 	if (idata->sourceeof) {return 0;}
 	
 	if (idata->source) {
@@ -127,7 +137,7 @@ static int audiosourceffmpeg_InitFFmpeg() {
 	return 1;
 }
 
-int audiosourceffmpg_LoadFFmpeg() {
+int audiosourceffmpeg_LoadFFmpeg() {
 	if (ffmpegopened != 0) {
 		if (ffmpegopened == 1) {
 			return 1;
@@ -181,7 +191,7 @@ int audiosourceffmpg_LoadFFmpeg() {
 
 static void audiosourceffmpeg_Rewind(struct audiosource* source) {
 	struct audiosourceffmpeg_internaldata* idata = source->internaldata;
-	if (i->returnerroroneof) {return;}	
+	if (idata->returnerroroneof) {return;}	
 	idata->eof = 0;
 	if (idata->source) {
 		idata->source->rewind(idata->source);
@@ -234,12 +244,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 	if (!idata->codeccontext) {
 		//Get format context
-		idata->codeccontext = ffmpeg_avcodec_alloc_context();
-		if (!idata->codeccontext) {
-			audiosourceffmpeg_FatalError(source);
-			return -1;
-		}
-		idata->formatcontex = ffmpeg_avformat_alloc_context();
+		idata->formatcontext = ffmpeg_avformat_alloc_context();
 		if (!idata->formatcontext) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
@@ -251,30 +256,30 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
-		idata->iocontext = avio_alloc_context(idata->buf, DECODEBUFSIZE, NULL, source, ffmpegreader, NULL, NULL); 
+		idata->iocontext = ffmpeg_avio_alloc_context(idata->buf, DECODEBUFSIZE, 0, source, ffmpegreader, NULL, NULL); 
 		if (!idata->iocontext) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
-		idata->formatcontext->br = idata->iocontext;
+		idata->formatcontext->pb = idata->iocontext;
 		idata->formatcontext->iformat = NULL;
 
 		//Read format
-		if (avformat_open_input(&idata->formatcontext, "", NULL, NULL) != 0) {
+		if (ffmpeg_avformat_open_input(&idata->formatcontext, "", NULL, NULL) != 0) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
 
 		//Find stream
-		int stream = av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, idata->audiocodec, 0);
+		int stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, idata->audiocodec, 0);
 		if (stream < 0) {
 			//We first need more detailed stream info
 			printf("Requiring more detailed stream info...");
-			if (avformat_find_streaminfo(idata->formatcontext, NULL) < 0) {
+			if (ffmpeg_avformat_find_streaminfo(idata->formatcontext, NULL) < 0) {
 				audiosourceffmpeg_FatalError(source);
 				return -1;
 			}
-			stream = av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, idata->audiocodec, 0);
+			stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, idata->audiocodec, 0);
 			if (stream < 0) {
 				audiosourceffmpeg_FatalError(source);
 				return -1;
@@ -291,7 +296,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         }
 
 		//Initialise codec - XXX avcodec_open2 is not thread-safe!
-		if (avcodec_open2(idata->codeccontext, idata->audiocodec, NULL) < 0) {
+		if (ffmpeg_avcodec_open2(idata->codeccontext, idata->audiocodec, NULL) < 0) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}	

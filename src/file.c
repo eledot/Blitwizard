@@ -116,7 +116,7 @@ int file_IsDirectory(const char* path) {
 	return 0;
 #endif
 #ifdef WIN
-	if (PathIsDirectory(path) == (BOOL)FILE_ATTRIBUTE_DIRECTORY) {
+	if (PathIsDirectory(path) != FALSE) {
 		return 1;
 	}
 	return 0;
@@ -329,4 +329,24 @@ int file_ContentToBuffer(const char* path, char** buf, size_t* buflen) {
 	*buf = fbuf;
 	return 1;
 }
+
+#ifdef WIN
+#if defined __MINGW_H
+#define _WIN32_IE 0x0400
+#endif
+#include <shlobj.h>
+char* file_GetUserFileDir() {
+	char programsdirbuf[MAX_PATH+1];
+    SHGetFolderPath(NULL, CSIDL_PERSONAL, NULL, 0, programsdirbuf);
+    programsdirbuf[MAX_PATH] = 0;
+    return strdup(programsdirbuf);
+}
+#else
+char* filesystem_GetUserFileDir() {
+	char programsdirbuf[300];
+   	strncpy(programsdirbuf, getenv("HOME"), 299);
+   	programsdirbuf[299] = 0;
+    return strdup(programsdirbuf);
+}
+#endif
 

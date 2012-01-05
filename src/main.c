@@ -321,7 +321,7 @@ int main(int argc, char** argv) {
 	//run templates first if we can find them
 	if (file_DoesFileExist("templates/init.lua")) {
 		if (!luastate_DoInitialFile(script, &error)) {
-			if (error = NULL) {
+			if (error == NULL) {
 				error = outofmem;
 			}
 			printerror("Error: An error occured when running \"templates/init.lua\": %s", script, error);

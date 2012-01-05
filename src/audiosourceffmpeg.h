@@ -21,7 +21,7 @@
 
 */
 
-int audiosourceffmpg_LoadFFmpeg();
+int audiosourceffmpeg_LoadFFmpeg();
 
 struct audiosource* audiosourceffmpeg_Create(struct audiosource* filesource);
 //Take an audio source that returns encoded binary data (usually audiosourcefile)

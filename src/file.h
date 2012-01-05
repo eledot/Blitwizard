@@ -22,14 +22,28 @@
 */
 
 int file_Cwd(const char* path);
+
 char* file_GetCwd();
+
 char* file_GetAbsolutePathFromRelativePath(const char* path);
+
 int file_DoesFileExist(const char* path);
+
 int file_IsDirectory(const char* path);
+
 int file_IsPathRelative(const char* path);
+
 char* file_GetDirectoryPathFromFilePath(const char* path);
+
 char* file_GetAbsoluteDirectoryPathFromFilePath(const char* path);
+
 char* file_GetFileNameFromFilePath(const char* path);
+
 int file_ContentToBuffer(const char* path, char** buf, size_t* buflen);
+
 char* file_AddComponentToPath(const char* path, const char* component);
+
+void file_MakeSlashesNative(char* path);
+
+char* file_GetUserFileDir();
 

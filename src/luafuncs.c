@@ -77,8 +77,7 @@ int luafuncs_dofile(lua_State* l) {
 		lua_pop(l,1);
 		i--;
 	}
-	lua_pushstring(l, "loadfile");
-	lua_gettable(l, LUA_GLOBALSINDEX); //first, push function
+	lua_getglobal(l, "loadfile"); //first, push function
 	lua_pushvalue(l, 1); //then push file name as argument
 	lua_call(l, 1, 1); //call loadfile
 	int previouscount = lua_gettop(l)-1; //minus the function on the stack which lua_pcall() removes
@@ -470,7 +469,7 @@ static int soundfromstack(lua_State* l, int index) {
 	if (lua_type(l, index) != LUA_TUSERDATA) {
 		return -1;
 	}
-	if (lua_objlen(l, index) != sizeof(struct luaidref)) {
+	if (lua_rawlen(l, index) != sizeof(struct luaidref)) {
 		return -1;
 	}
 	struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
