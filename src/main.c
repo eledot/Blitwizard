@@ -284,7 +284,6 @@ int main(int argc, char** argv) {
 		script = filenamebuf;
 	}
 	
-	printf("b\n");
 	//check if we want to change directory to the provided path:
 	if (option_changedir) {
 		char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
@@ -347,7 +346,6 @@ int main(int argc, char** argv) {
 		main_Quit(1);
 	}
 
-	printf("e\n");
 	//call init
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error)) {
 		printerror("Error: An error occured when calling blitwiz.on_init: %s",error);
@@ -358,7 +356,6 @@ int main(int argc, char** argv) {
 		main_Quit(1);
 	}
 	
-	printf("f\n");
 	//when graphics or audio is open, run the main loop
 	if (graphics_AreGraphicsRunning() || audioinitialised) {
 		//Initialise audio when it isn't
