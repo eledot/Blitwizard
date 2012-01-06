@@ -405,10 +405,18 @@ Play the sound file found at the given path. The sound will be decoded and read 
 so this function usually causes no load delay.
 </p>
 <p>
-Currently supported audio file formats: .ogg<br>
-<br>(mp3 is <b>not</b> supported)</small>
+Currently supported audio file formats:
+<ul>
+<li>.ogg <small>(natively/always)</small>, </li>
+<li>
+mp3, .wav, .aac, .flac, .mp4 &mdash; <i>and many more...</i> <small>(only when <a href="http://ffmpeg.org/">FFmpeg</a> is available which you should provide yourself if you want to use it, see blitwizard's README.txt's note on audio)</small>
+</li>
+</ul>
 </p>
 <p>If a sound fails to play because the file on disk cannot be opened/read, it will throw an error. If a sound fails to play because all slots are used by higher priority sounds (see remark on the priority parameter below), it will return a sound handle without error but simply not play the sound.
+</p>
+<p>When the audio format isn't known or the audio file is corrupt and cannot be played, an error will be thrown aswell. If you cannot play any other formats than .ogg files correctly, please check on FFmpeg (see supported audio file formats above).
+</p>
 <p>
 Parameters:
 <ul class="parameters">
