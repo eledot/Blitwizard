@@ -22,6 +22,11 @@
 */
 
 int audiosourceffmpeg_LoadFFmpeg();
+//returns 1 when FFmpeg is available, otherwise 0
+
+void audiosourceffmpeg_DisableFFmpeg();
+//Call this before audiosourceffmpeg_LoadFFmpeg() is ever called, and FFmpeg
+//won't be loaded and supported (audiosourceffmpeg_LoadFFmpeg() will return 0).
 
 struct audiosource* audiosourceffmpeg_Create(struct audiosource* filesource);
 //Take an audio source that returns encoded binary data (usually audiosourcefile)

@@ -114,6 +114,18 @@ const char* luastate_GetPreferredAudioBackend() {
 	return p;
 }
 
+int luastate_GetWantFFmpeg() {
+	lua_getglobal(scriptstate, "useffmpegaudio");
+	if (lua_type(scriptstate, -1) == LUA_TBOOLEAN) {
+		int i = lua_toboolean(scriptstate, -1);
+		if (i) {
+			return 1;
+		}
+		return 0;
+	}
+	return 1;
+}
+
 static lua_State* luastate_New() {
 	lua_State* l = luaL_newstate();
 	

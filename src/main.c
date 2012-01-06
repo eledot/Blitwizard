@@ -103,8 +103,17 @@ void main_InitAudio() {
     if (audioinitialised) {return;}
     audioinitialised = 1;
     char* error;
+
 	//get audio backend
 	const char* p = luastate_GetPreferredAudioBackend();
+
+	//load FFmpeg if we happen to want it
+	if (luastate_GetWantFFmpeg()) {
+		audiosourceffmpeg_LoadFFmpeg();
+	}else{
+		audiosourceffmpeg_DisableFFmpeg();
+	}
+
     //initialise audio - try 32bit first
     s16mixmode = 0;
 	if (!audio_Init(&audiomixer_GetBuffer, 0, p, 0, &error)) {
@@ -269,9 +278,6 @@ int main(int argc, char** argv) {
 	
 	//This needs to be done at some point before we actually initialise audio
 	audiomixer_Init();
-
-	//Check for FFmpeg
-	audiosourceffmpeg_LoadFFmpeg();
 
 	//check the provided path:
 	char outofmem[] = "Out of memory";

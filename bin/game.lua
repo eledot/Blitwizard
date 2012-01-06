@@ -8,6 +8,7 @@ if os.exists("../game.lua") then
 end
 
 -- We simply want to run the sample browser otherwise
+useffmpegaudio = false -- don't use FFmpeg for the examples or the sample browser!
 os.chdir("samplebrowser")
 dofile("browser.lua")
 

@@ -140,6 +140,12 @@ static int audiosourceffmpeg_InitFFmpeg() {
 	return 1;
 }
 
+void audiosourceffmpeg_DisableFFmpeg() {
+	if (ffmpegopened != 0) {return;}
+	ffmpegopened = -1;
+	printf("[FFmpeg] Use of FFmpeg has been disabled.\n");
+}
+
 int audiosourceffmpeg_LoadFFmpeg() {
 	if (ffmpegopened != 0) {
 		if (ffmpegopened == 1) {
