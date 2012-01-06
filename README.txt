@@ -15,23 +15,11 @@ sample browser to see a few simple examples on how to use blitwizard.
 NOTE ON AUDIO:
   
   The blitwizard binary release is compiled with FFmpeg support.
-  However, you need to provide libavcodec/libavformat if they are
-  not present on the platform you use blitwizard on.
+  In particular, win32 blitwizard comes with FFmpeg, which allows
+  blitwizard to load and play much more audio files.
 
-  Find libavcodec/libavformat binaries for Windows:
-
-    See http://ffmpeg.zeranoe.com/builds/ and check out the
-    32-bit Builds (Shared).
-
-    You can open the .7z files with http://7-zip.org/
-
-	You want libavformat.dll and libavcodec.dll. Put them
-    into the same folder where blitwizard.exe is.
-
-  Blitwizard will load FFmpeg at runtime and then support a huge
-  amount of audio formats (.mp3, .wav, .mp4 and many others).
-  If blitwizard fails to load FFmpeg, it will only support .ogg
-  audio.
+  Read Ship-your-game.txt to find out how to ship with or without
+  FFmpeg and for important legal notes.
 
 LEARN BLITWIZARD:
 

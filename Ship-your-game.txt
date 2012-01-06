@@ -3,11 +3,41 @@ To ship your game based on blitwizard, simply combine your game files
 (your game.lua and other used scripts and the artwork you use) with the
 blitwizard binary (e.g. the windows .exe) and the templates folder.
 
-For adhering to the third-party library licenses, you will probably
-need to ship some of the README-* files among other things.
-See note at the bottom of the page at
-http://games.homeofjones.de/blitwizard/
+So all you need to ship is:
 
-Also a question that might be commonly asked:
-Do you need to pay for distributing with and using blitwizard for games,
-even if they're commercial? No, you don't :)
+ - blitwizard.exe or/and other platform's blitwizard binary
+ - templates/ folder (all contents)
+ - game.lua from your game and other files of your game (images etc)
+ - README-libs.txt for licensing (see NOTE below)
+
+If you ship more, in particularly FFmpeg, read the FFmpeg section below.
+
+Disclaimer:
+  While I wrote some README files and point them out here for use to comply
+  with third-party library licensing, I am not a lawyer.
+  It is your own responsibility to make sure that you comply with the third
+  party libraries' licenses and any things like patents.
+
+Read http://games.homeofjones.de/blitwizard/#third-party_licensing
+The FFmpeg paragraph only applies if you ship FFmpeg.
+
+FOR FFMPEG:
+ If you ship FFmpeg additionally (libavformat/libavcodec), please make
+ sure you read the third party licensing notes above on FFmpeg!
+ Adhere to them, or the FFmpeg devs might get angry.
+
+ FFmpeg is also subject to patents and other things in many countries,
+ so you might need to pay various patent fees. It is up to you to figure
+ this out (see http://ffmpeg.org/).
+
+ The following parts are part of FFmpeg (for win32 blitwizard):
+  libavformat.dll - part of FFmpeg lib
+  libavcodec.dll - part of FFmpeg lib
+  ffmpeg-*.tar.bz2 - FFmpeg source tar ball, for licensing compliance, see NOTE above
+  README-lgpl.txt - license and copyright info file, for licensing compliance
+  README-ffmpeg.txt - license and copyright info file, for licensing compliance
+ 
+ The non-win32 blitwizard releases come without FFmpeg and you
+ need to obtain it yourself and ship it with your game if you
+ are interested in doing that.
+
