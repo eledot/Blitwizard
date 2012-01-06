@@ -51,7 +51,9 @@ cd ..
 rm -r blitwizard/
 mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
 if [ "$DOSOURCERELEASE" = "yes" ]; then
-	zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/ || { echo "zip doesn't work as expected - is zip installed?"; exit 1; }
+	mv ./blitwizard/ffmpeg-*.tar.bz2 ./
+	zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/ || { mv ./ffmpeg-*.tar.bz2 ./blitwizard/; echo "zip doesn't work as expected - is zip installed?"; exit 1; }
+	mv ./ffmpeg-*.tar.bz2 ./blitwizard/
 fi
 cd blitwizard
 rm deps.zip
@@ -80,9 +82,10 @@ cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
 if [ -e "./bin/blitwizard.exe" ]; then
 	cp ../blitwizard/Run-Blitwizard.bat ./
-	cp ../blitwizard/src/ffmpeg/libavformat/avformat.dll ./libavformat.dll
-    cp ../blitwizard/src/ffmpeg/libavutil/avutil.dll ./avutil.dll
-    cp ../blitwizard/src/ffmpeg/libavcodec/avcodec.dll ./libavcodec.dll
+	cp ../../src/ffmpeg/libavformat/avformat.dll ./libavformat.dll
+    cp ../../src/ffmpeg/libavutil/avutil.dll ./avutil.dll
+    cp ../../src/ffmpeg/libavcodec/avcodec.dll ./libavcodec.dll
+	cp ../blitwizard/ffmpeg-*.tar.bz2 ./
 fi
 
 # detect todos or unix2dos
