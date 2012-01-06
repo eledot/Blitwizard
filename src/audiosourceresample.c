@@ -228,6 +228,12 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
 		return NULL;
 	}
 
+	//we only support stereo audio
+	if (source->channels != 2) {
+		source->close(source);
+		return NULL;
+	}
+
 	//allocate data struct
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {

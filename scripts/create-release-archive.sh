@@ -82,9 +82,9 @@ cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
 if [ -e "./bin/blitwizard.exe" ]; then
 	cp ../blitwizard/Run-Blitwizard.bat ./
-	cp ../../src/ffmpeg/libavformat/avformat.dll ./libavformat.dll
+	cp ../../src/ffmpeg/libavformat/avformat.dll ./avformat.dll
     cp ../../src/ffmpeg/libavutil/avutil.dll ./avutil.dll
-    cp ../../src/ffmpeg/libavcodec/avcodec.dll ./libavcodec.dll
+    cp ../../src/ffmpeg/libavcodec/avcodec.dll ./avcodec.dll
 	cp ../blitwizard/ffmpeg-*.tar.bz2 ./
 fi
 

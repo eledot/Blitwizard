@@ -46,8 +46,9 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
 
 #else
 
-#define DECODEBUFSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
-#define DECODEBUFMINSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE)
+#define AVIOBUFSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
+
+#define DECODEBUFSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE*8)
 
 struct audiosourceffmpeg_internaldata {
 	struct audiosource* source;
@@ -55,6 +56,7 @@ struct audiosourceffmpeg_internaldata {
 	int eof;
 	int returnerroroneof;
 
+	unsigned char* aviobuf;
 	unsigned char* buf;
 	unsigned int bufbytes;
 	AVCodecContext* codeccontext;
@@ -87,7 +89,10 @@ static int (*ffmpeg_avcodec_open2)(AVCodecContext*, AVCodec*, AVDictionary**);
 static int (*ffmpeg_avformat_open_input)(AVFormatContext**, const char*, AVInputFormat*, AVDictionary**);
 static int (*ffmpeg_avcodec_decode_audio3)(AVCodecContext* avctx, int16_t* samples, int* frame_size_ptr, AVPacket* avpkt);
 static int (*ffmpeg_av_read_frame)(AVFormatContext* s, AVPacket* pkt);
-static void (*ffmpeg_av_free_packet)(AVPacket *pkt);
+static void (*ffmpeg_av_free_packet)(AVPacket* pkt);
+static void (*ffmpeg_av_init_packet)(AVPacket* pkt);
+static int (*ffmpeg_av_strerror)(int errnum, char* errbuf, size_t errbuf_size);
+static AVCodec* (*ffmpeg_avcodec_find_decoder)(enum CodecID id);
 
 static int loadorfailstate = 0;
 static void loadorfail(void** ptr, void* lib, const char* name) {
@@ -115,6 +120,9 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
 	loadorfail((void**)(&ffmpeg_avcodec_decode_audio3), avcodecptr, "avcodec_decode_audio3");
 	loadorfail((void**)(&ffmpeg_av_read_frame), avformatptr, "av_read_frame");
 	loadorfail((void**)(&ffmpeg_av_free_packet), avcodecptr, "av_free_packet");
+	loadorfail((void**)(&ffmpeg_av_init_packet), avcodecptr, "av_init_packet");
+	loadorfail((void**)(&ffmpeg_av_strerror), avutilptr, "av_strerror");
+	loadorfail((void**)(&ffmpeg_avcodec_find_decoder), avcodecptr, "avcodec_find_decoder");
 
 	if (loadorfailstate) {
 		return 0;
@@ -135,6 +143,7 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
 		if (i == 0) {
 			idata->sourceeof = 1;
 		}
+		return i;
 	}
 	return -1;
 }
@@ -161,21 +170,27 @@ int audiosourceffmpeg_LoadFFmpeg() {
 	}
 
 	//Load libraries
-	avcodecptr = library_LoadSearch("libavcodec");
-	avformatptr = library_LoadSearch("libavformat");
-	//avutilptr = library_Load("libavutil");
+#ifndef WIN
+	avutilptr = library_LoadSearch("libavutil");
+    avcodecptr = library_LoadSearch("libavcodec");
+    avformatptr = library_LoadSearch("libavformat");
+#else
+	avutilptr = library_LoadSearch("avutil");
+	avcodecptr = library_LoadSearch("avcodec");
+	avformatptr = library_Loadsearch("avformat");
+#endif
 
 	//Check library load state
-	if (!avcodecptr || !avformatptr) { // || !avutilptr) {
+	if (!avcodecptr || !avformatptr || !avutilptr) {
 		if (avcodecptr) {
 			library_Close(avcodecptr);
 		}
 		if (avformatptr) {
 			library_Close(avformatptr);
 		}
-		/*if (avutilptr) {
+		if (avutilptr) {
 			library_Close(avutilptr);
-		}*/
+		}
 	
 		printf("[FFmpeg] Library not found, FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
@@ -220,10 +235,10 @@ static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
 		return;
 	}
 	struct audiosourceffmpeg_internaldata* idata = source->internaldata;
-	if (idata->codeccontext) {
+	/*if (idata->codeccontext) { //part of the stream
 		ffmpeg_av_free(idata->codeccontext);
         idata->codeccontext = NULL;
-	}
+	}*/
 	if (idata->codeccontext) {
         ffmpeg_av_free(idata->formatcontext);
         idata->formatcontext = NULL;
@@ -237,6 +252,10 @@ static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
 		idata->buf = NULL;
 		idata->bufbytes = 0;
 	}
+	/*if (idata->aviobuf) { //it appears this is handled by the iocontext
+		ffmpeg_av_free(idata->aviobuf);
+		idata->aviobuf = NULL;
+	}*/
 }
 
 static void audiosourceffmpeg_FatalError(struct audiosource* source) {
@@ -251,17 +270,15 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 	if (idata->eof) {
 		return -1;
-	}	
-	printf("a\n");
+	}
+	
 	if (!audiosourceffmpeg_LoadFFmpeg()) {
 		printf("b\n");
 		audiosourceffmpeg_FatalError(source);
 		return -1;
 	}
-	printf("c\n");
 
 	if (!idata->codeccontext) {
-		printf("1\n");
 		//Get format context
 		idata->formatcontext = ffmpeg_avformat_alloc_context();
 		if (!idata->formatcontext) {
@@ -270,30 +287,29 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		}
 
 		//Get IO context
-		idata->buf = ffmpeg_av_malloc(DECODEBUFSIZE);
-		if (!idata->buf) {
+		idata->aviobuf = ffmpeg_av_malloc(AVIOBUFSIZE);
+		if (!idata->aviobuf) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
-		idata->iocontext = ffmpeg_avio_alloc_context(idata->buf, DECODEBUFSIZE, 0, source, ffmpegreader, NULL, NULL); 
+		idata->iocontext = ffmpeg_avio_alloc_context(idata->aviobuf, AVIOBUFSIZE, 0, source, ffmpegreader, NULL, NULL); 
 		if (!idata->iocontext) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
 		idata->formatcontext->pb = idata->iocontext;
 		idata->formatcontext->iformat = NULL;
-		printf("2\n");
+		
 		//Read format
 		if (ffmpeg_avformat_open_input(&idata->formatcontext, "", NULL, NULL) != 0) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
-
+		
 		//Find stream
 		int stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, &idata->audiocodec, 0);
 		if (stream < 0) {
-			//We first need more detailed stream info
-			printf("Requiring more detailed stream info...");
+			//We need more detailed stream info to find the stream
 			if (ffmpeg_av_find_stream_info(idata->formatcontext, NULL) < 0) {
 				audiosourceffmpeg_FatalError(source);
 				return -1;
@@ -303,18 +319,20 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 				audiosourceffmpeg_FatalError(source);
 				return -1;
 			}
-		}else{
-			printf("Found best stream instantly");
 		}
 
 		//Get codec context
-		idata->codeccontext = ffmpeg_avcodec_alloc_context3(idata->audiocodec);
-        if (!idata->codeccontext) {
-            audiosourceffmpeg_FatalError(source);
-            return -1;
-        }
+		idata->codeccontext = idata->formatcontext->streams[stream]->codec;
 
-		//Initialise codec - XXX avcodec_open2 is not thread-safe!
+		//Find best codec, we don't trust av_find_bet_stream on this for now
+		idata->audiocodec = ffmpeg_avcodec_find_decoder(idata->codeccontext->codec_id);
+		if (!idata->audiocodec) {
+			//Format is recognised, but codec unsupported
+  			audiosourceffmpeg_FatalError(source);
+  			return -1;
+		}
+
+		//Initialise codec. XXX avcodec_open2 is not thread-safe!
 		if (ffmpeg_avcodec_open2(idata->codeccontext, idata->audiocodec, NULL) < 0) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
@@ -329,14 +347,26 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
+		
+		source->channels = idata->codeccontext->channels;
+		source->samplerate = idata->codeccontext->sample_rate;
+		printf("4: %u, %u\n", source->channels, source->samplerate);
+		
+		/*if (source->channels <= 0 || source->samplerate <= 0) {
+			audiosourceffmpeg_FatalError(source);
+			return -1;
+		}*/
+		source->channels = 2;
+		source->samplerate = 44100;
 	}
 
 	int writtenbytes = 0;
-
+	printf("ffmpeg: reading %d bytes\n",bytes);
 	while (bytes > 0) {
 		//decode with FFmpeg
 		AVPacket packet;
-		while (idata->bufbytes + AVCODEC_MAX_AUDIO_FRAME_SIZE * 2 < DECODEBUFSIZE && ffmpeg_av_read_frame(idata->formatcontext, &packet) >= 0) {
+		ffmpeg_av_init_packet(&packet);
+		while (idata->bufbytes + AVCODEC_MAX_AUDIO_FRAME_SIZE * 2 < DECODEBUFSIZE && idata->bufbytes < bytes && ffmpeg_av_read_frame(idata->formatcontext, &packet) >= 0) {
             int data_size = AVCODEC_MAX_AUDIO_FRAME_SIZE * 2;
             int size = packet.size;
             while (size > 0) {
@@ -344,8 +374,11 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 				idata->bufbytes += len;
 				size -= len;
         	}
-			ffmpeg_av_free_packet(&packet);
+			printf("decoded - bufbytes is now: %u\n", idata->bufbytes);
      	}
+		ffmpeg_av_free_packet(&packet);
+
+		printf("ffmpeg: we have %u bytes\n", idata->bufbytes);
 
 		//check how much we can return
 		unsigned int returnbytes = idata->bufbytes;
@@ -376,6 +409,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 			}
 		}
 	}
+	printf("ffmpeg: %d bytes read\n",writtenbytes);
 	return writtenbytes;
 }
 

@@ -32,9 +32,9 @@ FOR FFMPEG:
  this out (see http://ffmpeg.org/).
 
  The following parts are part of FFmpeg (for win32 blitwizard):
-  libavformat.dll - part of FFmpeg lib
-  libavcodec.dll - part of FFmpeg lib
-  libavutil.dll - part of FFmpeg lib
+  avformat.dll - part of FFmpeg lib
+  avcodec.dll - part of FFmpeg lib
+  avutil.dll - part of FFmpeg lib
   ffmpeg-*.tar.bz2 - FFmpeg source tar ball, for licensing compliance, see NOTE above
   README-lgpl.txt - license and copyright info file, for licensing compliance
   README-ffmpeg.txt - license and copyright info file, for licensing compliance
