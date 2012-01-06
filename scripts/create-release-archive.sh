@@ -74,10 +74,15 @@ cp -R ../blitwizard/templates ./templates
 cp ../blitwizard/bin/game.lua ./bin/game.lua
 cp ../blitwizard/bin/blitwizard* ./bin
 cp ../blitwizard/README-libs.txt ./
+cp ../blitwizard/README-ffmpeg.txt ./
+cp ../blitwizard/README-lgpl.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
 if [ -e "./bin/blitwizard.exe" ]; then
 	cp ../blitwizard/Run-Blitwizard.bat ./
+	cp ../blitwizard/src/ffmpeg/libavformat/avformat.dll ./libavformat.dll
+    cp ../blitwizard/src/ffmpeg/libavutil/avutil.dll ./avutil.dll
+    cp ../blitwizard/src/ffmpeg/libavcodec/avcodec.dll ./libavcodec.dll
 fi
 
 # detect todos or unix2dos
