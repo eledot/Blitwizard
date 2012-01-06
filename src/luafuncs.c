@@ -95,7 +95,7 @@ int luafuncs_exists(lua_State* l) {
         lua_pushstring(l, "First argument is not a valid path string");
         return lua_error(l);
     }
-    if (!file_DoesFileExist(p)) {
+    if (file_DoesFileExist(p)) {
 		lua_pushboolean(l, 1);
 	}else{
 		lua_pushboolean(l, 0);
