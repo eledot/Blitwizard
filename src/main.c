@@ -319,7 +319,6 @@ int main(int argc, char** argv) {
 	}
 	sdlinitialised = 1;
 
-	printf("c\n");
 	//run templates first if we can find them
 	if (file_DoesFileExist("templates/init.lua")) {
 		if (!luastate_DoInitialFile("templates/init.lua", &error)) {
@@ -335,7 +334,6 @@ int main(int argc, char** argv) {
 		}
 	}
 	
-	printf("d\n");
 	//open and run provided file
 	if (!luastate_DoInitialFile(script, &error)) {
 		if (error == NULL) {

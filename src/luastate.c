@@ -172,6 +172,9 @@ static lua_State* luastate_New() {
 	lua_pushstring(l, "isdir");
 	lua_pushcfunction(l, &luafuncs_isdir);
 	lua_settable(l, -3);
+    lua_pushstring(l, "exists");
+    lua_pushcfunction(l, &luafuncs_exists);
+    lua_settable(l, -3);
 
 	//throw table "os" off the stack
 	lua_pop(l, 1);

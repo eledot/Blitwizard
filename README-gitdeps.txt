@@ -45,7 +45,7 @@ Alternatively, get them yourself in hand-picked, current versions:
     src/vorbis
    http://xiph.org/downloads/
 
- - drop the contents of a source tarball of a recent Lua 5 release into
+ - drop the contents of a source tarball of a recent Lua 5.2 release into
     src/lua
    see http://www.lua.org/download.html
    (IMPORTANT: You should apply the patches aswell if you need a secure Lua!)

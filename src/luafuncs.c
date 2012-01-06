@@ -89,6 +89,20 @@ int luafuncs_dofile(lua_State* l) {
 	return lua_gettop(l)-previouscount;
 }
 
+int luafuncs_exists(lua_State* l) {
+	const char* p = lua_tostring(l, 1);
+    if (!p) {
+        lua_pushstring(l, "First argument is not a valid path string");
+        return lua_error(l);
+    }
+    if (!file_DoesFileExist(p)) {
+		lua_pushboolean(l, 1);
+	}else{
+		lua_pushboolean(l, 0);
+	}
+	return 1;
+}
+
 int luafuncs_isdir(lua_State* l) {
     const char* p = lua_tostring(l, 1);
     if (!p) {
