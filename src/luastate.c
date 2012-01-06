@@ -183,7 +183,6 @@ static lua_State* luastate_New() {
 }
 
 static int luastate_DoFile(lua_State* l, const char* file, char** error) {
-	printf("dofile: %s\n",file);
 	lua_getglobal(l, "dofile"); //first, push function
 	lua_pushstring(l, file); //then push file name as argument
 	int ret = lua_pcall(l, 1, 0, 0); //call returned function by loadfile
