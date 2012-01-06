@@ -224,7 +224,6 @@ int luastate_PushFunctionArgumentToMainstate_Double(double i) {
 }
 
 int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error) {
-	printf("will look up %s\n",function);
 	//look up table components of our function name (e.g. namespace.func())
 	int tablerecursion = 0;
 	while (recursivetables && tablerecursion < 5) {
@@ -281,7 +280,6 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 		lua_getglobal(scriptstate, function);
 	}else{
 		//get the function from our recursive lookup
-		printf("function: %s\n",function);
 		lua_pushstring(scriptstate, function);
 		lua_gettable(scriptstate, -2);
 		//wipe out the table we got it from
