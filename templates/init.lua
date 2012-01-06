@@ -1,9 +1,10 @@
 
 --Load all the templates
-for file in os.ls("templates/") do
+for index,file in ipairs(os.ls("templates/")) do
 	if os.isdir("templates/" .. file) then
 		local filepath = "templates/" .. file .. "/" .. file .. ".lua"
 		if os.exists(filepath) then
+			print("filepath: " .. filepath)
 			dofile(filepath)
 		end
 	end

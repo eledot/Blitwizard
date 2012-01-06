@@ -23,6 +23,8 @@
 
 //os:
 int luafuncs_chdir(lua_State* l);
+int luafuncs_isdir(lua_State* l);
+int luafuncs_ls(lua_State* l);
 int luafuncs_openConsole(lua_State* l);
 int luafuncs_exit(lua_State* l);
 

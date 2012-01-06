@@ -35,6 +35,7 @@
 #include "audio.h"
 #include "audiomixer.h"
 #include "file.h"
+#include "filelist.h"
 #include "main.h"
 #include "win32console.h"
 
@@ -88,39 +89,108 @@ int luafuncs_dofile(lua_State* l) {
 	return lua_gettop(l)-previouscount;
 }
 
+int luafuncs_isdir(lua_State* l) {
+    const char* p = lua_tostring(l, 1);
+    if (!p) {
+        lua_pushstring(l, "First argument is not a valid path string");
+        return lua_error(l);
+    }
+	if (!file_DoesFileExist(p)) {
+		char errmsg[500];
+		snprintf(errmsg, sizeof(errmsg), "No such file or directory: %s\n", p);
+		errmsg[sizeof(errmsg)-1] = 0;
+		lua_pushstring(l, errmsg);
+		return lua_error(l);
+	}
+	if (file_IsDirectory(p)) {
+		lua_pushboolean(l, 1);
+	}else{
+		lua_pushboolean(l, 0);
+	}
+	return 1;
+}
+
+int luafuncs_ls(lua_State* l) {
+	const char* p = lua_tostring(l, 1);
+	if (!p) {
+		lua_pushstring(l, "First argument is not a valid path string");
+		return lua_error(l);
+	}
+	struct filelistcontext* ctx = filelist_Create(p);
+	if (!ctx) {
+		char errmsg[500];
+		snprintf(errmsg, sizeof(errmsg), "Failed to ls folder: %s", p);
+		errmsg[sizeof(errmsg)-1] = 0;
+		lua_pushstring(l, errmsg);
+		return lua_error(l);
+	}
+
+	//create file listing table
+	lua_newtable(l);
+
+	//add all files/folders to file listing table
+	char filenamebuf[500];
+	int isdir;
+	int returnvalue;
+	int i = 0;
+	while ((returnvalue = filelist_GetNextFile(ctx, filenamebuf, sizeof(filenamebuf), &isdir)) == 1) {
+		i++;
+		lua_pushinteger(l, i);
+		lua_pushstring(l, filenamebuf);
+		lua_settable(l, -3);
+	}
+
+	//free file list
+	filelist_Free(ctx);
+
+	//process error during listing
+	if (returnvalue < 0) {
+		lua_pop(l, 1); //remove file listing table
+
+		char errmsg[500];
+		snprintf(errmsg, sizeof(errmsg), "Error while processing ls in folder: %s", p);
+		errmsg[sizeof(errmsg)-1] = 0;
+		lua_pushstring(l, errmsg);
+		return lua_error(l);
+	}
+
+	//return file list
+	return 1;
+}
+
 int luafuncs_setWindow(lua_State* l) {
 	if (lua_gettop(l) <= 0) {
 		graphics_Quit();
 		return 0;
 	}
-	int x = lua_tonumber(l,1);
+	int x = lua_tonumber(l, 1);
 	if (x <= 0) {
-		lua_pushstring(l,"First argument is not a valid resolution width");
+		lua_pushstring(l, "First argument is not a valid resolution width");
 		return lua_error(l);
 	}
-	int y = lua_tonumber(l,2);
+	int y = lua_tonumber(l, 2);
 	if (y <= 0) {
-		lua_pushstring(l,"Second argument is not a valid resolution height");
+		lua_pushstring(l, "Second argument is not a valid resolution height");
 		return lua_error(l);
 	}
 	
 	char defaulttitle[] = "blitwizard";
-	const char* title = lua_tostring(l,3);
+	const char* title = lua_tostring(l, 3);
 	if (!title) {
 		title = defaulttitle;
 	}
 	
 	int fullscreen = 0;
 	if (lua_type(l,4) == LUA_TBOOLEAN) {
-		fullscreen = lua_toboolean(l,4);
+		fullscreen = lua_toboolean(l, 4);
 	}else{
 		if (lua_gettop(l) >= 4) {
-			lua_pushstring(l,"Fourth argument is not a valid fullscreen boolean");
+			lua_pushstring(l, "Fourth argument is not a valid fullscreen boolean");
 			return lua_error(l);
 		}
 	}
 	
-	const char* renderer = lua_tostring(l,5);
+	const char* renderer = lua_tostring(l, 5);
 	char* error;
 	if (!graphics_SetMode(x, y, fullscreen, 0, title, renderer, &error)) {
 		if (error) {

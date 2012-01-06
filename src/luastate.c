@@ -95,16 +95,16 @@ static void luastate_CreateTimeTable(lua_State* l) {
 	lua_settable(l, -3);
 }
 
+static int openlib_blitwiz(lua_State* l) {
+	static const struct luaL_Reg blitwizlib[] = { {NULL, NULL} };
+	luaL_newlib(l, blitwizlib);
+	return 1;
+}
+
 static int luastate_AddStdFuncs(lua_State* l) {
-    luaopen_base(l);
-	luaopen_package(l);
-    luaopen_string(l);
-    luaopen_table(l);
-    luaopen_math(l);
-    luaopen_os(l);
-    luaopen_io(l);
-	luaopen_bit32(l);
-	luaopen_debug(l);
+	luaL_openlibs(l);
+	luaL_requiref(l, "blitwiz", openlib_blitwiz, 1);
+	lua_pop(l, 1);	
 	return 0;
 }
 
@@ -127,9 +127,10 @@ static lua_State* luastate_New() {
 	lua_pushcfunction(l, &luafuncs_dofile);
 	lua_setglobal(l, "dofile");
 
-	//blitwiz namespace
-	lua_newtable(l);
+	//obtain the blitwiz lib
+	lua_getglobal(l, "blitwiz");
 
+	//blitwiz namespace
 	lua_pushstring(l, "graphics");
 	luastate_CreateGraphicsTable(l);
 	lua_settable(l, -3);
@@ -137,7 +138,7 @@ static lua_State* luastate_New() {
 	lua_pushstring(l, "sound");
 	luastate_CreateSoundTable(l);
 	lua_settable(l, -3);
-
+	
 	lua_pushstring(l, "callback");
 	lua_newtable(l);
 		lua_pushstring(l, "event");
@@ -149,11 +150,13 @@ static lua_State* luastate_New() {
 	luastate_CreateTimeTable(l);
 	lua_settable(l, -3);
 
-	lua_setglobal(l, "blitwiz");
+	//we still have the module "blitwiz" on the stack here
+	lua_pop(l, 1);
 
-	//os namespace extensions
+	//obtain os table
 	lua_getglobal(l, "os");
 
+	//os namespace extensions
 	lua_pushstring(l, "exit");
 	lua_pushcfunction(l, &luafuncs_exit);
 	lua_settable(l, -3);
@@ -163,13 +166,21 @@ static lua_State* luastate_New() {
 	lua_pushstring(l, "openConsole");
 	lua_pushcfunction(l, &luafuncs_openConsole);
 	lua_settable(l, -3);
+	lua_pushstring(l, "ls");
+	lua_pushcfunction(l, &luafuncs_ls);
+	lua_settable(l, -3);
+	lua_pushstring(l, "isdir");
+	lua_pushcfunction(l, &luafuncs_isdir);
+	lua_settable(l, -3);
 
-	lua_setglobal(l, "os");
+	//throw table "os" off the stack
+	lua_pop(l, 1);
 	
 	return l;
 }
 
 static int luastate_DoFile(lua_State* l, const char* file, char** error) {
+	printf("dofile: %s\n",file);
 	lua_getglobal(l, "dofile"); //first, push function
 	lua_pushstring(l, file); //then push file name as argument
 	int ret = lua_pcall(l, 1, 0, 0); //call returned function by loadfile
@@ -185,10 +196,12 @@ static int luastate_DoFile(lua_State* l, const char* file, char** error) {
 }
 
 int luastate_DoInitialFile(const char* file, char** error) {
-	scriptstate = luastate_New();
 	if (!scriptstate) {
-		*error = strdup("Failed to initialize state");
-		return 0;
+		scriptstate = luastate_New();
+		if (!scriptstate) {
+			*error = strdup("Failed to initialize state");
+			return 0;
+		}
 	}
 	return luastate_DoFile(scriptstate, file, error);
 }
@@ -209,6 +222,7 @@ int luastate_PushFunctionArgumentToMainstate_Double(double i) {
 }
 
 int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error) {
+	printf("will look up %s\n",function);
 	//look up table components of our function name (e.g. namespace.func())
 	int tablerecursion = 0;
 	while (recursivetables && tablerecursion < 5) {
@@ -265,6 +279,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 		lua_getglobal(scriptstate, function);
 	}else{
 		//get the function from our recursive lookup
+		printf("function: %s\n",function);
 		lua_pushstring(scriptstate, function);
 		lua_gettable(scriptstate, -2);
 		//wipe out the table we got it from

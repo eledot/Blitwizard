@@ -283,7 +283,8 @@ int main(int argc, char** argv) {
 		filenamebuf = file_AddComponentToPath(script, "game.lua");
 		script = filenamebuf;
 	}
-
+	
+	printf("b\n");
 	//check if we want to change directory to the provided path:
 	if (option_changedir) {
 		char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
@@ -318,38 +319,48 @@ int main(int argc, char** argv) {
 	}
 	sdlinitialised = 1;
 
+	printf("c\n");
 	//run templates first if we can find them
 	if (file_DoesFileExist("templates/init.lua")) {
-		if (!luastate_DoInitialFile(script, &error)) {
+		if (!luastate_DoInitialFile("templates/init.lua", &error)) {
 			if (error == NULL) {
 				error = outofmem;
 			}
-			printerror("Error: An error occured when running \"templates/init.lua\": %s", script, error);
-			free(error);
+			printerror("Error: An error occured when running \"templates/init.lua\": %s", error);
+			if (error != outofmem) {
+				free(error);
+			}
 			fatalscripterror();
 			main_Quit(1);
 		}
 	}
 	
+	printf("d\n");
 	//open and run provided file
 	if (!luastate_DoInitialFile(script, &error)) {
 		if (error == NULL) {
 			error = outofmem;
 		}
 		printerror("Error: An error occured when running \"%s\": %s", script, error);
-		free(error);
+		if (error != outofmem) {
+			free(error);
+		}
 		fatalscripterror();
 		main_Quit(1);
 	}
 
+	printf("e\n");
 	//call init
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error)) {
 		printerror("Error: An error occured when calling blitwiz.on_init: %s",error);
-		free(error);
+		if (error != outofmem) {	
+			free(error);
+		}
 		fatalscripterror();
 		main_Quit(1);
 	}
 	
+	printf("f\n");
 	//when graphics or audio is open, run the main loop
 	if (graphics_AreGraphicsRunning() || audioinitialised) {
 		//Initialise audio when it isn't

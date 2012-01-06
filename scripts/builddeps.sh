@@ -85,11 +85,11 @@ cd src/sdl && make || { echo "Failed to compile SDL 1.3"; exit 1; }
 cd $dir
 
 # Avoid the overly stupid Lua build script which doesn't even adhere to $CC
-cd src/lua/ && rm -f src/liblua.a && rm -rf build/
+cd src/lua/ && rm -f src/liblua.a && rm -rf build/ || { echo "Failed to compile Lua 5"; exit 1; }
 cd $dir
-cd src/lua/ && mkdir -p build/ && cp src/*.c build/ && cp src/*.h build/
+cd src/lua/ && mkdir -p build/ && cp src/*.c build/ && cp src/*.h build/ || { echo "Failed to compile Lua 5"; exit 1; }
 cd $dir
-cd src/lua/build && rm luac.c && $CC -c -O2 *.c && $AR rcs ../src/liblua.a *.o || { echo "Failed to compile Lua 5"; exit 1; }
+cd src/lua/build && rm lua.c && $CC -c -O2 *.c && $AR rcs ../src/liblua.a *.o || { echo "Failed to compile Lua 5"; exit 1; }
 cd $dir
 
 # Wipe out the object files of blitwizard if we need to

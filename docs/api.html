@@ -183,9 +183,8 @@ Get a table of display modes which are supported for fullscreen windows.
 <p>Example:
 <div class="code">-- Print out all available screen resolutions
 local displaymodes = blitwiz.graphics.getDisplayModes()
-local i = 1
-while i <= #displaymodes do
-	print("Display mode: " .. tostring(displaymodes[i][1]) .. "x" .. tostring(displaymodes[i][2]))
+for index,displaymode in ipairs(displaymodes) do
+	print("Display mode: " .. tostring(displaymode[1]) .. "x" .. tostring(displaymode[2]))
 end
 </div>
 </p>
@@ -736,6 +735,68 @@ Parameters:
 </p>
 </li>
 
+<li><h2><a name="os.ls">os.isdir</a>(path <i>(string)</i>)</h2>
+<p>
+Check whether a given path is a directory or a folder. Throws an error if the path doesn't lead to any valid place.
+</p>
+<p>
+<b>Important:</b>
+You should use / as a cross-platform folder delimeter in blitwizard,
+NOT \ which is only safe on Windows:
+<div style="font-style:italic">Correct:</div>
+<div class="code">folder/subfolder/
+C:/testfolder/
+</div>
+<div style="font-style:italic">Wrong:</div>
+<div class="code">C:\testfolder\
+</div>
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>path <i>(string)</i> &mdash; the path to check for being a directory or not</li>
+</ul>
+</p>
+<p>
+Return value: <i>(boolean)</i> directory (true) or not (false)
+</p>
+</li>
+
+<li><h2><a name="os.ls">os.ls</a>(path <i>(string)</i>)</h2>
+<p>
+Return an array table listing the name of all items (subfolders and files) inside the given directory.
+</p>
+<p>
+<b>Important:</b>
+You should use / as a cross-platform folder delimeter in blitwizard,
+NOT \ which is only safe on Windows:
+<div style="font-style:italic">Correct:</div>
+<div class="code">folder/subfolder/
+C:/testfolder/
+</div>
+<div style="font-style:italic">Wrong:</div>
+<div class="code">C:\testfolder\
+</div>
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>path <i>(string)</i> &mdash; the path to list all the contents from</li>
+</ul>
+</p>
+<p>
+Return value: <i>(table)</i> array of directory contents
+</p>
+<p>Example:
+<div class="code">-- Print out the names of all files and directories inside the current working dir
+local files = os.ls("")
+for i,f in ipairs(files) do
+	print ("File: " .. f)
+end
+</div>
+</p>
+</li>
+
 <li><h2><a name="os.openConsole">os.openConsole</a>()</h2>
 <p>
 On a Windows platform, open a console window since blitwizard will
@@ -758,7 +819,7 @@ Return value: None
 </li>
 
 </ul>
-<a name="7string"><h1>6. <i>string</i> standard namespace extension<h1></a>
+<a name="7string"><h1>7. <i>string</i> standard namespace extension<h1></a>
 <ul>
 
 
