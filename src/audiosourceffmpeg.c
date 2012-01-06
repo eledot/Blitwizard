@@ -82,9 +82,12 @@ static AVIOContext* (*ffmpeg_avio_alloc_context)(
 	int64_t(*seek)(void *opaque, int64_t offset, int whence)
 );
 static int (*ffmpeg_av_find_stream_info)(AVFormatContext*,AVDictionary**);
-static int (*ffmpeg_av_find_best_stream)(AVFormatContext*, enum AVMediaType, int, int, AVCodec*, int);
+static int (*ffmpeg_av_find_best_stream)(AVFormatContext*, enum AVMediaType, int, int, AVCodec**, int);
 static int (*ffmpeg_avcodec_open2)(AVCodecContext*, AVCodec*, AVDictionary**);
 static int (*ffmpeg_avformat_open_input)(AVFormatContext**, const char*, AVInputFormat*, AVDictionary**);
+static int (*ffmpeg_avcodec_decode_audio3)(AVCodecContext* avctx, int16_t* samples, int* frame_size_ptr, AVPacket* avpkt);
+static int (*ffmpeg_av_read_frame)(AVFormatContext* s, AVPacket* pkt);
+static void (*ffmpeg_av_free_packet)(AVPacket *pkt);
 
 static int loadorfailstate = 0;
 static void loadorfail(void** ptr, void* lib, const char* name) {
@@ -109,6 +112,9 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
 	loadorfail((void**)(&ffmpeg_av_find_best_stream), avformatptr, "av_find_best_stream");
 	loadorfail((void**)(&ffmpeg_avcodec_open2), avcodecptr, "avcodec_open2");
 	loadorfail((void**)(&ffmpeg_avformat_open_input), avformatptr, "avformat_open_input");
+	loadorfail((void**)(&ffmpeg_avcodec_decode_audio3), avcodecptr, "avcodec_decode_audio3");
+	loadorfail((void**)(&ffmpeg_av_read_frame), avformatptr, "av_read_frame");
+	loadorfail((void**)(&ffmpeg_av_free_packet), avcodecptr, "av_free_packet");
 
 	if (loadorfailstate) {
 		return 0;
@@ -195,7 +201,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
 	}
 
 	printf("[FFmpeg] Library successfully loaded.\n");
-	
+	ffmpegopened = 1;	
 	return 1;
 }
 
@@ -246,13 +252,16 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 	if (idata->eof) {
 		return -1;
 	}	
-
+	printf("a\n");
 	if (!audiosourceffmpeg_LoadFFmpeg()) {
+		printf("b\n");
 		audiosourceffmpeg_FatalError(source);
 		return -1;
 	}
+	printf("c\n");
 
 	if (!idata->codeccontext) {
+		printf("1\n");
 		//Get format context
 		idata->formatcontext = ffmpeg_avformat_alloc_context();
 		if (!idata->formatcontext) {
@@ -273,7 +282,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		}
 		idata->formatcontext->pb = idata->iocontext;
 		idata->formatcontext->iformat = NULL;
-
+		printf("2\n");
 		//Read format
 		if (ffmpeg_avformat_open_input(&idata->formatcontext, "", NULL, NULL) != 0) {
 			audiosourceffmpeg_FatalError(source);
@@ -281,7 +290,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		}
 
 		//Find stream
-		int stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, idata->audiocodec, 0);
+		int stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, &idata->audiocodec, 0);
 		if (stream < 0) {
 			//We first need more detailed stream info
 			printf("Requiring more detailed stream info...");
@@ -289,7 +298,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 				audiosourceffmpeg_FatalError(source);
 				return -1;
 			}
-			stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, idata->audiocodec, 0);
+			stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, &idata->audiocodec, 0);
 			if (stream < 0) {
 				audiosourceffmpeg_FatalError(source);
 				return -1;
@@ -326,7 +335,17 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 	while (bytes > 0) {
 		//decode with FFmpeg
-
+		AVPacket packet;
+		while (idata->bufbytes + AVCODEC_MAX_AUDIO_FRAME_SIZE * 2 < DECODEBUFSIZE && ffmpeg_av_read_frame(idata->formatcontext, &packet) >= 0) {
+            int data_size = AVCODEC_MAX_AUDIO_FRAME_SIZE * 2;
+            int size = packet.size;
+            while (size > 0) {
+                int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t *)((char*)idata->buf + idata->bufbytes), &data_size, &packet);
+				idata->bufbytes += len;
+				size -= len;
+        	}
+			ffmpeg_av_free_packet(&packet);
+     	}
 
 		//check how much we can return
 		unsigned int returnbytes = idata->bufbytes;

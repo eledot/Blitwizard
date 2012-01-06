@@ -156,6 +156,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 	if (!idata->vorbisopened) {
 		if (!audiosourceogg_InitOgg(source)) {
 			idata->eof = 1;
+			idata->returnerroroneof = 1;
 			source->samplerate = -1;
 			source->channels = -1;
 			return -1;
@@ -166,6 +167,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 		if (source->samplerate != 48000 && source->samplerate != 44100 && source->samplerate != 22050) {
 			//incompatible sample rate
 			idata->eof = 1;
+			idata->returnerroroneof = 1;
 			source->samplerate = -1;
 			source->channels = -1;
 			ov_clear(&idata->vorbisfile);
@@ -174,6 +176,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 		if (source->channels < 1 || source->channels > 2) {
 			//incompatible channel count
 			idata->eof = 1;
+			idata->returnerroroneof = 1;
 			source->samplerate = -1;
 			source->channels = -1;
 			ov_clear(&idata->vorbisfile);
