@@ -31,3 +31,15 @@ browser and see how the examples changed!
 Please check out docs/api.html for a complete documentation of the
 provided functionality of blitwizard for advanced usage.
 
+To start your own game project, copy all contents of the folder where
+this README.txt is inside into a new empty folder named after your game
+(e.g. a folder named "mygame"), then add a new game.lua into your new
+game folder (you can write it with any text editor, e.g. Notepad) and
+simply double-click "Run-Blitwizard.bat" inside your game folder to
+run it.
+(On Windows, for other systems simply run the appropriate blitwizard
+binary from the bin folder).
+
+To ship your game project with just the required files, check out
+Ship-your-game.txt.
+

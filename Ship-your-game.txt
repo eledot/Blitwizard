@@ -6,8 +6,9 @@ blitwizard binary (e.g. the windows .exe) and the templates folder.
 So all you need to ship is:
 
  - blitwizard.exe or/and other platform's blitwizard binary
+   (you can find it inside the bin/ folder, obtain it from there)
  - templates/ folder (all contents)
- - game.lua from your game and other files of your game (images etc)
+ - game.lua from your own game and other files of your game (images etc)
  - README-libs.txt for licensing (see NOTE below)
 
 If you ship more, in particularly FFmpeg, read the FFmpeg section below.

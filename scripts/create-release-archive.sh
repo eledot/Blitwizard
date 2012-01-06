@@ -6,9 +6,6 @@ CC="gcc"
 #Set the cross compilation toolchain name here
 CROSSCCHOST="i686-pc-mingw32"
 
-
-
-
 if [ -z "$1" ]; then
     echo "You need to specify a release name, e.g. 1.0."
     exit
@@ -73,11 +70,15 @@ mkdir ./blitwizard-bin || { echo "Failed to create blitwizard-bin directory."; e
 cd blitwizard-bin
 mkdir bin
 cp -R ../blitwizard/bin/samplebrowser ./bin/samplebrowser
+cp -R ../blitwizard/templates ./templates
 cp ../blitwizard/bin/game.lua ./bin/game.lua
 cp ../blitwizard/bin/blitwizard* ./bin
 cp ../blitwizard/README-libs.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
+if [ -e "./bin/blitwizard.exe" ]; then
+	cp ../blitwizard/Run-Blitwizard.bat ./
+fi
 
 # detect todos or unix2dos
 UNIXTODOS="unix2dos"
