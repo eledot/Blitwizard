@@ -240,7 +240,8 @@ void graphics_DrawRectangle(int x, int y, int width, int height, float r, float 
 	rect.y = y;
 	rect.w = width;
 	rect.h = height;
-	
+
+	SDL_SetRenderDrawBlendMode(mainrenderer, SDL_BLENDMODE_BLEND);	
 	SDL_RenderFillRect(mainrenderer, &rect);
 }
 
