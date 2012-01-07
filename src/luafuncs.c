@@ -621,9 +621,7 @@ int luafuncs_adjust(lua_State* l) {
 }
 
 int luafuncs_play(lua_State* l) {
-	printf("stack: %d\n", lua_gettop(l));
 	main_InitAudio();
-	printf("stack2: %d\n", lua_gettop(l));
 	const char* p = lua_tostring(l, 1);
 	if (!p) {
 		lua_pushstring(l, "First parameter is not a valid sound name string");
