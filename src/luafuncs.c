@@ -68,25 +68,29 @@ int luafuncs_loadfile(lua_State* l) {
 }
 
 int luafuncs_dofile(lua_State* l) {
+	//obtain function name argument
 	const char* p = lua_tostring(l,1);
 	if (!p) {
 		lua_pushstring(l,"First argument is not a file name string");
 		return lua_error(l);
 	}
+
+	//pop all additional arguments we might have received
 	int i = lua_gettop(l);
 	while (i > 1) {
 		lua_pop(l,1);
 		i--;
 	}
+
+	//load function and call it
 	lua_getglobal(l, "loadfile"); //first, push function
-	lua_pushvalue(l, 1); //then push file name as argument
+	lua_pushvalue(l, 1); //then push given file name as argument
 	lua_call(l, 1, 1); //call loadfile
-	int previouscount = lua_gettop(l)-1; //minus the function on the stack which lua_pcall() removes
-	int ret = lua_pcall(l, 0, LUA_MULTRET, 0); //call returned function by loadfile
-	if (ret != 0) {
-		return lua_error(l);
-	}
-	return lua_gettop(l)-previouscount;
+	int previoustop = lua_gettop(l)-1; //minus the function on the stack which lua_pcall() removes
+	lua_call(l, 0, LUA_MULTRET); //call returned function by loadfile
+	
+	//return all values the function has left for us on the stack
+	return lua_gettop(l)-previoustop;
 }
 
 int luafuncs_exists(lua_State* l) {

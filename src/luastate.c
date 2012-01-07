@@ -126,12 +126,52 @@ int luastate_GetWantFFmpeg() {
 	return 1;
 }
 
+static int gettraceback(lua_State* l) {
+	char errormsg[2048] = "";
+	const char* p = lua_tostring(l, -1);
+	if (p) {
+		unsigned int i = strlen(p);
+		if (i >= sizeof(errormsg)) {i = sizeof(errormsg)-1;}
+		memcpy(errormsg, p, i);
+		errormsg[i] = 0;
+	}
+	lua_pop(l, 1);
+
+	if (strlen(errormsg) + strlen("\n") < sizeof(errormsg)) {
+		strcat(errormsg,"\n");
+	}
+
+	lua_pushstring(l, "debug_traceback_preserved");
+	lua_gettable(l, LUA_REGISTRYINDEX);
+	lua_call(l, 0, 1);
+
+	p = lua_tostring(l, -1);
+	if (p) {
+		if (strlen(errormsg) + strlen(p) < sizeof(errormsg)) {
+			strcat(errormsg, p);
+		}
+	}
+
+	lua_pushstring(l, errormsg);
+	return 1;
+}
+
+
 static lua_State* luastate_New() {
 	lua_State* l = luaL_newstate();
 	
 	//standard libs
 	lua_pushcfunction(l, &luastate_AddStdFuncs);
 	lua_pcall(l, 0, 0, 0);
+
+	//preserve debug.traceback in the registry for our own use
+	lua_getglobal(l, "debug");
+	lua_pushstring(l, "traceback");
+	lua_gettable(l, -2);
+	lua_pushstring(l, "debug_traceback_preserved");
+	lua_insert(l, -2);
+	lua_settable(l, LUA_REGISTRYINDEX);
+	lua_pop(l, 1);
 	
 	//own dofile/loadfile	
 	lua_pushcfunction(l, &luafuncs_loadfile);
@@ -195,9 +235,10 @@ static lua_State* luastate_New() {
 }
 
 static int luastate_DoFile(lua_State* l, const char* file, char** error) {
+	lua_pushcfunction(l, &gettraceback);
 	lua_getglobal(l, "dofile"); //first, push function
 	lua_pushstring(l, file); //then push file name as argument
-	int ret = lua_pcall(l, 1, 0, 0); //call returned function by loadfile
+	int ret = lua_pcall(l, 1, 0, -3); //call returned function by loadfile
 	if (ret != 0) {
 		const char* e = lua_tostring(l,-1);
 		*error = NULL;
@@ -236,6 +277,9 @@ int luastate_PushFunctionArgumentToMainstate_Double(double i) {
 }
 
 int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error) {
+	//push error function
+	lua_pushcfunction(scriptstate, &gettraceback);
+
 	//look up table components of our function name (e.g. namespace.func())
 	int tablerecursion = 0;
 	while (recursivetables && tablerecursion < 5) {
@@ -249,6 +293,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 				if (!fp) {
 					*error = NULL;
 					//clean up stack again:
+					lua_pop(scriptstate, 1); //error func
 					lua_pop(scriptstate, args);
 					if (recursivetables > 0) {
 						//clean up recursive table left on stack
@@ -302,11 +347,12 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 	//quit sanely if function is nil and we allowed this
 	if (allownil && lua_type(scriptstate, -1) == LUA_TNIL) {
 		//clean up stack again:
+		lua_pop(scriptstate, 1); //error func
 		lua_pop(scriptstate, args);
 		if (recursivetables > 0) {
 			//clean up recursive origin table left on stack
 			lua_pop(scriptstate, 1);
-  	        }
+  	    }
 		return 1;
 	}
 	
@@ -316,7 +362,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
     }
 
 	//call function
-	int i = lua_pcall(scriptstate, args, 0, 0);
+	int i = lua_pcall(scriptstate, args, 0, -(args+2));
 	if (i != 0) {
 		if (i == LUA_ERRRUN) {
 			const char* e = lua_tostring(scriptstate, -1);
