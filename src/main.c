@@ -105,7 +105,7 @@ void main_InitAudio() {
     char* error;
 
 	//get audio backend
-	const char* p = luastate_GetPreferredAudioBackend();
+	char* p = luastate_GetPreferredAudioBackend();
 
 	//load FFmpeg if we happen to want it
 	if (luastate_GetWantFFmpeg()) {
@@ -130,6 +130,9 @@ void main_InitAudio() {
 			s16mixmode = 0;
 		}
     }
+	if (p) {
+		free(p);
+	}
 }
 
 

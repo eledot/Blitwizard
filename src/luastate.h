@@ -27,7 +27,7 @@ int luastate_DoInitialFile(const char* file, char** error);
 
 //Misc:
 
-const char* luastate_GetPreferredAudioBackend();
+char* luastate_GetPreferredAudioBackend();
 int luastate_GetWantFFmpeg();
 
 

@@ -621,8 +621,10 @@ int luafuncs_adjust(lua_State* l) {
 }
 
 int luafuncs_play(lua_State* l) {
+	printf("stack: %d\n", lua_gettop(l));
 	main_InitAudio();
-	const char* p = lua_tostring(l,1);
+	printf("stack2: %d\n", lua_gettop(l));
+	const char* p = lua_tostring(l, 1);
 	if (!p) {
 		lua_pushstring(l, "First parameter is not a valid sound name string");
 		return lua_error(l);
@@ -642,7 +644,8 @@ int luafuncs_play(lua_State* l) {
 		if (volume > 1) {volume = 1;}
 	}
 	if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
-		if (lua_type(l,3) != LUA_TNUMBER) {
+		printf("Type: %d\n", lua_type(l, 3));
+		if (lua_type(l, 3) != LUA_TNUMBER) {
 			lua_pushstring(l, "Third parameter is not a valid panning number");
 			return lua_error(l);
 		}

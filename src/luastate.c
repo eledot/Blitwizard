@@ -108,16 +108,22 @@ static int luastate_AddStdFuncs(lua_State* l) {
 	return 0;
 }
 
-const char* luastate_GetPreferredAudioBackend() {
+char* luastate_GetPreferredAudioBackend() {
 	lua_getglobal(scriptstate, "audiobackend");
 	const char* p = lua_tostring(scriptstate, -1);
-	return p;
+	char* s = NULL;
+	if (p) {
+		s = strdup(p);
+	}
+	lua_pop(scriptstate, 1);
+	return s;
 }
 
 int luastate_GetWantFFmpeg() {
 	lua_getglobal(scriptstate, "useffmpegaudio");
 	if (lua_type(scriptstate, -1) == LUA_TBOOLEAN) {
 		int i = lua_toboolean(scriptstate, -1);
+		lua_pop(scriptstate, 1);
 		if (i) {
 			return 1;
 		}
