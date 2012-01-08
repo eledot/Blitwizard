@@ -285,7 +285,12 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	SDL_Point p;
 	p.x = (int)((double)rotationcenterx * ((double)drawwidth / src.w));
 	p.y = (int)((double)rotationcentery * ((double)drawheight / src.h));
-	SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
+	if (strcasecmp(graphics_GetCurrentRendererName(), "software") == 0) {
+		//FIXME: render with no rotation for now
+		SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
+	}else{
+		SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
+	}
 	return 1;
 }
 
@@ -690,15 +695,20 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	int rendererindex = -1;
 	if (strlen(preferredrenderer) > 0 && !softwarerendering) {
 		int count = SDL_GetNumRenderDrivers();
-		int r = 0;
-		while (r < count) {
-			SDL_RendererInfo info;
-			SDL_GetRenderDriverInfo(r, &info);
-			if (strcasecmp(info.name, preferredrenderer) == 0) {
-				rendererindex = r;
-				break;
+		if (count > 0) {
+			int r = 0;
+			while (r < count) {
+				SDL_RendererInfo info;
+				SDL_GetRenderDriverInfo(r, &info);
+				if (strcasecmp(info.name, preferredrenderer) == 0) {
+					rendererindex = r;
+					break;
+				}
+				r++;
 			}
-			r++;
+		}else{
+			softwarerendering = 1;
+			strcpy(preferredrenderer, "software");
 		}
 	}
 
