@@ -11,7 +11,7 @@ print("Scaling/rotation example in blitwizard")
 
 function blitwiz.on_init()
 	-- Open a window
-	blitwiz.graphics.setWindow(640,480,"Scaling", false)
+	blitwiz.graphics.setWindow(640, 480, "Scaling/Rotating", false)
 
 	print("We are scaling using the renderer: " .. blitwiz.graphics.getRendererName())	
 
@@ -42,7 +42,7 @@ end
 
 function blitwiz.on_step()
 	-- Slowly scale up the image on each step
-	scalefactor = scalefactor + 0.0002
+	scalefactor = scalefactor + 0.0003
 	rotation = rotation + 0.5
 	if rotation > 360 then
 		print "Rotated one full circle"
