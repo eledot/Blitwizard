@@ -32,7 +32,7 @@ blitwizard 2d engine - source code file
 
 ]]
 
-examples = { "01.helloworld", "02.simplecar", "03.sound", "04.simplecar.async", "05.scale" }
+examples = { "01.helloworld", "02.simplecar", "03.sound", "04.simplecar.async", "05.scalerotate" }
 
 yoffset = 150
 yspacing = 5

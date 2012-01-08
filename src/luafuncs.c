@@ -466,7 +466,7 @@ int luafuncs_drawImage(lua_State* l) {
 		rotationcentery = imgh/2;
 	}
 	//get supplied rotation info
-	if (lua_gettop(l) >= 11 & lua_type(l, 11) != LUA_TNIL) {
+	if (lua_gettop(l) >= 11 && lua_type(l, 11) != LUA_TNIL) {
 		if (lua_type(l, 11) != LUA_TNUMBER) {
 			lua_pushstring(l, "Eleventh parameter is not a valid rotation angle number");
 			return lua_error(l);
