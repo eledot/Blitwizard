@@ -29,6 +29,7 @@ int luastate_DoInitialFile(const char* file, char** error);
 
 char* luastate_GetPreferredAudioBackend();
 int luastate_GetWantFFmpeg();
+void luastate_PrintStackDebug();
 
 
 //Call functions:

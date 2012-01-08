@@ -235,7 +235,6 @@ void graphics_DrawRectangle(int x, int y, int width, int height, float r, float 
 	SDL_SetRenderDrawColor(mainrenderer, (int)((float)r * 255.0f),
 	(int)((float)g * 255.0f), (int)((float)b * 255.0f), (int)((float)a * 255.0f));
 	SDL_Rect rect;
-	memset(&rect, 0, sizeof(rect));
 	rect.x = x;
 	rect.y = y;
 	rect.w = width;

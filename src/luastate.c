@@ -35,6 +35,66 @@
 
 static lua_State* scriptstate = NULL;
 
+void luastate_PrintStackDebug() {
+	//print the contents of the Lua stack
+	printf("Debug stack:\n");
+	int m = lua_gettop(scriptstate);
+	int i = 1;
+	while (i <= m) {
+		printf("%d (", i);
+		switch (lua_type(scriptstate, i)) {
+			case LUA_TNIL:
+				printf("nil");
+				break;
+			case LUA_TSTRING:
+				printf("string");
+				break;
+			case LUA_TNUMBER:
+				printf("number");
+				break;
+			case LUA_TBOOLEAN:
+				printf("boolean");
+				break;
+			case LUA_TUSERDATA:
+				printf("userdata");
+				break;
+			case LUA_TFUNCTION:
+				printf("function");
+				break;
+			default:
+				printf("unknown");
+				break;
+		}
+		printf("): ");
+		switch (lua_type(scriptstate, i)) {
+			case LUA_TNIL:
+				printf("nil");
+				break;
+			case LUA_TSTRING:
+				printf("\"%s\"", lua_tostring(scriptstate, i));
+				break;
+			case LUA_TNUMBER:
+				printf("%f", lua_tonumber(scriptstate, i));
+				break;
+			case LUA_TBOOLEAN:
+				if (lua_toboolean(scriptstate, i)) {
+					printf("true");
+				}else{
+					printf("false");
+				}
+				break;
+			case LUA_TUSERDATA:
+				printf("0x%x", (unsigned int)lua_touserdata(scriptstate, i));
+				break;
+			case LUA_TFUNCTION:
+				printf("<function>");
+				break;
+		}
+		printf("\n");
+		i++;
+	}
+}
+
 static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_newtable(l);
 	lua_pushstring(l, "getRendererName");
@@ -241,19 +301,29 @@ static lua_State* luastate_New() {
 }
 
 static int luastate_DoFile(lua_State* l, const char* file, char** error) {
+	int previoustop = lua_gettop(l);
 	lua_pushcfunction(l, &gettraceback);
 	lua_getglobal(l, "dofile"); //first, push function
 	lua_pushstring(l, file); //then push file name as argument
 	int ret = lua_pcall(l, 1, 0, -3); //call returned function by loadfile
+
+	int returnvalue = 1;
+	//process errors
 	if (ret != 0) {
 		const char* e = lua_tostring(l,-1);
 		*error = NULL;
 		if (e) {
 			*error = strdup(e);
 		}
-		return 0;
+		returnvalue = 0;
 	}
-	return 1;
+
+	//clean up stack
+	if (lua_gettop(scriptstate) > previoustop) {
+        lua_pop(scriptstate, lua_gettop(scriptstate) - previoustop);
+    }
+
+	return returnvalue;
 }
 
 int luastate_DoInitialFile(const char* file, char** error) {
@@ -268,16 +338,19 @@ int luastate_DoInitialFile(const char* file, char** error) {
 }
 
 int luastate_PushFunctionArgumentToMainstate_Bool(int yesno) {
+	printf("pushing boolean %d\n",yesno);
 	lua_pushboolean(scriptstate, yesno);
 	return 1;
 }
 
 int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
+	printf("pushing string %s\n",string);
 	lua_pushstring(scriptstate, string);
 	return 1;
 }
 
 int luastate_PushFunctionArgumentToMainstate_Double(double i) {
+	printf("pushing double %f\n",i);
 	lua_pushnumber(scriptstate, i);
 	return 1;
 }
@@ -285,6 +358,9 @@ int luastate_PushFunctionArgumentToMainstate_Double(double i) {
 int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error) {
 	//push error function
 	lua_pushcfunction(scriptstate, &gettraceback);
+	if (args > 0) {
+		lua_insert(scriptstate, -(args+1));
+	}
 
 	//look up table components of our function name (e.g. namespace.func())
 	int tablerecursion = 0;
@@ -361,29 +437,41 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
   	    }
 		return 1;
 	}
-	
+
 	//function needs to be first, then arguments. -> correct order
 	if (args > 0) {
         lua_insert(scriptstate, -(args+1));
     }
 
+	int previoustop = lua_gettop(scriptstate)-(args+2); // 2 = 1 (error func) + 1 (called func)
+
 	//call function
 	int i = lua_pcall(scriptstate, args, 0, -(args+2));
+
+	//process errors
+	int returnvalue = 1;	
 	if (i != 0) {
-		if (i == LUA_ERRRUN) {
+		*error = NULL;
+		if (i == LUA_ERRRUN || i == LUA_ERRERR) {
 			const char* e = lua_tostring(scriptstate, -1);
 			*error = NULL;
 			if (e) {
 				*error = strdup(e);
 			}
-			return 0;
+		}else{
+			if (i == LUA_ERRMEM) {
+				*error = strdup("Out of memory");
+			}else{
+				*error = strdup("Unknown error");
+			}
 		}
-		if (i == LUA_ERRMEM) {
-			*error = strdup("Out of memory");
-			return 0;
-		}
-		*error = strdup("Unknown error");
-		return 0;
+		returnvalue = 0;
 	}
-	return 1;
+
+	//clean up stack
+	if (lua_gettop(scriptstate) > previoustop) {
+        lua_pop(scriptstate, lua_gettop(scriptstate) - previoustop);
+    }
+
+	return returnvalue;
 }
