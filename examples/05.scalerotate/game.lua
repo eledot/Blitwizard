@@ -11,7 +11,7 @@ print("Scaling/rotation example in blitwizard")
 
 function blitwiz.on_init()
 	-- Open a window
-	blitwiz.graphics.setWindow(640, 480, "Scaling/Rotating", false)
+	blitwiz.graphics.setWindow(640, 480, "Scaling/Rotating", false, "software")
 
 	print("We are scaling using the renderer: " .. blitwiz.graphics.getRendererName())	
 

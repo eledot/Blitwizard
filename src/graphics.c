@@ -41,7 +41,6 @@
 static SDL_Window* mainwindow;
 static int mainwindowfullscreen;
 static SDL_Renderer* mainrenderer;
-static int softwarerendering = 0;
 static int sdlvideoinit = 0;
 static int graphicsvisible = 0;
 
@@ -660,34 +659,34 @@ HWND graphics_GetWindowHWND() {
 
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
 	char errormsg[512];
+
 	//initialize SDL video if not done yet
 	if (!graphics_InitVideoSubsystem(error)) {return 0;}
+
 	//think about the renderer we want
 #ifndef WIN
 	char preferredrenderer[20] = "opengl";
 #else
 	char preferredrenderer[20] = "direct3d";
 #endif
-	int preferredset = 0;
-	softwarerendering = 0;
+	int softwarerendering = 0;
 	if (renderer) {
 		if (strcasecmp(renderer, "software") == 0) {
-			preferredset = 1;
 			softwarerendering = 1;
+			strcpy(preferredrenderer, "software");
 		}else{
 			if (strcasecmp(renderer, "opengl") == 0) {
-				preferredset = 1;
 				strcpy(preferredrenderer, "opengl");
 			}
 #ifdef WIN
 			if (strcasecmp(renderer,"direct3d") == 0) {
-				preferredset = 1;
 				strcpy(preferredrenderer, "direct3d");
 			}
 #endif
 		}
 	}
-	//get renderer index
+	
+    //get renderer index
 	int rendererindex = -1;
 	if (strlen(preferredrenderer) > 0 && !softwarerendering) {
 		int count = SDL_GetNumRenderDrivers();
@@ -702,6 +701,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 			r++;
 		}
 	}
+
 	//see if anything changes at all
 	unsigned int oldw = 0;
 	unsigned int oldh = 0;
@@ -709,7 +709,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	if (mainwindow && mainrenderer && width == (int)oldw && height == (int)oldh) {
 		SDL_RendererInfo info;
         SDL_GetRendererInfo(mainrenderer, &info);
-		if (!preferredset || strcasecmp(preferredrenderer, info.name) == 0) {
+		if (strcasecmp(preferredrenderer, info.name) == 0) {
 			//same renderer and resolution
 			if (strcmp(SDL_GetWindowTitle(mainwindow), title) != 0) {
 				SDL_SetWindowTitle(mainwindow, title);
@@ -721,6 +721,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 			return 1;
 		}
 	}
+	
 	//Check if we support the video mode for fullscreen -
 	//  This is done to avoid SDL allowing impossible modes and
 	//  giving us a fake resized/padded/whatever output we don't want.
@@ -739,10 +740,13 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		}
 		if (!supportedmode) {return 0;}
 	}
+	
 	//preserve textures by managing them on our own for now
 	graphics_TransferTexturesFromSDL();
+	
 	//destroy old window/renderer if we got one
 	graphics_Close(1);
+	
 	//create window
 	if (fullscreen) {
 		mainwindow = SDL_CreateWindow(title, 0,0, width, height, SDL_WINDOW_FULLSCREEN);
@@ -757,6 +761,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		*error = strdup(errormsg);
 		return 0;
 	}
+	
 	//Create renderer
 	if (!softwarerendering) {
 		mainrenderer = SDL_CreateRenderer(mainwindow, rendererindex, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
@@ -782,6 +787,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		SDL_RendererInfo info;
 		SDL_GetRendererInfo(mainrenderer, &info);
 	}
+	
 	//Transfer textures back to SDL
 	if (!graphics_TransferTexturesToSDL()) {
 		SDL_RendererInfo info;
