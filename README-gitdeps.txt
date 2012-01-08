@@ -26,6 +26,7 @@ That file contains:
     libogg 1.3.0
     libvorbis 1.3.2
     Lua 5.1.4 with patch-lua-5.1.4-4
+    Box2D xxx
 
 WARNING: Those versions might be outdated and contain bugs! Please
 always check if there are newer versions available, and consider
@@ -58,14 +59,19 @@ Alternatively, get them yourself in hand-picked, current versions:
     src/imgloader/zlib
    see http://zlib.net/
 
+ - drop the contents of a source tarball of a recent Box2D release into
+    src/box2d
+   see http://box2d.org/
+
 A source tarball is simply an archive that contains a folder with all
 the source code of the product in it. If you get your tarball as .tar.gz
 or .tar.bz2 (instead of .zip) and you are on Microsoft Windows, get
-http://www.7-zip.org/ which can extract those.
+the archiver http://www.7-zip.org/ which can extract those.
 
-Please note you should NOT drop the whole main folder itself
+Please note you should NOT drop the whole main folder inside
 of a tarball into the directories, but just what the main folder
-*contains*.
+*contains* (so enter the main folder in your archiver, then
+mark all the things inside, and extract those).
 
 You should get a verbose error later if you did this
 part wrong - so if you get errors about a "MISSING DEPENDENCY"
