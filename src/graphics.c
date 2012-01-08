@@ -706,9 +706,6 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 				}
 				r++;
 			}
-		}else{
-			softwarerendering = 1;
-			strcpy(preferredrenderer, "software");
 		}
 	}
 
@@ -775,7 +772,12 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	//Create renderer
 	if (!softwarerendering) {
 		mainrenderer = SDL_CreateRenderer(mainwindow, rendererindex, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
-	}else{
+		if (!mainrenderer) {
+			softwarerendering = 1;
+			strcpy(preferredrenderer, "software");
+		}
+	}
+	if (softwarerendering) {
 		mainrenderer = SDL_CreateRenderer(mainwindow, -1, SDL_RENDERER_SOFTWARE);
 	}
 	if (!mainrenderer) {

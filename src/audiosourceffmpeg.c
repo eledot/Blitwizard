@@ -324,7 +324,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		//Get codec context
 		idata->codeccontext = idata->formatcontext->streams[stream]->codec;
 
-		//Find best codec, we don't trust av_find_bet_stream on this for now
+		//Find best codec, we don't trust av_find_best_stream on this for now
 		idata->audiocodec = ffmpeg_avcodec_find_decoder(idata->codeccontext->codec_id);
 		if (!idata->audiocodec) {
 			//Format is recognised, but codec unsupported

@@ -43,8 +43,11 @@ if [ ! -f src/ogg/src/framing.c ]; then
 	exit 1;
 fi
 if [ ! -f src/lua/src/lua.h ]; then
-	echo "MISSING DEPENDENCY: Please extract the contents of a recent Lua 5 tarball into src/lua/ - or read README.txt";
+	echo "MISSING DEPENDENCY: Please extract the contents of a recent Lua 5.2 tarball into src/lua/ - or read README.txt";
 	exit 1;
+fi
+if [ ! -f src/box2d/Box2D/Box2D.h ]; then
+	echo "MISSING DEPENDENCY: Please extract the contents of a recent Box2D tarball into src/box2d/ - or read README.txt";
 fi
 
 export CC="$CC"
@@ -67,6 +70,24 @@ if [ "$MACBUILD" != "yes" ]; then
 	cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
 else
 	cd src/vorbis && ./configure --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+fi
+cd $dir
+
+# Build box2d
+box2dpremake="no"
+cd $dir
+{ cd src/box2d && cmake -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPES=OFF -DCMAKE_BUILD_TYPE=Release . } || {
+	cd $dir
+	src/box2d && premake4 gmake || {echo "Failed to configure box2d"; exit 1; }
+	box2dpremake="yes"
+}
+cd $dir
+if [ box2dpremake="yes" ]; then
+	echo "Doing Box2D build (premake configured)"
+	cd src/box2d && make config="release" || { echo "Failed to build box2d"; exit 1; }
+else
+	echo "Doing Box2D build (cmake configured)"
+    cd src/box2d && make || { echo "Failed to build box2d"; exit 1; }
 fi
 cd $dir
 
@@ -106,6 +127,7 @@ cp src/imgloader/libimglib.a libs/
 cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
 cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
 cp src/lua/src/liblua.a libs/libblitwizardlua.a
+cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a
 
 # Remember for which target we built
 echo "$luatarget" > scripts/.depsarebuilt
