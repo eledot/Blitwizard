@@ -42,7 +42,7 @@ end
 
 function blitwiz.on_step()
 	-- Slowly scale up the image on each step
-	scalefactor = scalefactor + 0.0005
+	scalefactor = scalefactor + 0.0002
 	rotation = rotation + 0.5
 	if rotation > 360 then
 		print "Rotated one full circle"
