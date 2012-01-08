@@ -338,19 +338,16 @@ int luastate_DoInitialFile(const char* file, char** error) {
 }
 
 int luastate_PushFunctionArgumentToMainstate_Bool(int yesno) {
-	printf("pushing boolean %d\n",yesno);
 	lua_pushboolean(scriptstate, yesno);
 	return 1;
 }
 
 int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
-	printf("pushing string %s\n",string);
 	lua_pushstring(scriptstate, string);
 	return 1;
 }
 
 int luastate_PushFunctionArgumentToMainstate_Double(double i) {
-	printf("pushing double %f\n",i);
 	lua_pushnumber(scriptstate, i);
 	return 1;
 }
