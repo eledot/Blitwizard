@@ -283,7 +283,6 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
 		fprintf(stderr,"Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
 	}
-	SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
 	SDL_Point p;
 	p.x = (int)((double)rotationcenterx * ((double)drawwidth / src.w));
 	p.y = (int)((double)rotationcentery * ((double)drawheight / src.h));
