@@ -455,6 +455,39 @@ int luafuncs_drawImage(lua_State* l) {
         scaley = lua_tonumber(l, 10);
     }
 
+	//obtain rotation parameters
+	double rotationangle = 0;
+	int rotationcenterx = 0;
+	int rotationcentery = 0;
+	//make rotation center default to image center
+	unsigned int imgw,imgh;
+	if (graphics_GetTextureDimensions(p, &imgw, &imgh)) {
+		rotationcenterx = imgw/2;
+		rotationcentery = imgh/2;
+	}
+	//get supplied rotation info
+	if (lua_gettop(l) >= 11 & lua_type(l, 11) != LUA_TNIL) {
+		if (lua_type(l, 11) != LUA_TNUMBER) {
+			lua_pushstring(l, "Eleventh parameter is not a valid rotation angle number");
+			return lua_error(l);
+		}
+		rotationangle = lua_tonumber(l, 11);
+	}
+	if (lua_gettop(l) >= 12 && lua_type(l, 12) != LUA_TNIL) {
+		if (lua_type(l, 12) != LUA_TNUMBER) {
+			lua_pushstring(l, "Twelfth parameter is not a valid rotation center x position number");
+			return lua_error(l);
+		}
+		rotationcenterx = (int)(lua_tonumber(l, 12) + 0.5f);
+	}
+	if (lua_gettop(l) >= 13 && lua_type(l, 13) != LUA_TNIL) {
+        if (lua_type(l, 13) != LUA_TNUMBER) {
+            lua_pushstring(l, "Thirteenth parameter is not a valid rotation center y position number");
+            return lua_error(l);
+        }
+        rotationcentery = (int)(lua_tonumber(l, 13) + 0.5f);
+    }
+
 	//process negative cut positions and adjust output position accordingly
 	if (cutx < 0) {
 		if (cutwidth > 0) { //decrease draw width accordingly
@@ -503,7 +536,7 @@ int luafuncs_drawImage(lua_State* l) {
 	unsigned int drawheight = (unsigned int)((float)(imgdrawh) * scaley + 0.5f);
 
 	//draw:
-	if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight)) {
+	if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle)) {
 		luafuncs_pushnosuchtex(l, p);
 		return lua_error(l);
 	}

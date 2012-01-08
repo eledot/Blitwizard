@@ -244,7 +244,7 @@ void graphics_DrawRectangle(int x, int y, int width, int height, float r, float 
 	SDL_RenderFillRect(mainrenderer, &rect);
 }
 
-int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight) {
+int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle) {
 	struct graphicstexture* gt = graphics_GetTextureByName(texname);
 	if (!gt || gt->threadingptr || !gt->tex) {
 		return 0;
@@ -279,17 +279,20 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	}
 	
 	//render
-	//SDL_SetRenderDrawColor(mainrenderer, 255, 255, 255, 255);
 	int i = (int)((float)255.0f * alpha);
 	if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
 		fprintf(stderr,"Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
 	}
 	SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
+	SDL_Point p;
+	p.x = rotationcenterx;
+	p.y = rotationcentery;
+	SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
 	return 1;
 }
 
-int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight) {
-	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0, drawwidth, drawheight);
+int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle) {
+	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle);
 }
 
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {

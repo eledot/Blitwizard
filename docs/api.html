@@ -99,7 +99,7 @@ functions.</p>
 <a name="3blitwiz.graphics"><h1>3. <i>blitwiz.graphics</i> namespace</h1></a>
 <ul>
 
-<li><h2><a name="blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>(filename <i>(string)</i>, x position <i>(number)</i>, y position <i>(number)</i>, alpha <i>(number)</i>, cutx <i>(number)</i>, cuty <i>(number)</i>, cutwidth <i>(number)</i>, cutheight <i>(number)</i>, scalex <i>(number)</i>, scaley <i>(number)</i>)</h2>
+<li><h2><a name="blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>(filename <i>(string)</i>, x position <i>(number)</i>, y position <i>(number)</i>, alpha <i>(number)</i>, x cut <i>(number)</i>, y cut <i>(number)</i>, width cut <i>(number)</i>, height cut <i>(number)</i>, x scale <i>(number)</i>, y scale <i>(number)</i>, rotation angle <i>(number)</i>, rotation center x position <i>(number)</i>, rotation center y position <i>(number)</i>)</h2>
 <p>
 Draw a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#blitwiz.on_image">on_image</a>).
 Throws an error if the image isn't fully loaded.
@@ -112,12 +112,15 @@ Parameters:
 <li>x position <i>(number)</i> &mdash; horizontal position in pixels (0 is left, positive goes right) on the screen, negative coordinates are also allowed (image will be blitted partly or fully moved out of the screen)</li>
 <li>y position <i>(number)</i> &mdash; vertical position in pixels (0 is top, positive goes downwards) on the screen, negative coordinates possible (see above)</li>
 <li>alpha <i>(number, optional)</i> &mdash; alpha transparency in the range 0..1, with 0 being completely invisible and 1 fully opaque. Default is 1</li>
-<li>cutx <i>(number, optional)</i> &mdash; cut off the given amount of pixels from the left border of the image before drawing it. Use this to draw only a smaller part of an image. Default is 0 (no cutoff)</li>
-<li>cuty <i>(number, optional)</i> &mdash; cut off the given amount of pixels from the top border of the image before drawing it. Default is 0 (no cutoff)</li>
-<li>cutwidth <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum width before drawing it. Default is infinite (no cutoff)</li>
-<li>cutheight <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum height before drawing it. Default is infinite (no cutoff)</li>
-<li>scalex <i>(number, optional)</i> &mdash; scale the final resulting image or image part (after cut was applied) horizontally by the given factor. Default is 1 (normal horizontal size)</li>
-<li>scaley <i>(number, optional)</i> &mdash; scale the final resulting image or image part vertically by the given factor. Default is 1 (normal vertical size)</li>
+<li>x cut <i>(number, optional)</i> &mdash; cut off the given amount of pixels from the left border of the image before drawing it. Use this to draw only a smaller part of an image. Default is 0 (no cutoff)</li>
+<li>y cut <i>(number, optional)</i> &mdash; cut off the given amount of pixels from the top border of the image before drawing it. Default is 0 (no cutoff)</li>
+<li>width cut <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum width before drawing it. Default is infinite (no cutoff)</li>
+<li>height cut <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum height before drawing it. Default is infinite (no cutoff)</li>
+<li>x scale <i>(number, optional)</i> &mdash; scale the final resulting image or image part (after cut was applied) horizontally by the given factor. Default is 1 (normal horizontal size)</li>
+<li>y scale <i>(number, optional)</i> &mdash; scale the final resulting image or image part vertically by the given factor. Default is 1 (normal vertical size)</li>
+<li>rotation angle <i>(number, optional)</i> &mdash; rotate the image (after applying cutting) around the given rotation angle in degree. 0 means not rotated, 90 means rotated 90&eg; counter-clockwise around the center, -90 clockwise around the center, etc. Default is 0 (no rotation)</li>
+<li>rotation center x position <i>(number, optional)</i> &mdash; the center point around which the image should be rotated. 0 is the left border of the image, positive values go to the right. Scaling is ignored for this (the image is rotated first, then scaled up). Default is image center (image width / 2)</li>
+<li>rotation center y position <i>(number, optional)</i> &mdash; the center point around which the image should be rotated. 0 is the top border of the image, positive values go down. Default is image center (image height / 2)</li>
 </ul>
 </p>
 <p>
@@ -130,6 +133,11 @@ blitwiz.graphics.drawImage("mypicture.png", 5, 5)
 
 -- Draw the image again moved to the right with only 75% visibility (slightly transparent):
 blitwiz.graphics.drawImage("mypicture.png", 150, 5, 0.75)
+
+-- Draw the image again, now rotated 45&deg; counter-clockwise around its center
+blitwiz.graphics.drawImage("mypicture.png", 150, 5, 0.75, nil, nil, nil, nil, 1, 1, 45)
+-- As you can see, skipping parameters (and taking the default) is possible by passing nil for them.
+
 </div>
 <p>
 </li>
