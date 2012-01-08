@@ -45,6 +45,7 @@ function blitwiz.on_step()
 	scalefactor = scalefactor + 0.0005
 	rotation = rotation + 0.5
 	if rotation > 360 then
+		print "Rotated one full circle"
 		rotation = rotation - 360
 	end
 end

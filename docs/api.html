@@ -118,7 +118,7 @@ Parameters:
 <li>height cut <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum height before drawing it. Default is infinite (no cutoff)</li>
 <li>x scale <i>(number, optional)</i> &mdash; scale the final resulting image or image part (after cut was applied) horizontally by the given factor. Default is 1 (normal horizontal size)</li>
 <li>y scale <i>(number, optional)</i> &mdash; scale the final resulting image or image part vertically by the given factor. Default is 1 (normal vertical size)</li>
-<li>rotation angle <i>(number, optional)</i> &mdash; rotate the image (after applying cutting) around the given rotation angle in degree. 0 means not rotated, 90 means rotated 90&eg; counter-clockwise around the center, -90 clockwise around the center, etc. Default is 0 (no rotation)</li>
+<li>rotation angle <i>(number, optional)</i> &mdash; rotate the image (after applying cutting) around the given rotation angle in degree. 0 means not rotated, 90 means rotated 90&eg; clockwise around the center, -90 counter-clockwise around the center, etc. Default is 0 (no rotation)</li>
 <li>rotation center x position <i>(number, optional)</i> &mdash; the center point around which the image should be rotated. 0 is the left border of the image, positive values go to the right. Scaling is ignored for this (the image is rotated first, then scaled up). Default is image center (image width / 2)</li>
 <li>rotation center y position <i>(number, optional)</i> &mdash; the center point around which the image should be rotated. 0 is the top border of the image, positive values go down. Default is image center (image height / 2)</li>
 </ul>
@@ -134,7 +134,7 @@ blitwiz.graphics.drawImage("mypicture.png", 5, 5)
 -- Draw the image again moved to the right with only 75% visibility (slightly transparent):
 blitwiz.graphics.drawImage("mypicture.png", 150, 5, 0.75)
 
--- Draw the image again, now rotated 45&deg; counter-clockwise around its center
+-- Draw the image again, now rotated 45&deg; clockwise around its center
 blitwiz.graphics.drawImage("mypicture.png", 150, 5, 0.75, nil, nil, nil, nil, 1, 1, 45)
 -- As you can see, skipping parameters (and taking the default) is possible by passing nil for them.
 
