@@ -285,8 +285,8 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	}
 	SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
 	SDL_Point p;
-	p.x = rotationcenterx;
-	p.y = rotationcentery;
+	p.x = (int)((double)rotationcenterx * ((double)drawwidth / src.w));
+	p.y = (int)((double)rotationcentery * ((double)drawheight / src.h));
 	SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
 	return 1;
 }
