@@ -52,16 +52,18 @@ ul {
 <li><a href="#1introduction">1. Introduction</a></li>
 <li><a href="#2summary">2. API summary and document structure</a></li>
 <li><a href="#3blitwiz.graphics">3. <i>blitwiz.graphics</i> namespace</a></li>
-<li><a href="#4blitwiz.sound">4. <i>blitwiz.sound</i> namespace</a></li>
-<li><a href="#5blitwiz.on_*">5. Event callbacks</a></li>
-<li><a href="#6os">6. <i>os</i> standard namespace extension</a></li>
-<li><a href="#7string">7. <i>string</i> standard namespace extension</a></li>
+<li><a href="#4blitwiz.physics">4. <i>blitwiz.physics</i> namespace</a></li>
+<li><a href="#5blitwiz.sound">5. <i>blitwiz.sound</i> namespace</a></li>
+<li><a href="#6blitwiz.time">6. <i>blitwiz.time</i> namespace</a></li>
+<li><a href="#7blitwiz.on_*">7. Event callbacks</a></li>
+<li><a href="#8os">8. <i>os</i> standard namespace extension</a></li>
+<li><a href="#9string">9. <i>string</i> standard namespace extension</a></li>
 </ul>
 <a name="1introduction"><h1>1. Introduction</h1></a>
 <p>This document describes the blitwizard Lua api with all provided functions.
 Since blitwizard is intended for use with Lua 5 (which it includes),
 those are mainly the functions you will use to program your games.</p>
-<p>Event callbacks are also listed in the <a href="#4blitwiz.on_*">event section</a>.</p>
+<p>Event callbacks are also listed in the <a href="#7blitwiz.on_*">event section</a>.</p>
 <p>If this document refers to namespaces, this actually means the Lua tables in
 the global space that hold sub functions and variables conveniently packed into
 common modules, e.g. the string table or the os table of the standard lib.</p>
@@ -74,7 +76,7 @@ here but nevertheless important for using Lua, so
 if you aren't familiar with them.</p>
 <p>The blitwizard extensions to the standard library however, consisting of additional
 functions added to the Lua 5 standard namespaces,
-e.g. <a href="#7string">additional string functions</a>, are described in this document.</p>
+e.g. <a href="#9string">additional string functions</a>, are described in this document.</p>
 <p>All functions listed in this document are listed with their names, parameters and return value,
 whereas a parameter type and return value type
 is specified.
@@ -87,7 +89,22 @@ follows each listed function.</p>
 <p>Those types refer to standard Lua 5 variable types: <i>number, string, boolean, nil</i></p>
 <p>Those types are special blitwizard types which you can only use with blitwizard functions:
 <ul>
-<li><i><a name="sound_handle">sound handle</a></i> &mdash; specifies a played sound. You can use the handle to check whether it still plays or whether it stopped and it allows you to modify some things afterwards (e.g. abort the sound). If you play the same sound file many times, you will always get different sound handles for each separately played sound</li>
+<li>
+<p>
+<i><a name="sound_handle">sound handle</a></i> &mdash; specifies a played sound. You can use the handle to check whether it still plays or whether it stopped and it allows you to modify some things afterwards (e.g. abort the sound).
+If you play the same sound file many times, you will always get different sound handles for each separately played sound.
+</p>
+<p>
+Scope: If you no longer have any reference to a sound handle, the sound is unaffected - it continues to play until it ends regularly
+</p>
+</li>
+<li>
+<p><i><a name="physics_object">physics object</a></i> &mdash; represents a physics object. Allows you to retrieve its position/rotation and apply new forces.
+</p>
+<p>
+Scope: If you no longer reference your physics object, it will disappear automatically (after some time when it is garbage collected). However, it is recommended you explicitely destroy it with <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a> so it is removed immediately
+</p>
+</li>
 </ul>
 </p>
 <p>The Lua 5 of blitwizard is mostly compiled with standard settings, e.g. numbers
@@ -384,7 +401,12 @@ end
 </li>
 
 </ul>
-<a name="4blitwiz.sound"><h1>4. <i>blitwiz.sound</i> namespace</h1></a>
+<a name="4blitwiz.physics"><h1>4. <i>blitwiz.physics</i> standard namespace extension</h1></a>
+<p>This namespace offers physics functionality. For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world.</p>
+<p>The physics use their own <b>physics units</b>. Do NOT use pixels here! Instead, think of how long a meter would roughly be in your game in pixels, and then scale all pixels accordingly into meter units before you pass them to the physics. Why? Physics operate best in certain value ranges:</p>
+<p>The best size for your moving physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual.</p>
+</p>
+<a name="5blitwiz.sound"><h1>5. <i>blitwiz.sound</i> namespace</h1></a>
 <ul>
 
 <li><h2><a name="blitwiz.sound.getBackendName">blitwiz.sound.getBackendName</a>()</h2>
@@ -475,7 +497,7 @@ blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
 </li>
 
 </ul>
-<a name="5blitwiz.on_*"><h1>5. Event callbacks</h1></a>
+<a name="7blitwiz.on_*"><h1>7. Event callbacks</h1></a>
 <ul>
 
 <li><h2><a name="blitwiz.on_close">blitwiz.on_close</a>()</h2>
@@ -718,7 +740,7 @@ Parameters:
 
 </ul>
 
-<a name="6os"><h1>6. <i>os</i> standard namespace extension</h1></a>
+<a name="8os"><h1>8. <i>os</i> standard namespace extension</h1></a>
 <p>This describes the blitwizard extensions to the Lua standard <b>os</b> library. Check the manual on <a href="http://www.lua.org/">www.lua.org</a> for the standard functions of the os lib already provided by Lua.</p>
 <ul>
 
@@ -863,7 +885,7 @@ Return value: None
 </li>
 
 </ul>
-<a name="7string"><h1>7. <i>string</i> standard namespace extension</h1></a>
+<a name="9string"><h1>9. <i>string</i> standard namespace extension</h1></a>
 <p>This describes the blitwizard extensions to the Lua standard <b>string</b> library. Check the manual on <a href="http://www.lua.org/">www.lua.org</a> for the standard functions of the string lib already provided by Lua.</p>
 <ul>
 

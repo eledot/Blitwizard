@@ -76,13 +76,15 @@ cd $dir
 # Build box2d
 box2dpremake="no"
 cd $dir
-{ cd src/box2d && cmake -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPES=OFF -DCMAKE_BUILD_TYPE=Release . } || {
+echo "blub1";
+cd src/box2d/ && cmake -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
 	cd $dir
-	src/box2d && premake4 gmake || {echo "Failed to configure box2d"; exit 1; }
+	echo "blub2";
+	cd src/box2d && premake4 gmake || { echo "Failed to configure box2d"; exit 1; }
 	box2dpremake="yes"
 }
 cd $dir
-if [ box2dpremake="yes" ]; then
+if [ "$box2dpremake" = "yes" ]; then
 	echo "Doing Box2D build (premake configured)"
 	cd src/box2d && make config="release" || { echo "Failed to build box2d"; exit 1; }
 else
