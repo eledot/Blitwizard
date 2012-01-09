@@ -401,7 +401,7 @@ end
 </li>
 
 </ul>
-<a name="4blitwiz.physics"><h1>4. <i>blitwiz.physics</i> standard namespace extension</h1></a>
+<a name="4blitwiz.physics"><h1>4. <i>blitwiz.physics</i> namespace</h1></a>
 <p>This namespace offers physics functionality. For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world.</p>
 <p>The physics use their own <b>physics units</b>. Do NOT use pixels here! Instead, think of how long a meter would roughly be in your game in pixels, and then scale all pixels accordingly into meter units before you pass them to the physics. Why? Physics operate best in certain value ranges:</p>
 <p>The best size for your moving physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual.</p>
