@@ -738,12 +738,39 @@ int luafuncs_getDesktopDisplayMode(lua_State* l) {
 int luafuncs_getDisplayModes(lua_State* l) {
 	int c = graphics_GetNumberOfVideoModes();
 	lua_createtable(l, 5, 0);
-	int i = 0;
-	while (i < c) {
+
+	//first, add desktop mode
+	int desktopw,desktoph;
+	graphics_GetDesktopVideoMode(&w, &h);
+
+	//resolution table with desktop width, height
+	lua_createtable(l, 2, 0);
+	lua_pushnumber(l, 1);
+	lua_pushnumber(l, desktopw);
+	lua_settable(l, -3);
+	lua_pushnumber(l, 2);
+	lua_pushnumber(l, desktoph);
+	lua_settable(l, -3);
+
+	//add table into our list
+	lua_pushnumber(l, 2);
+	lua_settable(l, -3);
+
+	int i = 1;
+	int index = 2;
+	while (i <= c) {
+		//add all supported video modes...
 		int w,h;
 		graphics_GetVideoMode(i, &w, &h);
 		
-		lua_createtable(l, 3, 0);
+		//...but not the desktop mode twice
+		if (w == desktopw && h == desktoph) {
+			i++;
+			continue;
+		}
+
+		//table containing the resolution width, height
+		lua_createtable(l, 2, 0);
 		lua_pushnumber(l, 1);
 		lua_pushnumber(l, w);
 		lua_settable(l, -3);
@@ -751,8 +778,10 @@ int luafuncs_getDisplayModes(lua_State* l) {
 		lua_pushnumber(l, h);
 		lua_settable(l, -3);
 		
-		lua_pushnumber(l, i);
+		//add the table into our list
+		lua_pushnumber(l, index);
 		lua_settable(l, -3);
+		index++;
 		i++;
 	}
 	return 1;

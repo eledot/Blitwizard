@@ -185,7 +185,7 @@ blitwiz.graphics.drawRectangle(0, 0, w, h, 0, 0.5, 1)
 </p>
 </li>
 
-<li><h2><a name="blitwiz.graphics.getDesktopDisplayMode">blitwiz.graphics.getDesktopDisplayMode()</a></li>
+<li><h2><a name="blitwiz.graphics.getDesktopDisplayMode">blitwiz.graphics.getDesktopDisplayMode()</a></h2></li>
 <p>
 Get the current display mode of the desktop. Simply returns the fullscreen video mode if you have a fullscreen window opened.
 </p>
@@ -199,12 +199,12 @@ print("Current display mode of the desktop: " .. w .. "x" .. h)
 </p>
 </li>
 
-<li><h2><a name="blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes()</a></li>
+<li><h2><a name="blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes()</a></h2></li>
 <p>
 Get a table of display modes which are supported for fullscreen windows.
 </p>
 <p>Parameters: None</p>
-<p>Return values: table containing display modes (each display mode is itself a table containing two values representing width and height in pixels)</p>
+<p>Return values: table containing display modes (each display mode is itself a table containing two values representing width and height in pixels), the one that is believed to be the native screen resolution will come first</p>
 <p>Example:
 <div class="code">-- Print out all available screen resolutions
 local displaymodes = blitwiz.graphics.getDisplayModes()
@@ -336,18 +336,21 @@ blitwiz.graphics.loadImageAsync("mypicture.png")
 Open a new graphics output window, or change the settings for a currently opened
 window in case there is one already opened.
 You can also <i>close</i> the window by passing no parameters.
-If there is a problem opening a window,
-an error will be triggered.
 </p>
-<p></p>
 <p>
-You should expect errors for two cases: fullscreen windows with an unsupported
-resolution (in such case, you could automatically retry with windowed mode), and driver issues
-which make the renderer unable to startup.
-Blitwizard mostly picks an accelerated renderer (either "direct3d" or "opengl")
-per default, see renderer parameter below, so you can try to specify "software" as a fallback
-in case of an error to see if that one works.
-</p>
+If there is a problem opening a window,
+an error will be triggered. Common errors that might occur:
+<ul style="list-style-type:disc">
+<li>
+Using a resolution not listed in <a href="#blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes</a> for fullscreen will throw an error. Pick a resolution from that list for a fullscreen window to avoid this (or simply try your preferred first, then one that should be supported - see example code below).
+</li>
+<li>
+Using windowed mode isn't supported on some platforms supported by blitwizard (e.g. Android phone) and will throw an error. Catch it and retry in fullscreen mode (with a <a href="#blitwiz.graphics.getDisplayModes">getDisplayModes</a> resolution) to handle such platforms properly.
+</li>
+<li>
+Using some renderers that blitwizard considered to be available (blitwizard will only allow you to use a renderer it thinks is available and will otherwise simply use the default) can sometimes result in an error if it turns out the renderer is not working properly on the given system. You should always try the renderer "software" as a slower but safe fallback in such a case.
+</li>
+</ul>
 <p>
 Texture loading is possible without any open window, and textures remain
 available even if you call setWindow again or setWindow fails.
@@ -384,17 +387,76 @@ before you offer or attempt to use direct3d.
 </p>
 <p>
 Example:
-<div class="code">-- Attempt to run in fullscreen and open a window if that doesn't work
+<div class="code">-- Attempt to run in fullscreen and open a window if that doesn't work.
+-- Fallback to unusual resolutions for mobile device support
 
-local function openwindowfullscreen()
-	blitwiz.graphics.setWindow(800,600,"My Game",true)
+-- Yes, it is long. If you only care for desktop platforms with modern graphics cards,
+-- you might just use a simple blitwiz.graphics.setWindow(commonresolution_x, commonresolution_y, "My Game", true)
+-- and it will probably work fine for you.
+
+-- However, if you want your game to run on mobile devices and such without any changes (and desktop computers with
+-- outdated/odd video drivers), this lengthy procedure is what you want.
+
+local game_title = "My Game"
+
+local function tryopenwindowfullscreen(renderer, adapt_resolution)
+	if adapt_resolution == false then
+		-- Open a fullscreen window in the preferred resolution
+		blitwiz.graphics.setWindow(640, 480, game_title, true, renderer)
+	else
+		-- Open a fullscreen window at any resolution
+		resolution = blitwiz.graphics.getDisplayModes()[1]
+		blitwiz.graphics.setWindow(resolution[1], resolution[2], game_title, true, renderer)
+	end
 end
 
--- Attempt fullscreen first
-local success = pcall(openwindowfullscreen)
-if success ~= true then
-	-- Fallback to windowed mode
-	blitwiz.graphics.setWindow(800,600,"My Game",false)
+local function tryopenwindow(renderer)
+	-- Open a normal window in the preferred size
+	blitwiz.graphics.setWindow(640, 480, game_title, true, renderer)
+end
+
+local function initialisewindow()
+	-- Attempt fullscreen first at desired resolution
+	local success = pcall(tryopenwindowfullscreen, nil, false)
+	if success == true then
+		return
+	end
+
+	-- Test fallback to windowed mode
+	success = pcall(tryopenwindow, nil)
+	if success == true then
+		return
+	end
+
+	-- Attempt software rendering in fullscreen at desired resolution
+	success = pcall(tryopenwindowfullscreen, "software", false)
+	if success == true then
+		return
+	end
+
+	-- Attempt to use just any resolution on fullscreen
+	success = pcall(tryopenwindowfullscreen, nil, true)
+	if success == true then
+		-- Check if the resolution is big enough for your game,
+		-- assuming that your game can adapt to pretty much any resolution
+		-- (which you should ensure for maximum compatibility) but still
+		-- has an absolute minimum resolution where the interface will
+		-- still display properly.
+
+		-- You should do this for mobile devices which might have tiny
+		-- resolutions to make sure your game rather quits with a sane
+		-- error than running in an unplayable state when the resolution
+		-- is just too tiny.
+		
+		if blitwiz.graphics.getWindowSize()[1] &lt; 400 or -- put numbers fitting for your game here
+		blitwiz.graphics.getWindowSize()[2] &lt; 300 then
+			error "Maximum display resolution is too small for this game"
+		end
+		return true
+	end
+		
+	-- Sadly, this device does not seem to provide anything usable for us
+	error "Failed to open graphics output"
 end
 </div>
 </p>
@@ -402,7 +464,7 @@ end
 
 </ul>
 <a name="4blitwiz.physics"><h1>4. <i>blitwiz.physics</i> namespace</h1></a>
-<p>This namespace offers physics functionality. For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world.</p>
+<p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world.</p>
 <p>The physics use their own <b>physics units</b>. Do NOT use pixels here! Instead, think of how long a meter would roughly be in your game in pixels, and then scale all pixels accordingly into meter units before you pass them to the physics. Why? Physics operate best in certain value ranges:</p>
 <p>The best size for your moving physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual.</p>
 </p>
