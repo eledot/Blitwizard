@@ -32,7 +32,7 @@ blitwizard 2d engine - source code file
 
 ]]
 
-examples = { "01.helloworld", "02.simplecar", "03.sound", "04.simplecar.async", "05.scalerotate" }
+examples = { "01.helloworld", "02.simplecar", "03.sound", "04.simplecar.async", "05.scalerotate", "06.physics" }
 
 yoffset = 150
 yspacing = 5
@@ -43,7 +43,7 @@ function blitwiz.on_init()
 	blitwiz.graphics.setWindow(640,480,"blitwizard 2d engine", false)
 	blitwiz.graphics.loadImage("title.png")
 	local i = 1
-	while i <= 5 do
+	while i <= #examples do
 		blitwiz.graphics.loadImage("menu" .. i .. ".png")
 		i = i + 1
 	end
