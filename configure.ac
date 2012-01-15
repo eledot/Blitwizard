@@ -9,6 +9,7 @@ AC_INIT([blitwizard], [0.1])
 # Checks for programs.
 AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
+AC_PROG_CXX
 AC_PROG_MAKE_SET
 AC_CANONICAL_HOST
 

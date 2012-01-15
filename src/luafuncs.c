@@ -597,7 +597,7 @@ static int soundfromstack(lua_State* l, int index) {
 	if (!idref || idref->magic != IDREF_MAGIC || idref->type != IDREF_SOUND) {
 		return -1;
 	}
-	return idref->id;
+	return idref->ref.id;
 }
 
 int luafuncs_stop(lua_State* l) {
@@ -715,8 +715,8 @@ int luafuncs_play(lua_State* l) {
 	memset(iref,0,sizeof(*iref));
 	iref->magic = IDREF_MAGIC;
 	iref->type = IDREF_SOUND;
-	iref->id = audiomixer_PlaySoundFromDisk(p, priority, volume, panning, fadein, looping);
-	if (iref->id < 0) {
+	iref->ref.id = audiomixer_PlaySoundFromDisk(p, priority, volume, panning, fadein, looping);
+	if (iref->ref.id < 0) {
 		char errormsg[512];
 		snprintf(errormsg, sizeof(errormsg), "Cannot play sound \"%s\"", p);
 		errormsg[sizeof(errormsg)-1] = 0;
@@ -741,7 +741,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
 
 	//first, add desktop mode
 	int desktopw,desktoph;
-	graphics_GetDesktopVideoMode(&w, &h);
+	graphics_GetDesktopVideoMode(&desktopw, &desktoph);
 
 	//resolution table with desktop width, height
 	lua_createtable(l, 2, 0);

@@ -21,40 +21,4 @@
 
 */
 
-#include "physics.h"
-#include "Box2D/Box2D.h"
-#include <stdint.h>
-
-extern "C" {
-
-struct physicsworld {
-	b2World* w;
-};
-
-struct physicsworld* physics_CreateWorld() {
-	struct physicsworld* world = (struct physicsworld*)malloc(sizeof(*world));
-	if (!world) {
-		return NULL;
-	}
-	memset(world, 0, sizeof(*world));
-	b2Vec2 gravity(0.0f, 0.0f);
-	world->w = new b2World(gravity);
-	world->w->SetAllowSleeping(true);
-	return world;
-}
-
-void physics_DestroyWorld(struct physicsworld* world) {
-	delete world->w;
-	free(world);
-}
-
-int physics_GetStepSize(struct physicsworld* world) {
-	return (1000/50);
-}
-
-void physics_Step(struct physicsworld* world) {
-	world->w->Step(1.0 / 50, 8, 3);
-}
-
-} //extern "C"
 

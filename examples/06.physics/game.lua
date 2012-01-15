@@ -50,7 +50,7 @@ end
 
 function blitwiz.on_mousedown(x, y)
 	local imgposx,imgposy = bgimagepos()
-	local crateposx,crateposy = (x - imgposx)/pixelspermeter, (y - imgpos)/pixelspermeter
+	local crateposx,crateposy = (x - imgposx)/pixelspermeter, (y - imgposy)/pixelspermeter
 	crateposx,crateposy = limitcrateposition(crateposx, crateposy)
 	crate = blitwiz.physics.createMovableObject()
 	blitwiz.physics.setShapeRectangle(crate, cratesize, cratesize)

@@ -35,6 +35,7 @@ int wantquit = 0;
 int suppressfurthererrors = 0;
 static int sdlinitialised = 0;
 extern int drawingallowed; //stored in luafuncs.c
+
 #include "luastate.h"
 #include "file.h"
 #include "graphics.h"
@@ -44,8 +45,14 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "audiomixer.h"
 #include "logging.h"
 #include "audiosourceffmpeg.h"
+#include "physics.h"
 
 #define TIMESTEP 16
+
+struct physicsworld* physicsdefaultworld = NULL;
+void* main_DefaultPhysicsPtr() {
+	return physicsdefaultworld;
+}
 
 void main_Quit(int returncode) {
 	if (sdlinitialised) {
@@ -327,6 +334,14 @@ int main(int argc, char** argv) {
 	}
 	sdlinitialised = 1;
 
+	//initialise physics
+	physicsdefaultworld = physics_CreateWorld();
+	if (!physicsdefaultworld) {
+		printerror("Error: Failed to initialise Box2D physics");
+		fatalscripterror();
+		main_Quit(1);
+	}
+
 	//run templates first if we can find them
 	if (file_DoesFileExist("templates/init.lua")) {
 		if (!luastate_DoInitialFile("templates/init.lua", &error)) {
@@ -378,6 +393,7 @@ int main(int argc, char** argv) {
 	
 		uint64_t logictimestamp = time_GetMilliSeconds();
 		uint64_t lastdrawingtime = 0;
+		uint64_t physicstimestamp = time_GetMilliSeconds();
 		while (!wantquit) {
 			uint64_t time = time_GetMilliSeconds();
 			
@@ -395,15 +411,21 @@ int main(int argc, char** argv) {
 				time_Sleep(16-delta);
 			}
 
-			//first, call the step function
-			while (logictimestamp < time) {
-				if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error)) {
-					printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
-					if (error) {free(error);}
-					fatalscripterror();
-					main_Quit(1);
+			//first, call the step function and advance physics
+			while (logictimestamp < time || physicstimestamp < time) {
+				if (logictimestamp < time && logictimestamp < physicstimestamp) {
+					if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error)) {
+						printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
+						if (error) {free(error);}
+						fatalscripterror();
+						main_Quit(1);
+					}
+					logictimestamp += TIMESTEP;
 				}
-				logictimestamp += TIMESTEP;
+				if (physicstimestamp < time && physicstimestamp < logictimestamp) {
+					physics_Step(physicsdefaultworld);
+					physicstimestamp += physics_GetStepSize(physicsdefaultworld);
+				}
 			}
 
 			//check for image loading progress

@@ -44,11 +44,14 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 #define IDREF_MAGIC 373482
 
 #define IDREF_SOUND 1
-
+#define IDREF_PHYSICS 2
 struct luaidref {
 	int magic;
 	int type;
-	int id;
+	union {
+		int id;
+		void* ptr;
+	} ref;
 };
 
 
