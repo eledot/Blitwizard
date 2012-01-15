@@ -351,6 +351,7 @@ Using windowed mode isn't supported on some platforms supported by blitwizard (e
 Using some renderers that blitwizard considered to be available (blitwizard will only allow you to use a renderer it thinks is available and will otherwise simply use the default) can sometimes result in an error if it turns out the renderer is not working properly on the given system. You should always try the renderer "software" as a slower but safe fallback in such a case.
 </li>
 </ul>
+</p>
 <p>
 Texture loading is possible without any open window, and textures remain
 available even if you call setWindow again or setWindow fails.
@@ -464,10 +465,95 @@ end
 
 </ul>
 <a name="4blitwiz.physics"><h1>4. <i>blitwiz.physics</i> namespace</h1></a>
-<p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world.</p>
-<p>The physics use their own <b>physics units</b>. Do NOT use pixels here! Instead, think of how long a meter would roughly be in your game in pixels, and then scale all pixels accordingly into meter units before you pass them to the physics. Why? Physics operate best in certain value ranges:</p>
-<p>The best size for your moving physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual.</p>
+<p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world. You can also not move objects directly (except warping which you should use as rarely as possible) - they will move on their own according to their mass, how they collide with each other etc. You can give them "pushes" though by using <a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>.</p>
+<p>
+The physics use their own <b>physics units</b>. Do NOT use pixels here! Instead, think of how long a meter would roughly be in your game in pixels, and then scale all pixels accordingly into meter units before you pass them to the physics. Why? Physics operate best in certain value ranges:
 </p>
+<p>
+The best size for your moving physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual.
+</p>
+<p>To start, you will want to use <a href="#blitwiz.physics.createMovableObject">blitwiz.physics.createMovableObject</a> to create moving physics objects, and <a href="#blitwiz.physics.createObject">blitwiz.physics.createStaticObject</a> to create the static level geometry.
+</p>
+<ul>
+
+<li><h2><a name="blitwiz.physics.createMovableObject">blitwiz.physics.createMovableObject()</a></h2>
+<p>
+Create a movable physics object. Movable means that apart from manual explicit position changes through <a href="#blitwiz.physics.warp">blitwiz.physics.warp</a>, the object can move by gravity forces, collisions etc. unlike static geometry created with <a href="#blitwiz.physics.createStaticObject">blitwiz.physics.createStaticObject</a> which has infinite mass and can never move on its own (you can still warp it around however).
+</p>
+<p>Movable objects can only have certain more simple geometry forms, which is why they aren't really suitable for the complex shape level geometry often has. Also, using static objects even with simple shapes (where a movable object could be used) simply saves a lot of calculation time. And maybe you just don't want certain things like the ground to possibly move away :-)
+</p>
+<p>
+Remember to use <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a> when you no longer want to use an object.
+</p>
+<p>
+You will want to take the following steps:
+<ul style="list-style-type:disc">
+<li>
+Set a geometry shape with any of the blitwiz.physics.setShape* functions which support movable objects, e.g. <a href="#blitwiz.physics.setShapeRectangle">blitwiz.physics.setShapeRectangle</a>.
+</li>
+<li>
+Set a non-zero mass with <a href="#blitwiz.physics.setMass">blitwiz.physics.setMass</a>. If you don't do this, the object will have an infinite mass and not move.
+</li>
+<li>
+Use <a href="#blitwiz.physics.warp">blitwiz.physics.warp</a> to place the object at any desired starting position (Warning: if it intersects with other objects, weird things will happen. Try it out if you want to have some physics fun).
+</li>
+</ul>
+</p>
+<p>
+Parameters: None
+</p>
+<p>
+Return value: movable <a href="#physics_object">physics object</a>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.physics.createStaticObject">blitwiz.physics.createStaticObject()</a></h2>
+<p>Create a non-movable physics object. Please note those objects cannot move (except when <a href="#blitwiz.physics.warp">warped</a> around which ignores any sort of collisions) and are intended for static geometry with which the movable objects can collide. It can use also the more complex geometry shapes and the movable objects will collide accordingly.
+</p>
+<p>
+Set a shape with any of the blitwiz.physics.setShape* functions and then warp it at the right place with <a href="#blitwiz.physics.warp">blitwiz.physics.warp</a>. Setting a mass won't work because static geometry is well, static, and therefore has infinite mass.
+</p>
+<p>
+Remember to use <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a> when you no longer want to use an object.
+</p>
+<p>
+Parameters: None
+</p>
+<p>
+Return value: static <a href="#physics_object">physics object</a>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.physics.destroyObject">blitwiz.physics.destroyObject(physics object <a href="#physics_object"><i>(physics object)</i></a>)</a></h2>
+<p>
+The given physics object will be destroyed. All references to it become invalid and will, when used, yield an error. Use this function to remove physics objects you no longer need.
+</p>
+<p>
+Parameters:
+<ul>
+<li>physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to be destroyed</li>
+</ul>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.physics.warp">blitwiz.physics.warp(physics object <a href="#physics_object"><i>(physics object)</i></a>, x <i>(integer)</i>, y <i>(integer)</i>)</a></h2>
+<p>
+The given physics object will be warped to the given position. Please note warping is an instant teleportation and ignores all collisions. Warping fully or partially into other objects is possible aswell and can lead to strange physics results. You should use warping only rarely e.g. to setup objects to their intended initial positions in the game world.
+</p>
+<p>
+Please remember (see the introduction text to this chapter) that you shouldn't use pixel units, but rather a custom unit that maps roughly to meters in the real world in terms of average objects scale.
+</p>
+<p>
+Parameters:
+<ul>
+<li>physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to be warped</li>
+<li>x &mdash; the x coordinate of the position where you want to warp the object to</li>
+<li>y &mdash; the y coordinate of the warp position</li>
+</ul>
+</p>
+</li>
+
+</ul>
 <a name="5blitwiz.sound"><h1>5. <i>blitwiz.sound</i> namespace</h1></a>
 <ul>
 
