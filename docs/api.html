@@ -505,6 +505,26 @@ Parameters: None
 <p>
 Return value: movable <a href="#physics_object">physics object</a>
 </p>
+<p>
+Example:
+<div class="code">-- Create a 1x1 box object (if you pick a meter -&gt; pixel factor of 30,
+-- which would be a reasonable idea, you should represent it with a 30x30
+-- sized image)
+
+local pobject = <a href="#blitwiz.physics.createMovableObject">blitwiz.physics.createMovableObject</a>()
+<a href="#blitwiz.physics.setShapeRectangle">blitwiz.physics.setShapeRectangle</a>(pobject, 1, 1)
+<a href="#blitwiz.physics.setMass">blitwiz.physics.setMass</a>(pobject, 10) -- the mass of the object. You should simply experiment with good values here
+<a href="#blitwiz.physics.warp">blitwiz.physics.warp</a>(pobject, 2, 2) -- warp the object center to pixel position 60, 60 (remember the chosen pixel factor is 30)
+
+-- The default gravity is always 0 (x coordinate), 9 (y coordinate, so downwards).
+-- Use <a href="#blitwiz.physics.setWorldGravity">blitwiz.physics.setWorldGravity</a> to change it for all objects.
+-- You can also use <a href="#blitwiz.physics.setGravity">blitwiz.physics.setGravity</a> to override it on a per-object basis.
+-- (the object will ignore the world gravity setting as a consequence)
+
+-- Now you simply need to use <a href="#blitwiz.physics.getPosition">blitwiz.physics.getPosition</a> inside <a href="#blitwiz.on_draw">blitwiz.on_draw</a> to query
+-- the position, then draw a 30x30 box image at that position each frame
+</div>
+</p>
 </li>
 
 <li><h2><a name="blitwiz.physics.createStaticObject">blitwiz.physics.createStaticObject()</a></h2>
@@ -522,6 +542,23 @@ Parameters: None
 <p>
 Return value: static <a href="#physics_object">physics object</a>
 </p>
+<p>
+Example:
+<div class="code">-- Create some static level geometry. We will assume a meter -&gt; pixel factor of 30
+local pixelpermeterfac = 30
+
+local geometry = <a href="#blitwiz.physics.createStaticObject">blitwiz.physics.createStaticObject</a>()
+-- We can supply any list of collision edges we want:
+<a href="#blitwiz.physics.setShapeEdges">blitwiz.physics.setShapeEdges</a>(geometry, [
+	[0/pixelpermeterfac, 0/pixelpermeterfac, 500/pixelpermeterfac, 250/pixelpermeterfac],
+	[500/pixelpermeterfac, 250/pixelpermeterfac, 0/pixelpermeterfac, 500/pixelpermeterfac]
+])
+-- An edge consists of an array (table) containing four coordinates (two for start and end point each)
+-- We supply the edge 0,0 -&gt; 500,250 (pixels), and 500,250 -&gt; 0,500.
+
+-- Since the object is static, those edges will never move unless you <a href="#blitwiz.physics.warp">warp</a> the object around.
+</div>
+</p>
 </li>
 
 <li><h2><a name="blitwiz.physics.destroyObject">blitwiz.physics.destroyObject(physics object <a href="#physics_object"><i>(physics object)</i></a>)</a></h2>
@@ -530,26 +567,142 @@ The given physics object will be destroyed. All references to it become invalid 
 </p>
 <p>
 Parameters:
-<ul>
+<ul class="parameters">
 <li>physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to be destroyed</li>
 </ul>
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.warp">blitwiz.physics.warp(physics object <a href="#physics_object"><i>(physics object)</i></a>, x <i>(integer)</i>, y <i>(integer)</i>)</a></h2>
+<li><h2><a name="blitwiz.physics.impulse">blitwiz.physics.impulse(physics object <a href="#physics_object"><i>(physics object)</i></a>, impulse source x <i>(number)</i>, impulse source y <i>(number)</i>, impulse force x <i>(number)</i>, impulse force y <i>(number)</i>)</a></h2>
 <p>
-The given physics object will be warped to the given position. Please note warping is an instant teleportation and ignores all collisions. Warping fully or partially into other objects is possible aswell and can lead to strange physics results. You should use warping only rarely e.g. to setup objects to their intended initial positions in the game world.
+Apply a force impulse onto a movable physics object. You can think of it as a "push" applied onto the object that allows you to push it around. You can NOT directly control the results similarly to real life - the object will simply get pushed and will react according to the physics simulation, rotate, wobble, dance, whatever might be the result.
+</p>
+<p>
+If you need to move an object to a point and require it to get there, then you should <a href="#blitwiz.physics.warp">warp</a> it - however forcing it into a position in such a way will ignore collision. If you want collision to be considered, you need to impulse it, however then you have no guarantee it actually moves as intended.
+</p>
+<p>
+For player characters which you want to move around as intended to make them walk but where you still want collision taken into account, you should use this impulse function but restrict rotation with <a href="#blitwiz.physics.restrictRotation">blitwiz.physics.restrictRotation</a> so the player cannot randomly "fall over".
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to which you want to apply an impulse
+</li>
+<li>
+impulse source x <i>(number)</i> &mdash; the x source coordinate from where the impulse originates
+</li>
+<li>
+impulse source y <i>(number)</i> &mdash; the y source coordinate
+</li>
+<li>
+impulse force x <i>(number)</i> &mdash; the x coordinate of the direction and strength vector of the force. If in doubt, simply have the vector point directly onto your object, so that a force from your impulse source will directly slam into the object (see example)
+</li>
+<li>
+impulse force y <i>(number)</i> &mdash; the y coordinate of the direction and strength vector
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
+
+<li><h2><a name="blitwiz.physics.restrictRotation">blitwiz.physics.restrictRotation</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, restrict <i>(boolean)</i>)</h2>
+<p>
+Restrict rotation of the given object to the current angle. If you didn't just create the object (in which case the angle will be simply 0) you should warp it to a desired angle first.
+</p>
+<p>
+This is mainly useful when you want an object that can move around and collide, but not fall over/rotate, e.g. a player character for which you would most likely want an oval or rectangle shape that doesn't fall over.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+</li>
+<li>
+restrict <i>(boolean)</i> &mdash; a boolean whether you want to restrict it from now on (true) or not (false)
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
+
+<li><h2><a name="blitwiz.physics.setShapeEdges">blitwiz.physics.setShapeEdges</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, edge list <i>(table)</i>)</h2>
+<p>
+Set edges as collision shape for an object. Only compatible with static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. Please note the edges have an infinite thinness, so if you construct an enclosed shape with them (e.g. a square) it will be hollow inside and you can put things into it.
+</p>
+<p>It is mainly intended for use with static surrounding level walls. You can dump your whole level edges into one object, or use multiple objects.</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+</li>
+<li>
+edge list <i>(table)</i> &mdash; a table/array that contains all edges. Each edge is an own table that contains 4 numbers - x/y coordinate of the edge's starting point, and x/y coordinate of the edge's end point. It is NOT required each edge is connected to the other
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+<p>
+Example:
+<div class="code">-- Set a 0,100-500,100 pixel edge and a 0,400-500,400 pixel edge (not connected to each other), assuming 30 pixels per meter
+local pixelpermeterfac = 30
+<a href="#blitwiz.physics.setShapeEdges">blitwiz.physics.setShapeEdges</a>(object, [
+	[0/pixelpermeterfac, 100/pixelpermeterfac, 500/pixelpermeterfac, 100/pixelpermeterfac],
+	[0/pixelpermeterfac, 400/pixelpermeterfac, 500/pixelpermeterfac, 400/pixelpermeterfac],
+])
+</div>
+</p>
+</li>
+
+<li><h2><a name="blitwiz.physics.setShapeRectangle">blitwiz.physics.setShapeRectangle(physics object <a href="#physics_object"><i>(physics object)</i></a>, rectangle width <i>(number)</i>, rectangle height <i>(number)</i>)</a></h2>
+<p>
+Set a rectangle shape for an object. Compatible with both movable and static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. The shape will be used as a collision shape when calculating collisions.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+</li>
+<li>
+rectangle width <i>(number)</i> &mdash; the width in physics units of the rectangle
+</li>
+<li>
+rectangle height <i>(number)</i> &mdash; the height of the rectangle
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
+
+<li><h2><a name="blitwiz.physics.warp">blitwiz.physics.warp(physics object <a href="#physics_object"><i>(physics object)</i></a>, x position <i>(integer)</i>, y position <i>(integer)</i>, rotation angle <i>(number)</i>)</a></h2>
+<p>
+The given physics object will be warped to the given position and rotation. Please note warping is an instant teleportation and ignores all collisions. Warping fully or partially into other objects is possible aswell and can lead to strange physics results. You should use warping only rarely e.g. to setup objects to their intended initial positions in the game world.
 </p>
 <p>
 Please remember (see the introduction text to this chapter) that you shouldn't use pixel units, but rather a custom unit that maps roughly to meters in the real world in terms of average objects scale.
 </p>
 <p>
 Parameters:
-<ul>
+<ul class="parameters">
 <li>physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to be warped</li>
-<li>x &mdash; the x coordinate of the position where you want to warp the object to</li>
-<li>y &mdash; the y coordinate of the warp position</li>
+<li>x position <i>(number)</i> &mdash; the x coordinate of the position where you want to warp the object to</li>
+<li>y position <i>(number)</i> &mdash; the y coordinate of the warp position</li>
+<li>rotation angle <i>(number)</i> &mdash; the angle for the rotation. 90 is 90° clockwise, -90 is 90° ocounter-clockwise etc.</li>
 </ul>
+</p>
+<p>
+Return value: None
 </p>
 </li>
 
