@@ -209,7 +209,7 @@ int luafuncs_getRotation(lua_State* l) {
 int luafuncs_setShapeEdges(lua_State* l) {
 	struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TTABLE) {
-        lua_pushstring(l, "Second parameter is not a valid edge list");
+        lua_pushstring(l, "Second parameter is not a valid edge list table");
         return lua_error(l);
     }
 	if (obj->movable) {
@@ -220,7 +220,7 @@ int luafuncs_setShapeEdges(lua_State* l) {
 	struct physicsobjectedgecontext* context = physics_CreateObjectEdges_Begin(main_DefaultPhysicsPtr(), obj, 0, obj->friction);
 
 	int haveedge = 0;
-	double d = 0;
+	double d = 1;
 	while (1) {
 		lua_pushnumber(l, d);
 		lua_gettable(l, 2);
@@ -228,7 +228,8 @@ int luafuncs_setShapeEdges(lua_State* l) {
 			if (lua_type(l, -1) == LUA_TNIL && haveedge) {
 				break;
 			}
-			lua_pushstring(l, "Second parameter is not a valid edge list");
+			printf("type: %d\n", lua_type(l, -1));
+			lua_pushstring(l, "Edge list contains non-table value or is empty");
 			physics_DestroyObject(physics_CreateObjectEdges_End(context));
 			return lua_error(l);
 		}
@@ -236,19 +237,27 @@ int luafuncs_setShapeEdges(lua_State* l) {
 
 		double x1,y1,x2,y2;
 		lua_pushnumber(l, 1);
-		lua_gettable(l, -1);
-		x1 = lua_tonumber(l, 1);
-		lua_pushnumber(l, 1); 
-        lua_gettable(l, -1);
-        y1 = lua_tonumber(l, 1);
-		lua_pushnumber(l, 1); 
-        lua_gettable(l, -1);
-        x2 = lua_tonumber(l, 1);
-		lua_pushnumber(l, 1); 
-        lua_gettable(l, -1);
-        y2 = lua_tonumber(l, 1);
+		lua_gettable(l, -2);
+		x1 = lua_tonumber(l, -1);
+		lua_pop(l, 1);
+
+		lua_pushnumber(l, 2); 
+        lua_gettable(l, -2);
+        y1 = lua_tonumber(l, -1);
+		lua_pop(l, 1);
+
+		lua_pushnumber(l, 3); 
+        lua_gettable(l, -2);
+        x2 = lua_tonumber(l, -1);
+		lua_pop(l, 1);
+
+		lua_pushnumber(l, 4); 
+        lua_gettable(l, -2);
+        y2 = lua_tonumber(l, -1);
+		lua_pop(l, 1);
 
 		physics_CreateObjectEdges_Do(context, x1, y1, x2, y2);
+		lua_pop(l, 1);
 		d++;
     }
 	

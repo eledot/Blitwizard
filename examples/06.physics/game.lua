@@ -23,8 +23,8 @@ function blitwiz.on_init()
 	local x,y = bgimagepos()
 	levelcollision = blitwiz.physics.createStaticObject()
 	blitwiz.physics.setShapeEdges(levelcollision, {
-		{(119+x)/pixelspermeter, (0+y)/pixelspermeter,
-		(119+x)/pixelspermeter, (360+y)/pixelspermeter},
+		--{(119+x)/pixelspermeter, (0+y)/pixelspermeter,
+		--(119+x)/pixelspermeter, (360+y)/pixelspermeter},
 		
 		{(119+x)/pixelspermeter, (360+y)/pixelspermeter,
 		(397+x)/pixelspermeter, (234+y)/pixelspermeter},
@@ -49,7 +49,7 @@ end
 function blitwiz.on_draw()
 	-- Draw the background image centered:
 	local x,y = bgimagepos()
-	blitwiz.graphics.drawImage("bg.png", x, y, 1, nil, nil, nil, nil, scalefactor, scalefactor, rotation)
+	blitwiz.graphics.drawImage("bg.png", x, y)
 
 	-- Draw all crates:
 	local imgw,imgh = blitwiz.graphics.getImageSize("crate.png")

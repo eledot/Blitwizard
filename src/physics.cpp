@@ -85,6 +85,7 @@ static struct physicsobject* createobj(struct physicsworld* world, void* userdat
 	object->movable = movable;
 	bodyDef.userData = userdata;
 	object->body = world->w->CreateBody(&bodyDef);
+	object->body->SetFixedRotation(false);
 	object->world = world->w;
 	if (!object->body) {free(object);return NULL;}
 	return object;
