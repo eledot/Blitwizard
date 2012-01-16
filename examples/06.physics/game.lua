@@ -27,11 +27,17 @@ function bgimagepos()
 end
 
 function blitwiz.on_draw()
-	-- Draw the background image centered with our given scale factor:
+	-- Draw the background image centered:
 	local x,y = bgimagepos()
-
-	-- Actual drawing happens here
 	blitwiz.graphics.drawImage("bg.png", x, y, 1, nil, nil, nil, nil, scalefactor, scalefactor, rotation)
+
+	-- Draw all crates:
+	local imgw,imgh = blitwiz.graphics.getImageSize("crate.png")
+	for index,crate in ipairs(crates) do
+		local x,y = blitwiz.physics.getPosition(crate)
+		local rotation = blitwiz.physics.getRotation(crate)
+		blitwiz.graphics.drawImage("crate.png", x*pixelspermeter - imgw/2, y*pixelspermeter - imgh/2, 1, nil, nil, nil, nil, 1, 1, rotation)
+	end
 end
 
 function limitcrateposition(x,y)
@@ -48,14 +54,15 @@ function limitcrateposition(x,y)
 	return x,y
 end
 
-function blitwiz.on_mousedown(x, y)
+function blitwiz.on_mousedown(button, x, y)
 	local imgposx,imgposy = bgimagepos()
-	local crateposx,crateposy = (x - imgposx)/pixelspermeter, (y - imgposy)/pixelspermeter
+	local crateposx = (x - imgposx)/pixelspermeter
+	local crateposy = (y - imgposy)/pixelspermeter
 	crateposx,crateposy = limitcrateposition(crateposx, crateposy)
 	crate = blitwiz.physics.createMovableObject()
 	blitwiz.physics.setShapeRectangle(crate, cratesize, cratesize)
 	blitwiz.physics.setMass(crate, 10)
-	blitwiz.physics.wrap(crate, crateposx, crateposy)
+	blitwiz.physics.warp(crate, crateposx, crateposy)
 
 	crates[#crates+1] = crate
 end

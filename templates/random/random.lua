@@ -63,33 +63,31 @@ end
 blitwiz.random = {}
 
 --Mersenne twister
-blitwiz.random.mersenne_twister_obj = {}
-blitwiz.random.mersenne_twister_obj.__index = blitwiz.random.mersenne_twister_obj
-
-function blitwiz.random.mersenne_twister_obj:randomseed(s)
+blitwiz.random.mersenne_twister = {}
+function blitwiz.random.mersenne_twister.randomseed(twister, s)
 	if not s then s = seed() end
-	self.mt[0] = normalize(s)
+	twister.mt[0] = normalize(s)
 	for i = 1, 623 do
-		self.mt[i] = normalize(0x6c078965 * bit_xor(self.mt[i-1], math_floor(self.mt[i-1] / 0x40000000)) + i)
+		twister.mt[i] = normalize(0x6c078965 * bit_xor(twister.mt[i-1], math_floor(twister.mt[i-1] / 0x40000000)) + i)
 	end
 end
 
-function blitwiz.random.mersenne_twister_obj:random(a, b)
+function blitwiz.random.mersenne_twister.random(twister, a, b)
 	local y
-	if self.index == 0 then
+	if twister.index == 0 then
 		for i = 0, 623 do   											
-			--y = bit_or(math_floor(self.mt[i] / 0x80000000) * 0x80000000, self.mt[(i + 1) % 624] % 0x80000000)
-			y = self.mt[(i + 1) % 624] % 0x80000000
-			self.mt[i] = bit_xor(self.mt[(i + 397) % 624], math_floor(y / 2))
-			if y % 2 ~= 0 then self.mt[i] = bit_xor(self.mt[i], 0x9908b0df) end
+			--y = bit_or(math_floor(twister.mt[i] / 0x80000000) * 0x80000000, twister.mt[(i + 1) % 624] % 0x80000000)
+			y = twister.mt[(i + 1) % 624] % 0x80000000
+			twister.mt[i] = bit_xor(twister.mt[(i + 397) % 624], math_floor(y / 2))
+			if y % 2 ~= 0 then twister.mt[i] = bit_xor(twister.mt[i], 0x9908b0df) end
 		end
 	end
-	y = self.mt[self.index]
+	y = twister.mt[twister.index]
 	y = bit_xor(y, math_floor(y / 0x800))
 	y = bit_xor(y, bit_and(normalize(y * 0x80), 0x9d2c5680))
 	y = bit_xor(y, bit_and(normalize(y * 0x8000), 0xefc60000))
 	y = bit_xor(y, math_floor(y / 0x40000))
-	self.index = (self.index + 1) % 624
+	twister.index = (twister.index + 1) % 624
 	if not a then return y / 0x80000000
 	elseif not b then
 		if a == 0 then return y
@@ -100,22 +98,20 @@ function blitwiz.random.mersenne_twister_obj:random(a, b)
 	end
 end
 
-function blitwiz.random.twister(s)
+function blitwiz.random.mersenne_twister.new(s)
 	local temp = {}
-	setmetatable(temp, blitwiz.random.mersenne_twister_obj)
 	temp.mt = {}
 	temp.index = 0
-	temp:randomseed(s)
+	blitwiz.random.mersenne_twister.randomseed(temp, s)
 	return temp
 end
 
 --Linear Congruential Generator
-blitwiz.random.linear_congruential_generator_obj = {}
-blitwiz.random.linear_congruential_generator_obj.__index = linear_congruential_generator_obj
+blitwiz.random.linear_congruential_generator = {}
 
-function blitwiz.random.linear_congruential_generator_obj:random(a, b)
-	local y = (self.a * self.x + self.c) % self.m
-	self.x = y
+function blitwiz.random.linear_congruential_generator.random(gen, a, b)
+	local y = (gen.a * gen.x + gen.c) % gen.m
+	gen.x = y
 	if not a then return y / 0x10000
 	elseif not b then
 		if a == 0 then return y
@@ -125,33 +121,31 @@ function blitwiz.random.linear_congruential_generator_obj:random(a, b)
 	end
 end
 
-function blitwiz.random.linear_congruential_generator_obj:randomseed(s)
+function blitwiz.random.linear_congruential_generator.randomseed(gen, s)
 	if not s then s = seed() end
-	self.x = normalize(s)
+	gen.x = normalize(s)
 end
 
-function blitwiz.random.lcg(s, r)
+function blitwiz.random.linear_congruential_generator.new(s, r)
 	local temp = {}
-	setmetatable(temp, blitwiz.random.linear_congruential_generator_obj)
 	temp.a, temp.c, temp.m = 1103515245, 12345, 0x10000  --from Ansi C
 	if r then
 		if r == 'nr' then temp.a, temp.c, temp.m = 1664525, 1013904223, 0x10000 --from Numerical Recipes.
 		elseif r == 'mvc' then temp.a, temp.c, temp.m = 214013, 2531011, 0x10000 end--from MVC
 	end
-	temp:randomseed(s)
+	blitwiz.random.linear_congruential_generator.randomseed(temp, s)
 	return temp
 end
 
 -- Multiply-with-carry
-blitwiz.random.multiply_with_carry_obj = {}
-blitwiz.random.multiply_with_carry_obj.__index = blitwiz.random.multiply_with_carry_obj
+blitwiz.random.multiply_with_carry = {}
 
-function blitwiz.random.multiply_with_carry_obj:random(a, b)
-	local m = self.m
-	local t = self.a * self.x + self.c
+function blitwiz.random.multiply_with_carry.random(mcarry, a, b)
+	local m = mcarry.m
+	local t = mcarry.a * mcarry.x + mcarry.c
 	local y = t % m
-	self.x = y
-	self.c = math_floor(t / m)
+	mcarry.x = y
+	mcarry.c = math_floor(t / m)
 	if not a then return y / 0x10000
 	elseif not b then
 		if a == 0 then return y
@@ -161,13 +155,13 @@ function blitwiz.random.multiply_with_carry_obj:random(a, b)
 	end
 end
 
-function blitwiz.random.multiply_with_carry_obj:randomseed(s)
+function blitwiz.random.multiply_with_carry.randomseed(mcarry, s)
 	if not s then s = seed() end
-	self.c = self.ic
-	self.x = normalize(s)
+	mcarry.c = mcarry.ic
+	mcarry.x = normalize(s)
 end
 
-function blitwiz.random.mwc(s, r)
+function blitwiz.random.multiply_with_carry.new(s, r)
 	local temp = {}
 	setmetatable(temp, blitwiz.random.multiply_with_carry_obj)
 	temp.a, temp.c, temp.m = 1103515245, 12345, 0x10000  --from Ansi C

@@ -34,28 +34,28 @@ int physics_GetStepSize(struct physicsworld* world);
 
 //create and destroy objects;
 struct physicsobject;
-struct physicsobject* physics_CreateObjectRectangle(struct physicsworld* world, double width, double height);
-struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, double width, double height);
+struct physicsobject* physics_CreateObjectRectangle(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height);
+struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height);
 void physics_DestroyObject(struct physicsobject* object);
 
 //create an edge list object:
 struct physicsobjectedgecontext;
-struct physicsobjectedgecontext* physics_CreateObjectEdges_Begin(struct physicsworld* world);
+struct physicsobjectedgecontext* physics_CreateObjectEdges_Begin(struct physicsworld* world, void* userdata, int movable, double friction);
 void physics_CreateObjectEdges_Do(struct physicsobjectedgecontext* context, double x1, double y1, double x2, double y2);
 struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecontext* context);
 
-//get/set various object properties
-int physics_SetMovable(struct physicsobject* obj); //turn into a movable object. returns 0 when impossible (e.g. due to shape)
+//get/set various properties
 void physics_SetMass(struct physicsobject* obj, double mass);
 double physics_GetMass(struct physicsobject* obj);
 void physics_SetMassCenterOffset(struct physicsobject* obj, double offsetx, double offsety);
 void physics_GetMassCenterOffset(struct physicsobject* obj, double* offsetx, double* offsety);
 void physics_SetGravity(struct physicsobject* obj, float x, float y);
 void physics_SetRotationRestriction(struct physicsobject* obj, int restricted);
+void physics_SetFriction(struct physicsobject* obj, double friction);
 
 //change and get position/rotation
 void physics_GetPosition(struct physicsobject* obj, double* x, double* y);
-void physics_GetRotation(struct physicsobject* obj, double angle);
+void physics_GetRotation(struct physicsobject* obj, double* angle);
 void physics_Warp(struct physicsobject* obj, double x, double y, double angle);
 
 #ifdef __cplusplus

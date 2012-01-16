@@ -21,4 +21,10 @@
 
 */
 
+int luafuncs_createMovableObject(lua_State* l);
+int luafuncs_setShapeRectangle(lua_State* l);
+int luafuncs_setMass(lua_State* l);
+int luafuncs_getRotation(lua_State* l);
+int luafuncs_getPosition(lua_State* l);
+int luafuncs_warp(lua_State* l);
 

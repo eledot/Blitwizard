@@ -162,22 +162,26 @@ static void mousebuttonevent(int button, int release, int x, int y) {
 	if (!luastate_PushFunctionArgumentToMainstate_Double(button)) {
         printerror("Error when pushing func args to %s",funcname);
         fatalscripterror();
+		main_Quit(1);
         return;
     }
 	if (!luastate_PushFunctionArgumentToMainstate_Double(x)) {
 		printerror("Error when pushing func args to %s",funcname);
 		fatalscripterror();
+		main_Quit(1);
 		return;
 	}
 	if (!luastate_PushFunctionArgumentToMainstate_Double(y)) {
 		printerror("Error when pushing func args to %s",funcname);
         fatalscripterror();
+		main_Quit(1);
         return;
     }
     if (!luastate_CallFunctionInMainstate(funcname, 3, 1, 1, &error)) {
         printerror("Error when calling %s: %s", funcname, error);
         if (error) {free(error);}
         fatalscripterror();
+		main_Quit(1);
         return;
     }
 }
@@ -186,17 +190,20 @@ static void mousemoveevent(int x, int y) {
 	if (!luastate_PushFunctionArgumentToMainstate_Double(x)) {
 		printerror("Error when pushing func args to blitwiz.on_mousemove");
 		fatalscripterror();
+		main_Quit(1);
 		return;
 	}
 	if (!luastate_PushFunctionArgumentToMainstate_Double(y)) {
 		printerror("Error when pushing func args to blitwiz.on_mousemove");
 		fatalscripterror();
+		main_Quit(1);
 		return;
 	}
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_mousemove", 2, 1, 1, &error)) {
 		printerror("Error when calling blitwiz.on_mousemove: %s", error);
 		if (error) {free(error);}
 		fatalscripterror();
+		main_Quit(1);
 		return;
 	}
 }
@@ -208,12 +215,14 @@ static void keyboardevent(const char* button, int release) {
 	if (!luastate_PushFunctionArgumentToMainstate_String(button)) {
 		printerror("Error when pushing func args to %s", funcname);
 		fatalscripterror();
+		main_Quit(1);
 		return;
 	}
 	if (!luastate_CallFunctionInMainstate(funcname, 1, 1, 1, &error)) {
 		printerror("Error when calling %s: %s", funcname, error);
 		if (error) {free(error);}
 		fatalscripterror();
+		main_Quit(1);
 		return;
 	}
 }
@@ -451,6 +460,7 @@ int main(int argc, char** argv) {
 			graphics_CompleteFrame();
 		}
 	}
+	main_Quit(0);
 	return 0;
 }
 

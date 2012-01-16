@@ -26,6 +26,7 @@
 #include "lualib.h"
 #include "luastate.h"
 #include "luafuncs.h"
+#include "luafuncs_physics.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -95,6 +96,28 @@ void luastate_PrintStackDebug() {
 	}
 }
 
+static void luastate_CreatePhysicsTable(lua_State* l) {
+	lua_newtable(l);
+	lua_pushstring(l, "createMovableObject");
+	lua_pushcfunction(l, &luafuncs_createMovableObject);
+	lua_settable(l, -3);
+	lua_pushstring(l, "setShapeRectangle");
+	lua_pushcfunction(l, &luafuncs_setShapeRectangle);
+	lua_settable(l, -3);
+	lua_pushstring(l, "setMass");
+	lua_pushcfunction(l, &luafuncs_setMass);
+	lua_settable(l, -3);
+    lua_pushstring(l, "getRotation");
+    lua_pushcfunction(l, &luafuncs_getRotation);
+    lua_settable(l, -3);
+    lua_pushstring(l, "getPosition");
+    lua_pushcfunction(l, &luafuncs_getPosition);
+    lua_settable(l, -3);
+    lua_pushstring(l, "warp");
+    lua_pushcfunction(l, &luafuncs_warp);
+    lua_settable(l, -3);
+}
+
 static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_newtable(l);
 	lua_pushstring(l, "getRendererName");
@@ -161,10 +184,28 @@ static int openlib_blitwiz(lua_State* l) {
 	return 1;
 }
 
+static const luaL_Reg libswithoutdebug[] = {
+	{"_G", luaopen_base},
+	{LUA_LOADLIBNAME, luaopen_package},
+	{LUA_COLIBNAME, luaopen_coroutine},
+	{LUA_TABLIBNAME, luaopen_table},
+	{LUA_IOLIBNAME, luaopen_io},
+	{LUA_OSLIBNAME, luaopen_os},
+	{LUA_STRLIBNAME, luaopen_string},
+	{LUA_BITLIBNAME, luaopen_bit32},
+	{LUA_MATHLIBNAME, luaopen_math},
+	{NULL, NULL}
+};
+
 static int luastate_AddStdFuncs(lua_State* l) {
-	luaL_openlibs(l);
+	const luaL_Reg* lib = libswithoutdebug;
+	while (lib->func) {
+		luaL_requiref(l, lib->name, lib->func, 1);
+    	lua_pop(l, 1);	
+		lib++;
+	}
 	luaL_requiref(l, "blitwiz", openlib_blitwiz, 1);
-	lua_pop(l, 1);	
+	lua_pop(l, 1);
 	return 0;
 }
 
@@ -222,6 +263,34 @@ static int gettraceback(lua_State* l) {
 	return 1;
 }
 
+//The next two functions are stolen (slightly modified) from Lua 5 :)
+//Lua is zlib-licensed as this engine,
+//  Copyright (C) 1994-2011 Lua.org, PUC-Rio. All rights reserved.
+//Lua does not export those symbols, which is why I copied them here
+
+static lua_State *getthread (lua_State *L, int *arg) { //FROM LUA 5
+	if (lua_isthread(L, 1)) {
+		*arg = 1;
+		return lua_tothread(L, 1);
+	}else{
+    	*arg = 0;
+   		return L;
+	}
+}
+
+static int debug_traceback (lua_State *L) { //FROM LUA 5
+	int arg;
+	lua_State *L1 = getthread(L, &arg);
+	const char *msg = lua_tostring(L, arg + 1);
+	if (msg == NULL && !lua_isnoneornil(L, arg + 1)) {  /* non-string 'msg'? */
+    	lua_pushvalue(L, arg + 1);  /* return it untouched */
+  	}else{
+    	int level = luaL_optint(L, arg + 2, (L == L1) ? 1 : 0);
+    	luaL_traceback(L, L1, msg, level);
+  	}
+  	return 1;
+}
+
 
 static lua_State* luastate_New() {
 	lua_State* l = luaL_newstate();
@@ -231,13 +300,9 @@ static lua_State* luastate_New() {
 	lua_pcall(l, 0, 0, 0);
 
 	//preserve debug.traceback in the registry for our own use
-	lua_getglobal(l, "debug");
-	lua_pushstring(l, "traceback");
-	lua_gettable(l, -2);
 	lua_pushstring(l, "debug_traceback_preserved");
-	lua_insert(l, -2);
+	lua_pushcfunction(l, &debug_traceback);
 	lua_settable(l, LUA_REGISTRYINDEX);
-	lua_pop(l, 1);
 	
 	//own dofile/loadfile	
 	lua_pushcfunction(l, &luafuncs_loadfile);
@@ -266,6 +331,10 @@ static lua_State* luastate_New() {
 
 	lua_pushstring(l, "time");
 	luastate_CreateTimeTable(l);
+	lua_settable(l, -3);
+	
+	lua_pushstring(l, "physics");
+	luastate_CreatePhysicsTable(l);
 	lua_settable(l, -3);
 
 	//we still have the module "blitwiz" on the stack here
