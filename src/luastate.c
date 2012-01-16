@@ -101,9 +101,15 @@ static void luastate_CreatePhysicsTable(lua_State* l) {
 	lua_pushstring(l, "createMovableObject");
 	lua_pushcfunction(l, &luafuncs_createMovableObject);
 	lua_settable(l, -3);
+	lua_pushstring(l, "createStaticObject");
+    lua_pushcfunction(l, &luafuncs_createStaticObject);
+    lua_settable(l, -3);
 	lua_pushstring(l, "setShapeRectangle");
 	lua_pushcfunction(l, &luafuncs_setShapeRectangle);
 	lua_settable(l, -3);
+	lua_pushstring(l, "setShapeEdges");
+    lua_pushcfunction(l, &luafuncs_setShapeEdges);
+    lua_settable(l, -3);
 	lua_pushstring(l, "setMass");
 	lua_pushcfunction(l, &luafuncs_setMass);
 	lua_settable(l, -3);

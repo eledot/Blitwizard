@@ -68,7 +68,6 @@ void physics_Step(struct physicsworld* world) {
 	double forcefactor = (1.0/50.0)*1000;
 	b2Body* b = world->w->GetBodyList();
 	while (b) {
-		b->SetAwake(true);
 		b->ApplyForceToCenter(b2Vec2(world->gravityx * forcefactor, world->gravityy * forcefactor));
 		b = b->GetNext();
 	}
@@ -113,7 +112,11 @@ void physics_SetMass(struct physicsobject* obj, double mass) {
 
 void physics_SetFriction(struct physicsobject* obj, double friction) {
 	if (!obj->body) {return;}
-	obj->body->GetFixtureList()->SetFriction(friction);
+	b2Fixture* f = obj->body->GetFixtureList();
+	while (f) {
+		f->SetFriction(friction);
+		f = f->GetNext();
+	}
 }
 
 double physics_GetMass(struct physicsobject* obj) {
@@ -135,6 +138,7 @@ void physics_GetMassCenterOffset(struct physicsobject* obj, double* offsetx, dou
 }
 
 void physics_DestroyObject(struct physicsobject* obj) {
+	if (!obj) {return;}
 	if (obj->body) {
 		obj->world->DestroyBody(obj->body);
 	}
@@ -153,6 +157,211 @@ void physics_GetPosition(struct physicsobject* obj, double* x, double* y) {
 
 void physics_GetRotation(struct physicsobject* obj, double* angle) {
 	*angle = (obj->body->GetAngle() * 180)/M_PI;
+}
+
+#define EPSILON 0.0001
+
+struct edge {
+	int inaloop;
+	int processed;
+	int adjacentcount;
+	double x1,y1,x2,y2;
+	struct edge* next;
+	struct edge* adjacent1, *adjacent2;
+};
+
+struct physicsobjectedgecontext {
+	struct physicsobject* obj;
+	double friction;
+	struct edge* edgelist;
+};
+
+struct physicsobjectedgecontext* physics_CreateObjectEdges_Begin(struct physicsworld* world, void* userdata, int movable, double friction) {
+	struct physicsobjectedgecontext* context = (struct physicsobjectedgecontext*)malloc(sizeof(*context));
+	if (!context) {
+		return NULL;
+	}
+	memset(context, 0, sizeof(*context));
+	context->obj = createobj(world, userdata, movable);
+	if (!context->obj) {
+		free(context);
+		return NULL;
+	}
+	context->friction = friction;
+	return context;
+}
+
+int physics_CheckEdgeLoop(struct edge* edge, struct edge* target) {
+	struct edge* e = edge;
+	struct edge* eprev = NULL;
+	while (e) {
+		if (e == target) {return 1;}
+		struct edge* nextprev = e;
+		if (e->adjacent1 && e->adjacent1 != eprev) {
+			e = e->adjacent1;
+		}else{
+			if (e->adjacent2 && e->adjacent2 != eprev) {
+				e = e->adjacent2;
+			}else{
+				e = NULL;
+			}
+		}
+		eprev = nextprev;
+	}
+	return 0;
+}
+
+void physics_CreateObjectEdges_Do(struct physicsobjectedgecontext* context, double x1, double y1, double x2, double y2) {
+	struct edge* newedge = (struct edge*)malloc(sizeof(*newedge));
+	if (!newedge) {return;}
+	memset(newedge, 0, sizeof(*newedge));
+	newedge->x1 = x1;
+	newedge->y1 = y1;
+	newedge->x2 = x2;
+	newedge->y2 = y2;
+	newedge->adjacentcount = 1;
+	
+	//search for adjacent edges
+	struct edge* e = context->edgelist;
+	while (e) {
+		if (!newedge->adjacent1) {
+			if (fabs(e->x1 - newedge->x1) < EPSILON && fabs(e->y1 - newedge->y1) < EPSILON && e->adjacent1 == NULL) {
+				if (physics_CheckEdgeLoop(e, newedge)) {
+					newedge->inaloop = 1;
+				}else{
+					e->adjacentcount += newedge->adjacentcount;
+                	newedge->adjacentcount = e->adjacentcount;
+				}
+				newedge->adjacent1 = e;
+				e->adjacent1 = newedge;
+			}
+			if (fabs(e->x2 - newedge->x1) < EPSILON && fabs(e->y2 - newedge->y1) < EPSILON && e->adjacent2 == NULL) {
+				if (physics_CheckEdgeLoop(e, newedge)) {
+					newedge->inaloop = 1;
+				}else{
+					e->adjacentcount += newedge->adjacentcount;
+            	    newedge->adjacentcount = e->adjacentcount;
+				}
+            	newedge->adjacent1 = e;
+            	e->adjacent2 = newedge;
+        	}
+		}
+		if (!newedge->adjacent2) {
+			if (fabs(e->x1 - newedge->x2) < EPSILON && fabs(e->y1 - newedge->y2) < EPSILON && e->adjacent1 == NULL) {
+				if (physics_CheckEdgeLoop(e, newedge)) {
+					newedge->inaloop = 1;
+				}else{
+					e->adjacentcount += newedge->adjacentcount;
+                	newedge->adjacentcount = e->adjacentcount;
+				}
+            	newedge->adjacent2 = e;
+            	e->adjacent1 = newedge;
+        	}
+			if (fabs(e->x2 - newedge->x2) < EPSILON && fabs(e->y2 - newedge->y2) < EPSILON && e->adjacent2 == NULL) {
+				if (physics_CheckEdgeLoop(e, newedge)) {
+					newedge->inaloop = 1;
+				}else{
+					e->adjacentcount += newedge->adjacentcount;
+                	newedge->adjacentcount = e->adjacentcount;
+				}
+           	 	newedge->adjacent2 = e;
+           		e->adjacent2 = newedge;
+			}
+		}
+		e = e->next;
+	}
+
+	//add us to the unsorted linear list
+	newedge->next = context->edgelist;
+	context->edgelist = newedge;
+}
+
+struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecontext* context) {
+	if (!context->edgelist) {
+		physics_DestroyObject(context->obj);
+		free(context);
+		return NULL;
+	}
+
+	struct edge* e = context->edgelist;
+	while (e) {
+		//skip edges we already processed
+		if (e->processed) {
+			e = e->next;
+			continue;
+		}
+
+		//only process edges which are start of an adjacent chain, in a loop or lonely
+		if (e->adjacent1 && e->adjacent2 && !e->inaloop) {
+			e = e->next;
+			continue;
+		}
+
+		b2Vec2* varray = new b2Vec2[e->adjacentcount+1];
+		b2ChainShape chain;
+		e->processed = 1;
+
+		//see into which direction we want to go
+		struct edge* eprev = e;
+		struct edge* e2;
+		if (e->adjacent1) {
+			varray[0] = b2Vec2(e->x2, e->y2);
+			varray[1] = b2Vec2(e->x1, e->y1);
+			e2 = e->adjacent1;
+		}else{
+            varray[0] = b2Vec2(e->x1, e->y1);
+            varray[1] = b2Vec2(e->x2, e->y2);
+			e2 = e->adjacent2;
+		}
+
+		//ok let's take a walk:
+		int i = 2;
+		while (e2) {
+			if (e2->processed) {break;}
+			e2->processed = 1;
+			struct edge* enextprev = e2;
+			if (e2->adjacent1 && e2->adjacent1 != eprev) {
+				varray[i] = b2Vec2(e2->x1, e2->y1);
+				e2 = e2->adjacent1;
+			}else{
+				if (e2->adjacent2 && e2->adjacent2 != eprev) {
+					varray[i] = b2Vec2(e2->x2, e2->y2);
+					e2 = e2->adjacent2;
+				}else{
+					e2 = NULL;
+				}
+			}
+			eprev = enextprev;
+			i++;
+		}
+	
+		//construct an edge shape from this
+		if (e->inaloop) {
+			chain.CreateLoop(varray, e->adjacentcount);
+		}else{
+			chain.CreateChain(varray, e->adjacentcount+1);
+		}
+
+		//add it to our body
+		b2FixtureDef fixtureDef;
+    	fixtureDef.shape = &chain;
+    	fixtureDef.friction = context->friction;
+    	context->obj->body->CreateFixture(&fixtureDef);
+
+		delete varray;
+	}
+	struct physicsobject* obj = context->obj;
+	
+	//free all edges
+	e = context->edgelist;
+	while (e) {
+		struct edge* enext = e->next;
+		free(e);
+		e = enext;
+	}
+
+	free(context);
+	return obj;
 }
 
 } //extern "C"

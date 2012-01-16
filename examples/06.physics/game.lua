@@ -18,6 +18,26 @@ function blitwiz.on_init()
 	-- Load image
 	blitwiz.graphics.loadImage("bg.png")
 	blitwiz.graphics.loadImage("crate.png")
+
+	-- Add base level collision
+	local x,y = bgimagepos()
+	levelcollision = blitwiz.physics.createStaticObject()
+	blitwiz.physics.setShapeEdges(levelcollision, {
+		{(119+x)/pixelspermeter, (0+y)/pixelspermeter,
+		(119+x)/pixelspermeter, (360+y)/pixelspermeter},
+		
+		{(119+x)/pixelspermeter, (360+y)/pixelspermeter,
+		(397+x)/pixelspermeter, (234+y)/pixelspermeter},
+
+		{(397+x)/pixelspermeter, (234+y)/pixelspermeter,
+		(545+x)/pixelspermeter, (371+y)/pixelspermeter},
+
+		{(545+x)/pixelspermeter, (371+y)/pixelspermeter,
+		(593+x)/pixelspermeter, (122+y)/pixelspermeter},
+
+		{(593+x)/pixelspermeter, (122+y)/pixelspermeter,
+		(564+x)/pixelspermeter, (0+y)/pixelspermeter}
+	})
 end
 
 function bgimagepos()

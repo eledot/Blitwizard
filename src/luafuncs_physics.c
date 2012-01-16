@@ -95,9 +95,21 @@ int luafuncs_createMovableObject(lua_State* l) {
 	return 1;
 }
 
+int luafuncs_createStaticObject(lua_State* l) {
+    lua_newtable(l);
+    lua_pushnumber(l, 1);
+    struct luaidref* ref = createphysicsobj(l);
+    lua_settable(l, -3);
+    return 1;
+}
+
 int luafuncs_setMass(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
-    if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
+    if (!obj->movable) {
+		lua_pushstring(l, "Mass can be only set on movable objects");
+		return lua_error(l);
+	}
+	if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
         lua_pushstring(l, "Second parameter is not a valid mass number");
         return lua_error(l);
     }
@@ -193,6 +205,69 @@ int luafuncs_getRotation(lua_State* l) {
     lua_pushnumber(l, angle);
     return angle;
 }
+
+int luafuncs_setShapeEdges(lua_State* l) {
+	struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TTABLE) {
+        lua_pushstring(l, "Second parameter is not a valid edge list");
+        return lua_error(l);
+    }
+	if (obj->movable) {
+		lua_pushstring(l, "This shape is not allowed for movable objects");
+		return lua_error(l);
+	}
+
+	struct physicsobjectedgecontext* context = physics_CreateObjectEdges_Begin(main_DefaultPhysicsPtr(), obj, 0, obj->friction);
+
+	int haveedge = 0;
+	double d = 0;
+	while (1) {
+		lua_pushnumber(l, d);
+		lua_gettable(l, 2);
+		if (lua_type(l, -1) != LUA_TTABLE) {
+			if (lua_type(l, -1) == LUA_TNIL && haveedge) {
+				break;
+			}
+			lua_pushstring(l, "Second parameter is not a valid edge list");
+			physics_DestroyObject(physics_CreateObjectEdges_End(context));
+			return lua_error(l);
+		}
+		haveedge = 1;
+
+		double x1,y1,x2,y2;
+		lua_pushnumber(l, 1);
+		lua_gettable(l, -1);
+		x1 = lua_tonumber(l, 1);
+		lua_pushnumber(l, 1); 
+        lua_gettable(l, -1);
+        y1 = lua_tonumber(l, 1);
+		lua_pushnumber(l, 1); 
+        lua_gettable(l, -1);
+        x2 = lua_tonumber(l, 1);
+		lua_pushnumber(l, 1); 
+        lua_gettable(l, -1);
+        y2 = lua_tonumber(l, 1);
+
+		physics_CreateObjectEdges_Do(context, x1, y1, x2, y2);
+		d++;
+    }
+	
+	struct physicsobject* oldobject = obj->object;
+
+	obj->object = physics_CreateObjectEdges_End(context);
+	if (!obj->object) {
+		lua_pushstring(l, "Creation of the edges shape failed");
+		return lua_error(l);
+	}
+	
+	if (oldobject) {
+        transferbodysettings(oldobject, obj->object);
+        physics_DestroyObject(oldobject);
+    }
+	return 0;
+}
+
+
 
 int luafuncs_setShapeRectangle(lua_State* l) {
 	struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
