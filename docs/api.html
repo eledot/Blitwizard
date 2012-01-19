@@ -736,6 +736,26 @@ Return value: None
 </p>
 <li>
 
+<li><h2><a name="blitwiz.physics.setRestitution">blitwiz.physics.setRestitution(physics object <a href="#physics_object"><i>(physics object)</i></a>, restitution <i>(number)</i>)</a></h2>
+<p>
+Set how much an object restitutes velocity after an impact. A restitution of 0 will make it stop fully at collision (default), and with 1 it will fully conserve all speed and bounce around.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to change restitution
+</li>
+<li>
+restitution <i>(number)</i> &mdash; the restitution in a range from 0 to 1
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
+
 <li><h2><a name="blitwiz.physics.setShapeCircle">blitwiz.physics.setShapeCircle(physics object <a href="#physics_object"><i>(physics object)</i></a>, radius <i>(number)</i>)</a></h2>
 <p>
 Set a circle shape for an object. Compatible with both movable and static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. The shape will be used as a collision shape when calculating collisions.
