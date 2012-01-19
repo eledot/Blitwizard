@@ -26,7 +26,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#define BOX2DBORDER 0.01
+#define EPSILON 0.0001
 
 #include "physics.h"
 
@@ -178,6 +178,23 @@ void physics_SetFriction(struct physicsobject* obj, double friction) {
 	}
 }
 
+void physics_SetRestitution(struct physicsobject* obj, double restitution) {
+	if (restitution > 1) {restitution = 1;}
+	if (restitution < 0) {restitution = 0;}
+    if (!obj->body) {return;}
+    b2Fixture* f = obj->body->GetFixtureList();
+    while (f) {
+        f->SetRestitution(restitution);
+        f = f->GetNext();
+    }
+    b2ContactEdge* e = obj->body->GetContactList();
+    while (e) {
+        e->contact->SetRestitution(restitution);
+        e = e->next;
+    }
+}
+
+
 double physics_GetMass(struct physicsobject* obj) {
 	b2MassData mdata;
     obj->body->GetMassData(&mdata);
@@ -217,8 +234,6 @@ void physics_GetPosition(struct physicsobject* obj, double* x, double* y) {
 void physics_GetRotation(struct physicsobject* obj, double* angle) {
 	*angle = (obj->body->GetAngle() * 180)/M_PI;
 }
-
-#define EPSILON 0.0001
 
 struct edge {
 	int inaloop;

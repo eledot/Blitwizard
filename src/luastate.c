@@ -125,6 +125,9 @@ static void luastate_CreatePhysicsTable(lua_State* l) {
     lua_pushstring(l, "setFriction");
     lua_pushcfunction(l, &luafuncs_setFriction);
     lua_settable(l, -3);
+	lua_pushstring(l, "setRestitution");
+    lua_pushcfunction(l, &luafuncs_setRestitution);
+    lua_settable(l, -3);
 	lua_pushstring(l, "setAngularDamping");
 	lua_pushcfunction(l, &luafuncs_setAngularDamping);
 	lua_settable(l, -3);

@@ -35,6 +35,7 @@ struct luaphysicsobj {
 	int movable;
 	struct physicsobject* object;
 	double friction;
+	double restitution;
 };
 
 static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
@@ -212,6 +213,19 @@ int luafuncs_getPosition(lua_State* l) {
 	return 2;
 }
 
+int luafuncs_setRestitution(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (lua_type(l, 2) != LUA_TNUMBER) {
+        lua_pushstring(l, "Second parameter not a valid restitution number");
+        return lua_error(l);
+    }
+    obj->restitution = lua_tonumber(l, 2);
+    if (obj->object) {
+        physics_SetRestitution(obj->object, obj->restitution);
+    }
+    return 0;
+}
+
 int luafuncs_setFriction(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
 	if (lua_type(l, 2) != LUA_TNUMBER) {
@@ -318,6 +332,8 @@ int luafuncs_setShapeEdges(lua_State* l) {
         transferbodysettings(oldobject, obj->object);
         physics_DestroyObject(oldobject);
     }
+	physics_SetRestitution(obj->object, obj->restitution);
+
 	return 0;
 }
 
@@ -339,9 +355,10 @@ int luafuncs_setShapeCircle(lua_State* l) {
         transferbodysettings(oldobject, obj->object);
         physics_DestroyObject(oldobject);
     }
+	physics_SetRestitution(obj->object, obj->restitution);
 
     return 0;
-
+}
 
 
 int luafuncs_setShapeOval(lua_State* l) {
@@ -367,9 +384,10 @@ int luafuncs_setShapeOval(lua_State* l) {
         transferbodysettings(oldobject, obj->object);
         physics_DestroyObject(oldobject);
     }
+	physics_SetRestitution(obj->object, obj->restitution);
 
     return 0;
-
+}
 
 
 int luafuncs_setShapeRectangle(lua_State* l) {
@@ -395,6 +413,7 @@ int luafuncs_setShapeRectangle(lua_State* l) {
 		transferbodysettings(oldobject, obj->object);
 		physics_DestroyObject(oldobject);
 	}
+	physics_SetRestitution(obj->object, obj->restitution);
 
 	return 0;
 }

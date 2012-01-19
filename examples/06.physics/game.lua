@@ -8,8 +8,10 @@
 
 print("Physics example in blitwizard")
 crates = {}
+balls = {}
 pixelspermeter = 30
 cratesize = 64/pixelspermeter
+ballsize = 32/pixelspermeter
 
 function blitwiz.on_init()
 	-- Open a window
@@ -19,6 +21,7 @@ function blitwiz.on_init()
 	blitwiz.graphics.loadImage("bg.png")
 	blitwiz.graphics.loadImage("crate.png")
 	blitwiz.graphics.loadImage("shadows.png")
+	blitwiz.graphics.loadImage("ball.png")
 
 	-- Add base level collision
 	local x,y = bgimagepos()
@@ -65,6 +68,14 @@ function blitwiz.on_draw()
 		blitwiz.graphics.drawImage("crate.png", x*pixelspermeter - imgw/2, y*pixelspermeter - imgh/2, 1, nil, nil, nil, nil, 1, 1, rotation)
 	end
 
+	-- Draw all balls
+	local imgw,imgh = blitwiz.graphics.getImageSize("ball.png")
+    for index,ball in ipairs(balls) do
+        local x,y = blitwiz.physics.getPosition(ball)
+        local rotation = blitwiz.physics.getRotation(ball)
+        blitwiz.graphics.drawImage("ball.png", x*pixelspermeter - imgw/2, y*pixelspermeter - imgh/2, 1, nil, nil, nil, nil, 1, 1, rotation)
+    end
+
 	-- Draw overall shadows:
 	local x,y = bgimagepos()
 	blitwiz.graphics.drawImage("shadows.png", x, y)
@@ -84,19 +95,52 @@ function limitcrateposition(x,y)
 	return x,y
 end
 
+function limitballposition(x,y)
+    if x - ballsize/2 < 125/pixelspermeter then
+        x = 125/pixelspermeter + ballsize/2
+    end
+    if x + ballsize/2 > 555/pixelspermeter then
+        x = 555/pixelspermeter - ballsize/2
+    end
+    if y + ballsize/2 > 230/pixelspermeter then
+        -- If we are below the lowest height, jump up a bit
+        y = 130/pixelspermeter - ballsize/2
+    end
+    return x,y
+end
+
 function blitwiz.on_mousedown(button, x, y)
 	local imgposx,imgposy = bgimagepos()
-	local crateposx = (x - imgposx)/pixelspermeter
-	local crateposy = (y - imgposy)/pixelspermeter
-	crateposx,crateposy = limitcrateposition(crateposx, crateposy)
-	local crate = blitwiz.physics.createMovableObject()
-	blitwiz.physics.setFriction(crate, 0.7)
-	blitwiz.physics.setShapeRectangle(crate, cratesize, cratesize)
-	blitwiz.physics.setMass(crate, 10)
-	blitwiz.physics.warp(crate, crateposx, crateposy)
-	blitwiz.physics.setAngularDamping(crate, 0.5)
 
-	crates[#crates+1] = crate
+	-- See where we can add the object
+	local objectposx = (x - imgposx)/pixelspermeter
+	local objectposy = (y - imgposy)/pixelspermeter
+
+	if math.random() > 0.5 then
+		objectposx,objectposy = limitcrateposition(objectposx, objectposy)
+
+		-- Add a crate
+		local crate = blitwiz.physics.createMovableObject()
+		blitwiz.physics.setFriction(crate, 0.7)
+		blitwiz.physics.setShapeRectangle(crate, cratesize, cratesize)
+		blitwiz.physics.setMass(crate, 10)
+		blitwiz.physics.warp(crate, objectposx, objectposy)
+		blitwiz.physics.setAngularDamping(crate, 0.5)
+
+		crates[#crates+1] = crate
+	else
+		objectposx,objectposy = limitballposition(objectposx, objectposy)
+
+		-- Add a ball
+        local ball = blitwiz.physics.createMovableObject()
+        blitwiz.physics.setShapeCircle(ball, ballsize / 2)
+        blitwiz.physics.setMass(ball, 10)
+        blitwiz.physics.warp(ball, objectposx, objectposy)
+        blitwiz.physics.setAngularDamping(ball, 0.5)
+		blitwiz.physics.setRestitution(ball, 0.9)
+
+        balls[#balls+1] = ball
+	end
 end
 
 function blitwiz.on_close()
