@@ -26,6 +26,8 @@
 #include <math.h>
 #include <stdio.h>
 
+#define BOX2DBORDER 0.01
+
 #include "physics.h"
 
 extern "C" {
@@ -65,13 +67,17 @@ int physics_GetStepSize(struct physicsworld* world) {
 }
 
 void physics_Step(struct physicsworld* world) {
-	double forcefactor = (1.0/50.0)*1000;
-	b2Body* b = world->w->GetBodyList();
-	while (b) {
-		b->ApplyForceToCenter(b2Vec2(world->gravityx * forcefactor, world->gravityy * forcefactor));
-		b = b->GetNext();
+	int i = 0;
+	while (i < 2) {
+		double forcefactor = (1.0/100.0)*10;
+		b2Body* b = world->w->GetBodyList();
+		while (b) {
+			b->ApplyLinearImpulse(b2Vec2(world->gravityx * forcefactor, world->gravityy * forcefactor), b2Vec2(b->GetPosition().x, b->GetPosition().y));
+			b = b->GetNext();
+		}
+		world->w->Step(1.0 / 100, 10, 7);
+		i++;
 	}
-	world->w->Step(1.0 / 50, 8, 3);
 }
 
 static struct physicsobject* createobj(struct physicsworld* world, void* userdata, int movable) {
@@ -95,12 +101,45 @@ struct physicsobject* physics_CreateObjectRectangle(struct physicsworld* world, 
 	struct physicsobject* obj = createobj(world, userdata, movable);
 	if (!obj) {return NULL;}
 	b2PolygonShape box;
-	box.SetAsBox(width/2, height/2);
+	box.SetAsBox((width/2) - box.m_radius*2, (height/2) - box.m_radius*2);
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &box;
 	fixtureDef.friction = friction;
+	fixtureDef.density = 1;
+	obj->body->SetFixedRotation(false);
 	obj->body->CreateFixture(&fixtureDef);
 	return obj;
+}
+
+static struct physicsobject* physics_CreateObjectCircle(struct physicsworld* world, void* userdata, int movable, double friction, double radius) {
+	struct physicsobject* obj = createobj(world, userdata, movable);
+    if (!obj) {return NULL;}
+	b2CircleShape circle;
+	circle.m_radius = radius;
+	b2FixtureDef fixtureDef;
+	fixtureDef.shape = &circle;
+	fixtureDef.friction = friction;
+	fixtureDef.density = 1;
+	obj->body->SetFixedRotation(false);
+	obj->body->CreateFixture(&fixtureDef);
+	return obj;
+}
+
+struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height) {
+  	if (fabs(width - height) < EPSILON) {
+		return physics_CreateObjectCircle(world, userdata, movable, friction, width);
+	}
+    struct physicsobject* obj = createobj(world, userdata, movable);
+    if (!obj) {return NULL;}
+    b2PolygonShape box;
+    box.SetAsBox((width/2) - box.m_radius*2, (height/2) - box.m_radius*2);
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &box;
+    fixtureDef.friction = friction;
+    fixtureDef.density = 1;
+    obj->body->SetFixedRotation(false);
+    obj->body->CreateFixture(&fixtureDef);
+    return obj;
 }
 
 void physics_SetMass(struct physicsobject* obj, double mass) {
@@ -111,12 +150,31 @@ void physics_SetMass(struct physicsobject* obj, double mass) {
 	obj->body->SetMassData(&mdata);
 }
 
+void physics_SetRotationRestriction(struct physicsobject* obj, int restricted) {
+	if (!obj->body) {return;}
+	if (restricted) {
+		obj->body->SetFixedRotation(true);
+	}else{
+		obj->body->SetFixedRotation(false);
+	}
+}
+
+void physics_SetAngularDamping(struct physicsobject* obj, double damping) {
+	if (!obj->body) {return;}
+	obj->body->SetAngularDamping(damping);
+}
+
 void physics_SetFriction(struct physicsobject* obj, double friction) {
 	if (!obj->body) {return;}
 	b2Fixture* f = obj->body->GetFixtureList();
 	while (f) {
 		f->SetFriction(friction);
 		f = f->GetNext();
+	}
+	b2ContactEdge* e = obj->body->GetContactList();
+    while (e) {
+		e->contact->ResetFriction();
+		e = e->next;
 	}
 }
 
@@ -235,6 +293,8 @@ void physics_CreateObjectEdges_Do(struct physicsobjectedgecontext* context, doub
 				}
 				newedge->adjacent1 = e;
 				e->adjacent1 = newedge;
+                e = e->next;
+                continue;
 			}
 			if (fabs(e->x2 - newedge->x1) < EPSILON && fabs(e->y2 - newedge->y1) < EPSILON && e->adjacent2 == NULL) {
 				if (physics_CheckEdgeLoop(e, newedge)) {
@@ -245,6 +305,8 @@ void physics_CreateObjectEdges_Do(struct physicsobjectedgecontext* context, doub
 				}
             	newedge->adjacent1 = e;
             	e->adjacent2 = newedge;
+                e = e->next;
+                continue;
         	}
 		}
 		if (!newedge->adjacent2) {
@@ -257,6 +319,8 @@ void physics_CreateObjectEdges_Do(struct physicsobjectedgecontext* context, doub
 				}
             	newedge->adjacent2 = e;
             	e->adjacent1 = newedge;
+                e = e->next;
+                continue;
         	}
 			if (fabs(e->x2 - newedge->x2) < EPSILON && fabs(e->y2 - newedge->y2) < EPSILON && e->adjacent2 == NULL) {
 				if (physics_CheckEdgeLoop(e, newedge)) {
@@ -267,6 +331,8 @@ void physics_CreateObjectEdges_Do(struct physicsobjectedgecontext* context, doub
 				}
            	 	newedge->adjacent2 = e;
            		e->adjacent2 = newedge;
+				e = e->next;
+				continue;
 			}
 		}
 		e = e->next;
@@ -321,12 +387,19 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
 			if (e2->processed) {break;}
 			e2->processed = 1;
 			struct edge* enextprev = e2;
-			if (e2->adjacent1 && e2->adjacent1 != eprev) {
+
+			//Check which vertex we want to add
+			if (e2->adjacent1 == eprev) {
+				varray[i] = b2Vec2(e2->x2, e2->y2);
+			}else{
 				varray[i] = b2Vec2(e2->x1, e2->y1);
+			}
+
+			//advance to next edge
+			if (e2->adjacent1 && e2->adjacent1 != eprev) {
 				e2 = e2->adjacent1;
 			}else{
 				if (e2->adjacent2 && e2->adjacent2 != eprev) {
-					varray[i] = b2Vec2(e2->x2, e2->y2);
 					e2 = e2->adjacent2;
 				}else{
 					e2 = NULL;
@@ -335,6 +408,13 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
 			eprev = enextprev;
 			i++;
 		}
+
+		//debug print values
+		/*int u = 0;
+		while (u < e->adjacentcount + 1 - (1 * e->inaloop)) {
+			printf("Chain vertex: %f, %f\n", varray[u].x, varray[u].y);
+			u++;
+		}*/
 	
 		//construct an edge shape from this
 		if (e->inaloop) {
@@ -347,6 +427,7 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
 		b2FixtureDef fixtureDef;
     	fixtureDef.shape = &chain;
     	fixtureDef.friction = context->friction;
+		fixtureDef.density = 0;
     	context->obj->body->CreateFixture(&fixtureDef);
 
 		delete varray;

@@ -98,9 +98,27 @@ int luafuncs_createMovableObject(lua_State* l) {
 int luafuncs_createStaticObject(lua_State* l) {
     lua_newtable(l);
     lua_pushnumber(l, 1);
-    struct luaidref* ref = createphysicsobj(l);
+    createphysicsobj(l);
     lua_settable(l, -3);
     return 1;
+}
+
+int luafuncs_restrictRotation(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+	if (lua_type(l, 2) != LUA_TBOOLEAN) {
+		lua_pushstring(l, "Second parameter is not a valid rotation restriction boolean");
+		return lua_error(l);
+	}
+	if (!obj->movable) {
+        lua_pushstring(l, "Mass can be only set on movable objects");
+        return lua_error(l);
+    }
+	if (!obj->object) {
+        lua_pushstring(l, "Physics object has no shape");
+        return lua_error(l);
+    }
+	physics_SetRotationRestriction(obj->object, lua_toboolean(l, 2));
+	return 0;
 }
 
 int luafuncs_setMass(lua_State* l) {
@@ -194,6 +212,33 @@ int luafuncs_getPosition(lua_State* l) {
 	return 2;
 }
 
+int luafuncs_setFriction(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+	if (lua_type(l, 2) != LUA_TNUMBER) {
+		lua_pushstring(l, "Second parameter not a valid friction number");
+		return lua_error(l);
+	}
+	obj->friction = lua_tonumber(l, 2);
+    if (obj->object) {
+		physics_SetFriction(obj->object, obj->friction);
+    }
+    return 0;
+}
+
+int luafuncs_setAngularDamping(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (lua_type(l, 2) != LUA_TNUMBER) {
+        lua_pushstring(l, "Second parameter not a valid angular damping number");
+        return lua_error(l);
+    }
+	if (!obj->object) {
+        lua_pushstring(l, "Physics object doesn't have a shape");
+        return lua_error(l);
+    }
+    physics_SetAngularDamping(obj->object, lua_tonumber(l, 2));
+    return 0;
+}
+
 int luafuncs_getRotation(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (!obj->object) {
@@ -203,7 +248,7 @@ int luafuncs_getRotation(lua_State* l) {
     double angle;
     physics_GetRotation(obj->object, &angle);
     lua_pushnumber(l, angle);
-    return angle;
+    return 1;
 }
 
 int luafuncs_setShapeEdges(lua_State* l) {
@@ -275,6 +320,55 @@ int luafuncs_setShapeEdges(lua_State* l) {
     }
 	return 0;
 }
+
+int luafuncs_setShapeCircle(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
+        lua_pushstring(l, "Not a valid circle radius number");
+        return lua_error(l);
+    }
+    double radius = lua_tonumber(l, 2);
+    struct physicsobject* oldobject = obj->object;
+    obj->object = physics_CreateObjectOval(main_DefaultPhysicsPtr(), obj, obj->movable, obj->friction, radius, radius);
+    if (!obj->object) {
+        lua_pushstring(l, "Failed to allocate shape");
+        return lua_error(l);
+    }
+
+    if (oldobject) {
+        transferbodysettings(oldobject, obj->object);
+        physics_DestroyObject(oldobject);
+    }
+
+    return 0;
+
+
+
+int luafuncs_setShapeOval(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
+        lua_pushstring(l, "Not a valid oval width number");
+        return lua_error(l);
+    }
+    if (lua_gettop(l) < 3 || lua_type(l, 3) != LUA_TNUMBER || lua_tonumber(l, 3) <= 0) {
+        lua_pushstring(l, "Not a valid oval height number");
+        return lua_error(l);
+    }
+    double width = lua_tonumber(l, 2);
+    double height = lua_tonumber(l, 3);
+    struct physicsobject* oldobject = obj->object;
+    obj->object = physics_CreateObjectOval(main_DefaultPhysicsPtr(), obj, obj->movable, obj->friction, width, height);
+    if (!obj->object) {
+        lua_pushstring(l, "Failed to allocate shape");
+        return lua_error(l);
+    }
+
+    if (oldobject) {
+        transferbodysettings(oldobject, obj->object);
+        physics_DestroyObject(oldobject);
+    }
+
+    return 0;
 
 
 

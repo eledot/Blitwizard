@@ -52,6 +52,7 @@ void physics_GetMassCenterOffset(struct physicsobject* obj, double* offsetx, dou
 void physics_SetGravity(struct physicsobject* obj, float x, float y);
 void physics_SetRotationRestriction(struct physicsobject* obj, int restricted);
 void physics_SetFriction(struct physicsobject* obj, double friction);
+void physics_SetAngularDamping(struct physicsobject* obj, double damping);
 
 //change and get position/rotation
 void physics_GetPosition(struct physicsobject* obj, double* x, double* y);

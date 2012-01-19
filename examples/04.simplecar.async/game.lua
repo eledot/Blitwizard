@@ -22,6 +22,7 @@ function blitwiz.on_init()
 	imageCount = 0
 	blitwiz.graphics.loadImageAsync("background.png")
 	blitwiz.graphics.loadImageAsync("car.png")
+	blitwiz.graphics.loadImageAsync("nightmask.png")
 	-- We have to be careful when our images are actually available.
 	-- For this, we check the on_image event (see below).
 end
@@ -39,7 +40,7 @@ function blitwiz.on_draw()
 	-- We have to check whether our image is loaded first,
 	-- since image loading in blitwizard doesn't hang your
 	-- whole application, but instead happens in the background:
-	if imageCount >= 2 then
+	if imageCount >= 3 then
 		-- Calculate background position
 		local w,h = blitwiz.graphics.getImageSize("background.png")
 		local mw,mh = blitwiz.graphics.getWindowSize()
@@ -51,6 +52,9 @@ function blitwiz.on_draw()
 		local carwidth,carheight = blitwiz.graphics.getImageSize("car.png");
 		-- We want to draw it at the car x position, and directly on the ground of the window
 		blitwiz.graphics.drawImage("car.png", carx, mh - carheight); 
+
+		-- Draw night mask
+		blitwiz.graphics.drawImage("nightmask.png", mw/2 - w/2, mh/2 - h/2)
 	end
 
 	-- Done!

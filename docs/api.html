@@ -668,6 +668,46 @@ Return value: None
 </p>
 </li>
 
+<li><h2><a name="blitwiz.physics.setAngularDamping">blitwiz.physics.setAngularDamping</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, damping <i>(number)</i>)</h2>
+<p>
+Set the angular damping of the object which is always applied when the object rotates. With no angular damping, an object can rotate forever when once set in motion without ever stopping. When the angular damping is greater than zero, it will slow down the rotation accordingly. The default angular damping of objects is 0 (none).
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the friction
+</li>
+<li>
+damping <i>(number)</i> &mdash; the angular damping you want to set which should be in the range 0 (no damping) to 1 (full damping)
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+<li>
+
+<li><h2><a name="blitwiz.physics.setFriction">blitwiz.physics.setFriction</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, friction <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
+<p>
+Set the friction of the physics object which is applied when it touches/collides with other objects. All objects with no friction set have 0 as default (no friction).
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the friction
+</li>
+<li>
+friction <i>(number)</i> &mdash; the friction you want to set which should be in the range 0 (no friction) to 1 (full friction)
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+<li>
+
 <li><h2><a name="blitwiz.physics.setMass">blitwiz.physics.setMass</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, mass <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
 <p>
 Set the mass of a movable physics object (and optionally the mass center). It is intended to be in kilogram, but since the physics are a game-oriented (that means not a perfectly accurate) simulation it is recommended you simply experiment with values that suit you best. 0 is infinite mass. Please note that objects with a really huge mass can cause the physics to become unstable.
@@ -693,6 +733,26 @@ mass center y coordinate <i>(number, optional)</i> &mdash; the y coordinate of t
 Return value: None
 </p>
 <li>
+
+<li><h2><a name="blitwiz.physics.setShapeCircle">blitwiz.physics.setShapeCircle(physics object <a href="#physics_object"><i>(physics object)</i></a>, radius <i>(number)</i>)</a></h2>
+<p>
+Set a circle shape for an object. Compatible with both movable and static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. The shape will be used as a collision shape when calculating collisions.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+</li>
+<li>
+radius <i>(number)</i> &mdash; the circle radius in physics units
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
 
 <li><h2><a name="blitwiz.physics.setShapeEdges">blitwiz.physics.setShapeEdges</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, edge list <i>(table)</i>)</h2>
 <p>
@@ -722,6 +782,30 @@ local pixelpermeterfac = 30
 	[0/pixelpermeterfac, 400/pixelpermeterfac, 500/pixelpermeterfac, 400/pixelpermeterfac],
 ])
 </div>
+</p>
+</li>
+
+
+<li><h2><a name="blitwiz.physics.setShapeOval">blitwiz.physics.setShapeOval(physics object <a href="#physics_object"><i>(physics object)</i></a>, oval width <i>(number)</i>, oval height <i>(number)</i>)</a></h2>
+<p>
+Set an oval shape for an object. Compatible with both movable and static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. The shape will be used as a collision shape when calculating collisions.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+</li>
+<li>
+oval width <i>(number)</i> &mdash; horizontal size of the oval shape in physics units
+</li>
+<li>
+oval height <i>(number)</i> &mdash; vertical size of the oval shape
+</li>
+</ul>
+</p>
+<p>
+Return value: None
 </p>
 </li>
 
