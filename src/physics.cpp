@@ -115,7 +115,7 @@ static struct physicsobject* physics_CreateObjectCircle(struct physicsworld* wor
 	struct physicsobject* obj = createobj(world, userdata, movable);
     if (!obj) {return NULL;}
 	b2CircleShape circle;
-	circle.m_radius = radius;
+	circle.m_radius = radius - 0.01;
 	b2FixtureDef fixtureDef;
 	fixtureDef.shape = &circle;
 	fixtureDef.friction = friction;

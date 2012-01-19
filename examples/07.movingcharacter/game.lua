@@ -10,6 +10,7 @@
 print("Moving character example in blitwizard")
 pixelspermeter = 30
 cratesize = 64/pixelspermeter
+frame = 1
 
 function blitwiz.on_init()
 	-- Open a window
@@ -20,31 +21,59 @@ function blitwiz.on_init()
 	blitwiz.graphics.loadImage("crate.png")
 	blitwiz.graphics.loadImage("char1.png")
 	blitwiz.graphics.loadImage("char2.png")
+	blitwiz.graphics.loadImage("char3.png")
 
 	-- Add base level collision
 	local x,y = bgimagepos()
 	levelcollision = blitwiz.physics.createStaticObject()
 	blitwiz.physics.setShapeEdges(levelcollision, {
-		{(119+x)/pixelspermeter, (0+y)/pixelspermeter,
-		(119+x)/pixelspermeter, (360+y)/pixelspermeter},
-		
-		{(119+x)/pixelspermeter, (360+y)/pixelspermeter,
-		(397+x)/pixelspermeter, (234+y)/pixelspermeter},
+		{(0+x)/pixelspermeter, (245+y)/pixelspermeter,
+        (0+x)/pixelspermeter, (0+y)/pixelspermeter},
 
-		{(397+x)/pixelspermeter, (234+y)/pixelspermeter,
-		(545+x)/pixelspermeter, (371+y)/pixelspermeter},
+		{(0+x)/pixelspermeter, (245+y)/pixelspermeter,
+		(93+x)/pixelspermeter, (297+y)/pixelspermeter},
 
-		{(545+x)/pixelspermeter, (371+y)/pixelspermeter,
-		(593+x)/pixelspermeter, (122+y)/pixelspermeter},
+		{(93+x)/pixelspermeter, (297+y)/pixelspermeter,
+		(151+x)/pixelspermeter, (293+y)/pixelspermeter},
 
-		{(593+x)/pixelspermeter, (122+y)/pixelspermeter,
-		(564+x)/pixelspermeter, (0+y)/pixelspermeter}
+		{(151+x)/pixelspermeter, (293+y)/pixelspermeter,
+		(198+x)/pixelspermeter, (306+y)/pixelspermeter},
+
+		{(198+x)/pixelspermeter, (306+y)/pixelspermeter,
+		(268+x)/pixelspermeter, (375+y)/pixelspermeter},
+	
+		{(268+x)/pixelspermeter, (375+y)/pixelspermeter,
+		(309+x)/pixelspermeter, (350+y)/pixelspermeter},
+
+		{(309+x)/pixelspermeter, (350+y)/pixelspermeter,
+		(357+x)/pixelspermeter, (355+y)/pixelspermeter},
+
+		{(357+x)/pixelspermeter, (355+y)/pixelspermeter,
+		(416+x)/pixelspermeter, (427+y)/pixelspermeter},
+
+		{(416+x)/pixelspermeter, (427+y)/pixelspermeter,
+		(470+x)/pixelspermeter, (431+y)/pixelspermeter},
+
+		{(470+x)/pixelspermeter, (431+y)/pixelspermeter,
+        (512+x)/pixelspermeter, (407+y)/pixelspermeter},
+
+		{(512+x)/pixelspermeter, (407+y)/pixelspermeter,
+        (558+x)/pixelspermeter, (372+y)/pixelspermeter},
+
+		{(558+x)/pixelspermeter, (372+y)/pixelspermeter,
+        (640+x)/pixelspermeter, (364+y)/pixelspermeter},
+
+		{(640+x)/pixelspermeter, (364+y)/pixelspermeter,
+        (640+x)/pixelspermeter, (0+y)/pixelspermeter}
 	})
-	blitwiz.physics.setFriction(levelcollision, 1)
-	levelcollision2 = blitwiz.physics.createStaticObject()
-	blitwiz.physics.setShapeRectangle(levelcollision2, ((382 - 222) + x)/pixelspermeter, ((314 - 242) + y)/pixelspermeter)
-	blitwiz.physics.warp(levelcollision2, ((222+382)/2+x)/pixelspermeter, ((242 + 314)/2+y)/pixelspermeter)
-	blitwiz.physics.setFriction(levelcollision2, 0.3)
+	blitwiz.physics.setFriction(levelcollision, 0.5)
+
+	-- Add character
+	char = blitwiz.physics.createMovableObject()
+	blitwiz.physics.setShapeRectangle(char, (50+x)/pixelspermeter, (140+y)/pixelspermeter)
+	blitwiz.physics.setMass(char, 60)
+	blitwiz.physics.setFriction(char, 0.5)
+	blitwiz.physics.warp(char, (456+x)/pixelspermeter, (288+y)/pixelspermeter)
 end
 
 function bgimagepos()
@@ -58,87 +87,10 @@ function blitwiz.on_draw()
 	local x,y = bgimagepos()
 	blitwiz.graphics.drawImage("bg.png", x, y)
 
-	-- Draw all crates:
-	local imgw,imgh = blitwiz.graphics.getImageSize("crate.png")
-	for index,crate in ipairs(crates) do
-		local x,y = blitwiz.physics.getPosition(crate)
-		local rotation = blitwiz.physics.getRotation(crate)
-		blitwiz.graphics.drawImage("crate.png", x*pixelspermeter - imgw/2, y*pixelspermeter - imgh/2, 1, nil, nil, nil, nil, 1, 1, rotation)
-	end
-
-	-- Draw all balls
-	local imgw,imgh = blitwiz.graphics.getImageSize("ball.png")
-    for index,ball in ipairs(balls) do
-        local x,y = blitwiz.physics.getPosition(ball)
-        local rotation = blitwiz.physics.getRotation(ball)
-        blitwiz.graphics.drawImage("ball.png", x*pixelspermeter - imgw/2, y*pixelspermeter - imgh/2, 1, nil, nil, nil, nil, 1, 1, rotation)
-    end
-
-	-- Draw overall shadows:
-	local x,y = bgimagepos()
-	blitwiz.graphics.drawImage("shadows.png", x, y)
-end
-
-function limitcrateposition(x,y)
-	if x - cratesize/2 < 125/pixelspermeter then
-		x = 125/pixelspermeter + cratesize/2
-	end
-	if x + cratesize/2 > 555/pixelspermeter then
-		x = 555/pixelspermeter - cratesize/2
-	end
-	if y + cratesize/2 > 230/pixelspermeter then
-		-- If we are below the lowest height, jump up a bit
-		y = 130/pixelspermeter - cratesize/2
-	end
-	return x,y
-end
-
-function limitballposition(x,y)
-    if x - ballsize/2 < 125/pixelspermeter then
-        x = 125/pixelspermeter + ballsize/2
-    end
-    if x + ballsize/2 > 555/pixelspermeter then
-        x = 555/pixelspermeter - ballsize/2
-    end
-    if y + ballsize/2 > 230/pixelspermeter then
-        -- If we are below the lowest height, jump up a bit
-        y = 130/pixelspermeter - ballsize/2
-    end
-    return x,y
-end
-
-function blitwiz.on_mousedown(button, x, y)
-	local imgposx,imgposy = bgimagepos()
-
-	-- See where we can add the object
-	local objectposx = (x - imgposx)/pixelspermeter
-	local objectposy = (y - imgposy)/pixelspermeter
-
-	if math.random() > 0.5 then
-		objectposx,objectposy = limitcrateposition(objectposx, objectposy)
-
-		-- Add a crate
-		local crate = blitwiz.physics.createMovableObject()
-		blitwiz.physics.setFriction(crate, 0.7)
-		blitwiz.physics.setShapeRectangle(crate, cratesize, cratesize)
-		blitwiz.physics.setMass(crate, 10)
-		blitwiz.physics.warp(crate, objectposx, objectposy)
-		blitwiz.physics.setAngularDamping(crate, 0.5)
-
-		crates[#crates+1] = crate
-	else
-		objectposx,objectposy = limitballposition(objectposx, objectposy)
-
-		-- Add a ball
-        local ball = blitwiz.physics.createMovableObject()
-        blitwiz.physics.setShapeCircle(ball, ballsize / 2)
-        blitwiz.physics.setMass(ball, 10)
-        blitwiz.physics.warp(ball, objectposx, objectposy)
-        blitwiz.physics.setAngularDamping(ball, 0.5)
-		blitwiz.physics.setRestitution(ball, 0.9)
-
-        balls[#balls+1] = ball
-	end
+	-- Draw the character
+	local x,y = blitwiz.physics.getPosition(char)
+	local w,h = blitwiz.graphics.getImageSize("char1.png")
+	blitwiz.graphics.drawImage("char" .. frame .. ".png", x*pixelspermeter - w/2, y*pixelspermeter - h/2)
 end
 
 function blitwiz.on_close()
