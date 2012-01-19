@@ -466,6 +466,7 @@ end
 </ul>
 <a name="4blitwiz.physics"><h1>4. <i>blitwiz.physics</i> namespace</h1></a>
 <p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world. You can also not move objects directly (except <a href="#blitwiz.physics.warp">warping</a> which you should use as rarely as possible) - they will move on their own according to their mass, how they collide with each other etc. You can give them "pushes" though by using <a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>.</p>
+<p><b>Physics are complicated. Take a look at the examples to get an idea for it, especially the "Moving character" example if you simply want to make a character that walks around in a level.</b></p>
 <p>
 The physics use their own <b>physics units</b>. Do NOT use pixels here! Instead, think of how long a meter would roughly be in your game in pixels, and then scale all pixels accordingly into meter units before you pass them to the physics. Why? Physics operate best in certain value ranges:
 </p>
@@ -646,27 +647,6 @@ Return value: None
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.setGravity">blitwiz.physics.setGravity</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, x gravity force <i>(number)</i>, y gravity force <i>(number)</i>)</h2>
-<p>
-Set the gravity force which applies to a particular movable object. This means the world gravity set through <a href="#blitwiz.physics.setWorldGravity">blitwiz.physics.setWorldGravity</a> will be ignored by this object.
-</p>
-<p>
-Parameters:
-<ul class="parameters">
-<li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to which apply a dedicated gravity force
-<li>
-x gravity force <i>(number)</i> &mdash; the x coordinate of the object's gravity force
-</li>
-<li>
-y gravity force <i>(number)</i> &mdash; the y coordinate of the force
-</li>
-</ul>
-</p>
-<p>
-Return value: None
-</p>
-</li>
 
 <li><h2><a name="blitwiz.physics.setAngularDamping">blitwiz.physics.setAngularDamping</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, damping <i>(number)</i>)</h2>
 <p>
@@ -707,6 +687,28 @@ friction <i>(number)</i> &mdash; the friction you want to set which should be in
 Return value: None
 </p>
 <li>
+
+<li><h2><a name="blitwiz.physics.setGravity">blitwiz.physics.setGravity</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, x gravity force <i>(number)</i>, y gravity force <i>(number)</i>)</h2>
+<p>
+Set the gravity force which applies to a particular movable object. This means the world gravity set through <a href="#blitwiz.physics.setWorldGravity">blitwiz.physics.setWorldGravity</a> will be ignored by this object.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to which apply a dedicated gravity force
+<li>
+x gravity force <i>(number)</i> &mdash; the x coordinate of the object's gravity force
+</li>
+<li>
+y gravity force <i>(number)</i> &mdash; the y coordinate of the force
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
 
 <li><h2><a name="blitwiz.physics.setMass">blitwiz.physics.setMass</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, mass <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
 <p>
