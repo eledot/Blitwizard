@@ -32,6 +32,7 @@ int luafuncs_setMass(lua_State* l);
 int luafuncs_setRestitution(lua_State* l);
 int luafuncs_setFriction(lua_State* l);
 int luafuncs_setAngularDamping(lua_State* l);
+int luafuncs_setLinearDamping(lua_State* l);
 int luafuncs_getRotation(lua_State* l);
 int luafuncs_getPosition(lua_State* l);
 int luafuncs_warp(lua_State* l);

@@ -656,7 +656,7 @@ Set the angular damping of the object which is always applied when the object ro
 Parameters:
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the friction
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the damping
 </li>
 <li>
 damping <i>(number)</i> &mdash; the angular damping you want to set which should be in the range 0 (no damping) to 1 (full damping)
@@ -709,6 +709,26 @@ y gravity force <i>(number)</i> &mdash; the y coordinate of the force
 Return value: None
 </p>
 </li>
+
+<li><h2><a name="blitwiz.physics.setLinearDamping">blitwiz.physics.setLinearDamping</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, damping <i>(number)</i>)</h2>
+<p>
+Set the linear damping of the object which is always applied when the object moves. With no linear damping, an object can move forever when once set in motion without ever stopping. When the linear damping is greater than zero, it will slow down the movement accordingly. The default linear damping of objects is 0 (none).
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the damping
+</li>
+<li>
+damping <i>(number)</i> &mdash; the linear damping you want to set which should be in the range 0 (no damping) to 1 (full damping)
+</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+<li>
 
 <li><h2><a name="blitwiz.physics.setMass">blitwiz.physics.setMass</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, mass <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
 <p>

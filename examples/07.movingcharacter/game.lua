@@ -1,27 +1,25 @@
 
 --[[
-   This example attempts to demonstrate the physics.
+   This example attempts to demonstrate a movable character
+   based on the physics.
 
    You can copy, alter or reuse this file any way you like.
    It is available without restrictions (public domain).
 ]]
 
-print("Physics example in blitwizard")
-crates = {}
-balls = {}
+print("Moving character example in blitwizard")
 pixelspermeter = 30
 cratesize = 64/pixelspermeter
-ballsize = 32/pixelspermeter
 
 function blitwiz.on_init()
 	-- Open a window
-	blitwiz.graphics.setWindow(640, 480, "Physics", false)
+	blitwiz.graphics.setWindow(640, 480, "Moving character", false)
 
 	-- Load image
 	blitwiz.graphics.loadImage("bg.png")
 	blitwiz.graphics.loadImage("crate.png")
-	blitwiz.graphics.loadImage("shadows.png")
-	blitwiz.graphics.loadImage("ball.png")
+	blitwiz.graphics.loadImage("char1.png")
+	blitwiz.graphics.loadImage("char2.png")
 
 	-- Add base level collision
 	local x,y = bgimagepos()
@@ -126,7 +124,6 @@ function blitwiz.on_mousedown(button, x, y)
 		blitwiz.physics.setMass(crate, 10)
 		blitwiz.physics.warp(crate, objectposx, objectposy)
 		blitwiz.physics.setAngularDamping(crate, 0.5)
-		blitwiz.physics.setLinearDamping(crate, 0.3)
 
 		crates[#crates+1] = crate
 	else
@@ -135,12 +132,10 @@ function blitwiz.on_mousedown(button, x, y)
 		-- Add a ball
         local ball = blitwiz.physics.createMovableObject()
         blitwiz.physics.setShapeCircle(ball, ballsize / 2)
-        blitwiz.physics.setMass(ball, 2)
-		blitwiz.physics.setFriction(ball, 0.4)
+        blitwiz.physics.setMass(ball, 10)
         blitwiz.physics.warp(ball, objectposx, objectposy)
-        blitwiz.physics.setAngularDamping(ball, 0.1)
-		blitwiz.physics.setLinearDamping(ball, 0.5)
-		blitwiz.physics.setRestitution(ball, 0.4)
+        blitwiz.physics.setAngularDamping(ball, 0.5)
+		blitwiz.physics.setRestitution(ball, 0.9)
 
         balls[#balls+1] = ball
 	end

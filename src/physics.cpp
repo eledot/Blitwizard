@@ -159,6 +159,12 @@ void physics_SetRotationRestriction(struct physicsobject* obj, int restricted) {
 	}
 }
 
+void physics_SetLinearDamping(struct physicsobject* obj, double damping) {
+    if (!obj->body) {return;}
+    obj->body->SetLinearDamping(damping);
+}
+
+
 void physics_SetAngularDamping(struct physicsobject* obj, double damping) {
 	if (!obj->body) {return;}
 	obj->body->SetAngularDamping(damping);

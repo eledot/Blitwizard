@@ -36,6 +36,9 @@ struct luaphysicsobj {
 	struct physicsobject* object;
 	double friction;
 	double restitution;
+	double lineardamping;
+	double angulardamping;
+	int rotationrestriction;
 };
 
 static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
@@ -104,6 +107,15 @@ int luafuncs_createStaticObject(lua_State* l) {
     return 1;
 }
 
+static void applyobjectsettings(struct luaphysicsobj* obj) {
+	if (!obj->object) {return;}
+	physics_SetRotationRestriction(obj->object, obj->rotationrestriction);
+	physics_SetRestitution(obj->object, obj->restitution);
+	physics_SetFriction(obj->object, obj->friction);
+	physics_SetAngularDamping(obj->object, obj->angulardamping);
+	physics_SetLinearDamping(obj->object, obj->lineardamping);
+}
+
 int luafuncs_restrictRotation(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
 	if (lua_type(l, 2) != LUA_TBOOLEAN) {
@@ -114,11 +126,8 @@ int luafuncs_restrictRotation(lua_State* l) {
         lua_pushstring(l, "Mass can be only set on movable objects");
         return lua_error(l);
     }
-	if (!obj->object) {
-        lua_pushstring(l, "Physics object has no shape");
-        return lua_error(l);
-    }
-	physics_SetRotationRestriction(obj->object, lua_toboolean(l, 2));
+	obj->rotationrestriction = lua_toboolean(l, 2);
+	applyobjectsettings(obj);
 	return 0;
 }
 
@@ -220,9 +229,7 @@ int luafuncs_setRestitution(lua_State* l) {
         return lua_error(l);
     }
     obj->restitution = lua_tonumber(l, 2);
-    if (obj->object) {
-        physics_SetRestitution(obj->object, obj->restitution);
-    }
+	applyobjectsettings(obj);
     return 0;
 }
 
@@ -233,9 +240,18 @@ int luafuncs_setFriction(lua_State* l) {
 		return lua_error(l);
 	}
 	obj->friction = lua_tonumber(l, 2);
-    if (obj->object) {
-		physics_SetFriction(obj->object, obj->friction);
+	applyobjectsettings(obj);    
+    return 0;
+}
+
+int luafuncs_setLinearDamping(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (lua_type(l, 2) != LUA_TNUMBER) {
+        lua_pushstring(l, "Second parameter not a valid angular damping number");
+        return lua_error(l);
     }
+    obj->lineardamping = lua_tonumber(l, 2);
+    applyobjectsettings(obj);
     return 0;
 }
 
@@ -245,11 +261,8 @@ int luafuncs_setAngularDamping(lua_State* l) {
         lua_pushstring(l, "Second parameter not a valid angular damping number");
         return lua_error(l);
     }
-	if (!obj->object) {
-        lua_pushstring(l, "Physics object doesn't have a shape");
-        return lua_error(l);
-    }
-    physics_SetAngularDamping(obj->object, lua_tonumber(l, 2));
+	obj->angulardamping = lua_tonumber(l, 2);
+	applyobjectsettings(obj);	
     return 0;
 }
 
@@ -332,8 +345,7 @@ int luafuncs_setShapeEdges(lua_State* l) {
         transferbodysettings(oldobject, obj->object);
         physics_DestroyObject(oldobject);
     }
-	physics_SetRestitution(obj->object, obj->restitution);
-
+	applyobjectsettings(obj);
 	return 0;
 }
 
@@ -355,8 +367,7 @@ int luafuncs_setShapeCircle(lua_State* l) {
         transferbodysettings(oldobject, obj->object);
         physics_DestroyObject(oldobject);
     }
-	physics_SetRestitution(obj->object, obj->restitution);
-
+	applyobjectsettings(obj);
     return 0;
 }
 
@@ -384,8 +395,7 @@ int luafuncs_setShapeOval(lua_State* l) {
         transferbodysettings(oldobject, obj->object);
         physics_DestroyObject(oldobject);
     }
-	physics_SetRestitution(obj->object, obj->restitution);
-
+	applyobjectsettings(obj);
     return 0;
 }
 
@@ -413,8 +423,7 @@ int luafuncs_setShapeRectangle(lua_State* l) {
 		transferbodysettings(oldobject, obj->object);
 		physics_DestroyObject(oldobject);
 	}
-	physics_SetRestitution(obj->object, obj->restitution);
-
+	applyobjectsettings(obj);
 	return 0;
 }
 
