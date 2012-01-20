@@ -80,7 +80,7 @@ echo "blub1";
 SYSARG=""
 if [ "$luatarget" = "mingw" ]; then
 	SYSARG="CMAKE_SYSTEM_NAME=Windows"
-end
+fi
 cd src/box2d/ && cmake $SYSARG -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
 	cd $dir
 	echo "blub2";
