@@ -76,14 +76,13 @@ cd $dir
 # Build box2d
 box2dpremake="no"
 cd $dir
-echo "blub1";
-SYSARG=""
+export CMAKE_SYSTEM_NAME=""
 if [ "$luatarget" = "mingw" ]; then
-	SYSARG="CMAKE_SYSTEM_NAME=Windows"
+	export CMAKE_SYSTEM_NAME="Windows"
 fi
-cd src/box2d/ && cmake $SYSARG -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
+cd src/box2d/
+cmake -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
 	cd $dir
-	echo "blub2";
 	cd src/box2d && premake4 gmake || { echo "Failed to configure box2d"; exit 1; }
 	box2dpremake="yes"
 }
