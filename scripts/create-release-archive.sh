@@ -63,9 +63,9 @@ if [ "$TARGETHOST" = "" ]; then
 	CC="$CC" ./configure || { echo "./configure failed."; exit 1; }
 else
 	unset $CC
-	./configure --host="$TARGETHOST" || { echo "./configure failed"; exit 1;}
+	./configure --host="$TARGETHOST" || { echo "./configure failed"; exit 1; }
 fi
-make
+make || { echo "Compilation failed."; exit 1; }
 cd ..
 rm -r blitwizard-bin
 mkdir ./blitwizard-bin || { echo "Failed to create blitwizard-bin directory."; exit 1; }
