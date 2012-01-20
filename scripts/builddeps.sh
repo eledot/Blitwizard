@@ -77,7 +77,11 @@ cd $dir
 box2dpremake="no"
 cd $dir
 echo "blub1";
-cd src/box2d/ && cmake -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
+SYSARG=""
+if [ "$luatarget" = "mingw" ]; then
+	SYSARG="CMAKE_SYSTEM_NAME=Windows"
+end
+cd src/box2d/ && cmake $SYSARG -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
 	cd $dir
 	echo "blub2";
 	cd src/box2d && premake4 gmake || { echo "Failed to configure box2d"; exit 1; }
