@@ -77,11 +77,13 @@ cd $dir
 box2dpremake="no"
 cd $dir
 export CMAKE_SYSTEM_NAME=""
+CROSSCMAKEFLAG=""
 if [ "$luatarget" = "mingw" ]; then
 	export CMAKE_SYSTEM_NAME="Windows"
+	CROSSCMAKEFLAG="-DWIN32"
 fi
 cd src/box2d/
-cmake -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
+cmake $CROSSCMAKEFLAG -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
 	cd $dir
 	cd src/box2d && premake4 gmake || { echo "Failed to configure box2d"; exit 1; }
 	box2dpremake="yes"
