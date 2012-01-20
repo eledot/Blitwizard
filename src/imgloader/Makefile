@@ -14,6 +14,7 @@ comp: clean-objs $(FILES)
 	$(AR) rcs ./libimglib.a $(FILES)
 deps:
 	yes n | cp -i png/scripts/pnglibconf.h.prebuilt png/pnglibconf.h
+	-mv png/pngvalid.c png/pngvalid.c.skip
 	cd png && rm -rf ./*.o && $(CC) -I./ -I../zlib/ -O2 -c -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -DPNG_STATIC *.c && rm -rf ./*test*.o
 	rm -f ./libcustompng.a
 	$(AR) rcs libcustompng.a png/*.o
