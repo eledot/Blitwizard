@@ -84,13 +84,13 @@ end
 
 function blitwiz.on_draw()
 	-- Draw the background image centered:
-	local x,y = bgimagepos()
-	blitwiz.graphics.drawImage("bg.png", x, y)
+	local bgx,bgy = bgimagepos()
+	blitwiz.graphics.drawImage("bg.png", bgx, bgy)
 
 	-- Draw the character
 	local x,y = blitwiz.physics.getPosition(char)
 	local w,h = blitwiz.graphics.getImageSize("char1.png")
-	blitwiz.graphics.drawImage("char" .. frame .. ".png", x*pixelspermeter - w/2, y*pixelspermeter - h/2)
+	blitwiz.graphics.drawImage("char" .. frame .. ".png", x*pixelspermeter - w/2 + bgx, y*pixelspermeter - h/2 + bgy)
 end
 
 function blitwiz.on_close()
