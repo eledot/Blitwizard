@@ -178,6 +178,15 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 	}
 #endif
 	filename = ctx->entrybuf->d_name;
+
+	//obtain the length of the name
+    unsigned int length = 0;
+    while (length < NAME_MAX) {
+        if (ctx->entrybuf->d_name[length] == 0) {
+            break;
+        }
+        length++;
+    }
 #else
     //check if we actually have an empty dir
     if (ctx->findhandle == INVALID_HANDLE_VALUE) {
@@ -189,6 +198,7 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 
     //retrieve current file name
     filename = ctx->finddata.cFileName;
+	unsigned int length = strlen(filename);
 
 	//prepare the next file we shall examine next time
 	if (FindNextFile(ctx->findhandle, &ctx->finddata) == 0) {
@@ -221,15 +231,6 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 		}
 		free(p);
 	}
-
-    //obtain the length of the name
-    unsigned int length = 0;
-    while (length < NAME_MAX) {
-        if (ctx->entrybuf->d_name == 0) {
-            break;
-        }
-        length++;
-    }
 
 	//copy the name
     if (length < namebufsize) {
