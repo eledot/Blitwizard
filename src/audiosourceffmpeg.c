@@ -44,6 +44,15 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
 	return NULL;
 }
 
+void audiosourceffmpeg_DisableFFmpeg() {
+	//does nothing in this case, obviously
+	return;
+}
+
+int audiosourceffmpeg_LoadFFmpeg() {
+	return 0; //return failure
+}
+
 #else
 
 #define AVIOBUFSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
