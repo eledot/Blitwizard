@@ -39,6 +39,8 @@ cd tarball
 git clone http://games.homeofjones.de/blitwizard/git-source/blitwizard.git/ . || { echo "Failed to do git checkout."; exit 1; }
 rm -rf ./.git
 sh autogen.sh || { echo "Autoconf generation failed."; exit 1; }
+
+# Remove things from source release we don't want
 rm .gitignore
 rm bin/.gitignore
 rm src/sdl/.gitignore
@@ -48,6 +50,8 @@ rm src/lua/.gitignore
 rm src/imgloader/png/.gitignore
 rm src/imgloader/zlib/.gitignore
 cd ..
+
+# Rename to ./blitwizard/ and zip for source release
 rm -r blitwizard/
 mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
 if [ "$DOSOURCERELEASE" = "yes" ]; then
@@ -56,21 +60,34 @@ if [ "$DOSOURCERELEASE" = "yes" ]; then
 	mv ./ffmpeg-*.tar.bz2 ./blitwizard/
 fi
 cd blitwizard
+
+# Get dependencies
 rm deps.zip
 wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
 unzip deps.zip
+
+# Do ./configure
 if [ "$TARGETHOST" = "" ]; then
 	CC="$CC" ./configure || { echo "./configure failed."; exit 1; }
 else
 	unset $CC
 	./configure --host="$TARGETHOST" || { echo "./configure failed"; exit 1; }
 fi
+
+# Ensure FFmpeg support by providing the source of it
+mkdir src/ffmpeg/
+cd src/ffmpeg/
+tar -xvjf --strip-components=1 ../../ffmpeg-*.tar.bz2 ./
+
+# Compile
 make || { echo "Compilation failed."; exit 1; }
 cd ..
 rm -r blitwizard-bin
 mkdir ./blitwizard-bin || { echo "Failed to create blitwizard-bin directory."; exit 1; }
 cd blitwizard-bin
 mkdir bin
+
+# Copy all the files we want for a binary distribution
 cp -R ../blitwizard/bin/samplebrowser ./bin/samplebrowser
 cp -R ../blitwizard/templates ./templates
 cp ../blitwizard/bin/game.lua ./bin/game.lua
@@ -80,8 +97,12 @@ cp ../blitwizard/README-ffmpeg.txt ./
 cp ../blitwizard/README-lgpl.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
+
 if [ -e "./bin/blitwizard.exe" ]; then
+	# Add easy start script
 	cp ../blitwizard/Run-Blitwizard.bat ./
+	
+	# Add FFmpeg to windows distribution
 	cp ../../src/ffmpeg/libavformat/avformat.dll ./avformat.dll
     cp ../../src/ffmpeg/libavutil/avutil.dll ./avutil.dll
     cp ../../src/ffmpeg/libavcodec/avcodec.dll ./avcodec.dll
