@@ -80,7 +80,7 @@ export CMAKE_SYSTEM_NAME=""
 CROSSCMAKEFLAG=""
 if [ "$luatarget" = "mingw" ]; then
 	sed "s/AUTOTOOLS_HOST/${HOST}/g" scripts/box2dforwindows.cmake.template > scripts/box2dforwindows.cmake
-	CROSSCMAKEFLAG="-DTOOLCHAIN_FILE=../../scripts/box2dforwindows.cmake -Dhost_platform=${HOST} "
+	CROSSCMAKEFLAG="-DCMAKE_TOOLCHAIN_FILE=../../scripts/box2dforwindows.cmake -Dhost_platform=${HOST} "
 fi
 cd src/box2d/
 echo "Appended option: (${CROSSCMAKEFLAG})"
