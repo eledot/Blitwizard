@@ -136,6 +136,7 @@ cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
 cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
 cp src/lua/src/liblua.a libs/libblitwizardlua.a
 cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a
+cp src/box2d/Box2D/Box2D.lib libs/libblitwizardbox2d.a
 
 # Remember for which target we built
 echo "$luatarget" > scripts/.depsarebuilt
