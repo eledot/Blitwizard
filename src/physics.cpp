@@ -108,6 +108,7 @@ struct physicsobject* physics_CreateObjectRectangle(struct physicsworld* world, 
 	fixtureDef.density = 1;
 	obj->body->SetFixedRotation(false);
 	obj->body->CreateFixture(&fixtureDef);
+	physics_SetMass(obj, 0);
 	return obj;
 }
 
@@ -122,6 +123,7 @@ static struct physicsobject* physics_CreateObjectCircle(struct physicsworld* wor
 	fixtureDef.density = 1;
 	obj->body->SetFixedRotation(false);
 	obj->body->CreateFixture(&fixtureDef);
+	physics_SetMass(obj, 0);
 	return obj;
 }
 
@@ -139,11 +141,23 @@ struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void*
     fixtureDef.density = 1;
     obj->body->SetFixedRotation(false);
     obj->body->CreateFixture(&fixtureDef);
+	physics_SetMass(obj, 0);
     return obj;
 }
 
 void physics_SetMass(struct physicsobject* obj, double mass) {
 	if (!obj->movable) {return;}
+	if (!obj->body) {return;}
+	if (mass > 0) {
+		if (obj->body->GetType() == b2_staticBody) {
+			obj->body->SetType(b2_dynamicBody);
+		}
+	}else{
+		mass = 0;
+		if (obj->body->GetType() == b2_dynamicBody) {
+			obj->body->SetType(b2_staticBody);
+		}
+	}
 	b2MassData mdata;
 	obj->body->GetMassData(&mdata);
 	mdata.mass = mass;
@@ -464,6 +478,8 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
 	}
 
 	free(context);
+
+	physics_SetMass(obj, 0);
 	return obj;
 }
 

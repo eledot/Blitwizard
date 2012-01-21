@@ -652,6 +652,7 @@ Return value: None
 <p>
 Set the angular damping of the object which is always applied when the object rotates. With no angular damping, an object can rotate forever when once set in motion without ever stopping. When the angular damping is greater than zero, it will slow down the rotation accordingly. The default angular damping of objects is 0 (none).
 </p>
+<p>This can probably compared best to air friction.</p>
 <p>
 Parameters:
 <ul class="parameters">
@@ -659,7 +660,7 @@ Parameters:
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the damping
 </li>
 <li>
-damping <i>(number)</i> &mdash; the angular damping you want to set which should be in the range 0 (no damping) to 1 (full damping)
+damping <i>(number)</i> &mdash; the angular damping you want to set which should be in the range 0 (no damping) to infinity (full damping) - however, recommended values are between 0 and 0.1
 </li>
 </ul>
 </p>
@@ -714,6 +715,7 @@ Return value: None
 <p>
 Set the linear damping of the object which is always applied when the object moves. With no linear damping, an object can move forever when once set in motion without ever stopping. When the linear damping is greater than zero, it will slow down the movement accordingly. The default linear damping of objects is 0 (none).
 </p>
+<p>This can probably compared best to air friction.</p>
 <p>
 Parameters:
 <ul class="parameters">
@@ -721,7 +723,7 @@ Parameters:
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the damping
 </li>
 <li>
-damping <i>(number)</i> &mdash; the linear damping you want to set which should be in the range 0 (no damping) to 1 (full damping)
+damping <i>(number)</i> &mdash; the linear damping you want to set which should be in the range 0 (no damping) to infinity (full damping) - however, recommended values are between 0 and 0.1
 </li>
 </ul>
 </p>
