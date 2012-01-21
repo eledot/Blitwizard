@@ -66,19 +66,19 @@ rm deps.zip
 wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
 unzip deps.zip
 
-# Do ./configure
-if [ "$TARGETHOST" = "" ]; then
-	CC="$CC" ./configure || { echo "./configure failed."; exit 1; }
-else
-	unset $CC
-	./configure --host="$TARGETHOST" || { echo "./configure failed"; exit 1; }
-fi
-
 # Ensure FFmpeg support by providing the source of it
 mkdir src/ffmpeg/
 cd src/ffmpeg/
 tar -xjvf ../../ffmpeg-*.tar.bz2 --strip-components=1
 cd ../../
+
+# Do ./configure
+if [ "$TARGETHOST" = "" ]; then
+    CC="$CC" ./configure || { echo "./configure failed."; exit 1; }
+else
+    unset $CC
+    ./configure --host="$TARGETHOST" || { echo "./configure failed"; exit 1; }
+fi
 
 # Compile
 make || { echo "Compilation failed."; exit 1; }
