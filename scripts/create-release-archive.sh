@@ -77,7 +77,8 @@ fi
 # Ensure FFmpeg support by providing the source of it
 mkdir src/ffmpeg/
 cd src/ffmpeg/
-tar -xvjf --strip-components=1 ../../ffmpeg-*.tar.bz2 ./
+tar -xjvf ../../ffmpeg-*.tar.bz2 --strip-components=1
+cd ../../
 
 # Compile
 make || { echo "Compilation failed."; exit 1; }
