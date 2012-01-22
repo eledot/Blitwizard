@@ -49,6 +49,7 @@ rm src/ogg/.gitignore
 rm src/lua/.gitignore
 rm src/imgloader/png/.gitignore
 rm src/imgloader/zlib/.gitignore
+find ./ -iname "*.xcf" -delete
 cd ..
 
 # Rename to ./blitwizard/ and zip for source release
@@ -104,9 +105,9 @@ if [ -e "./bin/blitwizard.exe" ]; then
 	cp ../blitwizard/Run-Blitwizard.bat ./
 	
 	# Add FFmpeg to windows distribution
-	cp ../../src/ffmpeg/libavformat/avformat.dll ./avformat.dll
-    cp ../../src/ffmpeg/libavutil/avutil.dll ./avutil.dll
-    cp ../../src/ffmpeg/libavcodec/avcodec.dll ./avcodec.dll
+	cp ../../src/ffmpeg/libavformat/avformat.dll ./bin/avformat.dll
+    cp ../../src/ffmpeg/libavutil/avutil.dll ./bin/avutil.dll
+    cp ../../src/ffmpeg/libavcodec/avcodec.dll ./bin/avcodec.dll
 	cp ../blitwizard/ffmpeg-*.tar.bz2 ./
 fi
 
