@@ -1,6 +1,6 @@
 
 -- Initialise audio first so FFmpeg is found in case we want it
-pcall(blitwiz.audio.play)
+pcall(blitwiz.sound.play)
 
 -- Check if the user created a custom game we would want to run preferrably
 if os.exists("../game.lua") then
