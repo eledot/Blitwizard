@@ -135,7 +135,7 @@ const char* osinfo_GetSystemVersion() {
 	Gestalt(gestaltSystemVersionMinor, &minorVersion);
 	Gestalt(gestaltSystemVersionBugFix, &bugfixVersion);
 	
-	snprintf(versionbuf,sizeof(versionbuf),"%d.%d.%d",MajorVersion,MinorVersion,bugfixVersion);
+	snprintf(versionbuf,sizeof(versionbuf),"%d.%d.%d",majorVersion,minorVersion,bugfixVersion);
         versionbuf[sizeof(versionbuf)-1] = 0;
         return versionbuf;
 #endif
