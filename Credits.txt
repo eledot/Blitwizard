@@ -1,4 +1,4 @@
-blitwizard credits:
+Blitwizard Credits:
 
-Project lead: Jonas Thiem
-Mac build testing: Nicolas Haunold
+Project lead/Programmer: Jonas Thiem
+Mac build testing and assistance: Nicolas Haunold

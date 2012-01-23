@@ -117,6 +117,7 @@ $UNIXTODOS ./README*.txt || {
 	UNIXTODOS="todos"
 	$UNIXTODOS ./README*.txt || { echo "unix2dos/todos not working - is any of them installed?"; exit 1; }
 }
+$UNIXTODOS ./Credits.txt
 $UNIXTODOS ./Ship-your-game.txt
 cp -R ../blitwizard/examples ./examples/
 

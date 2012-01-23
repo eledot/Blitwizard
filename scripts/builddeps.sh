@@ -22,6 +22,11 @@ AR=`cat scripts/.buildinfo | grep AR | sed -e 's/^.*\=//'`
 HOST=`cat scripts/.buildinfo | grep HOST | sed -e 's/^.*\=//'`
 MACBUILD=`cat scripts/.buildinfo | grep MACBUILD | sed -e 's/^.*\=//'`
 
+if [ "$MACBUILD" == "yes" ]; then
+	# Enforce darwin gcc since llvm-gcc hates libvorbis
+	CC="clang"
+fi
+
 if [ ! -f src/imgloader/png/png.c ]; then
 	echo "MISSING DEPENDENCY: Please extract the contents of a recent libpng tarball into src/imgloader/png/ - or read README.txt";
 	exit 1;

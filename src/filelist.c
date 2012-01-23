@@ -181,7 +181,11 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 
 	//obtain the length of the name
     unsigned int length = 0;
+#if defined(__APPLE__) && defined(__MACH__)
+#define NAME_MAX FILENAME_MAX
+#endif
     while (length < NAME_MAX) {
+	
         if (ctx->entrybuf->d_name[length] == 0) {
             break;
         }
