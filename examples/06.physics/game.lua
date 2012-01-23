@@ -23,7 +23,7 @@ function blitwiz.on_init()
 	blitwiz.graphics.loadImage("shadows.png")
 	blitwiz.graphics.loadImage("ball.png")
 
-	-- Add base level collision
+	-- Add base level collision (as seen in bg.png)
 	local x,y = bgimagepos()
 	levelcollision = blitwiz.physics.createStaticObject()
 	blitwiz.physics.setShapeEdges(levelcollision, {
@@ -42,7 +42,9 @@ function blitwiz.on_init()
 		{(593+x)/pixelspermeter, (122+y)/pixelspermeter,
 		(564+x)/pixelspermeter, (0+y)/pixelspermeter}
 	})
-	blitwiz.physics.setFriction(levelcollision, 1)
+	blitwiz.physics.setFriction(levelcollision, 0.5)
+
+	-- Even more basic level collision (that black rectangle part in bg.png)
 	levelcollision2 = blitwiz.physics.createStaticObject()
 	blitwiz.physics.setShapeRectangle(levelcollision2, ((382 - 222) + x)/pixelspermeter, ((314 - 242) + y)/pixelspermeter)
 	blitwiz.physics.warp(levelcollision2, ((222+382)/2+x)/pixelspermeter, ((242 + 314)/2+y)/pixelspermeter)
@@ -89,7 +91,7 @@ function limitcrateposition(x,y)
 		x = 555/pixelspermeter - cratesize/2
 	end
 	if y + cratesize/2 > 230/pixelspermeter then
-		-- If we are below the lowest height, jump up a bit
+		-- If we are too low, avoid getting it stuck in the floor
 		y = 130/pixelspermeter - cratesize/2
 	end
 	return x,y
@@ -103,7 +105,7 @@ function limitballposition(x,y)
         x = 555/pixelspermeter - ballsize/2
     end
     if y + ballsize/2 > 230/pixelspermeter then
-        -- If we are below the lowest height, jump up a bit
+        -- If we are below the lowest height, avoid getting stuck
         y = 130/pixelspermeter - ballsize/2
     end
     return x,y

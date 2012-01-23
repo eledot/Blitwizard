@@ -201,7 +201,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
 			library_Close(avutilptr);
 		}
 	
-		printf("[FFmpeg] Library not found, FFmpeg support will be unavailable\n");
+		printf("[FFmpeg] Library not found or cannot be loaded, FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
 		return 0;
 	}
