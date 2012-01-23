@@ -5,14 +5,8 @@
 
 This is the README for building blitwizard.
 
-If you have a git version, please consult README-gitdeps.txt
-first for getting the required dependencies.
-BUT if you have an official source code release, you should check
-that file anyway:
-
-The DEPS CAN BE OUTDATED (which are included in the release version).
-It is up to you to check if the provided deps are new enough for you,
-also regarding fatal/security-relevant bugs.
+Please consult README-deps.txt first for getting the
+required dependencies.
 
 == Get required tools  ==
 

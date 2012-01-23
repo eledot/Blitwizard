@@ -3,9 +3,9 @@
  Dependencies README
 ---------------------
 
-This is the README for obtaining the dependencies for the git version
+This is the README for obtaining the dependencies for the source tarball
 of blitwizard.
-Getting the deps is also required for the git version on Unix/Linux!
+Getting the deps is also required on Unix/Linux!
 
 Before you start, extract the blitwizard archive (where this README is in)
 to a folder.
@@ -28,7 +28,7 @@ That file contains:
     Lua 5.2
 	Box2D 2.2.1
 
-WARNING: Those versions might be outdated and contain bugs! Please
+WARNING: Those versions might be outdated and may contain bugs! Please
 always check if there are newer versions available, and consider
 using those instead:   
 
