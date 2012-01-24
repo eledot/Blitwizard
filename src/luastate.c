@@ -143,6 +143,9 @@ static void luastate_CreatePhysicsTable(lua_State* l) {
     lua_pushstring(l, "warp");
     lua_pushcfunction(l, &luafuncs_warp);
     lua_settable(l, -3);
+	lua_pushstring(l, "impulse");
+    lua_pushcfunction(l, &luafuncs_impulse);
+    lua_settable(l, -3);
 }
 
 static void luastate_CreateGraphicsTable(lua_State* l) {

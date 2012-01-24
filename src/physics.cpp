@@ -41,6 +41,9 @@ struct physicsobject {
 	int movable;
 	b2World* world;
 	b2Body* body;
+	int gravityset;
+	double gravityx,gravityy;
+	void* userdata;
 };
 
 struct physicsworld* physics_CreateWorld() {
@@ -72,12 +75,25 @@ void physics_Step(struct physicsworld* world) {
 		double forcefactor = (1.0/100.0)*10;
 		b2Body* b = world->w->GetBodyList();
 		while (b) {
-			b->ApplyLinearImpulse(b2Vec2(world->gravityx * forcefactor, world->gravityy * forcefactor), b2Vec2(b->GetPosition().x, b->GetPosition().y));
+			struct physicsobject* obj = (struct physicsobject*)b->GetUserData();
+			if (obj) {
+				if (obj->gravityset) {
+					b->ApplyLinearImpulse(b2Vec2(obj->gravityx * forcefactor, obj->gravityy * forcefactor), b2Vec2(b->GetPosition().x, b->GetPosition().y));
+				}else{
+					b->ApplyLinearImpulse(b2Vec2(world->gravityx * forcefactor, world->gravityy * forcefactor), b2Vec2(b->GetPosition().x, b->GetPosition().y));
+				}
+			}
 			b = b->GetNext();
 		}
 		world->w->Step(1.0 / 100, 10, 7);
 		i++;
 	}
+}
+
+void physics_ApplyImpulse(struct physicsobject* obj, double forcex, double forcey, double sourcex, double sourcey) {
+	if (!obj->body || !obj->movable) {return;}
+	obj->body->ApplyLinearImpulse(b2Vec2(forcex, forcey), b2Vec2(sourcex, sourcey));
+
 }
 
 static struct physicsobject* createobj(struct physicsworld* world, void* userdata, int movable) {
@@ -89,7 +105,8 @@ static struct physicsobject* createobj(struct physicsworld* world, void* userdat
 		bodyDef.type = b2_dynamicBody;
 	}
 	object->movable = movable;
-	bodyDef.userData = userdata;
+	bodyDef.userData = (void*)object;
+	object->userdata = userdata;
 	object->body = world->w->CreateBody(&bodyDef);
 	object->body->SetFixedRotation(false);
 	object->world = world->w;

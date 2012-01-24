@@ -73,13 +73,35 @@ function blitwiz.on_init()
 	blitwiz.physics.setShapeRectangle(char, (50+x)/pixelspermeter, (140+y)/pixelspermeter)
 	blitwiz.physics.setMass(char, 60)
 	blitwiz.physics.setFriction(char, 0.5)
-	blitwiz.physics.warp(char, (456+x)/pixelspermeter, (288+y)/pixelspermeter)
+	--blitwiz.physics.setLinearDamping(char, 10)
+	blitwiz.physics.warp(char, (456+x)/pixelspermeter, (188+y)/pixelspermeter)
+	blitwiz.physics.restrictRotation(char, true)
 end
 
 function bgimagepos()
 	local w,h = blitwiz.graphics.getImageSize("bg.png")
     local mw,mh = blitwiz.graphics.getWindowSize()
 	return mw/2 - w/2, mh/2 - h/2
+end
+
+leftright = 0
+
+function blitwiz.on_keydown(key)
+	if key == "a" then
+		leftright = -1
+	end
+	if key == "d" then
+		leftright = 1
+	end
+end
+
+function blitwiz.on_keyup(key)
+	if key == "a" and leftright < 0 then
+		leftright = 0
+	end
+	if key == "d" and leftright > 0 then
+		leftright = 0
+	end
 end
 
 function blitwiz.on_draw()
@@ -98,6 +120,13 @@ function blitwiz.on_close()
 end
 
 function blitwiz.on_step()
-
+	if leftright < 0 then
+		local x,y = blitwiz.physics.getPosition(char)
+		blitwiz.physics.impulse(char, x + 5, y - 5, -2, -5)
+	end
+	if leftright > 0 then
+	    local x,y = blitwiz.physics.getPosition(char)
+        blitwiz.physics.impulse(char, x - 5, y - 5, 2, -5)
+	end
 end
 

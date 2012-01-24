@@ -116,6 +116,40 @@ static void applyobjectsettings(struct luaphysicsobj* obj) {
 	physics_SetLinearDamping(obj->object, obj->lineardamping);
 }
 
+int luafuncs_impulse(lua_State* l) {
+	struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (!obj->movable) {
+        lua_pushstring(l, "Impulse can be only applied to movable objects");
+        return lua_error(l);
+    }
+	if (!obj->object) {
+        lua_pushstring(l, "Physics object has no shape");
+        return lua_error(l);
+    }
+	if (lua_type(l, 2) != LUA_TNUMBER) {
+		lua_pushstring(l, "Second parameter is not a valid source x number");
+		return lua_error(l);
+	}
+	if (lua_type(l, 3) != LUA_TNUMBER) {
+		lua_pushstring(l, "Third parameter is not a valid source y number");
+		return lua_error(l);
+	}
+	if (lua_type(l, 4) != LUA_TNUMBER) {
+		lua_pushstring(l, "Fourth parameter is not a valid force x number");
+		return lua_error(l);
+	}
+	if (lua_type(l, 5) != LUA_TNUMBER) {
+		lua_pushstring(l, "Fifth parameter is not a valid force y number");
+		return lua_error(l);
+	}
+	double sourcex = lua_tonumber(l, 2);
+	double sourcey = lua_tonumber(l, 3);
+	double forcex = lua_tonumber(l, 4);
+	double forcey = lua_tonumber(l, 5);
+	physics_ApplyImpulse(obj->object, forcex, forcey, sourcex, sourcey);
+	return 0;
+}
+
 int luafuncs_restrictRotation(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
 	if (lua_type(l, 2) != LUA_TBOOLEAN) {

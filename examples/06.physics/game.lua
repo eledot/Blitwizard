@@ -140,9 +140,9 @@ function blitwiz.on_mousedown(button, x, y)
         blitwiz.physics.setMass(ball, 2)
 		blitwiz.physics.setFriction(ball, 0.4)
         blitwiz.physics.warp(ball, objectposx, objectposy)
-        blitwiz.physics.setAngularDamping(ball, 0.1)
-		blitwiz.physics.setLinearDamping(ball, 0.8)
-		blitwiz.physics.setRestitution(ball, 0.7)
+        blitwiz.physics.setAngularDamping(ball, 0.02)
+		blitwiz.physics.setLinearDamping(ball, 0.01)
+		blitwiz.physics.setRestitution(ball, 0.3)
 
         balls[#balls+1] = ball
 	end

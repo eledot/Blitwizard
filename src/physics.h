@@ -56,10 +56,11 @@ void physics_SetAngularDamping(struct physicsobject* obj, double damping);
 void physics_SetLinearDamping(struct physicsobject* obj, double damping);
 void physics_SetRestitution(struct physicsobject* obj, double restitution);
 
-//change and get position/rotation
+//change and get position/rotation and apply impulses
 void physics_GetPosition(struct physicsobject* obj, double* x, double* y);
 void physics_GetRotation(struct physicsobject* obj, double* angle);
 void physics_Warp(struct physicsobject* obj, double x, double y, double angle);
+void physics_ApplyImpulse(struct physicsobject* obj, double forcex, double forcey, double sourcex, double sourcey);
 
 #ifdef __cplusplus
 }
