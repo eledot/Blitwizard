@@ -45,6 +45,7 @@ const char* audio_GetCurrentBackendName() {
 
 void audio_Quit() {
 	if (soundenabled) {
+		SDL_CloseAudio();
 		SDL_AudioQuit();
 		soundenabled = 0;
 	}
