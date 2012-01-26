@@ -150,6 +150,47 @@ int luafuncs_impulse(lua_State* l) {
 	return 0;
 }
 
+int luafuncs_ray(lua_State* l) {
+	if (lua_type(l, 1) != LUA_TNUMBER) {
+		lua_pushstring(l, "First parameter is not a valid start x position");
+		return lua_error(l);
+	}
+	if (lua_type(l, 2) != LUA_TNUMBER) {
+        lua_pushstring(l, "Second parameter is not a valid start y position");
+        return lua_error(l);
+    }
+	if (lua_type(l, 3) != LUA_TNUMBER) {
+        lua_pushstring(l, "Third parameter is not a valid target x position");
+        return lua_error(l);
+    }
+	if (lua_type(l, 4) != LUA_TNUMBER) {
+        lua_pushstring(l, "Fourth parameter is not a valid target y position");
+        return lua_error(l);
+    }
+	double startx = lua_tonumber(l, 1);
+	double starty = lua_tonumber(l, 2);
+	double targetx = lua_tonumber(l, 3);
+	double targety = lua_tonumber(l, 4);
+
+	struct physicsobject* obj;
+	double hitpointx,hitpointy;
+	double normalx,normaly;
+	if (!physics_Ray(main_DefaultPhysicsPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly)) {
+		struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
+		memset(ref, 0, sizeof(*ref));
+    	ref->magic = IDREF_MAGIC;
+    	ref->type = IDREF_PHYSICS;
+    	ref->ref.ptr = obj;
+		lua_pushnumber(l, hitpointx);
+		lua_pushnumber(l, hitpointy);
+		lua_pushnumber(l, normalx);
+		lua_pushnumber(l, normaly);
+		return 5;
+	}
+	lua_pushnil(l);
+	return 1;
+}
+
 int luafuncs_restrictRotation(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
 	if (lua_type(l, 2) != LUA_TBOOLEAN) {

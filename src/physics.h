@@ -62,6 +62,9 @@ void physics_GetRotation(struct physicsobject* obj, double* angle);
 void physics_Warp(struct physicsobject* obj, double x, double y, double angle);
 void physics_ApplyImpulse(struct physicsobject* obj, double forcex, double forcey, double sourcex, double sourcey);
 
+//collision test ray
+int physics_Ray(struct physicsworld* world, double startx, double starty, double targetx, double targety, double* hitpointx, double* hitpointy, struct physicsobject** hitobject, double* hitnormalx, double* hitnormaly); //returns 1 when something is hit, otherwise 0  -- XXX: not thread-safe!
+
 #ifdef __cplusplus
 }
 #endif

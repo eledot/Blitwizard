@@ -120,13 +120,24 @@ function blitwiz.on_close()
 end
 
 function blitwiz.on_step()
-	if leftright < 0 then
-		local x,y = blitwiz.physics.getPosition(char)
-		blitwiz.physics.impulse(char, x + 5, y - 5, -2, -5)
+	local onthefloor = false
+	local charx,chary = blitwiz.physics.getPosition(char)
+	local obj,posx,posy,normalx,normaly = blitwiz.physics.ray(charx,chary,charx,chary+350/pixelspermeter)
+	local charsizex,charsizey = blitwiz.graphics.getImageSize("char1.png")
+	charsizex = charsizex / pixelspermeter
+	charsizey = charsizey / pixelspermeter
+	if obj ~= nil and posy < chary + charsizey/2 + 15/pixelspermeter then
+		onthefloor = true
 	end
-	if leftright > 0 then
-	    local x,y = blitwiz.physics.getPosition(char)
-        blitwiz.physics.impulse(char, x - 5, y - 5, 2, -5)
+	
+	if onthefloor == true then
+		-- walk
+		if leftright < 0 then
+			blitwiz.physics.impulse(char, charx + 5, chary - 5, -2, -5)
+		end
+		if leftright > 0 then
+        	blitwiz.physics.impulse(char, charx - 5, chary - 5, 2, -5)
+		end
 	end
 end
 

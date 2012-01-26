@@ -27,6 +27,7 @@ int luafuncs_setShapeRectangle(lua_State* l);
 int luafuncs_setShapeEdges(lua_State* l);
 int luafuncs_setShapeCircle(lua_State* l);
 int luafuncs_setShapeOval(lua_State* l);
+int luafuncs_ray(lua_State* l);
 int luafuncs_restrictRotation(lua_State* l);
 int luafuncs_impulse(lua_State* l);
 int luafuncs_setMass(lua_State* l);

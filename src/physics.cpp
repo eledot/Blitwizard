@@ -90,6 +90,42 @@ void physics_Step(struct physicsworld* world) {
 	}
 }
 
+class mycallback : public b2RayCastCallback {
+public:
+	b2Body* closestcollidedbody;
+	b2Vec2 closestcollidedposition;
+	b2Vec2 closestcollidednormal;
+
+	mycallback() {
+		closestcollidedbody = NULL;
+	}
+
+	virtual float ReportFixture(b2Fixture* fixture, const b2Vec2& point, const b2Vec2& normal, float32 fraction) {
+		closestcollidedbody = fixture->GetBody();
+		closestcollidedposition = point;
+		closestcollidednormal = normal;
+		return fraction;
+	}
+};
+
+mycallback* callbackobj = NULL;
+
+int physics_Ray(struct physicsworld* world, double startx, double starty, double targetx, double targety, double* hitpointx, double* hitpointy, struct physicsobject** hitobject, double* hitnormalx, double* hitnormaly) {
+	mycallback* callbackobj = new mycallback();
+	world->w->RayCast(callbackobj, b2Vec2(startx, starty), b2Vec2(targetx, targety));
+	if (callbackobj->closestcollidedbody) {
+		*hitpointx = callbackobj->closestcollidedposition.x;
+		*hitpointy = callbackobj->closestcollidedposition.y;
+		*hitobject = ((struct physicsobject*)callbackobj->closestcollidedbody->GetUserData());
+		*hitnormalx = callbackobj->closestcollidednormal.x;
+		*hitnormaly = callbackobj->closestcollidednormal.y;
+		delete callbackobj;
+		return 1;
+	}
+	delete callbackobj;
+	return 0;
+}
+
 void physics_ApplyImpulse(struct physicsobject* obj, double forcex, double forcey, double sourcex, double sourcey) {
 	if (!obj->body || !obj->movable) {return;}
 	obj->body->ApplyLinearImpulse(b2Vec2(forcex, forcey), b2Vec2(sourcex, sourcey));
