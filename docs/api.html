@@ -624,6 +624,28 @@ local x,y = <a href="#blitwiz.physics.setPosition">blitwiz.physics.setPosition</
 </p>
 </li>
 
+<li><h2><a name="blitwiz.physics.ray">blitwiz.physics.ray</a>(source x <i>(number)</i>, sourcey <i>(number)</i>, target x <i>(number)</i>, target y <i>(number)</i>)</h2>
+<p>Cast a ray from the source physics coordinates to the target coordinates to check if it hits a physics object. If an object is hit, you will get impact information. Please note this doesn't do anything to the target object, it is a purely informational collision check function. Returns nil if nothing was hit, otherwise the position and normal.</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>
+source x <i>(number)</i> &mdash; source x coordinate for the ray's originating source position
+</li>
+<li>
+source y <i>(number</i> &mdash; source y coordinate
+</li>
+<li>
+target x <i>(number)</i> &mdash; target x coordinate for the ray's target
+</li>
+<li>
+target y <i>(number)</i> &mdash; target y coordinate
+</li>
+</ul>
+</p>
+<p>Return value: either nil (when nothing was hit), or: impact position x <i>(number)</i>, impact position y <i>(number)</i>, impact surface normal x <i>(number)</i>, impact surface normal y <i>(number)</i></p>
+</li>
+
 <li><h2><a name="blitwiz.physics.restrictRotation">blitwiz.physics.restrictRotation</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, restrict <i>(boolean)</i>)</h2>
 <p>
 Restrict rotation of the given object to the current angle. If you didn't just create the object (in which case the angle will be simply 0) you should warp it to a desired angle first.
