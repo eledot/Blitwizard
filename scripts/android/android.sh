@@ -85,7 +85,7 @@ cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_fi
 cd blitwizard-android
 export HOST_AWK="awk"
 mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
-"$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; exit 1; }
+HOST_AWK="awk" "$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; exit 1; }
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
 ant debug || echo { "ant failed."; exit 1; }
 cd ..
