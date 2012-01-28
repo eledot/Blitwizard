@@ -85,6 +85,7 @@ cd blitwizard-android
 "$ANDORID_NDK_PATH/ndk-build" || echo { "NDK build failed."; exit 1; }
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
 ant debug || echo { "ant failed."; exit 1; }
+cd ..
 
 # Success!
 echo "Android .apk should be complete."
