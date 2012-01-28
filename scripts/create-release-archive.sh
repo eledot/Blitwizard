@@ -27,8 +27,8 @@ CC="gcc"
 CROSSCCHOST="i686-pc-mingw32"
 
 #Point this to the Android SDK folder
-ANDROID_SDK_PATH="~/d/androidsdk/android-sdk-linux/"
-ANDROID_NDK_PATH="~/d/androidsdk/android-ndk-r7/"
+ANDROID_SDK_PATH="/home/jonas/d/androidsdk/android-sdk-linux/"
+ANDROID_NDK_PATH="/home/jonas/d/androidsdk/android-ndk-r7/"
 
 
 
@@ -73,11 +73,12 @@ else
 		echo "   Given Android NDK path: $ANDROID_NDK_PATH"
 		echo ""
 		DOSOURCERELEASE="no"
+		echo "Checking for $ANDROID_NDK_PATH/ndk-build..."
 		if [ ! -e "$ANDROID_NDK_PATH/ndk-build" ]; then
 			echo "ERROR. NDK build utility not found. Is the Android NDK path correct?"
 			exit 1
 		fi
-		if [ ! -e "$ANDROID_SDK_PATH/README.txt" ]; then
+		if [ ! -e "$ANDROID_SDK_PATH/SDK Readme.txt" ]; then
             echo "ERROR. SDK readme not found. Is the Android SDK path correct?"
             exit 1
         fi
