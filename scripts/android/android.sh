@@ -61,16 +61,16 @@ cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
 cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
 
 cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
-rm blitwizard-android/jni/pngtest.c
-rm blitwizard-android/jni/pngvalid.c
+rm blitwizard-android/jni/png/pngtest.c
+rm blitwizard-android/jni/png/pngvalid.c
 cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
 
 cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
 cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
 
 mkdir blitwizard-android/jni/imgloader/
-cp blitwizard/src/imgloader*.c blitwizard-android/jni/imgloader/
-cp blitwizard/src/imgloader*.h blitwizard-android/jni/imgloader/
+cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
+cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
 cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/
 
 # Blitwizard Android.mk:
@@ -81,7 +81,8 @@ cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
 cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android.mk
 
 # Use the Android NDK/SDK to complete our project:
-cd blitwizard-android && "$ANDORID_NDK_PATH/ndk-build" || echo { "NDK build failed."; exit 1; }
+cd blitwizard-android
+"$ANDORID_NDK_PATH/ndk-build" || echo { "NDK build failed."; exit 1; }
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
 ant debug || echo { "ant failed."; exit 1; }
 

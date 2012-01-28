@@ -72,7 +72,15 @@ else
 		echo "   Given Android SDK path: $ANDROID_SDK_PATH"
 		echo "   Given Android NDK path: $ANDROID_NDK_PATH"
 		echo ""
-		DOSOURCERELEASE="no"		
+		DOSOURCERELEASE="no"
+		if [ ! -e "$ANDROID_NDK_PATH/ndk-build" ]; then
+			echo "ERROR. NDK build utility not found. Is the Android NDK path correct?"
+			exit 1
+		fi
+		if [ ! -e "$ANDROID_SDK_PATH/README.txt" ]; then
+            echo "ERROR. SDK readme not found. Is the Android SDK path correct?"
+            exit 1
+        fi
 	else
 		echo "Building with native compiler";
     	if [ "$2" = "win" ]; then
