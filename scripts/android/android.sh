@@ -24,7 +24,7 @@ ANDROID_SDK_PATH="$1"
 ANDROID_NDK_PATH="$2"
 
 # Copy the project and SDL
-rm -f ./blitwizard-android/
+rm -rf ./blitwizard-android/
 cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
 cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 
@@ -39,7 +39,7 @@ echo "You can include a blitwizard game which blitwizard will run."
 echo "For this, you can provide the path of a directory containing it."
 echo "Please note !!ONLY THE GAME FILES AND templates/ FOLDER!!"
 echo "should be in that directory, not any other files like blitwizard"
-echo "binaries, examples oflder or anything."
+echo "binaries, examples folder or anything."
 echo "Type a folder path or nothing and press [ENTER]:"
 read game_files_path
 
@@ -83,7 +83,9 @@ cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_fi
 
 # Use the Android NDK/SDK to complete our project:
 cd blitwizard-android
-"$ANDORID_NDK_PATH/ndk-build" || { echo "NDK build failed."; exit 1; }
+export HOST_AWK="awk"
+mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
+"$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; exit 1; }
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
 ant debug || echo { "ant failed."; exit 1; }
 cd ..

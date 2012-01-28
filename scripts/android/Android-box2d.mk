@@ -8,9 +8,9 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/
 
 LOCAL_SRC_FILES := \
 	$(subst $(LOCAL_PATH)/,, \
-	$(wildcard $(LOCAL_PATH)/Box2D/Common/*.cpp)
-	$(wildcard $(LOCAL_PATH)/Box2D/Dynamics/*.cpp)
-	$(wildcard $(LOCAL_PATH)/Box2D/Collision/*.cpp)
+	$(wildcard $(LOCAL_PATH)/Box2D/Common/*.cpp) \
+	$(wildcard $(LOCAL_PATH)/Box2D/Dynamics/*.cpp) \
+	$(wildcard $(LOCAL_PATH)/Box2D/Collision/*.cpp) \
 	$(wildcard $(LOCAL_PATH)/Box2D/Rope/*.cpp))
 
 LOCAL_LDLIBS := -ldl
