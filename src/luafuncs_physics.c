@@ -175,7 +175,7 @@ int luafuncs_ray(lua_State* l) {
 	struct physicsobject* obj;
 	double hitpointx,hitpointy;
 	double normalx,normaly;
-	if (!physics_Ray(main_DefaultPhysicsPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly)) {
+	if (physics_Ray(main_DefaultPhysicsPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly)) {
 		struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
 		memset(ref, 0, sizeof(*ref));
     	ref->magic = IDREF_MAGIC;

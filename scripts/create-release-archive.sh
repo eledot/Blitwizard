@@ -1,10 +1,47 @@
 #!/bin/bash
 
+#Output some explanations
+echo "This is a release script that builds a blitwizard release tarball."
+echo "It has been purely tested and used on Linux so far,"
+echo "most likely it won't work anywhere else without major changes."
+echo "Usage:"
+echo "  create-release-archive.sh [version label] [mode]"
+echo "Example:"
+echo "  create-release-archive.sh 0.1"
+echo "Available modes:"
+echo "  [no mode]       Specify no mode to simply compile for native Linux"
+echo "  linux-to-win    Compile with a cross compiler for Windows."
+echo "                  Edit the script and set CROSSCCHOST properly!"
+echo "                  (You need to install a cross compiler for windows"
+echo "                  first, all major linux distributions offer one in"
+echo "                  their repository)"
+echo "  android         Compile with a cross compiler for Android."
+echo "                  Install the Android SDK first and the Android NDK."
+echo "                  Edit the script and set the ANDROID_ paths properly!"
+
+
 #Set the native compiler here
 CC="gcc"
 
 #Set the cross compilation toolchain name here
 CROSSCCHOST="i686-pc-mingw32"
+
+#Point this to the Android SDK folder
+ANDROID_SDK_PATH="~/d/androidsdk/android-sdk-linux/"
+ANDROID_NDK_PATH="~/d/androidsdk/android-ndk-r7/"
+
+
+
+#Deal with curious users first:
+if [ "$1" = "-help" ]; then
+    exit 0;
+fi
+if [ "$1" = "--help" ]; then
+    exit 0;
+fi
+if [ "$1" = "-h" ]; then
+    exit 0;
+fi
 
 if [ -z "$1" ]; then
     echo "You need to specify a release name, e.g. 1.0."
@@ -17,14 +54,30 @@ DOSOURCERELEASE="yes"
 
 TARGETHOST=""
 if [ "$2" = "linux-to-win" ]; then
-	echo "Building with MinGW cross compiler... (Please set CROSSCCHOST in this script properly!)";
+	echo "";
+	echo "Building with MinGW cross compiler..."
+	echo "IMPORTANT: Please set CROSSCCHOST in this script properly!"
+	echo "If you haven't, press CTRL+C now to cancel, then do so."
+	echo "   Given cross compiler host: $CROSSCCHOST"
+	echo ""
 	TARGETHOST="$CROSSCCHOST"
 	BINRELEASENAME="win32"
 	DOSOURCERELEASE="no"
 else
-	echo "Building with native compiler";
-	if [ "$2" = "win" ]; then
-		BINRELEASENAME="win32"
+	if [ "$2" = "android" ]; then
+		echo "";
+		echo "Building with Android SDK..."
+		echo "IMPORTANT: Please set ANDROID_ paths in this script properly!"
+		echo "If you haven't, press CTRL+C now to cancel, then do so."
+		echo "   Given Android SDK path: $ANDROID_SDK_PATH"
+		echo "   Given Android NDK path: $ANDROID_NDK_PATH"
+		echo ""
+		DOSOURCERELEASE="no"		
+	else
+		echo "Building with native compiler";
+    	if [ "$2" = "win" ]; then
+        	BINRELEASENAME="win32"
+    	fi	
 	fi
 fi
 
@@ -38,7 +91,9 @@ mkdir -p tarball
 cd tarball
 git clone http://games.homeofjones.de/blitwizard/git-source/blitwizard.git/ . || { echo "Failed to do git checkout."; exit 1; }
 rm -rf ./.git
-sh autogen.sh || { echo "Autoconf generation failed."; exit 1; }
+if [ "$2" != "android" ]; then
+	sh autogen.sh || { echo "Autoconf generation failed."; exit 1; }
+fi
 
 # Remove things from source release we don't want
 rm .gitignore
@@ -66,6 +121,13 @@ cd blitwizard
 rm deps.zip
 wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
 unzip deps.zip
+
+# Do android build here
+if [ "$2" = "android" ]; then
+	cd ..
+	sh android/android.sh "$ANDROID_SDK_PATH" "$ANDROID_NDK_PATH" || { echo "Failed to complete Android build."; exit 1; }
+	exit 0;
+fi
 
 # Ensure FFmpeg support by providing the source of it
 mkdir src/ffmpeg/

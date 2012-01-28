@@ -70,8 +70,8 @@ function blitwiz.on_init()
 
 	-- Add character
 	char = blitwiz.physics.createMovableObject()
-	blitwiz.physics.setShapeRectangle(char, (50+x)/pixelspermeter, (140+y)/pixelspermeter)
-	blitwiz.physics.setMass(char, 60)
+	blitwiz.physics.setShapeOval(char, (50+x)/pixelspermeter, (140+y)/pixelspermeter)
+	blitwiz.physics.setMass(char, 10)
 	blitwiz.physics.setFriction(char, 0.5)
 	--blitwiz.physics.setLinearDamping(char, 10)
 	blitwiz.physics.warp(char, (456+x)/pixelspermeter, (188+y)/pixelspermeter)
@@ -113,6 +113,12 @@ function blitwiz.on_draw()
 	local x,y = blitwiz.physics.getPosition(char)
 	local w,h = blitwiz.graphics.getImageSize("char1.png")
 	blitwiz.graphics.drawImage("char" .. frame .. ".png", x*pixelspermeter - w/2 + bgx, y*pixelspermeter - h/2 + bgy)
+
+	-- Draw impact position
+	if drawblubx ~= nil and drawbluby ~= nil then
+		local w,h = blitwiz.graphics.getImageSize("crate.png")
+		--blitwiz.graphics.drawImage("crate.png", drawblubx*pixelspermeter - w/2, drawbluby*pixelspermeter - h/2)
+	end
 end
 
 function blitwiz.on_close()
@@ -122,21 +128,26 @@ end
 function blitwiz.on_step()
 	local onthefloor = false
 	local charx,chary = blitwiz.physics.getPosition(char)
+
+	-- Floor info
 	local obj,posx,posy,normalx,normaly = blitwiz.physics.ray(charx,chary,charx,chary+350/pixelspermeter)
+
+	drawblubx = posx
+	drawbluby = posy
+
 	local charsizex,charsizey = blitwiz.graphics.getImageSize("char1.png")
 	charsizex = charsizex / pixelspermeter
 	charsizey = charsizey / pixelspermeter
-	if obj ~= nil and posy < chary + charsizey/2 + 15/pixelspermeter then
+	if obj ~= nil and posy < chary + charsizey/2 + 17/pixelspermeter then
 		onthefloor = true
 	end
-	
 	if onthefloor == true then
 		-- walk
 		if leftright < 0 then
-			blitwiz.physics.impulse(char, charx + 5, chary - 5, -2, -5)
+			blitwiz.physics.impulse(char, charx + 5, chary - 5, -1, -2)
 		end
 		if leftright > 0 then
-        	blitwiz.physics.impulse(char, charx - 5, chary - 5, 2, -5)
+        	blitwiz.physics.impulse(char, charx - 5, chary - 5, 1, -2)
 		end
 	end
 end

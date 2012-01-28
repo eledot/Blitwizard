@@ -23,7 +23,8 @@
 
 #include "Box2D/Box2D.h"
 #include <stdint.h>
-#include <math.h>
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include <stdio.h>
 
 #define EPSILON 0.0001
@@ -108,8 +109,6 @@ public:
 	}
 };
 
-mycallback* callbackobj = NULL;
-
 int physics_Ray(struct physicsworld* world, double startx, double starty, double targetx, double targety, double* hitpointx, double* hitpointy, struct physicsobject** hitobject, double* hitnormalx, double* hitnormaly) {
 	mycallback* callbackobj = new mycallback();
 	world->w->RayCast(callbackobj, b2Vec2(startx, starty), b2Vec2(targetx, targety));
@@ -180,18 +179,55 @@ static struct physicsobject* physics_CreateObjectCircle(struct physicsworld* wor
 	return obj;
 }
 
+#define OVALVERTICES 16
+#define OVALVERTICESQUARTER 4
+
 struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height) {
   	if (fabs(width - height) < EPSILON) {
 		return physics_CreateObjectCircle(world, userdata, movable, friction, width);
 	}
+
+	//construct oval shape
+	b2PolygonShape shape;
+    b2Vec2 vertices[OVALVERTICES];
+	int i = 0;
+	int sideplace = 0;
+	int sideplacedir = 1;
+	double angle = 0;
+	while (angle < 2*M_PI && i < OVALVERTICES) {
+		if (sideplacedir > 0) {
+			if (sideplace < OVALVERTICESQUARTER) {
+				sideplace++;
+			}else{
+				sideplace++;
+				sideplacedir = -1;
+			}
+		}else{
+			if (sideplace > 2) {
+				sideplace--;
+			}else{
+				sideplace--;
+				sideplacedir = 1;
+			}
+		}
+		double ovalsidepercentage = ((double)sideplace-1.0)/((double)OVALVERTICESQUARTER);
+		printf("oval side percentage: %f\n", ovalsidepercentage);
+		angle += (2*M_PI)/((double)OVALVERTICES);
+		i++;
+	}
+	shape.Set(vertices, OVALVERTICES);
+
+	//get physics object
     struct physicsobject* obj = createobj(world, userdata, movable);
     if (!obj) {return NULL;}
-    b2PolygonShape box;
-    box.SetAsBox((width/2) - box.m_radius*2, (height/2) - box.m_radius*2);
+
+	//construct fixture def from shape
     b2FixtureDef fixtureDef;
-    fixtureDef.shape = &box;
+    fixtureDef.shape = &shape;
     fixtureDef.friction = friction;
     fixtureDef.density = 1;
+
+	//set fixture to body and finish
     obj->body->SetFixedRotation(false);
     obj->body->CreateFixture(&fixtureDef);
 	physics_SetMass(obj, 0);
@@ -452,7 +488,8 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
 			continue;
 		}
 
-		b2Vec2* varray = new b2Vec2[e->adjacentcount+1];
+		int varraysize = e->adjacentcount+1;
+		b2Vec2 varray[varraysize];
 		b2ChainShape chain;
 		e->processed = 1;
 
@@ -517,8 +554,6 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
     	fixtureDef.friction = context->friction;
 		fixtureDef.density = 0;
     	context->obj->body->CreateFixture(&fixtureDef);
-
-		delete varray;
 	}
 	struct physicsobject* obj = context->obj;
 	
