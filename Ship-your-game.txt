@@ -7,11 +7,36 @@ So all you need to ship is:
 
  - blitwizard.exe or/and other platform's blitwizard binary
    (you can find it inside the bin/ folder, obtain it from there)
+
  - templates/ folder (all contents)
+
  - game.lua from your own game and other files of your game (images etc)
+
  - README-libs.txt for licensing (see NOTE below)
 
+Ship a game for Android (you need a *Linux* machine for this!):
+
+  - Install the Android SDK. Then install 2.x Android API files.
+    Then install/extract the Android NDK for native code.
+
+  - Put the blitwizard templates/ folder and your game files (game.lua, ..)
+    in a dedicated folder that contains nothing else -> your game folder
+      (do NOT add any blitwizard binaries or other things)
+
+  - Go into the blitwizard script/ folder (blitwizard source package)
+    and edit create-release-archive.sh and change ANDROID_SDK_PATH and
+    ANDROID_NDK_PATH to point to your SDK and NDK folders.
+
+  - Then run (in a terminal where you cd'ed to the script/ folder):
+     sh ./create-release-archive.sh current android
+    When asked, specify a game name and the path to your game folder
+
+  - Important: Include README-libs.txt contents into your game in an
+    about screen for license compliance!
+      -> You should now have a working .apk file for Android.
+
 If you ship more, in particularly FFmpeg, read the FFmpeg section below.
+Please note that FFmpeg for Android isn't supported/tested.
 
 Disclaimer:
   While I wrote some README files and point them out here for use to comply
