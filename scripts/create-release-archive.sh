@@ -16,6 +16,7 @@ CROSSCCHOST="i686-pc-mingw32"
 # -- End of options --
 
 
+useversion="0.2.1"
 
 #Output some explanations
 echo "This is a release script that builds a blitwizard release tarball."
@@ -24,7 +25,7 @@ echo "most likely it won't work anywhere else without major changes."
 echo "Usage:"
 echo "  create-release-archive.sh [version label] [mode]"
 echo "Example:"
-echo "  create-release-archive.sh 0.1"
+echo "  create-release-archive.sh current"
 echo "Available modes:"
 echo "  [no mode]       Specify no mode to simply compile for native Linux"
 echo "  linux-to-win    Compile with a cross compiler for Windows."
@@ -65,8 +66,12 @@ if [ -z "$1" ]; then
     exit
 fi
 
+if [ ! "$1" = "current" ]; then
+	useversion="$1"
+fi
+
 BINRELEASENAME="linux"
-RELEASEVERSION=$1
+RELEASEVERSION="$useversion"
 DOSOURCERELEASE="yes"
 
 TARGETHOST=""

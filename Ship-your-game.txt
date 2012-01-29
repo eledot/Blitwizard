@@ -27,7 +27,7 @@ Ship a game for Android (you need a *Linux* machine for this!):
     and edit create-release-archive.sh and change ANDROID_SDK_PATH and
     ANDROID_NDK_PATH to point to your SDK and NDK folders.
 
-  - Then run (in a terminal where you cd'ed to the script/ folder):
+  - Then run (in a terminal where you changed directory to script/):
      sh ./create-release-archive.sh current android
     When asked, specify a game name and the path to your game folder
 
