@@ -19,7 +19,7 @@ Disclaimer:
   It is your own responsibility to make sure that you comply with the third
   party libraries' licenses and any things like patents.
 
-Read http://games.homeofjones.de/blitwizard/#third-party_licensing
+Read http://games.homeofjones.de/blitwizard/license#third-party_licensing
 The FFmpeg paragraph only applies if you ship FFmpeg.
 
 FOR FFMPEG:

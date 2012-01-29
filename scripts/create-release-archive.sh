@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# -- Native compilation options --
+#Set the native compiler here (ignored for Mac):
+CC="gcc"
+
+# -- Linux > Android cross compilation options --
+#Point this to the Android SDK/NDK folders
+ANDROID_SDK_PATH="/home/jonas/d/androidsdk/android-sdk-linux/"
+ANDROID_NDK_PATH="/home/jonas/d/androidsdk/android-ndk-r7/"
+
+# -- Linux > Windows cross compilation options --
+#Set the cross compilation toolchain name here:
+CROSSCCHOST="i686-pc-mingw32"
+
+# -- End of options --
+
+
+
 #Output some explanations
 echo "This is a release script that builds a blitwizard release tarball."
 echo "It has been purely tested and used on Linux so far,"

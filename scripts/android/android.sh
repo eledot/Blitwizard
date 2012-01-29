@@ -28,6 +28,10 @@ rm -rf ./blitwizard-android/
 cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
 cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 
+# Fix iconv problem
+cat blitwizard-android/jni/SDL/include/SDL_stdinc.h | sed -e "s/\#if defined[(]HAVE_ICONV[)]/\#if defined(ANDROID) || defined(__ANDROID__)\n\#undef HAVE_ICONV\n\#undef HAVE_ICONV_H\n\#endif\n\#if defined(HAVE_ICONV)/g" > blitwizard-android/jni/SDL/include/SDL_stdinc2.h
+cp blitwizard-android/jni/SDL/include/SDL_stdinc2.h blitwizard-android/jni/SDL/include/SDL_stdinc.h
+
 # Ask the user some things:
 echo "Type intended app name (or nothing) and then press [ENTER]:"
 read app_name
