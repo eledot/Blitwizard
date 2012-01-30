@@ -27,6 +27,7 @@ ANDROID_NDK_PATH="$2"
 rm -rf ./blitwizard-android/
 cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
 cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
+echo "APP_STL := stlport_shared" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
 
 # Copy android config
 cp blitwizard-android/jni/SDL/include/SDL_config_android.h blitwizard-android/jni/SDL/include/SDL_config.h
@@ -70,13 +71,13 @@ fixBox2Dinclude() {
 
 cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
 cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
-fixBox2Dinclude Common/b2Settings.cpp cstdarg stdarg.h
-fixBox2Dinclude Common/b2Settings.cpp cstdlib stdlib.h
-fixBox2Dinclude Common/b2Math.h limits limits.h
-fixBox2Dinclude Common/b2Math.h cmath math.h
-cat blitwizard-android/jni/box2d/Box2D/Common/b2Math.h | sed -e "s/std[:][:]numeric_limits<float32>[:][:]infinity[(][)]/INFINITY/g" > blitwizard-android/jni/box2d/Box2D/Common/b2Math.h.2
-    cp blitwizard-android/jni/box2d/Box2D/Common/b2Math.h.2 blitwizard-android/jni/box2d/Box2D/Common/b2Math.h
-fixBox2Dinclude Common/b2BlockAllocator.cpp cstdlib stdlib.h
+#fixBox2Dinclude Common/b2Settings.cpp cstdarg stdarg.h
+#fixBox2Dinclude Common/b2Settings.cpp cstdlib stdlib.h
+#fixBox2Dinclude Common/b2Math.h limits limits.h
+#fixBox2Dinclude Common/b2Math.h cmath math.h
+#cat blitwizard-android/jni/box2d/Box2D/Common/b2Math.h | sed -e "s/std[:][:]numeric_limits<float32>[:][:]infinity[(][)]/INFINITY/g" > blitwizard-android/jni/box2d/Box2D/Common/b2Math.h.2
+#cp blitwizard-android/jni/box2d/Box2D/Common/b2Math.h.2 blitwizard-android/jni/box2d/Box2D/Common/b2Math.h
+#fixBox2Dinclude Common/b2BlockAllocator.cpp cstdlib stdlib.h
 
 cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
 rm blitwizard-android/jni/png/pngtest.c
@@ -102,7 +103,7 @@ cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_fi
 cd blitwizard-android
 export HOST_AWK="awk"
 mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
-HOST_AWK="awk" "$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; exit 1; }
+"$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; exit 1; }
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
 ant debug || echo { "ant failed."; exit 1; }
 cd ..
