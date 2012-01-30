@@ -62,22 +62,8 @@ cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
 cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
 cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
 
-# Box2D
-
-fixBox2Dinclude() {
-	cat blitwizard-android/jni/box2d/Box2D/$1 | sed -e "s/\#include <${2}>/#include <${3}>/g" > blitwizard-android/jni/box2d/Box2D/$1.2
-	cp blitwizard-android/jni/box2d/Box2D/$1.2 blitwizard-android/jni/box2d/Box2D/$1
-}
-
 cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
 cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
-#fixBox2Dinclude Common/b2Settings.cpp cstdarg stdarg.h
-#fixBox2Dinclude Common/b2Settings.cpp cstdlib stdlib.h
-#fixBox2Dinclude Common/b2Math.h limits limits.h
-#fixBox2Dinclude Common/b2Math.h cmath math.h
-#cat blitwizard-android/jni/box2d/Box2D/Common/b2Math.h | sed -e "s/std[:][:]numeric_limits<float32>[:][:]infinity[(][)]/INFINITY/g" > blitwizard-android/jni/box2d/Box2D/Common/b2Math.h.2
-#cp blitwizard-android/jni/box2d/Box2D/Common/b2Math.h.2 blitwizard-android/jni/box2d/Box2D/Common/b2Math.h
-#fixBox2Dinclude Common/b2BlockAllocator.cpp cstdlib stdlib.h
 
 cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
 rm blitwizard-android/jni/png/pngtest.c
