@@ -28,9 +28,8 @@ rm -rf ./blitwizard-android/
 cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
 cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 
-# Fix iconv problem
-cat blitwizard-android/jni/SDL/include/SDL_stdinc.h | sed -e "s/\#if defined[(]HAVE_ICONV[)]/\#if defined(ANDROID) || defined(__ANDROID__)\n\#undef HAVE_ICONV\n\#undef HAVE_ICONV_H\n\#endif\n\#if defined(HAVE_ICONV)/g" > blitwizard-android/jni/SDL/include/SDL_stdinc2.h
-cp blitwizard-android/jni/SDL/include/SDL_stdinc2.h blitwizard-android/jni/SDL/include/SDL_stdinc.h
+# Copy android config
+cp blitwizard-android/jni/SDL/include/SDL_config_android.h blitwizard-android/jni/SDL/include/SDL_config.h
 
 # Ask the user some things:
 echo "Type intended app name (or nothing) and then press [ENTER]:"
@@ -62,8 +61,22 @@ cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
 cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
 cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
 
+# Box2D
+
+fixBox2Dinclude() {
+	cat blitwizard-android/jni/box2d/Box2D/$1 | sed -e "s/\#include <${2}>/#include <${3}>/g" > blitwizard-android/jni/box2d/Box2D/$1.2
+	cp blitwizard-android/jni/box2d/Box2D/$1.2 blitwizard-android/jni/box2d/Box2D/$1
+}
+
 cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
 cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
+fixBox2Dinclude Common/b2Settings.cpp cstdarg stdarg.h
+fixBox2Dinclude Common/b2Settings.cpp cstdlib stdlib.h
+fixBox2Dinclude Common/b2Math.h limits limits.h
+fixBox2Dinclude Common/b2Math.h cmath math.h
+cat blitwizard-android/jni/box2d/Box2D/Common/b2Math.h | sed -e "s/std[:][:]numeric_limits<float32>[:][:]infinity[(][)]/INFINITY/g" > blitwizard-android/jni/box2d/Box2D/Common/b2Math.h.2
+    cp blitwizard-android/jni/box2d/Box2D/Common/b2Math.h.2 blitwizard-android/jni/box2d/Box2D/Common/b2Math.h
+fixBox2Dinclude Common/b2BlockAllocator.cpp cstdlib stdlib.h
 
 cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
 rm blitwizard-android/jni/png/pngtest.c
