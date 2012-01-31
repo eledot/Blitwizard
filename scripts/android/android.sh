@@ -58,25 +58,35 @@ fi
 # Get the blitwizard version
 blitwizard_version=`grep AC_INIT blitwizard/configure.ac | sed -e "s/AC_INIT[(][[]blitwizard[]], [[]//g" | sed -e "s/[]])//g"`
 
-# Copy other stuff and prepare Android.mk files
+# Prepare vorbis
 cp -R blitwizard/src/vorbis/ ./blitwizard-android/jni/vorbis/
 cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
+rm blitwizard-android/jni/vorbis/lib/psytune.c # dead code (see comments inside)
+rm blitwizard-android/jni/vorbis/lib/tone.c # program with main()
+rm blitwizard-android/jni/vorbis/lib/barkmel.c # program with main()
 
+# Vorbis define for ogg_types.h hack
+cat blitwizard-android/jni/vorbis/lib/os.h | sed "s/\#define _OS_H/#define _OS_H\n#define VORBIS_HACK/g" > blitwizard-android/jni/vorbis/lib/os.h.2
+
+# Prepare ogg
 cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
 cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
 cp android/ogg_config_types.h blitwizard-android/jni/ogg/include/ogg/config_types.h
 
+# Prepare Box2D
 cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
 cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
 
+# Prepare png
 cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
-rm blitwizard-android/jni/png/pngtest.c
-rm blitwizard-android/jni/png/pngvalid.c
+rm blitwizard-android/jni/png/pngtest.c # program with main()
+rm blitwizard-android/jni/png/pngvalid.c # we do not need this
 cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
 cp blitwizard-android/jni/png/scripts/pnglibconf.h.prebuilt blitwizard-android/jni/png/pnglibconf.h
 
+# Prepare zlib
 cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
-rm blitwizard-android/jni/zlib/example.c
+rm blitwizard-android/jni/zlib/example.c # program with main()
 cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
 
 mkdir blitwizard-android/jni/imgloader/
@@ -84,6 +94,7 @@ cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
 cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
 cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/
 
+# Prepare Lua
 mkdir blitwizard-android/jni/lua/
 cp blitwizard/src/lua/src/*.c blitwizard-android/jni/lua/
 cp blitwizard/src/lua/src/*.h blitwizard-android/jni/lua/
@@ -104,7 +115,7 @@ export HOST_AWK="awk"
 mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
 "$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; exit 1; }
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
-ant debug || echo { "ant failed."; exit 1; }
+ant debug || { echo "ant failed."; exit 1; }
 cd ..
 
 # Success!
