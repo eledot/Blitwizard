@@ -10,6 +10,8 @@ LOCAL_SRC_FILES := \
 	$(subst $(LOCAL_PATH)/,, \
 	$(wildcard $(LOCAL_PATH)/*.c))
 
-LOCAL_LDLIBS := -ldl
+LOCAL_SHARED_LIBRARIES := zlib
+
+LOCAL_LDLIBS := -ldl 
 
 include $(BUILD_SHARED_LIBRARY)

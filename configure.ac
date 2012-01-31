@@ -4,7 +4,7 @@
 
 AC_PREREQ([2.60])
 
-AC_INIT([blitwizard], [0.1])
+AC_INIT([blitwizard], [0.2.1])
 
 # Checks for programs.
 AM_INIT_AUTOMAKE([foreign])

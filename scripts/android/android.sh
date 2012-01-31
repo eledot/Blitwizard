@@ -55,6 +55,9 @@ else
 	echo "No game file path given, not integrating any resources."
 fi
 
+# Get the blitwizard version
+blitwizard_version=`grep AC_INIT blitwizard/configure.ac | sed -e "s/AC_INIT[(][[]blitwizard[]], [[]//g" | sed -e "s/[]])//g"`
+
 # Copy other stuff and prepare Android.mk files
 cp -R blitwizard/src/vorbis/ ./blitwizard-android/jni/vorbis/
 cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
@@ -70,8 +73,10 @@ cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
 rm blitwizard-android/jni/png/pngtest.c
 rm blitwizard-android/jni/png/pngvalid.c
 cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
+cp blitwizard-android/jni/png/scripts/pnglibconf.h.prebuilt blitwizard-android/jni/png/pnglibconf.h
 
 cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
+rm blitwizard-android/jni/zlib/example.c
 cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
 
 mkdir blitwizard-android/jni/imgloader/
@@ -91,6 +96,7 @@ cp blitwizard/src/*.c blitwizard-android/jni/src
 cp blitwizard/src/*.h blitwizard-android/jni/src
 cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
 cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android.mk
+cat blitwizard-android/jni/src/Android.mk | sed -e "s/VERSIONINSERT/${blitwizard_version}/g" > blitwizard-android/jni/src/Android.mk
 
 # Use the Android NDK/SDK to complete our project:
 cd blitwizard-android
