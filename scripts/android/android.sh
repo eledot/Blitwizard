@@ -107,7 +107,7 @@ cp blitwizard/src/*.c blitwizard-android/jni/src
 cp blitwizard/src/*.h blitwizard-android/jni/src
 cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
 cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android.mk
-cat blitwizard-android/jni/src/Android.mk | sed -e "s/VERSIONINSERT/${blitwizard_version}/g" > blitwizard-android/jni/src/Android.mk
+cat blitwizard-android/jni/src/Android.mk | sed -e "s/VERSIONINSERT/\"${blitwizard_version}\"/g" > blitwizard-android/jni/src/Android.mk
 
 # Use the Android NDK/SDK to complete our project:
 cd blitwizard-android
@@ -118,9 +118,9 @@ mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/li
 "$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; exit 1; }
 
 # Regenerate build.xml (SDL build.xml is outdated) and prepare some strings:
-"$ANDROID_SDK_PATH/android" update project -p . --target android-10
-cat blitwizard-android/build.xml | sed -e "s/SDLActivity/${app_name}/g" > blitwizard-android/build.xml
-cat blitwizard-android/res/values/strings.xml  | sed -e "s/SDL App/${app_name}/g" > blitwizard-android/res/values/strings.xml
+"$ANDROID_SDK_PATH/tools/android" update project -p . --target android-10
+cat build.xml | sed -e "s/SDLActivity/${app_name}/g" > build.xml
+cat res/values/strings.xml  | sed -e "s/SDL App/${app_name}/g" > res/values/strings.xml
 
 # Do final SDK build
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
