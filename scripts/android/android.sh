@@ -112,8 +112,17 @@ cat blitwizard-android/jni/src/Android.mk | sed -e "s/VERSIONINSERT/${blitwizard
 # Use the Android NDK/SDK to complete our project:
 cd blitwizard-android
 export HOST_AWK="awk"
+
+# NDK build:
 mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
 "$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; exit 1; }
+
+# Regenerate build.xml (SDL build.xml is outdated) and prepare some strings:
+"$ANDROID_SDK_PATH/android" update project -p . --target android-10
+cat blitwizard-android/build.xml | sed -e "s/SDLActivity/${app_name}/g" > blitwizard-android/build.xml
+cat blitwizard-android/res/values/strings.xml  | sed -e "s/SDL App/${app_name}/g" > blitwizard-android/res/values/strings.xml
+
+# Do final SDK build
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
 ant debug || { echo "ant failed."; exit 1; }
 cd ..
