@@ -61,6 +61,7 @@ cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
 
 cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
 cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
+cp android/ogg_config_types.h blitwizard-android/jni/ogg/include/ogg/config_types.h
 
 cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
 cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
@@ -77,6 +78,12 @@ mkdir blitwizard-android/jni/imgloader/
 cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
 cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
 cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/
+
+mkdir blitwizard-android/jni/lua/
+cp blitwizard/src/lua/src/*.c blitwizard-android/jni/lua/
+cp blitwizard/src/lua/src/*.h blitwizard-android/jni/lua/
+rm blitwizard-android/jni/lua/lua.c
+rm blitwizard-android/jni/lua/luac.c
 
 # Blitwizard Android.mk:
 source_file_list="`cat ../src/Makefile.am | grep blitwizard_SOURCES | sed -e 's/^blitwizard_SOURCES \= //'`"

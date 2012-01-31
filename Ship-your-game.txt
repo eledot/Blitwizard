@@ -23,8 +23,9 @@ Ship a game for Android (you need a *Linux* machine for this!):
     in a dedicated folder that contains nothing else -> your game folder
       (do NOT add any blitwizard binaries or other things)
 
-  - Go into the blitwizard script/ folder (blitwizard source package)
-    and edit create-release-archive.sh and change ANDROID_SDK_PATH and
+  - Go into the blitwizard script/ folder (inside the extracted blitwizard
+    source package as downloaded from the website) and edit
+    create-release-archive.sh and change ANDROID_SDK_PATH and
     ANDROID_NDK_PATH to point to your SDK and NDK folders.
 
   - Then run (in a terminal where you changed directory to script/):

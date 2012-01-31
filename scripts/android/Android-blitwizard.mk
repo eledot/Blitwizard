@@ -12,7 +12,7 @@ LOCAL_C_INCLUDES := $(LOCAL_PATH)/$(SDL_PATH)/include $(LOCAL_PATH)/../vorbis/in
 LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.cpp \
     SOURCEFILELIST
 
-LOCAL_SHARED_LIBRARIES := SDL zlib png imgloader ogg vorbis box2d
+LOCAL_SHARED_LIBRARIES := SDL zlib png imgloader ogg vorbis box2d lua
 
 LOCAL_LDLIBS := -lGLESv1_CM -llog
 
