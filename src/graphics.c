@@ -319,6 +319,17 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 	return 1;
 }
 
+static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userdata) {
+	SDL_RWops* ops = (SDL_RWops*)userdata;
+	int i = ops->read(ops, buffer, 1, bytes);
+	if (i > 0) {
+		return i;
+	}else{
+		SDL_FreeRW(ops);
+		return i;
+	}
+}
+
 int graphics_PromptTextureLoading(const char* texture) {
 	//check if texture is already present or being loaded
 	struct graphicstexture* gt = graphics_GetTextureByName(texture);
@@ -344,7 +355,17 @@ int graphics_PromptTextureLoading(const char* texture) {
 	}
 
 	//trigger image fetching thread
+#if defined(ANDROID) || defined(__ANDROID__)
+	SDL_RWops* rwops = SDL_RWFromFile(gt->name, "r");
+	if (!ropws) {
+		free(gt->name);
+		free(gt);
+		return 0;
+	}
+	gt->threadingptr = img_LoadImageThreadedFromFunction(&graphics_AndroidTextureReader, rwops, 0, 0, "rgba", NULL);
+#else
     gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
+#endif
     if (!gt->threadingptr) {
         free(gt->name);
         free(gt);

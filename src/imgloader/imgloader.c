@@ -41,7 +41,7 @@
 
 struct loaderthreadinfo {
 	char* path;
-	size_t (*readfunc)(void* buffer, size_t buffer, void* userdata);
+	size_t (*readfunc)(void* buffer, size_t bytes, void* userdata);
 	void* readfuncptr;
 	void* memdata;
 	unsigned int memdatasize;
@@ -98,21 +98,22 @@ void* loaderthreadfunction(void* data) {
 		char buf[4096];
 
 		//read byte chunks:
-		size_t i = readfunc(buf, 4096, i->readfuncptr);
-		while (i > 0) {
-			currentsize += i;
+		size_t k = i->readfunc(buf, 4096, i->readfuncptr);
+		while (k > 0) {
+			currentsize += k;
 			void* pnew = realloc(p, currentsize);
 			if (!pnew) {
-				i = -1;
+				while (k > 0) {k = i->readfunc(buf, 4096, i->readfuncptr);}
+				k = -1;
 				break;
 			}
 			p = pnew;
 			//copy read bytes
-			memcpy(p + (currentsize - i), i, buf);
-			i = readfunc(buf, 4096, i->readfuncptr);
+			memcpy(p + (currentsize - k), buf, k);
+			k = i->readfunc(buf, 4096, i->readfuncptr);
 		}
 		//handle error
-		if (i < 0) {
+		if (k < 0) {
 			if (p) {
 				free(p);
 			}

@@ -263,9 +263,9 @@ static void imgloaded(int success, const char* texture) {
 }
 
 #ifdef defined(__ANDROID__) || defined(ANDROID)
-int main(int argc, char** argv) {
-#else
 int SDL_main(int argc, char** argv) {
+#else
+int main(int argc, char** argv) {
 #endif
 	//evaluate command line arguments:
 	const char* script = "game.lua";
