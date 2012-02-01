@@ -51,7 +51,7 @@ int drawingallowed = 0;
 SDL_RWops* loadfilerwops = NULL;
 struct luachunkreaderinfo {
 	SDL_RWops* rwops;
-	void buffer[512];
+	char buffer[512];
 };
 static const char* luastringchunkreader(lua_State *l, void *data, size_t *size) {
 	struct luachunkreaderinfo* info = (struct luachunkreaderinfo*)data;
@@ -78,7 +78,7 @@ int luafuncs_loadfile(lua_State* l) {
 		lua_pushstring(l, "malloc failed");
 		return lua_error(l);
 	}
-	char errmsg[512];
+	char errormsg[512];
 	memset(info, 0, sizeof(*info));
 	info->rwops = SDL_RWFromFile(p, "r");
 	if (!info->rwops) {
