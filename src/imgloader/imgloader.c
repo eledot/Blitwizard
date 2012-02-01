@@ -41,6 +41,8 @@
 
 struct loaderthreadinfo {
 	char* path;
+	size_t (*readfunc)(void* buffer, size_t buffer, void* userdata);
+	void* readfuncptr;
 	void* memdata;
 	unsigned int memdatasize;
 	char* data;
@@ -88,6 +90,36 @@ void* loaderthreadfunction(void* data) {
 		}
 		free(i->path);
 		i->path = NULL;
+	}
+	//load from a byte reading function
+	if (i->readfunc) {
+		void* p = NULL;
+		size_t currentsize = 0;
+		char buf[4096];
+
+		//read byte chunks:
+		size_t i = readfunc(buf, 4096, i->readfuncptr);
+		while (i > 0) {
+			currentsize += i;
+			void* pnew = realloc(p, currentsize);
+			if (!pnew) {
+				i = -1;
+				break;
+			}
+			p = pnew;
+			//copy read bytes
+			memcpy(p + (currentsize - i), i, buf);
+			i = readfunc(buf, 4096, i->readfuncptr);
+		}
+		//handle error
+		if (i < 0) {
+			if (p) {
+				free(p);
+			}
+		}else{
+			i->memdata = p;
+			i->memdatasize = currentsize;
+		}
 	}
 	//now try to load the image!
 	if (i->memdata) {
@@ -152,6 +184,24 @@ void* img_LoadImageThreadedFromFile(const char* path, int maxwidth, int maxheigh
 	t->maxsizex = maxwidth; t->maxsizey = maxheight;
 	startthread(t);
 	return t;
+}
+
+void* img_LoadImageThreadedFromFunction(size_t (*readfunc)(void* buffer, size_t bytes, void* userdata), void* userdata, int maxwidth, int maxheight, const char* format, void(*callback)(int imgwidth, int imgheight, const char* imgdata, unsigned int imgdatasize)) {
+	struct loaderthreadinfo* t = malloc(sizeof(struct loaderthreadinfo));
+    if (!t) {return NULL;}
+    memset(t, 0, sizeof(*t));
+    t->readfunc = readfunc;
+	t->readfuncptr = userdata;
+	t->format = malloc(strlen(format)+1);
+    if (!t->format) {
+        free(t->memdata);free(t);
+        return NULL;
+    }
+    strcpy(t->format, format);
+    t->maxsizex = maxwidth;
+	t->maxsizey = maxheight;
+    startthread(t);
+    return t;
 }
 
 void* img_LoadImageThreadedFromMemory(const void* memdata, unsigned int memdatasize, int maxwidth, int maxheight, const char* format, void(*callback)(int imgwidth, int imgheight, const char* imgdata, unsigned int imgdatasize)) {
@@ -282,3 +332,4 @@ void img_4to3channel(char* imgdata, int width, int height, char** newdata, int c
 	*newdata = NULL;
 	//FIXME
 }
+

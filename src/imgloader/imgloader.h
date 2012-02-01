@@ -37,6 +37,9 @@ void* img_LoadImageThreadedFromFile(const char* path, int maxwidth, int maxheigh
 void* img_LoadImageThreadedFromMemory(const void* memdata, unsigned int memdatasize, int maxwidth, int maxheight, const char* format, void(*callback)(int imgwidth, int imgheight, const char* imgdata, unsigned int imgdatasize));
 // same as img_LoadImageThreadedFromFile, but takes a memory pointer & size instead of a path to a file on disk
 
+void* img_LoadImageThreadedFromFunction(size_t (*readfunc)(void* buffer, size_t bytes, void* userdata), void* userdata, int maxwidth, int maxheight, const char* format, void(*callback)(int imgwidth, int imgheight, const char* imgdata, unsigned int imgdatasize);
+// same as img_LoadImageThreadedFromFile, but takes a function that will be called to load the file from disk
+
 int img_CheckSuccess(void* handle);
 // check on the progress of a job handle. Returns 1 if job is done (otherwise 0)
 
