@@ -95,7 +95,7 @@ if [ ! -d "blitwizard-android/jni/imgloader" ]; then
 fi
 
 # Prepare png
-if [ ! -d "blitwizard-android/src/imgloader/png" ]; then
+if [ ! -d "blitwizard-android/src/png" ]; then
 	cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
 	rm blitwizard-android/jni/png/pngtest.c # program with main()
 	rm blitwizard-android/jni/png/pngvalid.c # we do not need this
@@ -104,7 +104,7 @@ if [ ! -d "blitwizard-android/src/imgloader/png" ]; then
 fi
 
 # Prepare zlib
-if [ ! -d "blitwizard-android/src/imgloader/zlib" ]; then
+if [ ! -d "blitwizard-android/src/zlib" ]; then
 	cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
 	rm blitwizard-android/jni/zlib/example.c # program with main()
 	cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk

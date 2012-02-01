@@ -151,8 +151,13 @@ const char* osinfo_GetSystemVersion() {
 	versionbuf[sizeof(versionbuf)-1] = 0;
 	return versionbuf;
 #endif
+#if defined(ANDROID) || (__ANDROID__)
+	//Android:
+	strcpy(versionbuf,"Unknown");
+	return versionbuf;	
+#endif
 	//All others:
-	strcpy(versionbuf,"unknown");
+	strcpy(versionbuf,"Unknown");
 	return versionbuf;
 }
 
@@ -182,6 +187,9 @@ const char* osinfo_GetSystemName() {
 #endif
 #if defined(__QNX__)
 	strcpy(osbuf, "FreeBSD");
+#endif
+#if defined(ANDROID) || defined(__ANDROID__)
+	strcpy(osbuf, "Android");
 #endif
 	if (strlen(versionbuf) <= 0) {
 		strcpy(osbuf,"Unknown Unix/POSIX");

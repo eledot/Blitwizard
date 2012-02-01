@@ -6,11 +6,13 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := imgloader
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/ $(LOCAL_PATH)/../
 
 LOCAL_SRC_FILES := \
 	$(subst $(LOCAL_PATH)/,, \
 	$(wildcard $(LOCAL_PATH)/*.c))
+
+LOCAL_SHARED_LIBRARIES := png
 
 LOCAL_LDLIBS := -ldl
 
