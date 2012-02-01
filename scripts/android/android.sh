@@ -22,12 +22,15 @@ fi
 
 ANDROID_SDK_PATH="$1"
 ANDROID_NDK_PATH="$2"
+REDOWNLOADED="$3"
 
-# Copy the project and SDL
-rm -rf ./blitwizard-android/
-cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
-cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
-echo "APP_STL := stlport_shared" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
+if [ "$REDOWNLOADED" = "yes" ]; then
+	# Copy the project and SDL
+	rm -rf ./blitwizard-android/
+	cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
+	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
+	echo "APP_STL := stlport_shared" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
+fi
 
 # Copy android config
 cp blitwizard-android/jni/SDL/include/SDL_config_android.h blitwizard-android/jni/SDL/include/SDL_config.h
@@ -58,56 +61,74 @@ fi
 # Get the blitwizard version
 blitwizard_version=`grep AC_INIT blitwizard/configure.ac | sed -e "s/AC_INIT[(][[]blitwizard[]], [[]//g" | sed -e "s/[]])//g"`
 
-# Prepare vorbis
-cp -R blitwizard/src/vorbis/ ./blitwizard-android/jni/vorbis/
-cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
-rm blitwizard-android/jni/vorbis/lib/psytune.c # dead code (see comments inside)
-rm blitwizard-android/jni/vorbis/lib/tone.c # program with main()
-rm blitwizard-android/jni/vorbis/lib/barkmel.c # program with main()
+if [ ! -d "blitwizard-android/src/vorbis" ]; then
+	# Prepare vorbis
+	cp -R blitwizard/src/vorbis/ ./blitwizard-android/jni/vorbis/
+	cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
+	rm blitwizard-android/jni/vorbis/lib/psytune.c # dead code (see comments inside)
+	rm blitwizard-android/jni/vorbis/lib/tone.c # program with main()
+	rm blitwizard-android/jni/vorbis/lib/barkmel.c # program with main()
 
-# Vorbis define for ogg_types.h hack
-cat blitwizard-android/jni/vorbis/lib/os.h | sed "s/\#define _OS_H/#define _OS_H\n#define VORBIS_HACK/g" > blitwizard-android/jni/vorbis/lib/os.h.2
+	# Vorbis define for ogg_types.h hack
+	cat blitwizard-android/jni/vorbis/lib/os.h | sed "s/\#define _OS_H/#define _OS_H\n#define VORBIS_HACK/g" > blitwizard-android/jni/vorbis/lib/os.h.2
+fi
 
 # Prepare ogg
-cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
-cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
-cp android/ogg_config_types.h blitwizard-android/jni/ogg/include/ogg/config_types.h
+if [ ! -d "blitwizard-android/src/ogg" ]; then
+	cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
+	cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
+	cp android/ogg_config_types.h blitwizard-android/jni/ogg/include/ogg/config_types.h
+fi
 
 # Prepare Box2D
-cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
-cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
+if [ ! -d "blitwizard-android/src/box2d" ]; then
+	cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
+	cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
+fi
 
 # Prepare png
-cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
-rm blitwizard-android/jni/png/pngtest.c # program with main()
-rm blitwizard-android/jni/png/pngvalid.c # we do not need this
-cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
-cp blitwizard-android/jni/png/scripts/pnglibconf.h.prebuilt blitwizard-android/jni/png/pnglibconf.h
+if [ ! -d "blitwizard-android/src/imgloader/png" ]; then
+	cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
+	rm blitwizard-android/jni/png/pngtest.c # program with main()
+	rm blitwizard-android/jni/png/pngvalid.c # we do not need this
+	cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
+	cp blitwizard-android/jni/png/scripts/pnglibconf.h.prebuilt blitwizard-android/jni/png/pnglibconf.h
+fi
 
 # Prepare zlib
-cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
-rm blitwizard-android/jni/zlib/example.c # program with main()
-cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
+if [ ! -d "blitwizard-android/src/imgloader/zlib" ]; then
+	cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
+	rm blitwizard-android/jni/zlib/example.c # program with main()
+	cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
+fi
 
-mkdir blitwizard-android/jni/imgloader/
-cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
-cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
-cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/
+if [ ! -d "blitwizard-android/jni/imgloader" ]; then
+	mkdir blitwizard-android/jni/imgloader/
+	cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
+	cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
+	cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/
+fi
 
 # Prepare Lua
-mkdir blitwizard-android/jni/lua/
-cp blitwizard/src/lua/src/*.c blitwizard-android/jni/lua/
-cp blitwizard/src/lua/src/*.h blitwizard-android/jni/lua/
-rm blitwizard-android/jni/lua/lua.c
-rm blitwizard-android/jni/lua/luac.c
+if [ ! -d "blitwizard-android/jni/lua" ]; then
+	mkdir blitwizard-android/jni/lua/
+	cp blitwizard/src/lua/src/*.c blitwizard-android/jni/lua/
+	cp blitwizard/src/lua/src/*.h blitwizard-android/jni/lua/
+	rm blitwizard-android/jni/lua/lua.c
+	rm blitwizard-android/jni/lua/luac.c
+	cp android/Android-lua.mk blitwizard-android/jni/lua/Android.mk
+fi
 
 # Blitwizard Android.mk:
 source_file_list="`cat ../src/Makefile.am | grep blitwizard_SOURCES | sed -e 's/^blitwizard_SOURCES \= //'`"
-cp blitwizard/src/*.c blitwizard-android/jni/src
-cp blitwizard/src/*.h blitwizard-android/jni/src
-cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
-cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android.mk
-cat blitwizard-android/jni/src/Android.mk | sed -e "s/VERSIONINSERT/\"${blitwizard_version}\"/g" > blitwizard-android/jni/src/Android.mk
+if [ ! -f "blitwizard-android/jni/src/main.c" ]; then
+	cp blitwizard/src/*.c blitwizard-android/jni/src
+	cp blitwizard/src/*.cpp blitwizard-android/jni/src
+	cp blitwizard/src/*.h blitwizard-android/jni/src
+	cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
+	cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android2.mk
+	cat blitwizard-android/jni/src/Android2.mk | sed "s/VERSIONINSERT/\\\\\"${blitwizard_version}\\\\\"/g" > blitwizard-android/jni/src/Android.mk
+fi
 
 # Use the Android NDK/SDK to complete our project:
 cd blitwizard-android
@@ -115,16 +136,19 @@ export HOST_AWK="awk"
 
 # NDK build:
 mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
-"$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; exit 1; }
+"$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; cd ..; exit 1; }
 
 # Regenerate build.xml (SDL build.xml is outdated) and prepare some strings:
-"$ANDROID_SDK_PATH/tools/android" update project -p . --target android-10
-cat build.xml | sed -e "s/SDLActivity/${app_name}/g" > build.xml
-cat res/values/strings.xml  | sed -e "s/SDL App/${app_name}/g" > res/values/strings.xml
+rm -f build.xml
+"$ANDROID_SDK_PATH/tools/android" update project -p . --target android-10 || { echo "android update failed."; cd ..; exit 1; }
+cat build.xml | sed -e "s/SDLActivity/${app_name}/g" > build2.xml
+mv build2.xml build.xml
+cat res/values/strings.xml | sed -e "s/SDL App/${app_name}/g" > res/values/strings2.xml
+mv res/values/strings2.xml res/values/strings.xml
 
 # Do final SDK build
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
-ant debug || { echo "ant failed."; exit 1; }
+ant debug || { echo "ant failed."; cd ..; exit 1; }
 cd ..
 
 # Success!

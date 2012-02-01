@@ -1,5 +1,7 @@
 LOCAL_PATH := $(call my-dir)
 
+APP_ABI := armeabi armeabi-v7a
+
 include $(CLEAR_VARS)
 
 LOCAL_MODULE := png
