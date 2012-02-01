@@ -262,7 +262,7 @@ static void imgloaded(int success, const char* texture) {
 	}
 }
 
-#ifdef defined(__ANDROID__) || defined(ANDROID)
+#ifdef (defined(__ANDROID__) || defined(ANDROID))
 int SDL_main(int argc, char** argv) {
 #else
 int main(int argc, char** argv) {
