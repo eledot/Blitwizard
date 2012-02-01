@@ -55,7 +55,7 @@ struct luachunkreaderinfo {
 };
 static const char* luastringchunkreader(lua_State *l, void *data, size_t *size) {
 	struct luachunkreaderinfo* info = (struct luachunkreaderinfo*)data;
-	int i = info->rwops->read(info->rwops, info->data, 1, 4096);
+	int i = info->rwops->read(info->rwops, info->buffer, 1, 4096);
 	if (i > 0) {
 		*size = i;
 		return info->buffer;
@@ -88,7 +88,7 @@ int luafuncs_loadfile(lua_State* l) {
         lua_pushstring(l, errormsg);
         return lua_error(l);
 	}
-	int r = lua_load(l, &luastringchunkreader, info, p);
+	int r = lua_load(l, &luastringchunkreader, info, p, NULL);
 	SDL_FreeRW(info->rwops);
     free(info);
 	if (r != 0) {
