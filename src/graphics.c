@@ -357,7 +357,7 @@ int graphics_PromptTextureLoading(const char* texture) {
 	//trigger image fetching thread
 #if defined(ANDROID) || defined(__ANDROID__)
 	SDL_RWops* rwops = SDL_RWFromFile(gt->name, "r");
-	if (!ropws) {
+	if (!rwops) {
 		free(gt->name);
 		free(gt);
 		return 0;
