@@ -86,6 +86,14 @@ if [ ! -d "blitwizard-android/src/box2d" ]; then
 	cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
 fi
 
+# Prepare imgloader
+if [ ! -d "blitwizard-android/jni/imgloader" ]; then
+    mkdir blitwizard-android/jni/imgloader/
+    cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
+    cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
+    cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/Android.mk
+fi
+
 # Prepare png
 if [ ! -d "blitwizard-android/src/imgloader/png" ]; then
 	cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
@@ -102,13 +110,6 @@ if [ ! -d "blitwizard-android/src/imgloader/zlib" ]; then
 	cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
 fi
 
-if [ ! -d "blitwizard-android/jni/imgloader" ]; then
-	mkdir blitwizard-android/jni/imgloader/
-	cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
-	cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
-	cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/
-fi
-
 # Prepare Lua
 if [ ! -d "blitwizard-android/jni/lua" ]; then
 	mkdir blitwizard-android/jni/lua/
@@ -117,6 +118,8 @@ if [ ! -d "blitwizard-android/jni/lua" ]; then
 	rm blitwizard-android/jni/lua/lua.c
 	rm blitwizard-android/jni/lua/luac.c
 	cp android/Android-lua.mk blitwizard-android/jni/lua/Android.mk
+	cat blitwizard-android/jni/lua/llex.c | sed -e "s/#define llex_c/#define llex_c\nchar decpoint[] = \".\";static const char* decpointstr() {return decpoint;}\n#define getlocaledecpoint (decpointstr)/g" > blitwizard-android/jni/lua/llex2.c
+	mv blitwizard-android/jni/lua/llex2.c blitwizard-android/jni/lua/llex.c
 fi
 
 # Blitwizard Android.mk:
