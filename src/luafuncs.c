@@ -41,7 +41,7 @@
 
 #if defined(ANDROID) || defined(__ANDROID__)
 //required for RWops file loading for Android
-#include "SDL/SDL.h"
+#include "SDL.h"
 #endif
 
 int drawingallowed = 0;
@@ -78,6 +78,7 @@ int luafuncs_loadfile(lua_State* l) {
 		lua_pushstring(l, "malloc failed");
 		return lua_error(l);
 	}
+	char errmsg[512];
 	memset(info, 0, sizeof(*info));
 	info->rwops = SDL_RWFromFile(p, "r");
 	if (!info->rwops) {
@@ -91,7 +92,6 @@ int luafuncs_loadfile(lua_State* l) {
 	SDL_FreeRW(info->rwops);
     free(info);
 	if (r != 0) {
-        char errormsg[512];
         if (r == LUA_ERRSYNTAX) {
             snprintf(errormsg,sizeof(errormsg),"Syntax error: %s",lua_tostring(l,-1));
             lua_pop(l, 1);
