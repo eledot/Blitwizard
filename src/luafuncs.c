@@ -39,7 +39,31 @@
 #include "main.h"
 #include "win32console.h"
 
+#if defined(ANDROID) || defined(__ANDROID__)
+//required for RWops file loading for Android
+#include "SDL/SDL.h"
+#endif
+
 int drawingallowed = 0;
+
+#if defined(ANDROID) || defined(__ANDROID__)
+//the lua chunk reader for Android
+SDL_RWops* loadfilerwops = NULL;
+struct luachunkreaderinfo {
+	SDL_RWops* rwops;
+	void buffer[512];
+};
+static const char* luastringchunkreader(lua_State *l, void *data, size_t *size) {
+	struct luachunkreaderinfo* info = (struct luachunkreaderinfo*)data;
+	int i = info->rwops->read(info->rwops, info->data, 1, 4096);
+	if (i > 0) {
+		*size = i;
+		return info->buffer;
+	}
+	return NULL;
+}
+
+#endif
 
 int luafuncs_loadfile(lua_State* l) {
 	const char* p = lua_tostring(l,1);
@@ -47,6 +71,38 @@ int luafuncs_loadfile(lua_State* l) {
 		lua_pushstring(l, "First argument is not a file name string");
 		return lua_error(l);
 	}
+#if defined(ANDROID) || defined(__ANDROID__)
+	//special Android file loading
+	struct luachunkreaderinfo* info = malloc(sizeof(*info));
+	if (!info) {
+		lua_pushstring(l, "malloc failed");
+		return lua_error(l);
+	}
+	memset(info, 0, sizeof(*info));
+	info->rwops = SDL_RWFromFile(p, "r");
+	if (!info->rwops) {
+		free(info);
+		snprintf(errormsg, sizeof(errormsg), "Cannot open file \"%s\"", p);
+        errormsg[sizeof(errormsg)-1] = 0;
+        lua_pushstring(l, errormsg);
+        return lua_error(l);
+	}
+	int r = lua_load(l, &luastringchunkreader, info, p);
+	SDL_FreeRW(info->rwops);
+    free(info);
+	if (r != 0) {
+        char errormsg[512];
+        if (r == LUA_ERRSYNTAX) {
+            snprintf(errormsg,sizeof(errormsg),"Syntax error: %s",lua_tostring(l,-1));
+            lua_pop(l, 1);
+            lua_pushstring(l, errormsg);
+            return lua_error(l);
+        }
+		return lua_error(l);
+	}
+	return 1;
+#else
+	//regular file loading done by Lua
 	int r = luaL_loadfile(l, p);
 	if (r != 0) {
 		char errormsg[512];
@@ -65,6 +121,7 @@ int luafuncs_loadfile(lua_State* l) {
 		return lua_error(l);
 	}
 	return 1;
+#endif
 }
 
 int luafuncs_dofile(lua_State* l) {
