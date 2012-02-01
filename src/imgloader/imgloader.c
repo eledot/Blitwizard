@@ -41,7 +41,7 @@
 
 struct loaderthreadinfo {
 	char* path;
-	size_t (*readfunc)(void* buffer, size_t bytes, void* userdata);
+	int (*readfunc)(void* buffer, size_t bytes, void* userdata);
 	void* readfuncptr;
 	void* memdata;
 	unsigned int memdatasize;
@@ -98,7 +98,7 @@ void* loaderthreadfunction(void* data) {
 		char buf[4096];
 
 		//read byte chunks:
-		size_t k = i->readfunc(buf, 4096, i->readfuncptr);
+		int k = i->readfunc(buf, 4096, i->readfuncptr);
 		while (k > 0) {
 			currentsize += k;
 			void* pnew = realloc(p, currentsize);
@@ -187,7 +187,7 @@ void* img_LoadImageThreadedFromFile(const char* path, int maxwidth, int maxheigh
 	return t;
 }
 
-void* img_LoadImageThreadedFromFunction(size_t (*readfunc)(void* buffer, size_t bytes, void* userdata), void* userdata, int maxwidth, int maxheight, const char* format, void(*callback)(int imgwidth, int imgheight, const char* imgdata, unsigned int imgdatasize)) {
+void* img_LoadImageThreadedFromFunction(int (*readfunc)(void* buffer, size_t bytes, void* userdata), void* userdata, int maxwidth, int maxheight, const char* format, void(*callback)(int imgwidth, int imgheight, const char* imgdata, unsigned int imgdatasize)) {
 	struct loaderthreadinfo* t = malloc(sizeof(struct loaderthreadinfo));
     if (!t) {return NULL;}
     memset(t, 0, sizeof(*t));
