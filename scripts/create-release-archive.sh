@@ -37,7 +37,6 @@ echo "  android         Compile with a cross compiler for Android."
 echo "                  Install the Android SDK first and the Android NDK."
 echo "                  Edit the script and set the ANDROID_ paths properly!"
 
-
 #Set the native compiler here
 CC="gcc"
 
@@ -76,8 +75,11 @@ DOSOURCERELEASE="yes"
 
 REDOWNLOAD="yes"
 RELEASETYPE="$2"
-if [ "$RELEASETYPE" = "android-continue" ]; then
-	REDOWNLOAD="no"
+if [ "$RELEASETYPE" = "android" ]; then
+	if [ -d "blitwizard-android/" ]; then
+		read -p "Redownload source and deps? [y/N]"
+		[[ "$REPLY" == [yY] ]] || { REDOWNLOAD="no"; }
+	fi
 	RELEASETYPE="android"
 fi
 

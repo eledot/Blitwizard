@@ -24,12 +24,27 @@ ANDROID_SDK_PATH="$1"
 ANDROID_NDK_PATH="$2"
 REDOWNLOADED="$3"
 
+COMPILE="yes"
+
 if [ "$REDOWNLOADED" = "yes" ]; then
 	# Copy the project and SDL
 	rm -rf ./blitwizard-android/
 	cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
 	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 	echo "APP_STL := stlport_shared" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
+else
+	if [ -f "blitwizard-android/libs/armeabi/libbox2d.so" ]; then
+		if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
+			if [ -f "blitwizard-android/libs/armeabi/libstlport_shared.so" ]; then
+				if [ -f "blitwizard-android/libs/armeabi/liblua.so" ]; then
+					if [ -f "blitwizard-android/libs/armeabi/libSDL.so" ]; then
+						read -p "Recompile NDK code? [y/N]"
+						[ "$REPLY" == [yY] ] || { COMPILE="no"; }
+					fi
+				fi
+			fi
+		fi
+	fi
 fi
 
 # Copy android config
