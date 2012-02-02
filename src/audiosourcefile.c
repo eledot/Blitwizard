@@ -28,8 +28,16 @@
 #include "audiosource.h"
 #include "audiosourcefile.h"
 
+#if defined(ANDROID) || defined(__ANDROID__)
+#include "SDL.h"
+#endif
+
 struct audiosourcefile_internaldata {
+#if defined(ANDROID) || defined(__ANDROID__)
+	SDL_RWops* file;
+#else
 	FILE* file;
+#endif
 	int eof;
 	char* path;
 };
@@ -38,7 +46,11 @@ static void audiosourcefile_Rewind(struct audiosource* source) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;
 	idata->eof = 0;
 	if (idata->file) {
+#if defined(ANDROID) || defined(__ANDROID__)
+		SDL_FreeRW(idata->file);
+#else
 		fclose(idata->file);
+#endif
 		idata->file = 0;
 	}
 }
@@ -50,14 +62,22 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 		if (idata->eof) {
 			return -1;
 		}
+#if defined(ANDROID) || defined(__ANDROID__)
+		idata->file = SDL_RWFromFile(idata->path, "r");
+#else
 		idata->file = fopen(idata->path,"rb");
+#endif
 		if (!idata->file) {
 			idata->file = NULL;
 			return -1;
 		}
 	}
-	
+
+#if defined(ANDROID) || defined(__ANDROID__)
+	int bytesread = idata->file->read(idata->file, buffer, 1, bytes);
+#else
 	int bytesread = fread(buffer, 1, bytes, idata->file);
+#endif
 	if (bytesread > 0) {
 		return bytesread;
 	}else{
@@ -74,10 +94,16 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 static void audiosourcefile_Close(struct audiosource* source) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;	
 	//close file we might have opened
+#if defined(ANDROID) || defined(__ANDROID__)
+	if (idata->file) {
+		SDL_FreeRW(idata->file);
+	}
+#else
 	FILE* r = idata->file;
 	if (r) {
 		free(r);
 	}
+#endif
 	//free all structs & strings
 	if (idata->path) {
 		free(idata->path);
