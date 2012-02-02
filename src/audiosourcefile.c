@@ -81,7 +81,11 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 	if (bytesread > 0) {
 		return bytesread;
 	}else{
+#if defined(ANDROID) || defined(__ANDROID__)
+		SDL_FreeRW(idata->file);
+#else
 		fclose(idata->file);
+#endif
 		idata->file = NULL;
 		idata->eof = 1;
 		if (bytesread < 0) {
