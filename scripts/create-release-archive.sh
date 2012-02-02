@@ -238,3 +238,4 @@ cd ..
 zip -r -9 ./blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip ./blitwizard-bin/
 rm -rf ./blitwizard/
 rm -rf ./blitwizard-bin/
+

@@ -67,7 +67,8 @@ read game_files_path
 
 if [ -n "$game_files_path" ]; then
 	echo "Copying game files..."
-	cp -R "$game_files_path"/* blitwizard-android/res/
+	mkdir -p blitwizard-android/assets/
+	cp -R "$game_files_path"/* blitwizard-android/assets/
 	echo "Game files copied."
 else
 	echo "No game file path given, not integrating any resources."
@@ -76,76 +77,78 @@ fi
 # Get the blitwizard version
 blitwizard_version=`grep AC_INIT blitwizard/configure.ac | sed -e "s/AC_INIT[(][[]blitwizard[]], [[]//g" | sed -e "s/[]])//g"`
 
-if [ ! -d "blitwizard-android/src/vorbis" ]; then
-	# Prepare vorbis
-	cp -R blitwizard/src/vorbis/ ./blitwizard-android/jni/vorbis/
-	cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
-	rm blitwizard-android/jni/vorbis/lib/psytune.c # dead code (see comments inside)
-	rm blitwizard-android/jni/vorbis/lib/tone.c # program with main()
-	rm blitwizard-android/jni/vorbis/lib/barkmel.c # program with main()
+if [ "$COMPILE" = "yes" ]; then
+	if [ ! -d "blitwizard-android/src/vorbis" ]; then
+		# Prepare vorbis
+		cp -R blitwizard/src/vorbis/ ./blitwizard-android/jni/vorbis/
+		cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
+		rm blitwizard-android/jni/vorbis/lib/psytune.c # dead code (see comments inside)
+		rm blitwizard-android/jni/vorbis/lib/tone.c # program with main()
+		rm blitwizard-android/jni/vorbis/lib/barkmel.c # program with main()
 
-	# Vorbis define for ogg_types.h hack
-	cat blitwizard-android/jni/vorbis/lib/os.h | sed "s/\#define _OS_H/#define _OS_H\n#define VORBIS_HACK/g" > blitwizard-android/jni/vorbis/lib/os.h.2
-fi
+		# Vorbis define for ogg_types.h hack
+		cat blitwizard-android/jni/vorbis/lib/os.h | sed "s/\#define _OS_H/#define _OS_H\n#define VORBIS_HACK/g" > blitwizard-android/jni/vorbis/lib/os.h.2
+	fi
 
-# Prepare ogg
-if [ ! -d "blitwizard-android/src/ogg" ]; then
-	cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
-	cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
-	cp android/ogg_config_types.h blitwizard-android/jni/ogg/include/ogg/config_types.h
-fi
+	# Prepare ogg
+	if [ ! -d "blitwizard-android/src/ogg" ]; then
+		cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
+		cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
+		cp android/ogg_config_types.h blitwizard-android/jni/ogg/include/ogg/config_types.h
+	fi
 
-# Prepare Box2D
-if [ ! -d "blitwizard-android/src/box2d" ]; then
-	cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
-	cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
-fi
+	# Prepare Box2D
+	if [ ! -d "blitwizard-android/src/box2d" ]; then
+		cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
+		cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
+	fi
 
-# Prepare imgloader
-if [ ! -d "blitwizard-android/jni/imgloader" ]; then
-    mkdir blitwizard-android/jni/imgloader/
-    cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
-    cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
-    cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/Android.mk
-fi
+	# Prepare imgloader
+	if [ ! -d "blitwizard-android/jni/imgloader" ]; then
+    	mkdir blitwizard-android/jni/imgloader/
+    	cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
+    	cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
+    	cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/Android.mk
+	fi
 
-# Prepare png
-if [ ! -d "blitwizard-android/src/png" ]; then
-	cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
-	rm blitwizard-android/jni/png/pngtest.c # program with main()
-	rm blitwizard-android/jni/png/pngvalid.c # we do not need this
-	cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
-	cp blitwizard-android/jni/png/scripts/pnglibconf.h.prebuilt blitwizard-android/jni/png/pnglibconf.h
-fi
+	# Prepare png
+	if [ ! -d "blitwizard-android/src/png" ]; then
+		cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
+		rm blitwizard-android/jni/png/pngtest.c # program with main()
+		rm blitwizard-android/jni/png/pngvalid.c # we do not need this
+		cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
+		cp blitwizard-android/jni/png/scripts/pnglibconf.h.prebuilt blitwizard-android/jni/png/pnglibconf.h
+	fi
 
-# Prepare zlib
-if [ ! -d "blitwizard-android/src/zlib" ]; then
-	cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
-	rm blitwizard-android/jni/zlib/example.c # program with main()
-	cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
-fi
+	# Prepare zlib
+	if [ ! -d "blitwizard-android/src/zlib" ]; then
+		cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
+		rm blitwizard-android/jni/zlib/example.c # program with main()
+		cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
+	fi
 
-# Prepare Lua
-if [ ! -d "blitwizard-android/jni/lua" ]; then
-	mkdir blitwizard-android/jni/lua/
-	cp blitwizard/src/lua/src/*.c blitwizard-android/jni/lua/
-	cp blitwizard/src/lua/src/*.h blitwizard-android/jni/lua/
-	rm blitwizard-android/jni/lua/lua.c
-	rm blitwizard-android/jni/lua/luac.c
-	cp android/Android-lua.mk blitwizard-android/jni/lua/Android.mk
-	cat blitwizard-android/jni/lua/llex.c | sed -e "s/#define llex_c/#define llex_c\nchar decpoint[] = \".\";static const char* decpointstr() {return decpoint;}\n#define getlocaledecpoint (decpointstr)/g" > blitwizard-android/jni/lua/llex2.c
-	mv blitwizard-android/jni/lua/llex2.c blitwizard-android/jni/lua/llex.c
-fi
+	# Prepare Lua
+	if [ ! -d "blitwizard-android/jni/lua" ]; then
+		mkdir blitwizard-android/jni/lua/
+		cp blitwizard/src/lua/src/*.c blitwizard-android/jni/lua/
+		cp blitwizard/src/lua/src/*.h blitwizard-android/jni/lua/
+		rm blitwizard-android/jni/lua/lua.c
+		rm blitwizard-android/jni/lua/luac.c
+		cp android/Android-lua.mk blitwizard-android/jni/lua/Android.mk
+		cat blitwizard-android/jni/lua/llex.c | sed -e "s/#define llex_c/#define llex_c\nchar decpoint[] = \".\";static const char* decpointstr() {return decpoint;}\n#define getlocaledecpoint (decpointstr)/g" > blitwizard-android/jni/lua/llex2.c
+		mv blitwizard-android/jni/lua/llex2.c blitwizard-android/jni/lua/llex.c
+	fi
 
-# Blitwizard Android.mk:
-source_file_list="`cat ../src/Makefile.am | grep blitwizard_SOURCES | sed -e 's/^blitwizard_SOURCES \= //'`"
-if [ ! -f "blitwizard-android/jni/src/main.c" ]; then
-	cp blitwizard/src/*.c blitwizard-android/jni/src
-	cp blitwizard/src/*.cpp blitwizard-android/jni/src
-	cp blitwizard/src/*.h blitwizard-android/jni/src
-	cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
-	cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android2.mk
-	cat blitwizard-android/jni/src/Android2.mk | sed "s/VERSIONINSERT/\\\\\"${blitwizard_version}\\\\\"/g" > blitwizard-android/jni/src/Android.mk
+	# Blitwizard Android.mk:
+	source_file_list="`cat ../src/Makefile.am | grep blitwizard_SOURCES | sed -e 's/^blitwizard_SOURCES \= //'`"
+	if [ ! -f "blitwizard-android/jni/src/main.c" ]; then
+		cp blitwizard/src/*.c blitwizard-android/jni/src
+		cp blitwizard/src/*.cpp blitwizard-android/jni/src
+		cp blitwizard/src/*.h blitwizard-android/jni/src
+		cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
+		cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android2.mk
+		cat blitwizard-android/jni/src/Android2.mk | sed "s/VERSIONINSERT/\\\\\"${blitwizard_version}\\\\\"/g" > blitwizard-android/jni/src/Android.mk
+	fi
 fi
 
 # Use the Android NDK/SDK to complete our project:
@@ -153,8 +156,10 @@ cd blitwizard-android
 export HOST_AWK="awk"
 
 # NDK build:
-mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
-"$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; cd ..; exit 1; }
+if [ "$COMPILE" = "yes" ]; then
+	mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
+	"$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; cd ..; exit 1; }
+fi
 
 # Regenerate build.xml (SDL build.xml is outdated) and prepare some strings:
 rm -f build.xml
@@ -168,6 +173,8 @@ mv res/values/strings2.xml res/values/strings.xml
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
 ant debug || { echo "ant failed."; cd ..; exit 1; }
 cd ..
+
+cp "blitwizard-android/bin/${app_name}-debug.apk" "${app_name}.apk"
 
 # Success!
 echo "Android .apk should be complete."
