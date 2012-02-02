@@ -686,6 +686,13 @@ HWND graphics_GetWindowHWND() {
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
 	char errormsg[512];
 
+#if defined(ANDROID) || defined(__ANDROID__)
+	if (!fullscreen) {
+		//do not use windowed on Android
+		return 0;
+	}
+#endif
+
 	//initialize SDL video if not done yet
 	if (!graphics_InitVideoSubsystem(error)) {return 0;}
 
