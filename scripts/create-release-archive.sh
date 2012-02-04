@@ -123,6 +123,8 @@ else
 fi
 
 if [ "$REDOWNLOAD" = "yes" ]; then
+	# Remove old stuff
+	rm -rf blitwizard-android/
 	# (Re)download the tarball
 	if [ "$DOSOURCERELEASE" = "yes" ]; then
 		rm blitwizard-$RELEASEVERSION-src.zip
