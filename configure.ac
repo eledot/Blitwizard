@@ -60,12 +60,10 @@ AS_IF([test -z "$maybeos"],[
 	CFLAGS="$CFLAGS $USE_FFMPEG `cd scripts && sh ./checksse.sh`"	
 
 	AC_CHECK_LIB([dl], [dlopen], [DLOPEN_LIBS="-ldl"], AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
-	#AC_CHECK_LIB([sqlite3], [sqlite3_prepare_v2],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 
 	# Checks for header files.
 	AC_CHECK_HEADERS([arpa/inet.h dlfcn.h ctype.h fcntl.h netdb.h netinet/in.h stdarg.h sys/stat.h sys/socket.h sys/wait.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
 	AC_CHECK_HEADERS([malloc.h])
-	#AC_CHECK_HEADERS([sqlite3.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
 
 
 	# Checks for typedefs, structures, and compiler characteristics.
