@@ -2,6 +2,10 @@
 
 cd ..
 
+if [ ! -f "scripts/.buildinfo" ]; then
+	exit 1
+fi
+
 CC=`cat scripts/.buildinfo | grep CC | sed -e 's/^.*\=//'`
 EXEEXT=`cat scripts/.buildinfo | grep EXEEXT | sed -e 's/^.*\=//'`
 
@@ -9,7 +13,7 @@ echo "#include <stdio.h>" > scripts/ssetest.c || { exit 1; }
 echo 'int main() {float a = 1;float b = 2;printf("%f\n",a+b);return 0;}' >> scripts/ssetest.c
 
 errorhappened="no"
-$CC -o scripts/ssetest$EXEEXT -msse -msse2 -mfpmath=both scripts/ssetest.c > /dev/null 2>&1 || { errorhappened="yes" }
+$CC -o scripts/ssetest$EXEEXT -msse -msse2 -mfpmath=both scripts/ssetest.c > /dev/null 2>&1 || { errorhappened="yes"; }
 
 WINECMD=""
 
@@ -20,7 +24,7 @@ fi
 
 if [ "$errorhappened" = "no" ]; then
 	scripts/ssetest$EXEEXT > /dev/null 2>&1 || {
-		${WINECMD}scripts/ssetest$EXEEXT > /dev/null 2>&1 || { errorhappened="yes" }
+		${WINECMD}scripts/ssetest$EXEEXT > /dev/null 2>&1 || { errorhappened="yes"; }
 	}
 fi
 
