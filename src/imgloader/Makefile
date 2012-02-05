@@ -9,6 +9,10 @@ FILES:=pngloader.o imgloader.o
 SSEFLAGS:=`cd ../../ && sh scripts/checksse.sh && cd src/imgloader/`
 CFLAGS:=-O2 -fomit-frame-pointer -ffast-math $(SSEFLAGS) -I./zlib/ -I. -DDEBUGLOG
 CROSSCOMPILER:=i686-pc-mingw32-gcc
+EMPTY:=
+ifeq ($(AR),$(EMPTY))
+	AR:=ar
+endif
 
 comp: clean-objs $(FILES)
 	rm -f ./libimglib.a
