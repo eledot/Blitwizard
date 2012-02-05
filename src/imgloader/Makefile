@@ -6,7 +6,8 @@
 # libpng versions known to work are: 1.5.5
 
 FILES:=pngloader.o imgloader.o
-CFLAGS:=-O3 -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -I./zlib/ -I. -DDEBUGLOG
+SSEFLAGS:=`cd ../../ && sh scripts/checksse.sh && cd src/imgloader/`
+CFLAGS:=-O3 -fomit-frame-pointer -ffast-math $(SSEFLAGS) -I./zlib/ -I. -DDEBUGLOG
 CROSSCOMPILER:=i686-pc-mingw32-gcc
 
 comp: clean-objs $(FILES)
