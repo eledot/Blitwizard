@@ -22,7 +22,7 @@ AR=`cat scripts/.buildinfo | grep AR | sed -e 's/^.*\=//'`
 HOST=`cat scripts/.buildinfo | grep HOST | sed -e 's/^.*\=//'`
 MACBUILD=`cat scripts/.buildinfo | grep MACBUILD | sed -e 's/^.*\=//'`
 
-if [ "$MACBUILD" == "yes" ]; then
+if [ "$MACBUILD" = "yes" ]; then
 	# Enforce darwin gcc since llvm-gcc hates libvorbis
 	CC="clang"
 fi
@@ -111,7 +111,7 @@ else
 	cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL 1.3"; exit 1; }
 fi
 cd $dir
-if [ "$changeddeps" == "yes" ]; then
+if [ "$changeddeps" = "yes" ]; then
 	cd src/sdl && make clean || { echo "Failed to compile SDL 1.3"; exit 1; }
 	cd $dir
 fi
@@ -127,7 +127,7 @@ cd src/lua/build && rm lua.c && rm luac.c && $CC -c -O2 *.c && $AR rcs ../src/li
 cd $dir
 
 # Wipe out the object files of blitwizard if we need to
-if [ "$changedhost" == "yes" ]; then
+if [ "$changedhost" = "yes" ]; then
 	rm -f src/*.o
 fi
 

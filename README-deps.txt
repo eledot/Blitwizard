@@ -20,7 +20,7 @@ Either get the deps here: http://games.homeofjones.de/blitwizard/deps.zip
 (extract into the blitwizard folder root here).
 
 That file contains:
-    SDL 1.3 hg cloned/fetched sometime in Jan 2012, PATCHED for rotation support
+    SDL 2 hg cloned/fetched sometime in Feb 2012, PATCHED for rotation support
     libpng 1.5.6
     zlib 1.2.5
     libogg 1.3.0
@@ -34,13 +34,13 @@ using those instead:
 
 Alternatively, get them yourself in hand-picked, current versions:
 
- - drop the contents of a source tarball of a recent SDL 1.3 into
+ - drop the contents of a source tarball of a recent SDL 2 into
     src/sdl/
    see http://www.libsdl.org/hg.php
    WARNING: Blitwizard uses a patched SDL for rotation/flipping support.
      I expect SDL to adopt this natively, but at this point,
      you will have to patch this in manually.
-     Check out the rotation.patch inside src/sdl/ inside deps.zip
+     Check out the .patch inside src/sdl/ in deps.zip
 
  - drop the contents of a source tarball of a recent libogg release into
     src/ogg

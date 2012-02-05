@@ -32,6 +32,7 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
 	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 	echo "APP_STL := stlport_shared" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
+    echo "STLPORT_FORCE_REBUILD := true" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
 else
 	if [ -f "blitwizard-android/libs/armeabi/libbox2d.so" ]; then
 		if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
@@ -39,7 +40,7 @@ else
 				if [ -f "blitwizard-android/libs/armeabi/liblua.so" ]; then
 					if [ -f "blitwizard-android/libs/armeabi/libSDL.so" ]; then
 						read -p "Recompile NDK code? [y/N]"
-						[ "$REPLY" == [yY] ] || { COMPILE="no"; }
+						[ "$REPLY" = [yY] ] || { COMPILE="no"; }
 					fi
 				fi
 			fi
