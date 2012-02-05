@@ -7,7 +7,7 @@
 
 FILES:=pngloader.o imgloader.o
 SSEFLAGS:=`cd ../../ && sh scripts/checksse.sh && cd src/imgloader/`
-CFLAGS:=-O3 -fomit-frame-pointer -ffast-math $(SSEFLAGS) -I./zlib/ -I. -DDEBUGLOG
+CFLAGS:=-O2 -fomit-frame-pointer -ffast-math $(SSEFLAGS) -I./zlib/ -I. -DDEBUGLOG
 CROSSCOMPILER:=i686-pc-mingw32-gcc
 
 comp: clean-objs $(FILES)
@@ -16,10 +16,10 @@ comp: clean-objs $(FILES)
 deps:
 	yes n | cp -i png/scripts/pnglibconf.h.prebuilt png/pnglibconf.h
 	-mv png/pngvalid.c png/pngvalid.c.skip
-	cd png && rm -rf ./*.o && $(CC) -I./ -I../zlib/ -O2 -c -fomit-frame-pointer -ffast-math -msse -mfpmath=sse -DPNG_STATIC *.c && rm -rf ./*test*.o
+	cd png && rm -rf ./*.o && $(CC) -I./ -I../zlib/ -c $(CFLAGS) -DPNG_STATIC *.c && rm -rf ./*test*.o
 	rm -f ./libcustompng.a
 	$(AR) rcs libcustompng.a png/*.o
-	cd zlib && rm -rf ./*.o && rm -f ./example.c && rm -rf ./minigzip.c && $(CC) -I./ -I../png/ -O2 -c -fomit-frame-pointer -ffast-math -msse -mfpmath=sse *.c
+	cd zlib && rm -rf ./*.o && rm -f ./example.c && rm -rf ./minigzip.c && $(CC) -I./ -I../png/ -c $(CFLAGS) *.c
 	rm -f ./libcustomzlib.a
 	$(AR) rcs libcustomzlib.a zlib/*.o
 clean-objs:
