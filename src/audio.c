@@ -21,6 +21,7 @@
 
 */
 
+#include <stdint.h>
 #include "SDL.h"
 
 #define DEFAULTSOUNDBUFFERSIZE 2048
