@@ -106,8 +106,10 @@ cd $dir
 
 # Build SDL 1.3
 if [ "$MACBUILD" != "yes" ]; then
+	rm -r src/sdl/.hg/
 	cd src/sdl && ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL 1.3"; exit 1; }
 else
+	rm -r src/sdl/.hg/
 	cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL 1.3"; exit 1; }
 fi
 cd $dir
@@ -123,6 +125,9 @@ cd src/lua/ && rm -f src/liblua.a && rm -rf build/ || { echo "Failed to compile 
 cd $dir
 cd src/lua/ && mkdir -p build/ && cp src/*.c build/ && cp src/*.h build/ || { echo "Failed to compile Lua 5"; exit 1; }
 cd $dir
+if [ -z "$AR" ]; then
+	AR="ar"
+fi
 cd src/lua/build && rm lua.c && rm luac.c && $CC -c -O2 *.c && $AR rcs ../src/liblua.a *.o || { echo "Failed to compile Lua 5"; exit 1; }
 cd $dir
 
