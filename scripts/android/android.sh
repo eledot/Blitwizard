@@ -172,10 +172,17 @@ mv res/values/strings2.xml res/values/strings.xml
 
 # Do final SDK build
 echo "sdk.dir=$ANDROID_SDK_PATH" > local.properties
+echo "Removing old .apk and .class files..."
+rm bin/classes/org/libsdl/app/*.class
+rm bin/*.apk
+echo "Running ant"
 ant debug || { echo "ant failed."; cd ..; exit 1; }
 cd ..
 
+echo "Copying new .apk..."
+rm "${app_name}.apk"
 cp "blitwizard-android/bin/${app_name}-debug.apk" "${app_name}.apk"
+echo "Done,"
 
 # Success!
 echo "Android .apk should be complete."
