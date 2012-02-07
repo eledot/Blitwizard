@@ -38,7 +38,7 @@ else
 		if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
 			if [ -f "blitwizard-android/libs/armeabi/libstlport_shared.so" ]; then
 				if [ -f "blitwizard-android/libs/armeabi/liblua.so" ]; then
-					if [ -f "blitwizard-android/libs/armeabi/libSDL.so" ]; then
+					if [ -f "blitwizard-android/libs/armeabi/libSDL2.so" ]; then
 						read -p "Recompile NDK code? [y/N]"
 						[ "$REPLY" = [yY] ] || { COMPILE="no"; }
 					fi
