@@ -156,6 +156,9 @@ fi
 cd blitwizard-android
 export HOST_AWK="awk"
 
+# Install our Application.mk
+cp ../android/Application.mk ./jni/Application.mk
+
 # NDK build:
 if [ "$COMPILE" = "yes" ]; then
 	mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
