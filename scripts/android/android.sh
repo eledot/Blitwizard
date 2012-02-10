@@ -33,6 +33,8 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 	echo "APP_STL := stlport_shared" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
     echo "STLPORT_FORCE_REBUILD := true" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
+	cat blitwizard-android/jni/SDL/Android.mk | sed "s/include \\\$(BUILD_SHARED_LIBRARY)/include \$(BUILD_STATIC_LIBRARY)/g" > blitwizard-android/jni/SDL/Android.mk.2
+	mv blitwizard-android/jni/SDL/Android.mk.2 blitwizard-android/jni/SDL/Android.mk
 else
 	if [ -f "blitwizard-android/libs/armeabi/libbox2d.so" ]; then
 		if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
