@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 APP_ABI := armeabi armeabi-v7a
 
-APP_STL := stlport_shared
+APP_STL := stlport_static
 STLPORT_FORCE_REBUILD := true
 
 include $(CLEAR_VARS)
@@ -23,4 +23,4 @@ LOCAL_SRC_FILES := \
 
 LOCAL_LDLIBS := -ldl
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)

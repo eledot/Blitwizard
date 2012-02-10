@@ -12,8 +12,8 @@ LOCAL_SRC_FILES := \
 	$(subst $(LOCAL_PATH)/,, \
 	$(wildcard $(LOCAL_PATH)/*.c))
 
-LOCAL_SHARED_LIBRARIES := png
+LOCAL_STATIC_LIBRARIES := png
 
 LOCAL_LDLIBS := -ldl
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)
