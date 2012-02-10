@@ -31,8 +31,12 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	rm -rf ./blitwizard-android/
 	cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
 	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
+
+	# Ensure our SDL project has the STL for Box2D
 	echo "APP_STL := stlport_shared" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
     echo "STLPORT_FORCE_REBUILD := true" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
+
+	# Making SDL build statically
 	cat blitwizard-android/jni/SDL/Android.mk | sed "s/include \\\$(BUILD_SHARED_LIBRARY)/include \$(BUILD_STATIC_LIBRARY)/g" > blitwizard-android/jni/SDL/Android.mk.2
 	mv blitwizard-android/jni/SDL/Android.mk.2 blitwizard-android/jni/SDL/Android.mk
 else
