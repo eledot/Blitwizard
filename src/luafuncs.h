@@ -34,7 +34,7 @@ int luafuncs_sysversion(lua_State* l);
 //base:
 int luafuncs_loadfile(lua_State* l);
 int luafuncs_dofile(lua_State* l);
-int luafuncs_print(lua_State* l)
+int luafuncs_print(lua_State* l);
 
 //Graphics:
 int luafuncs_getRendererName(lua_State* l);
