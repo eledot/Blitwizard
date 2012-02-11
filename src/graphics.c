@@ -29,6 +29,7 @@
 #ifdef WIN
 #include <windows.h>
 #endif
+#include <stdarg.h>
 
 #include "logging.h"
 #include "SDL.h"
@@ -122,14 +123,14 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 	//create texture
 	SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
 	if (!t) {
-		fprintf(stderr, "Warning: SDL failed to create texture: %s\n",SDL_GetError());
+		printwarning("Warning: SDL failed to create texture: %s\n",SDL_GetError());
 		return 0;
 	}
 
 	//lock texture
 	void* pixels; int pitch;
 	if (SDL_LockTexture(t, NULL, &pixels, &pitch) != 0) {
-		fprintf(stderr, "Warning: SDL failed to lock texture: %s\n",SDL_GetError());
+		printwarning("Warning: SDL failed to lock texture: %s\n",SDL_GetError());
 		SDL_DestroyTexture(t);
 		return 0;
 	}
@@ -280,7 +281,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	//render
 	int i = (int)((float)255.0f * alpha);
 	if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
-		fprintf(stderr,"Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
+		printwarning("Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
 	}
 	SDL_Point p;
 	p.x = (int)((double)rotationcenterx * ((double)drawwidth / src.w));

@@ -30,6 +30,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "logging.h"
 #include "audiosource.h"
 #include "audiosourceffmpeg.h"
 #include "library.h"
@@ -109,7 +110,7 @@ static void loadorfail(void** ptr, void* lib, const char* name) {
 	*ptr = library_GetSymbol(lib, name);
 	
 	if (!*ptr) {
-		fprintf(stderr,"[FFmpeg] Failed to load symbol: %s\n",name);
+		printwarning("Warning: [FFmpeg] Failed to load symbol: %s\n",name);
 		loadorfailstate = 1;
 		return;
 	}
@@ -167,7 +168,7 @@ static int audiosourceffmpeg_InitFFmpeg() {
 void audiosourceffmpeg_DisableFFmpeg() {
 	if (ffmpegopened != 0) {return;}
 	ffmpegopened = -1;
-	printf("[FFmpeg] Use of FFmpeg has been disabled.\n");
+	printinfo("[FFmpeg] Use of FFmpeg has been disabled.\n");
 }
 
 int audiosourceffmpeg_LoadFFmpeg() {
@@ -201,7 +202,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
 			library_Close(avutilptr);
 		}
 	
-		printf("[FFmpeg] Library not found or cannot be loaded, FFmpeg support will be unavailable\n");
+		printinfo("[FFmpeg] Library not found or cannot be loaded, FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
 		return 0;
 	}
@@ -210,7 +211,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
 	if (!audiosourceffmpeg_LoadFFmpegFunctions()) {
 		library_Close(avcodecptr);
 		library_Close(avformatptr);
-		printf("[FFmpeg] Library misses one or more expected symbols. FFmpeg support will be unavailable\n");
+		printinfo("[FFmpeg] Library misses one or more expected symbols. FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
 		return 0;
 	}
@@ -219,12 +220,12 @@ int audiosourceffmpeg_LoadFFmpeg() {
 	if (!audiosourceffmpeg_InitFFmpeg()) {
 		library_Close(avcodecptr);
 		library_Close(avformatptr);
-		printf("[FFmpeg] Library initialisation failed. FFmpeg support will be unavailable\n");
+		printinfo("[FFmpeg] Library initialisation failed. FFmpeg support will be unavailable\n");
 		ffmpegopened = -1;
 		return 0;
 	}
 
-	printf("[FFmpeg] Library successfully loaded.\n");
+	printinfo("[FFmpeg] Library successfully loaded.\n");
 	ffmpegopened = 1;	
 	return 1;
 }

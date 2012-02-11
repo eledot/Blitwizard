@@ -21,5 +21,7 @@
 
 */
 
+void printerror(const char* fmt, ...);
 void printwarning(const char* fmt, ...);
+void printinfo(const char* fmt, ...);
 

@@ -30,6 +30,9 @@
 #include <windows.h>
 #define _WINDOWS_
 #endif
+#if defined(ANDROID) || defined(__ANDROID__)
+#include <android/log.h>
+#endif
 
 int wantquit = 0;
 int suppressfurthererrors = 0;
@@ -74,8 +77,12 @@ void printerror(const char* fmt, ...) {
 	vsnprintf(printline, sizeof(printline)-1, fmt, a);
 	printline[sizeof(printline)-1] = 0;
 	va_end(a);
+#if defined(ANDROID) || defined(__ANDROID__)
+	__android_log_print(ANDROID_LOG_ERROR, "blitwizard", "%s", printline);
+#else
 	fprintf(stderr,"%s\n",printline);
 	fflush(stderr);
+#endif
 #ifdef WIN
 	//we want graphical error messages for windows
 	if (!suppressfurthererrors) {
@@ -100,8 +107,27 @@ void printwarning(const char* fmt, ...) {
 	vsnprintf(printline, sizeof(printline)-1, fmt, a);
 	printline[sizeof(printline)-1] = 0;
 	va_end(a);
+#if defined(ANDROID) || defined(__ANDROID__)
+	__android_log_print(ANDROID_LOG_ERROR, "blitwizard", "%s", printline);
+#else
 	fprintf(stderr,"%s\n",printline);
 	fflush(stderr);
+#endif
+}
+
+void printinfo(const char* fmt, ...) {
+    char printline[2048];
+    va_list a;
+    va_start(a, fmt);
+    vsnprintf(printline, sizeof(printline)-1, fmt, a);
+    printline[sizeof(printline)-1] = 0;
+    va_end(a);
+#if defined(ANDROID) || defined(__ANDROID__)
+    __android_log_print(ANDROID_LOG_INFO, "blitwizard", "%s", printline);
+#else
+    fprintf(stdout,"%s\n",printline);
+    fflush(stdout);
+#endif
 }
 
 int simulateaudio = 0;
@@ -267,6 +293,11 @@ int SDL_main(int argc, char** argv) {
 #else
 int main(int argc, char** argv) {
 #endif
+
+#if defined(ANDROID) || defined(__ANDROID__)
+	printinfo("Blitwizard %s", VERSION);
+#endif
+
 	//evaluate command line arguments:
 	const char* script = "game.lua";
 	int i = 1;
