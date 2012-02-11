@@ -169,7 +169,7 @@ cp ../android/Application.mk ./jni/Application.mk
 # NDK build:
 if [ "$COMPILE" = "yes" ]; then
 	mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
-	"$ANDROID_NDK_PATH/ndk-build" APP_STL=stlport_shared || { echo "NDK build failed."; cd ..; exit 1; }
+	"$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; cd ..; exit 1; }
 fi
 
 # Regenerate build.xml (SDL build.xml is outdated) and prepare some strings:

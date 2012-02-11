@@ -540,9 +540,18 @@ void graphics_Quit() {
 }
 
 SDL_RendererInfo info;
+static char openglstaticname[] = "opengl";
 const char* graphics_GetCurrentRendererName() {
 	if (!mainrenderer) {return NULL;}
 	SDL_GetRendererInfo(mainrenderer, &info);
+#if defined(ANDROID) || defined(__ANDROID__)
+	if (strcasecmp(info.name, "opengles") == 0) {
+		//we return "opengl" here aswell, since we want "opengl" to represent
+		//the best opengl renderer consistently across all platforms, which is
+		//in fact opengles on Android (and opengl for normal desktop platforms).
+		return openglstaticname;
+	}
+#endif
 	return info.name;
 }
 
@@ -698,20 +707,35 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 
 	//think about the renderer we want
 #ifndef WIN
-	char preferredrenderer[20] = "opengl";
+#if defined(ANDROID) || defined(__ANDROID__)
+	char preferredrenderer[20] = "opengles";
+#else
+    char preferredrenderer[20] = "opengl";
+#endif
 #else
 	char preferredrenderer[20] = "direct3d";
 #endif
 	int softwarerendering = 0;
 	if (renderer) {
 		if (strcasecmp(renderer, "software") == 0) {
+#if defined(ANDROID) || defined(__ANDROID__)
+			//we don't want software rendering on Android
+#else
 			softwarerendering = 1;
 			strcpy(preferredrenderer, "software");
+#endif
 		}else{
 			if (strcasecmp(renderer, "opengl") == 0) {
+#if defined(ANDROID) || defined(__ANDROID__)
+				//opengles is the opengl we want for android :-)
+				strcpy(preferredrenderer, "opengles");
+#else
+				//regular opengl on desktop platforms
 				strcpy(preferredrenderer, "opengl");
+#endif
 			}
 #ifdef WIN
+			//only windows knows direct3d obviously
 			if (strcasecmp(renderer,"direct3d") == 0) {
 				strcpy(preferredrenderer, "direct3d");
 			}

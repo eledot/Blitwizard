@@ -17,6 +17,6 @@ LOCAL_SRC_FILES := $(SDL_PATH)/src/main/android/SDL_android_main.cpp \
 LOCAL_STATIC_LIBRARIES := SDL2 imgloader png zlib vorbis ogg box2d lua
 
 LOCAL_CFLAGS := -DVERSION=VERSIONINSERT
-LOCAL_LDLIBS := -lGLESv1_CM -llog -ldl -lGLESv2 -lstlport
+LOCAL_LDLIBS := -lGLESv1_CM -llog -ldl -lGLESv2
 
 include $(BUILD_SHARED_LIBRARY)
