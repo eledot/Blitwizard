@@ -124,6 +124,16 @@ int luafuncs_loadfile(lua_State* l) {
 #endif
 }
 
+int luafuncs_sysname(lua_State* l) {
+	lua_pushstring(l, os_GetSystemName());
+	return 1;
+}
+
+int luafuncs_sysversion(lua_State* l) {
+    lua_pushstring(l, os_GetSystemVersion());
+    return 1;
+}
+
 int luafuncs_dofile(lua_State* l) {
 	//obtain function name argument
 	const char* p = lua_tostring(l,1);

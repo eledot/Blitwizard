@@ -28,6 +28,8 @@ int luafuncs_exists(lua_State* l);
 int luafuncs_ls(lua_State* l);
 int luafuncs_openConsole(lua_State* l);
 int luafuncs_exit(lua_State* l);
+int luafuncs_sysname(lua_State* l);
+int luafuncs_sysversion(lua_State* l); 
 
 //base:
 int luafuncs_loadfile(lua_State* l);

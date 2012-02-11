@@ -395,6 +395,12 @@ static lua_State* luastate_New() {
     lua_pushstring(l, "exists");
     lua_pushcfunction(l, &luafuncs_exists);
     lua_settable(l, -3);
+	lua_pushstring(l, "sysname");
+	lua_pushcfunction(l, &luafuncs_sysname);
+	lua_settable(l, -3);
+	lua_pushstring(l, "sysversion");
+	lua_pushcfunction(l, &luafuncs_sysversion);
+	lua_settable(l, -3);
 
 	//throw table "os" off the stack
 	lua_pop(l, 1);

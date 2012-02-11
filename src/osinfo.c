@@ -32,8 +32,9 @@ static char versionbuf[512] = "";
 
 #ifdef WIN
 #include <windows.h>
+static char staticwindowsbuf[] = "Windows";
 const char* osinfo_GetSystemName() {
-	return "Windows";
+	return staticwindowsbuf;
 }
 const char* osinfo_GetSystemVersion() {
 	if (strlen(versionbuf) > 0) {return versionbuf;}
@@ -144,10 +145,11 @@ const char* osinfo_GetSystemVersion() {
 	struct utsname b;
 	memset(&b, 0, sizeof(b));
 	if (uname(&b) != 0) {
-		strcpy(versionbuf, "Unknown");
+		snprintf(versionbuf, sizeof(versionbuf), "%s/Unknown", osinfo_GetDistributionName());
+		versionbuf[sizeof(versionbuf)-1] = 0;
 		return versionbuf;
 	}
-	snprintf(versionbuf,sizeof(versionbuf),"%s/%s",osinfo_GetDistributionName(),b.release);
+	snprintf(versionbuf, sizeof(versionbuf),"%s/%s", osinfo_GetDistributionName(),b.release);
 	versionbuf[sizeof(versionbuf)-1] = 0;
 	return versionbuf;
 #endif
@@ -184,9 +186,6 @@ const char* osinfo_GetSystemName() {
 #endif
 #if defined(__BEOS__)
 	strcpy(osbuf, "BeOS");
-#endif
-#if defined(__QNX__)
-	strcpy(osbuf, "FreeBSD");
 #endif
 #if defined(ANDROID) || defined(__ANDROID__)
 	strcpy(osbuf, "Android");

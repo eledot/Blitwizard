@@ -243,7 +243,7 @@ print("The size of mypicture.png is: " .. tostring(w) .. "," .. tostring(h))
 Get the name of the currently used graphics renderer or nil if no window is open.
 </p>
 <p>Parameters: None</p>
-<p>Return values: renderer name <i>(string)</i> or nil</p>
+<p>Return values: renderer name <i>(string)</i> or nil. Check the <a href="#renderers">list of supported renderers</a></p>
 </li>
 
 <li><h2><a name="blitwiz.graphics.getWindowSize">blitwiz.graphics.getWindowSize</a>()</h2>
@@ -373,15 +373,20 @@ Parameters:
 <li>title <i>(string, optional)</i> &mdash; specify a window title for the title bar</li>
 <li>fullscreen <i>(boolean, optional)</i> &mdash; specify if the window should be fullscreen (true) or not (false) - default is false. For fullscreen windows, width and height need to be listed in the output of <a href="#blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes()</a></li>
 <li>renderer <i>string</i> &mdash; specify a preferred renderer. this specifies the
-backend blitwizard will use to output the graphics, which can be one of the following:
-"software", "direct3d", "opengl". Please note that "direct3d" is only available on Windows systems!
+backend blitwizard will use to output the graphics. A <a href="#renderers">list of available renderers</a> and which one is chosen as default on each platform can be found <a href="#renderers">below</a>
 <p>Generally you shouldn't force anything here, except if you want to allow the user to specify a
 renderer explicitely or when setWindow fails with the default choice (which is different depending
 on various things like the platform).
 </p>
+<p><a name="renderers">Supported renderers:</a>
+<ul style="list-style-type:disc">
+<li><b>software</b> - available on Windows, Mac, Linux, all other Unix-like Systems like FreeBSD, OppenBSD,... <i>Note: Slow, but always works on those platforms - allow the user to pick this one in case the other renderers don't work correctly.</i></li>
+<li><b>opengl</b> - available on Windows, Mac (default), Linux (default), Android (default), all other Unix-like systems like FreeBSD, OpenBSD,... (default). <i>Note: Only choice on Android. Windows often supports this one badly</i></li>
+<li><b>direct3d</b> - available on Windows (default). <i>Note: safest choice on Windows (apart from the slow software renderer), but not available anywhere else</i>
+</li>
+</ul>
 <p>
-In such a case, make sure to call <a href="#os.systemname">os.systemname</a> and check for "windows"
-before you offer or attempt to use direct3d.
+Call <a href="#os.sysname">os.sysname</a> to get the platform name, so you can decide on which renderers you offer to the user - mainly, you shouldn't offer "software" on Android and "direct3d" for non-Windows platforms.
 </p>
 </li>
 </ul>
@@ -1415,6 +1420,30 @@ Return value: None
 </p>
 <p>Examples:
 <div class="code">os.openConsole()</div>
+</p>
+</li>
+
+<li><h2><a name="os.sysname">os.sysname</a>()</h2>
+<p>
+Return a string representing the system name.
+</p>
+<p>
+Parameters: None
+</p>
+<p>
+Return value: <i>(string)</i> the system name. Examples: "Windows", "Linux", "Android", "Mac OS X", "FreeBSD", "OpenBSD", ...
+</p>
+</li>
+
+<li><h2><a name="os.sysversion">os.sysversion</a>()</h2>
+<p>
+Return a string representing the system version.
+</p>
+<p>
+Parameters: None
+</p>
+<p>
+Return value: <i>(string)</i> the system version.
 </p>
 </li>
 
