@@ -150,6 +150,7 @@ static int luafuncs_printline(lua_State* l) {
 	return 1;
 }
 int luafuncs_print(lua_State* l) { //not threadsafe
+	printinfo("print start");
     int args = lua_gettop(l);
 	int i = 1;
 	while (i <= args) {
@@ -205,6 +206,7 @@ int luafuncs_print(lua_State* l) { //not threadsafe
 		i++;
     }
 	while (luafuncs_printline(l)) { }
+	printinfo("print end");
     return 0;
 }
 
