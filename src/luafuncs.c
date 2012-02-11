@@ -38,6 +38,7 @@
 #include "filelist.h"
 #include "main.h"
 #include "win32console.h"
+#include "osinfo.h"
 
 #if defined(ANDROID) || defined(__ANDROID__)
 //required for RWops file loading for Android
