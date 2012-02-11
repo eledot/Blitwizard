@@ -14,6 +14,6 @@ LOCAL_SRC_FILES := \
 
 LOCAL_STATIC_LIBRARIES := ogg
 
-LOCAL_LDLIBS := -ldl 
+LOCAL_LDLIBS := -ldl -logg
 
 include $(BUILD_STATIC_LIBRARY)

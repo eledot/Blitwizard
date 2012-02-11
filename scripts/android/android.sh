@@ -33,24 +33,25 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 
 	# Ensure our SDL project has the STL for Box2D
-	echo "APP_STL := stlport_shared" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
+	echo "APP_STL := stlport_static" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
     echo "STLPORT_FORCE_REBUILD := true" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
 
-	# Making SDL build statically
+	# Tell SDL to build statically
 	cat blitwizard-android/jni/SDL/Android.mk | sed "s/include \\\$(BUILD_SHARED_LIBRARY)/include \$(BUILD_STATIC_LIBRARY)/g" > blitwizard-android/jni/SDL/Android.mk.2
 	mv blitwizard-android/jni/SDL/Android.mk.2 blitwizard-android/jni/SDL/Android.mk
+
+	# SDL fix for static Android build (gives an error otherwise)
+	cat blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp | sed "s/JNI_OnLoad/JNI_OnLoadUnused/g" > blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp.2
+	mv blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp.2 blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp
+
+	# Another SDL fix for static build: don't load SDL at runtime
+	cat blitwizard-android/src/org/libsdl/app/SDLActivity.java | sed "s/System.loadLibrary(\"SDL2\");/\/\/System.loadLibrary(\"SDL\")/g" > blitwizard-android/src/org/libsdl/app/SDLActivity.java.2
+	mv blitwizard-android/src/org/libsdl/app/SDLActivity.java.2 blitwizard-android/src/org/libsdl/app/SDLActivity.java
+
 else
-	if [ -f "blitwizard-android/libs/armeabi/libbox2d.so" ]; then
-		if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
-			if [ -f "blitwizard-android/libs/armeabi/libstlport_shared.so" ]; then
-				if [ -f "blitwizard-android/libs/armeabi/liblua.so" ]; then
-					if [ -f "blitwizard-android/libs/armeabi/libSDL2.so" ]; then
-						read -p "Recompile NDK code? [y/N]"
-						[ "$REPLY" = [yY] ] || { COMPILE="no"; }
-					fi
-				fi
-			fi
-		fi
+	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
+		read -p "Recompile NDK code? [y/N]"
+		[ "$REPLY" = [yY] ] || { COMPILE="no"; }
 	fi
 fi
 
@@ -194,6 +195,15 @@ cp "blitwizard-android/bin/${app_name}-debug.apk" "${app_name}.apk"
 echo "Done,"
 
 # Success!
-echo "Android .apk should be complete."
+echo ""
+echo ""
+echo " -- Sucess:"
+echo "Android \"${app_name}.apk\" should be complete."
+echo "You can now ship your blitwizard game to the phones!"
+echo "Small side note:"
+echo "  You should include the contents of README-libs.txt"
+echo "  in an about screen inside your app."
+echo "  Otherwise some people (third-party library authors)"
+echo "  might get unhappy."
 exit 0
 
