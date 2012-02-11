@@ -154,7 +154,7 @@ int luafuncs_print(lua_State* l) { //not threadsafe
 	int i = 1;
 	while (i <= args) {
         switch (lua_type(l, i)) {
-			case LUA_TSTRING:
+			case LUA_TSTRING: {
 				//add a space char first
 				if (strlen(printlinebuf) > 0) {
 					if (strlen(printlinebuf) < sizeof(printlinebuf)-1) {
@@ -174,7 +174,8 @@ int luafuncs_print(lua_State* l) { //not threadsafe
 					printlinebuf[plen + len] = 0;
 				}
 				break;
-			case LUA_TNUMBER:
+			}
+			case LUA_TNUMBER: {
 				//add a space char first
                 if (strlen(printlinebuf) > 0) {
                     if (strlen(printlinebuf) < sizeof(printlinebuf)-1) {
@@ -196,13 +197,14 @@ int luafuncs_print(lua_State* l) { //not threadsafe
 					printlinebuf[plen + len] = 0;
 				}
 				break;
+			}
 			default:
 				break;	
         }
-		while (luafuncs_printline()) { }
+		while (luafuncs_printline(l)) { }
 		i++;
     }
-	while (luafuncs_printline()) { }
+	while (luafuncs_printlinei(l)) { }
     return 0;
 }
 
