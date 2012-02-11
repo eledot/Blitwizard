@@ -295,7 +295,7 @@ int main(int argc, char** argv) {
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
-	printinfo("Blitwizard %s", VERSION);
+	printinfo("Blitwizard %s starting", VERSION);
 #endif
 
 	//evaluate command line arguments:
@@ -338,6 +338,10 @@ int main(int argc, char** argv) {
 	char* error;
 	char* filenamebuf = NULL;
 
+#if defined(ANDROID) || defined(__ANDROID__)
+    printinfo("Blitwizard startup: locating lua start script...");
+#endif
+
 	//check if a folder:
 	if (file_IsDirectory(script)) {
 		filenamebuf = file_AddComponentToPath(script, "game.lua");
@@ -369,6 +373,10 @@ int main(int argc, char** argv) {
 		script = filenamebuf;
 	}
 
+#if defined(ANDROID) || defined(__ANDROID__)
+    printinfo("Blitwizard startup: Preparing graphics framework...");
+#endif
+
 	//initialise graphics
 	if (!graphics_Init(&error)) {
 		printerror("Error: Failed to initialise graphics: %s",error);
@@ -378,6 +386,10 @@ int main(int argc, char** argv) {
 	}
 	sdlinitialised = 1;
 
+#if defined(ANDROID) || defined(__ANDROID__)
+    printinfo("Blitwizard startup: Initialising physics...");
+#endif
+
 	//initialise physics
 	physicsdefaultworld = physics_CreateWorld();
 	if (!physicsdefaultworld) {
@@ -385,6 +397,10 @@ int main(int argc, char** argv) {
 		fatalscripterror();
 		main_Quit(1);
 	}
+
+#if defined(ANDROID) || defined(__ANDROID__)
+    printinfo("Blitwizard startup: Reading templates if present...");
+#endif
 
 	//run templates first if we can find them
 	if (file_DoesFileExist("templates/init.lua")) {
@@ -400,7 +416,11 @@ int main(int argc, char** argv) {
 			main_Quit(1);
 		}
 	}
-	
+
+#if defined(ANDROID) || defined(__ANDROID__)
+    printinfo("Blitwizard startup: Executing lua start script...");
+#endif
+
 	//open and run provided file
 	if (!luastate_DoInitialFile(script, &error)) {
 		if (error == NULL) {
@@ -414,6 +434,10 @@ int main(int argc, char** argv) {
 		main_Quit(1);
 	}
 
+#if defined(ANDROID) || defined(__ANDROID__)
+    printinfo("Blitwizard startup: Calling blitwiz.on_init...");
+#endif
+
 	//call init
 	if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error)) {
 		printerror("Error: An error occured when calling blitwiz.on_init: %s",error);
@@ -426,6 +450,11 @@ int main(int argc, char** argv) {
 	
 	//when graphics or audio is open, run the main loop
 	if (graphics_AreGraphicsRunning() || audioinitialised) {
+
+#if defined(ANDROID) || defined(__ANDROID__)
+    	printinfo("Blitwizard startup: Entering main loop...");
+#endif
+
 		//Initialise audio when it isn't
 		main_InitAudio();
 		
