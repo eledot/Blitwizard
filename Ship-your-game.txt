@@ -21,7 +21,7 @@ Ship a game for Android (you need a *Linux* machine for this!):
 
   - Put the blitwizard templates/ folder and your game files (game.lua, ..)
     in a dedicated folder that contains nothing else -> your game folder
-      (do NOT add any blitwizard binaries or other things)
+      (do NOT add any blitwizard binaries or the examples or other things)
 
   - Go into the blitwizard script/ folder (inside the extracted blitwizard
     source package as downloaded from the website) and edit
