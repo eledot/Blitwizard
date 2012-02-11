@@ -39,6 +39,7 @@
 #include "main.h"
 #include "win32console.h"
 #include "osinfo.h"
+#include "logging.h"
 
 #if defined(ANDROID) || defined(__ANDROID__)
 //required for RWops file loading for Android
@@ -124,6 +125,86 @@ int luafuncs_loadfile(lua_State* l) {
 	return 1;
 #endif
 }
+
+static char printlinebuf[2048] = "";
+static int luafuncs_printline(lua_State* l) {
+	//print a line from the printlinebuf
+	int len = strlen(printlinebuf);
+	if (len <= 0) {
+		return 0;
+	}
+	int i = 0;
+	while (i < len) {
+		if (printlinebuf[i] == '\n') {
+			break;
+		}
+		i++;
+	}
+	if (i >= len-1 && printlinebuf[len-1] != '\n') {
+		return 0;
+	}
+	printlinebuf[i] = 0;
+	printinfo(printlinebuf);
+	memmove(printlinebuf, printlinebuf+(i+1), sizeof(printlinebuf)-(i+1));
+	return 1;
+}
+int luafuncs_print(lua_State* l) { //not threadsafe
+    int args = lua_gettop(l);
+	int i = 1;
+	while (i <= args) {
+        switch (lua_type(l, i)) {
+			case LUA_TSTRING:
+				//add a space char first
+				if (strlen(printlinebuf) > 0) {
+					if (strlen(printlinebuf) < sizeof(printlinebuf)-1) {
+						strcat(printlinebuf, " ");
+					}
+				}
+
+				//add string
+				unsigned int plen = strlen(printlinebuf);
+				unsigned int len = (sizeof(printlinebuf)-1) - plen;
+				const char* p = lua_tostring(l, i);
+				if (len > strlen(p)) {
+					len = strlen(p);
+				}
+				if (len > 0) {
+					memcpy(printlinebuf + plen, p, len);
+					printlinebuf[plen + len] = 0;
+				}
+				break;
+			case LUA_TNUMBER:
+				//add a space char first
+                if (strlen(printlinebuf) > 0) {
+                    if (strlen(printlinebuf) < sizeof(printlinebuf)-1) {
+                        strcat(printlinebuf, " ");
+                    }
+                }
+
+				//add number
+				unsigned int plen = strlen(printlinebuf);
+				unsigned int len = (sizeof(printlinebuf)-1) - plen;
+				char number[50];
+				snprintf(number, sizeof(number)-1, "%d", lua_tonumber(l, i));
+				number[sizeof(number)-1] = 0;
+				if (len >= strlen(number)) {
+					len = strlen(number);
+				}
+				if (len > 0) {
+					memcpy(printlinebuf + plen, number, len);
+					printlinebuf[plen + len] = 0;
+				}
+				break;
+			default:
+				break;	
+        }
+		while (luafuncs_printline()) { }
+		i++;
+    }
+	while (luafuncs_printline()) { }
+    return 0;
+}
+
 
 int luafuncs_sysname(lua_State* l) {
 	lua_pushstring(l, osinfo_GetSystemName());

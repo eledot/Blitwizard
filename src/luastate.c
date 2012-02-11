@@ -337,11 +337,13 @@ static lua_State* luastate_New() {
 	lua_pushcfunction(l, &debug_traceback);
 	lua_settable(l, LUA_REGISTRYINDEX);
 	
-	//own dofile/loadfile	
+	//own dofile/loadfile/print
 	lua_pushcfunction(l, &luafuncs_loadfile);
 	lua_setglobal(l, "loadfile");
 	lua_pushcfunction(l, &luafuncs_dofile);
 	lua_setglobal(l, "dofile");
+	lua_pushcfunction(l, &luafuncs_print);
+	lua_setglobal(l, "print");
 
 	//obtain the blitwiz lib
 	lua_getglobal(l, "blitwiz");
