@@ -126,12 +126,12 @@ int luafuncs_loadfile(lua_State* l) {
 }
 
 int luafuncs_sysname(lua_State* l) {
-	lua_pushstring(l, os_GetSystemName());
+	lua_pushstring(l, osinfo_GetSystemName());
 	return 1;
 }
 
 int luafuncs_sysversion(lua_State* l) {
-    lua_pushstring(l, os_GetSystemVersion());
+    lua_pushstring(l, osinfo_GetSystemVersion());
     return 1;
 }
 
