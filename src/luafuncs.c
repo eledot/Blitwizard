@@ -58,9 +58,7 @@ struct luachunkreaderinfo {
 };
 static const char* luastringchunkreader(lua_State *l, void *data, size_t *size) {
 	struct luachunkreaderinfo* info = (struct luachunkreaderinfo*)data;
-	printinfo("b");
 	int i = info->rwops->read(info->rwops, info->buffer, 1, sizeof(*info->buffer));
-	printinfo("c");
 	if (i > 0) {
 		*size = (size_t)i;
 		return info->buffer;
@@ -71,13 +69,11 @@ static const char* luastringchunkreader(lua_State *l, void *data, size_t *size) 
 #endif
 
 int luafuncs_loadfile(lua_State* l) {
-	printinfo("a1");
 	const char* p = lua_tostring(l,1);
 	if (!p) {
 		lua_pushstring(l, "First argument is not a file name string");
 		return lua_error(l);
 	}
-	printinfo("a2");
 #if defined(ANDROID) || defined(__ANDROID__)
 	//special Android file loading
 	struct luachunkreaderinfo* info = malloc(sizeof(*info));
@@ -85,11 +81,9 @@ int luafuncs_loadfile(lua_State* l) {
 		lua_pushstring(l, "malloc failed");
 		return lua_error(l);
 	}
-	printinfo("a3");
 	char errormsg[512];
 	memset(info, 0, sizeof(*info));
 	info->rwops = SDL_RWFromFile(p, "r");
-	printinfo("a3: %s", p);
 	if (!info->rwops) {
 		free(info);
 		snprintf(errormsg, sizeof(errormsg), "Cannot open file \"%s\"", p);
@@ -97,11 +91,8 @@ int luafuncs_loadfile(lua_State* l) {
         lua_pushstring(l, errormsg);
         return lua_error(l);
 	}
-	printinfo("a4");
 	int r = lua_load(l, &luastringchunkreader, info, p, NULL);
-	printinfo("a5");
 	SDL_FreeRW(info->rwops);
-	printinfo("a6");
     free(info);
 	if (r != 0) {
         if (r == LUA_ERRSYNTAX) {
