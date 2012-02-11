@@ -204,7 +204,7 @@ int luafuncs_print(lua_State* l) { //not threadsafe
 		while (luafuncs_printline(l)) { }
 		i++;
     }
-	while (luafuncs_printlinei(l)) { }
+	while (luafuncs_printline(l)) { }
     return 0;
 }
 
