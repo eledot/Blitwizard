@@ -57,6 +57,9 @@ struct graphicstexture {
 	void* threadingptr;
 	//SDL info
 	SDL_Texture* tex; //NULL if not loaded yet
+#ifdef defined(ANDROID) || defined(__ANDROID__)
+	SDL_RWops* ops;
+#endif
 	
 	//pointer to next list element
 	struct graphicstexture* next;
@@ -354,14 +357,13 @@ int graphics_PromptTextureLoading(const char* texture) {
 
 	//trigger image fetching thread
 #if defined(ANDROID) || defined(__ANDROID__)
-	SDL_RWops* rwops = SDL_RWFromFile(gt->name, "r");
-	if (!rwops) {
+	gt->rwops = SDL_RWFromFile(gt->name, "r");
+	if (!gt->rwops) {
 		free(gt->name);
 		free(gt);
 		return 0;
 	}
-	gt->threadingptr = img_LoadImageThreadedFromFunction(&graphics_AndroidTextureReader, rwops, 0, 0, "rgba", NULL);
-	SDL_FreeRW(rwops);
+	gt->threadingptr = img_LoadImageThreadedFromFunction(&graphics_AndroidTextureReader, gt->rwops, 0, 0, "rgba", NULL);
 #else
     gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
 #endif
@@ -395,6 +397,12 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
     if (gt->threadingptr) {
         return 0;
     }
+#if defined(ANDROID) || defined(__ANDROID__)
+	if (gt->rwops) {
+		SDL_FreeRW(gt->rwops);
+		gt->rwops = NULL;
+	}
+#endif
     if (prev) {
         prev->next = gt->next;
     }else{
