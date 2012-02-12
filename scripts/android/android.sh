@@ -143,7 +143,7 @@ if [ "$COMPILE" = "yes" ]; then
 		rm blitwizard-android/jni/lua/lua.c
 		rm blitwizard-android/jni/lua/luac.c
 		cp android/Android-lua.mk blitwizard-android/jni/lua/Android.mk
-		cat blitwizard-android/jni/lua/llex.c | sed -e "s/#define llex_c/#define llex_c\nchar decpoint[] = \".\";static const char* decpointstr() {return decpoint;}\n#define getlocaledecpoint (decpointstr)/g" > blitwizard-android/jni/lua/llex2.c
+		cat blitwizard-android/jni/lua/llex.c | sed -e "s/#define llex_c/#define llex_c\nchar decpointstr() {return '.';}\n#define getlocaledecpoint (decpointstr)/g" > blitwizard-android/jni/lua/llex2.c
 		mv blitwizard-android/jni/lua/llex2.c blitwizard-android/jni/lua/llex.c
 	fi
 
