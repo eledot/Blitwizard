@@ -917,6 +917,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
 
 	//add table into our list
 	lua_pushnumber(l, 2);
+	lua_insert(l, -2);
 	lua_settable(l, -3);
 
 	int i = 1;
@@ -943,6 +944,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
 		
 		//add the table into our list
 		lua_pushnumber(l, index);
+		lua_insert(l, -2);
 		lua_settable(l, -3);
 		index++;
 		i++;
