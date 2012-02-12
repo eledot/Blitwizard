@@ -131,7 +131,6 @@ static char printlinebuf[2048] = "";
 static int luafuncs_printline() {
 	//print a line from the printlinebuf
 	unsigned int len = strlen(printlinebuf);
-	printf("len: %u\n", len);
 	if (len <= 0) {
 		return 0;
 	}

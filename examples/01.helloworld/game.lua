@@ -37,9 +37,11 @@ function blitwiz.on_init()
 		resolution = blitwiz.graphics.getDisplayModes()[1]
 		blitwiz.graphics.setWindow(resolution[1], resolution[2], "Hello World", true)
 	end
+	print("3")
 
 	-- Load image
 	blitwiz.graphics.loadImage("hello_world.png")
+	print("4")
 end
 
 function blitwiz.on_keydown(key)

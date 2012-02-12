@@ -323,12 +323,7 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userdata) {
 	SDL_RWops* ops = (SDL_RWops*)userdata;
 	int i = ops->read(ops, buffer, 1, bytes);
-	if (i > 0) {
-		return i;
-	}else{
-		SDL_FreeRW(ops);
-		return i;
-	}
+	return i;
 }
 
 int graphics_PromptTextureLoading(const char* texture) {
@@ -367,6 +362,7 @@ int graphics_PromptTextureLoading(const char* texture) {
 #else
     gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
 #endif
+	SDL_FreeRW(rwops);
     if (!gt->threadingptr) {
         free(gt->name);
         free(gt);
@@ -694,6 +690,7 @@ HWND graphics_GetWindowHWND() {
 #endif
 
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
+	printinfo("a1");
 	char errormsg[512];
 
 #if defined(ANDROID) || defined(__ANDROID__)
@@ -703,6 +700,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	}
 #endif
 
+	printinfo("a2");
 	//initialize SDL video if not done yet
 	if (!graphics_InitVideoSubsystem(error)) {return 0;}
 
@@ -716,6 +714,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 #else
 	char preferredrenderer[20] = "direct3d";
 #endif
+	printinfo("a3");
 	int softwarerendering = 0;
 	if (renderer) {
 		if (strcasecmp(renderer, "software") == 0) {
@@ -744,6 +743,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		}
 	}
 	
+	printinfo("a4");
     //get renderer index
 	int rendererindex = -1;
 	if (strlen(preferredrenderer) > 0 && !softwarerendering) {
@@ -762,6 +762,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		}
 	}
 
+	printinfo("a5");
 	//see if anything changes at all
 	unsigned int oldw = 0;
 	unsigned int oldh = 0;
@@ -782,6 +783,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		}
 	}
 	
+	printinfo("a6");
 	//Check if we support the video mode for fullscreen -
 	//  This is done to avoid SDL allowing impossible modes and
 	//  giving us a fake resized/padded/whatever output we don't want.
@@ -807,6 +809,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	//destroy old window/renderer if we got one
 	graphics_Close(1);
 	
+	printinfo("a7");
 	//create window
 	if (fullscreen) {
 		mainwindow = SDL_CreateWindow(title, 0,0, width, height, SDL_WINDOW_FULLSCREEN);
@@ -822,6 +825,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		return 0;
 	}
 	
+	printinfo("a8");
 	//Create renderer
 	if (!softwarerendering) {
 		mainrenderer = SDL_CreateRenderer(mainwindow, rendererindex, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
@@ -853,6 +857,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		SDL_GetRendererInfo(mainrenderer, &info);
 	}
 	
+	printinfo("a9");
 	//Transfer textures back to SDL
 	if (!graphics_TransferTexturesToSDL()) {
 		SDL_RendererInfo info;
@@ -863,6 +868,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 		SDL_DestroyWindow(mainwindow);
 		return 0;
 	}
+	printinfo("a10");
 	graphicsvisible = 1;
 	return 1;
 }
