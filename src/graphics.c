@@ -695,15 +695,17 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 
 #if defined(ANDROID) || defined(__ANDROID__)
 	if (!fullscreen) {
-		printinfo("windowed - we do not support");
 		//do not use windowed on Android
+		*error = strdup("Windowed mode is not supported on Android");
 		return 0;
 	}
 #endif
 
 	printinfo("a2");
 	//initialize SDL video if not done yet
-	if (!graphics_InitVideoSubsystem(error)) {return 0;}
+	if (!graphics_InitVideoSubsystem(error)) {
+		return 0;
+	}
 
 	//think about the renderer we want
 #ifndef WIN
@@ -801,7 +803,10 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 			}
 			i++;
 		}
-		if (!supportedmode) {return 0;}
+		if (!supportedmode) {
+			*error = strdup("Video mode is not supported");
+			return 0;
+		}
 	}
 	
 	//preserve textures by managing them on our own for now
