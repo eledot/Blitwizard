@@ -58,7 +58,7 @@ struct graphicstexture {
 	//SDL info
 	SDL_Texture* tex; //NULL if not loaded yet
 #if defined(ANDROID) || defined(__ANDROID__)
-	SDL_RWops* ops;
+	SDL_RWops* rwops;
 #endif
 	
 	//pointer to next list element
