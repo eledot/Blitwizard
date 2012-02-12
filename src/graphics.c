@@ -247,7 +247,7 @@ void graphics_DrawRectangle(int x, int y, int width, int height, float r, float 
 	SDL_RenderFillRect(mainrenderer, &rect);
 }
 
-int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle) {
+int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
 	struct graphicstexture* gt = graphics_GetTextureByName(texname);
 	if (!gt || gt->threadingptr || !gt->tex) {
 		return 0;
@@ -255,7 +255,6 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 
 	if (alpha <= 0) {return 1;}
 	if (alpha > 1) {alpha = 1;}
-	
 	
 	//calculate source dimensions
 	SDL_Rect src,dest;
@@ -289,17 +288,23 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 	SDL_Point p;
 	p.x = (int)((double)rotationcenterx * ((double)drawwidth / src.w));
 	p.y = (int)((double)rotationcentery * ((double)drawheight / src.h));
-	if (strcasecmp(graphics_GetCurrentRendererName(), "software") == 0) {
-		//FIXME: render with no rotation for now
-		SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
+	if (red > 1) {red = 1;}
+	if (red < 0) {red = 0;}
+    if (blue > 1) {blue = 1;}
+    if (blue < 0) {blue = 0;}
+    if (green > 1) {green = 1;}
+    if (green < 0) {green = 0;}
+	SDL_SetTextureColorMod(gt->tex, (red * 255.0f), (green * 255.0f), (blue * 255.0f));
+	if (horiflipped) {
+		SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_HORIZONTAL);
 	}else{
 		SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
 	}
 	return 1;
 }
 
-int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle) {
-	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle);
+int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
+	return graphics_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle, horiflipped, red, green, blue);
 }
 
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {

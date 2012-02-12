@@ -4,11 +4,14 @@ pcall(blitwiz.sound.play)
 
 -- Try to run the templates first if they are one folder up
 if os.exists("samplebrowser/browser.lua") then
-	-- templates are indeed one folder up, as it seems
+	-- Templates are indeed one folder up, as it seems
+	local olddir = os.getcwd()
+	os.chdir("../")
 	local function calltemplates()
-		dofile("../templates/init.lua")
+		dofile("templates/init.lua")
 	end
 	calltemplates()
+	os.chdir(olddir)
 end
 
 -- Check if the user created a custom game we would want to run preferrably

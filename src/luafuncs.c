@@ -651,6 +651,42 @@ int luafuncs_drawImage(lua_State* l) {
         rotationcentery = (int)(lua_tonumber(l, 13) + 0.5f);
     }
 
+	//get flipping info
+	int horiflipped = 0;
+	if (lua_gettop(l) >= 14 && lua_type(l, 14) != LUA_TNIL) {
+		if (lua_type(l, 14) != LUA_TBOOLEAN) {
+			lua_pushstring(l, "Fourteenth parameter is not a valid horizontal flip boolean");
+			return lua_error(l);
+		}
+		horiflipped = lua_toboolean(l, 14);
+	}
+
+	//get color info
+	double red = 1;
+	double green = 1;
+	double blue = 1;
+    if (lua_gettop(l) >= 15 && lua_type(l, 15) != LUA_TNIL) {
+        if (lua_type(l, 15) != LUA_TNUMBER) {
+            lua_pushstring(l, "Fifteenth parameter is not a valid red tint number");
+            return lua_error(l);
+        }
+        red = lua_tonumber(l, 15);
+    }
+    if (lua_gettop(l) >= 16 && lua_type(l, 16) != LUA_TNIL) {
+        if (lua_type(l, 16) != LUA_TNUMBER) {
+            lua_pushstring(l, "Sixteenth parameter is not a valid green tint number");
+            return lua_error(l);
+        }
+        green = lua_tonumber(l, 16);
+    }
+    if (lua_gettop(l) >= 17 && lua_type(l, 17) != LUA_TNIL) {
+        if (lua_type(l, 17) != LUA_TNUMBER) {
+            lua_pushstring(l, "Seventeenth parameter is not a valid blue tint number");
+            return lua_error(l);
+        }
+		blue = lua_tonumber(l, 17);
+    }
+
 	//process negative cut positions and adjust output position accordingly
 	if (cutx < 0) {
 		if (cutwidth > 0) { //decrease draw width accordingly
@@ -699,7 +735,7 @@ int luafuncs_drawImage(lua_State* l) {
 	unsigned int drawheight = (unsigned int)((float)(imgdrawh) * scaley + 0.5f);
 
 	//draw:
-	if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle)) {
+	if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle, horiflipped, red, green, blue)) {
 		luafuncs_pushnosuchtex(l, p);
 		return lua_error(l);
 	}
