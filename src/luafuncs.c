@@ -900,7 +900,7 @@ int luafuncs_getDesktopDisplayMode(lua_State* l) {
 
 int luafuncs_getDisplayModes(lua_State* l) {
 	int c = graphics_GetNumberOfVideoModes();
-	lua_createtable(l, 5, 0);
+	lua_createtable(l, 1, 0);
 
 	//first, add desktop mode
 	int desktopw,desktoph;
@@ -916,7 +916,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
 	lua_settable(l, -3);
 
 	//add table into our list
-	lua_pushnumber(l, 2);
+	lua_pushnumber(l, 1);
 	lua_insert(l, -2);
 	lua_settable(l, -3);
 
