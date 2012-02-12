@@ -57,7 +57,7 @@ struct graphicstexture {
 	void* threadingptr;
 	//SDL info
 	SDL_Texture* tex; //NULL if not loaded yet
-#ifdef defined(ANDROID) || defined(__ANDROID__)
+#if defined(ANDROID) || defined(__ANDROID__)
 	SDL_RWops* ops;
 #endif
 	
