@@ -320,11 +320,13 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 	return 1;
 }
 
+#if defined(ANDROID) || defined(__ANDROID__)
 static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userdata) {
 	SDL_RWops* ops = (SDL_RWops*)userdata;
 	int i = ops->read(ops, buffer, 1, bytes);
 	return i;
 }
+#endif
 
 int graphics_PromptTextureLoading(const char* texture) {
 	//check if texture is already present or being loaded
@@ -359,10 +361,10 @@ int graphics_PromptTextureLoading(const char* texture) {
 		return 0;
 	}
 	gt->threadingptr = img_LoadImageThreadedFromFunction(&graphics_AndroidTextureReader, rwops, 0, 0, "rgba", NULL);
+	SDL_FreeRW(rwops);
 #else
     gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
 #endif
-	SDL_FreeRW(rwops);
     if (!gt->threadingptr) {
         free(gt->name);
         free(gt);
@@ -537,7 +539,9 @@ void graphics_Quit() {
 }
 
 SDL_RendererInfo info;
+#if defined(ANDROID) || defined(__ANDROID__)
 static char openglstaticname[] = "opengl";
+#endif
 const char* graphics_GetCurrentRendererName() {
 	if (!mainrenderer) {return NULL;}
 	SDL_GetRendererInfo(mainrenderer, &info);
