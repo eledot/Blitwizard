@@ -370,6 +370,9 @@ int graphics_PromptTextureLoading(const char* texture) {
     if (!gt->threadingptr) {
         free(gt->name);
         free(gt);
+#if defined(ANDROID) || defined(__ANDROID__)
+		SDL_FreeRW(gt->rwops);
+#endif
         return 0;
     }
 	

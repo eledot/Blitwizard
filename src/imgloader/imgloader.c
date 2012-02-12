@@ -95,22 +95,22 @@ void* loaderthreadfunction(void* data) {
 	if (i->readfunc) {
 		void* p = NULL;
 		size_t currentsize = 0;
-		char buf[4096];
+		char buf[1024];
 
 		//read byte chunks:
-		int k = i->readfunc(buf, 4096, i->readfuncptr);
+		int k = i->readfunc(buf, sizeof(buf), i->readfuncptr);
 		while (k > 0) {
 			currentsize += k;
 			void* pnew = realloc(p, currentsize);
 			if (!pnew) {
-				while (k > 0) {k = i->readfunc(buf, 4096, i->readfuncptr);}
+				while (k > 0) {k = i->readfunc(buf, sizeof(buf), i->readfuncptr);}
 				k = -1;
 				break;
 			}
 			p = pnew;
 			//copy read bytes
 			memcpy(p + (currentsize - k), buf, k);
-			k = i->readfunc(buf, 4096, i->readfuncptr);
+			k = i->readfunc(buf, sizeof(buf), i->readfuncptr);
 		}
 		//handle error
 		if (k < 0) {
