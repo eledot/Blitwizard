@@ -795,6 +795,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	//  This is done to avoid SDL allowing impossible modes and
 	//  giving us a fake resized/padded/whatever output we don't want.
 	if (fullscreen) {
+		//check all video modes in the list SDL returns for us
 		int count = graphics_GetNumberOfVideoModes();
 		int i = 0;
 		int supportedmode = 0;
@@ -808,8 +809,13 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 			i++;
 		}
 		if (!supportedmode) {
-			*error = strdup("Video mode is not supported");
-			return 0;
+			//check for desktop video mode aswell
+			int w,h;
+			graphics_GetDesktopVideoMode(&w,&h);
+			if (w == 0 || h == 0 || width != w || height != h) {
+				*error = strdup("Video mode is not supported");
+				return 0;
+			}
 		}
 	}
 	
