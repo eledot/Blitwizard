@@ -695,6 +695,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 
 #if defined(ANDROID) || defined(__ANDROID__)
 	if (!fullscreen) {
+		printinfo("windowed - we do not support");
 		//do not use windowed on Android
 		return 0;
 	}
