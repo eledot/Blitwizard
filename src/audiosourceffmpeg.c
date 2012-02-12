@@ -110,7 +110,7 @@ static void loadorfail(void** ptr, void* lib, const char* name) {
 	*ptr = library_GetSymbol(lib, name);
 	
 	if (!*ptr) {
-		printwarning("Warning: [FFmpeg] Failed to load symbol: %s\n",name);
+		printwarning("Warning: [FFmpeg] Failed to load symbol: %s",name);
 		loadorfailstate = 1;
 		return;
 	}
@@ -168,7 +168,7 @@ static int audiosourceffmpeg_InitFFmpeg() {
 void audiosourceffmpeg_DisableFFmpeg() {
 	if (ffmpegopened != 0) {return;}
 	ffmpegopened = -1;
-	printinfo("[FFmpeg] Use of FFmpeg has been disabled.\n");
+	printinfo("[FFmpeg] Use of FFmpeg has been disabled.");
 }
 
 int audiosourceffmpeg_LoadFFmpeg() {
@@ -202,7 +202,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
 			library_Close(avutilptr);
 		}
 	
-		printinfo("[FFmpeg] Library not found or cannot be loaded, FFmpeg support will be unavailable\n");
+		printinfo("[FFmpeg] Library not found or cannot be loaded, FFmpeg support will be unavailable");
 		ffmpegopened = -1;
 		return 0;
 	}
@@ -211,7 +211,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
 	if (!audiosourceffmpeg_LoadFFmpegFunctions()) {
 		library_Close(avcodecptr);
 		library_Close(avformatptr);
-		printinfo("[FFmpeg] Library misses one or more expected symbols. FFmpeg support will be unavailable\n");
+		printinfo("[FFmpeg] Library misses one or more expected symbols. FFmpeg support will be unavailable");
 		ffmpegopened = -1;
 		return 0;
 	}
@@ -220,12 +220,12 @@ int audiosourceffmpeg_LoadFFmpeg() {
 	if (!audiosourceffmpeg_InitFFmpeg()) {
 		library_Close(avcodecptr);
 		library_Close(avformatptr);
-		printinfo("[FFmpeg] Library initialisation failed. FFmpeg support will be unavailable\n");
+		printinfo("[FFmpeg] Library initialisation failed. FFmpeg support will be unavailable");
 		ffmpegopened = -1;
 		return 0;
 	}
 
-	printinfo("[FFmpeg] Library successfully loaded.\n");
+	printinfo("[FFmpeg] Library successfully loaded.");
 	ffmpegopened = 1;	
 	return 1;
 }
@@ -283,7 +283,6 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 	}
 	
 	if (!audiosourceffmpeg_LoadFFmpeg()) {
-		printf("b\n");
 		audiosourceffmpeg_FatalError(source);
 		return -1;
 	}

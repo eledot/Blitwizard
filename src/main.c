@@ -125,7 +125,7 @@ void printinfo(const char* fmt, ...) {
 #if defined(ANDROID) || defined(__ANDROID__)
     __android_log_print(ANDROID_LOG_INFO, "blitwizard", "%s", printline);
 #else
-    fprintf(stdout,"%s\n",printline);
+    printf("%s\n",printline);
     fflush(stdout);
 #endif
 }

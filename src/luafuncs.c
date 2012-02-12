@@ -128,13 +128,14 @@ int luafuncs_loadfile(lua_State* l) {
 }
 
 static char printlinebuf[2048] = "";
-static int luafuncs_printline(lua_State* l) {
+static int luafuncs_printline() {
 	//print a line from the printlinebuf
-	int len = strlen(printlinebuf);
+	unsigned int len = strlen(printlinebuf);
+	printf("len: %u\n", len);
 	if (len <= 0) {
 		return 0;
 	}
-	int i = 0;
+	unsigned int i = 0;
 	while (i < len) {
 		if (printlinebuf[i] == '\n') {
 			break;
@@ -150,7 +151,6 @@ static int luafuncs_printline(lua_State* l) {
 	return 1;
 }
 int luafuncs_print(lua_State* l) { //not threadsafe
-	printinfo("print start");
     int args = lua_gettop(l);
 	int i = 1;
 	while (i <= args) {
@@ -188,7 +188,7 @@ int luafuncs_print(lua_State* l) { //not threadsafe
 				unsigned int plen = strlen(printlinebuf);
 				unsigned int len = (sizeof(printlinebuf)-1) - plen;
 				char number[50];
-				snprintf(number, sizeof(number)-1, "%d", lua_tonumber(l, i));
+				snprintf(number, sizeof(number)-1, "%f", lua_tonumber(l, i));
 				number[sizeof(number)-1] = 0;
 				if (len >= strlen(number)) {
 					len = strlen(number);
@@ -202,11 +202,18 @@ int luafuncs_print(lua_State* l) { //not threadsafe
 			default:
 				break;	
         }
-		while (luafuncs_printline(l)) { }
+		while (luafuncs_printline()) { }
 		i++;
     }
-	while (luafuncs_printline(l)) { }
-	printinfo("print end");
+
+	//add a line break
+    if (strlen(printlinebuf) > 0) {
+        if (strlen(printlinebuf) < sizeof(printlinebuf)-1) {
+            strcat(printlinebuf, "\n");
+        }
+    }
+
+	while (luafuncs_printline()) { }
     return 0;
 }
 
