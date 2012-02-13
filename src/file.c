@@ -99,6 +99,12 @@ char* file_GetCwd() {
 	if (GetCurrentDirectory(sizeof(cwdbuf), cwdbuf) <= 0) {
 		return 0;
 	}
+	//turn all paths like C:\blubb\ into C:/blubb/ (blitwizard-style paths)
+	int i = 0;
+	while (i <= strlen(cwdbuf)) {
+		if (cwdbuf[i] == '\\') {cwdbuf[i] = '/';}
+		i++;
+	}
 #else
 	if (!getcwd(cwdbuf, sizeof(cwdbuf))) {
 		return 0;

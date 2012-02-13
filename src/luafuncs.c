@@ -756,6 +756,13 @@ int luafuncs_drawImage(lua_State* l) {
 	return 0;
 }
 
+int luafuncs_getcwd(lua_State* l) {
+	char* p = file_GetCwd();
+	lua_pushstring(l, p),
+	free(p);
+	return 1;
+}
+
 int luafuncs_chdir(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
