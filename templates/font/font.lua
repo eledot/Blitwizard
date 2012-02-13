@@ -28,9 +28,7 @@ function blitwiz.font.register(path, name, charwidth, charheight, charsperline, 
 		charset
 	}
 	if blitwiz.graphics.isImageLoaded(path) ~= true then
-		print("loading \"" .. path .. "\"")
 		blitwiz.graphics.loadImageAsync(path)
-		print("it will be loaded.")
 	end
 end
 
