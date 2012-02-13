@@ -171,6 +171,9 @@ static void luastate_CreateGraphicsTable(lua_State* l) {
 	lua_pushstring(l, "getWindowSize");
 	lua_pushcfunction(l, &luafuncs_getWindowSize);
 	lua_settable(l, -3);
+	lua_pushstring(l, "isImageLoaded");
+	lua_pushcfunction(l, &luafuncs_isImageLoaded);
+	lua_settable(l, -3);
 	lua_pushstring(l, "drawImage");
 	lua_pushcfunction(l, &luafuncs_drawImage);
 	lua_settable(l, -3);

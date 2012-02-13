@@ -263,6 +263,29 @@ Return values: window width <i>(number)</i>, window height <i>(number)</i>
 </p>
 </li>
 
+<li><h2><a name="blitwiz.graphcis.isImageLoaded">blitwiz.graphics.isImageLoaded</a>(filename <i>(string)</i>)</h2>
+<p>
+Check whether an image is fully loaded and available or not.
+If the image has been loaded through <a href="#blitwiz.graphics.loadImage">
+blitwiz.graphics.loadImage</a> or through <a href="#blitwiz.graphics.loadImageAsync">
+blitwiz.graphics.loadImageAsync</a> (with the async loading being complete),
+the function will return true.
+</p>
+<p>In all other cases (e.g. also when the image is still being loaded through
+<a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>)
+the function will return false.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>filename <i>(string)</i> &mdash; specify the filename/path of the image</li>
+</ul>
+</p>
+<p>
+Return value: image presence state as described above <i>(boolean)</i>
+</p>
+</li>
+
 <li><h2><a name="blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>(filename <i>(string)</i>)</h2>
 <p>
 Prompt an image file for loading for use in drawing operations and wait for it to be loaded.
@@ -1371,6 +1394,21 @@ Return value: <i>(boolean)</i> directory (true) or not (false)
 </p>
 </li>
 
+<li><h2><a name="os.getcwd">os.getcwd</a>()</h2>
+<p>
+Obtains the current working directory.
+</p>
+<p>
+Paramaters: None
+</p>
+<p>
+Return value: current working directory <i>(string)</i>
+</p>
+<p>Examples:
+<div class="code">print ("Current working directory is: " .. os.cwd())</div>
+</p>
+</li>
+
 <li><h2><a name="os.ls">os.ls</a>(path <i>(string)</i>)</h2>
 <p>
 Return an array table listing the name of all items (subfolders and files) inside the given directory.
@@ -1417,7 +1455,7 @@ working stdout console output anyway, so this call is not required (and will
 simply do nothing on those platforms).
 </p>
 <p>
-Parmaters: None
+Paramaters: None
 </p>
 <p>
 Return value: None

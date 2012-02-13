@@ -385,6 +385,20 @@ int luafuncs_setWindow(lua_State* l) {
 	return 0;
 }
 
+int luafuncs_isImageLoaded(lua_State* l) {
+	const char* p = lua_tostring(l,1);
+    if (!p) {
+        lua_pushstring(l, "First parameter is not a valid image name string");
+        return lua_error(l);
+    }
+	if (graphics_IsTextureLoaded(p) == 2) {
+		lua_pushboolean(l, 1);
+	}else{
+		lua_pushboolean(l, 0);
+	}
+	return 1;
+}
+
 int luafuncs_loadImage(lua_State* l) {
     const char* p = lua_tostring(l,1);
     if (!p) {
