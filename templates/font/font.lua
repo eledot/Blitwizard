@@ -17,14 +17,90 @@ Permission is granted to anyone to use this software for any purpose, including 
 --]]-----
 
 blitwiz.font = {}
+blitwiz.font.fonts = {}
 
 function blitwiz.font.register(path, name, charwidth, charheight, charsperline, charset)
-
+	blitwiz.font.fonts[name] = {
+		path,
+		charwidth,
+		charheight,
+		charsperline,
+		charset
+	}
+	if blitwiz.graphics.isImageLoaded(path) ~= true then
+		print("loading \"" .. path .. "\"")
+		blitwiz.graphics.loadImageAsync(path)
+		print("it will be loaded.")
+	end
 end
 
-function blitwiz.font.draw(name, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
+local function drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
+	-- check for invalid slot:
+	if slot < 1 or slot > 32*8 then
+		return
+	end	
 
+	-- do we need to draw at all?
+	if blitwiz.graphics.isImageLoaded(font[1]) ~= true then
+		return
+	end
+	if clipx ~= nil and clipy ~= nil then
+		if clipx >= posx + font[2] or clipy >= posy + font[3] then
+			return
+		end
+		if clipw ~= nil and cliph ~= nil then
+			if clipx + clipw < posx or clipy + cliph < posy then
+				return
+			end
+		end
+	end
+	
+	-- Find out row
+	local row = 1
+	while slot > font[4] do
+		row = row + 1
+		slot = slot - font[4]
+	end
+	
+	-- Draw
+	local cutx = 0
+	local cuty = 0
+	local cutw = font[2]
+	local cuth = font[3]
+	if clipx ~= nil and clipy ~= nil then
+		cutx = math.max(0, clipx - posx)
+		cuty = math.max(0, clipy - posy)
+		if clipw ~= nil and cliph ~= nil then
+			cutw = math.max(0, clipw + (clipx - posx))
+			cuth = math.max(0, cliph + (clipy - posy))
+		end
+	end
+	if cutw + cutx > font[2] then
+		cutw = font[2] - cutx
+	end
+	if cuth + cuty > font[3] then
+		cuth = font[3] - cuty
+	end
+	blitwiz.graphics.drawImage(font[1], posx, posy, a, cutx + (slot-1) * font[2], cuty + (row-1) * font[3], cutw, cuth, 1, 1, nil, nil, nil, nil, r, g, b)
 end
 
-blitwiz.font.register("templates/font/default.png", "default", 5, 5, 5, "iso-8859-15")
+function blitwiz.font.draw(name, text, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
+	local origposx = posx
+	local font = blitwiz.font.fonts[name]
+	local i = 1
+	while i <= #text do
+		local character = string.byte(string.sub(text, i, i))
+		if character == string.byte("\n") then
+			posx = origposx
+			posy = posy + font[3]
+		else 
+			local slot = (character - string.byte(" "))+1
+			drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
+			posx = posx + font[2]
+		end
+		i = i + 1
+	end
+end
+
+blitwiz.font.register("templates/font/default.png", "default", 7, 14, 32, "iso-8859-15")
 

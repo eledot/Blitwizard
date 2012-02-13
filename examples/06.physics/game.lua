@@ -15,6 +15,10 @@ pixelspermeter = 30 -- meter (physics unit) to pixels factor
 cratesize = 64/pixelspermeter -- size of a crate
 ballsize = 32/pixelspermeter -- size of a ball
 
+function blitwiz.on_image(image, success)
+	print("blubb: " .. image .. "," .. success)
+end
+
 -- Try to load templates if we don't have them
 if blitwiz.templatesinitialised ~= true and os.exists("../../templates/") == true then
 	local olddir = os.getcwd()
@@ -91,6 +95,9 @@ function blitwiz.on_draw()
 	-- Draw overall shadows:
 	local x,y = bgimagepos()
 	blitwiz.graphics.drawImage("shadows.png", x, y)
+
+	-- Draw stats
+	blitwiz.font.draw("default", "Object stats:\nCrates: " .. tostring(#crates) .. ", balls: " .. tostring(#balls), 10, 10)
 end
 
 function limitcrateposition(x,y)
