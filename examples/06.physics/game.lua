@@ -15,10 +15,6 @@ pixelspermeter = 30 -- meter (physics unit) to pixels factor
 cratesize = 64/pixelspermeter -- size of a crate
 ballsize = 32/pixelspermeter -- size of a ball
 
-function blitwiz.on_image(image, success)
-	print("blubb: " .. image .. "," .. success)
-end
-
 -- Try to load templates if we don't have them
 if blitwiz.templatesinitialised ~= true and os.exists("../../templates/") == true then
 	local olddir = os.getcwd()
