@@ -38,6 +38,7 @@
 #include "imgloader.h"
 #include "timefuncs.h"
 #include "hash.h"
+#include "file.h"
 
 static SDL_Window* mainwindow;
 static int mainwindowfullscreen;
@@ -370,7 +371,14 @@ int graphics_PromptTextureLoading(const char* texture) {
 	}
 	gt->threadingptr = img_LoadImageThreadedFromFunction(&graphics_AndroidTextureReader, gt->rwops, 0, 0, "rgba", NULL);
 #else
-    gt->threadingptr = img_LoadImageThreadedFromFile(gt->name, 0, 0, "rgba", NULL);
+	char* p = file_GetAbsolutePathFromRelativePath(gt->name);
+	if (!p) {
+		free(gt->name);
+		free(gt);
+		return 0;
+	}
+    gt->threadingptr = img_LoadImageThreadedFromFile(p, 0, 0, "rgba", NULL);
+	free(p);
 #endif
     if (!gt->threadingptr) {
         free(gt->name);
@@ -401,7 +409,7 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
         graphics_RemoveTextureFromHashmap(gt);
         free(gt->name);
         gt->name = NULL;
-    }
+	}
     if (gt->threadingptr) {
         return 0;
     }
@@ -434,12 +442,12 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstextu
         gt->width = width;
         gt->height = height;
         success = 1;
-        if (graphics_AreGraphicsRunning() && gt->name) {
+        if (graphics_AreGraphicsRunning() && gt->name && mainwindow) {
             if (!graphics_TextureToSDL(gt)) {
                 success = 0;
-            }
+			}
         }
-    }
+	}
 
     //do callback
     if (callback) {
