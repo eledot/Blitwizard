@@ -49,10 +49,10 @@ AS_IF([test -z "$maybeos"],[
 
 	MACTEST=`uname -a | grep Darwin`
 	AS_IF([test -z "$MACTEST"],[
-		LIBS="-lpthread -ldl -lm"
+		LIBS="-pthread -ldl -lm"
         WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	],[
-		LIBS="$LIBS -liconv -lpthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
+		LIBS="$LIBS -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
         WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
 	])
 
@@ -93,7 +93,7 @@ AS_IF([test -z "$maybeos"],[
 	WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	echo -e "$WRITELINE" > scripts/.buildinfo
 
-	CFLAGS="$CFLAGS -static-libgcc -static-libstdc++ -D_WIN32_WINNT=0x0501 -DWIN -mwindows -L../ -I../ `cd scripts && sh ./checksse.sh`"
+	CFLAGS="$CFLAGS -static-libgcc -static-libstdc++ -D_WIN32_WINNT=0x0501 -DWIN -mwindows -mthreads -L../ -I../ `cd scripts && sh ./checksse.sh`"
 	CXXFLAGS="$CXXFLAGS -static-libgcc -static-libstdc++ -D_WIN32_WINNT=0x0501 -DWIN -mwindows -L../ -I../ `cd scripts && sh ./checksse.sh`"
 	LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lole32 -lwinmm -luuid -lversion"
 

@@ -343,7 +343,7 @@ int graphics_PromptTextureLoading(const char* texture) {
 	if (gt) {
 		//check for threaded loading
 		if (gt->threadingptr) {
-			//it will be loaded.
+			//it will be loaded
 			return 1;
 		}
 		return 2; //texture is already present
@@ -363,7 +363,7 @@ int graphics_PromptTextureLoading(const char* texture) {
 
 	//trigger image fetching thread
 #if defined(ANDROID) || defined(__ANDROID__)
-	gt->rwops = SDL_RWFromFile(gt->name, "r");
+	gt->rwops = SDL_RWFromFile(gt->name, "rb");
 	if (!gt->rwops) {
 		free(gt->name);
 		free(gt);
