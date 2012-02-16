@@ -14,6 +14,7 @@ LOCAL_SRC_FILES := \
 
 LOCAL_STATIC_LIBRARIES := zlib
 
+LOCAL_CFLAGS := -pthread
 LOCAL_LDLIBS := -ldl 
 
 include $(BUILD_STATIC_LIBRARY)
