@@ -51,13 +51,15 @@ ul {
 <ul class="toc">
 <li><a href="#1introduction">1. Introduction</a></li>
 <li><a href="#2summary">2. API summary and document structure</a></li>
-<li><a href="#3blitwiz.graphics">3. <i>blitwiz.graphics</i> namespace</a></li>
-<li><a href="#4blitwiz.physics">4. <i>blitwiz.physics</i> namespace</a></li>
-<li><a href="#5blitwiz.sound">5. <i>blitwiz.sound</i> namespace</a></li>
-<li><a href="#6blitwiz.time">6. <i>blitwiz.time</i> namespace</a></li>
-<li><a href="#7blitwiz.on_*">7. Event callbacks</a></li>
-<li><a href="#8os">8. <i>os</i> standard namespace extension</a></li>
-<li><a href="#9string">9. <i>string</i> standard namespace extension</a></li>
+<li><a href="#3blitwiz.font">3. <i>blitwiz.font</i> namespace</a></li>
+<li><a href="#4blitwiz.graphics">4. <i>blitwiz.graphics</i> namespace</a></li>
+<li><a href="#5blitwiz.physics">5. <i>blitwiz.physics</i> namespace</a></li>
+<li><a href="#6blitwiz.random">6. <i>blitwiz.random</i> namespace</a></li>
+<li><a href="#7blitwiz.sound">7. <i>blitwiz.sound</i> namespace</a></li>
+<li><a href="#8blitwiz.time">8. <i>blitwiz.time</i> namespace</a></li>
+<li><a href="#9blitwiz.on_*">9. Event callbacks</a></li>
+<li><a href="#10os">10. <i>os</i> standard namespace extension</a></li>
+<li><a href="#11string">11. <i>string</i> standard namespace extension</a></li>
 </ul>
 <a name="1introduction"><h1>1. Introduction</h1></a>
 <p>This document describes the blitwizard Lua api with all provided functions.
@@ -76,7 +78,7 @@ here but nevertheless important for using Lua, so
 if you aren't familiar with them.</p>
 <p>The blitwizard extensions to the standard library however, consisting of additional
 functions added to the Lua 5 standard namespaces,
-e.g. <a href="#9string">additional string functions</a>, are described in this document.</p>
+e.g. <a href="#11string">additional string functions</a>, are described in this document.</p>
 <p>All functions listed in this document are listed with their names, parameters and return value,
 whereas a parameter type and return value type
 is specified.
@@ -113,7 +115,7 @@ supported by functions in the blitwiz namespace (those will cut the string off a
 first null byte), while all extension functions put into the standard namespaces (like
 the string functions) can deal with null bytes similar to Lua's own internal string
 functions.</p>
-<a name="3blitwiz.graphics"><h1>3. <i>blitwiz.graphics</i> namespace</h1></a>
+<a name="4blitwiz.graphics"><h1>4. <i>blitwiz.graphics</i> namespace</h1></a>
 <ul>
 
 <li><h2><a name="blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>(filename <i>(string)</i>, x position <i>(number)</i>, y position <i>(number)</i>, alpha/opacity <i>(number)</i>, x cut <i>(number)</i>, y cut <i>(number)</i>, width cut <i>(number)</i>, height cut <i>(number)</i>, x scale <i>(number)</i>, y scale <i>(number)</i>, rotation angle <i>(number)</i>, rotation center x position <i>(number)</i>, rotation center y position <i>(number)</i>, horizontal flip <i>(boolean)</i>, red tint <i>(number)</i>, green tint <i>(number)</i>, blue tint <i>(number)</i>)</h2>
@@ -496,7 +498,7 @@ end
 </li>
 
 </ul>
-<a name="4blitwiz.physics"><h1>4. <i>blitwiz.physics</i> namespace</h1></a>
+<a name="5blitwiz.physics"><h1>5. <i>blitwiz.physics</i> namespace</h1></a>
 <p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world. You can also not move objects directly (except <a href="#blitwiz.physics.warp">warping</a> which you should use as rarely as possible) - they will move on their own according to their mass, how they collide with each other etc. You can give them "pushes" though by using <a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>.</p>
 <p><b>Physics are complicated. Take a look at the examples to get an idea for it, especially the "Moving character" example if you simply want to make a character that walks around in a level.</b></p>
 <p>
@@ -972,7 +974,7 @@ Return value: None
 </li>
 
 </ul>
-<a name="5blitwiz.sound"><h1>5. <i>blitwiz.sound</i> namespace</h1></a>
+<a name="7blitwiz.sound"><h1>7. <i>blitwiz.sound</i> namespace</h1></a>
 <ul>
 
 <li><h2><a name="blitwiz.sound.getBackendName">blitwiz.sound.getBackendName</a>()</h2>
@@ -1063,7 +1065,7 @@ blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
 </li>
 
 </ul>
-<a name="7blitwiz.on_*"><h1>7. Event callbacks</h1></a>
+<a name="9blitwiz.on_*"><h1>9. Event callbacks</h1></a>
 <ul>
 
 <li><h2><a name="blitwiz.on_close">blitwiz.on_close</a>()</h2>
@@ -1306,7 +1308,7 @@ Parameters:
 
 </ul>
 
-<a name="8os"><h1>8. <i>os</i> standard namespace extension</h1></a>
+<a name="10os"><h1>10. <i>os</i> standard namespace extension</h1></a>
 <p>This describes the blitwizard extensions to the Lua standard <b>os</b> library. Check the manual on <a href="http://www.lua.org/">www.lua.org</a> for the standard functions of the os lib already provided by Lua.</p>
 <ul>
 
@@ -1490,7 +1492,7 @@ Return value: <i>(string)</i> the system version.
 </li>
 
 </ul>
-<a name="9string"><h1>9. <i>string</i> standard namespace extension</h1></a>
+<a name="11string"><h1>11. <i>string</i> standard namespace extension</h1></a>
 <p>This describes the blitwizard extensions to the Lua standard <b>string</b> library. Check the manual on <a href="http://www.lua.org/">www.lua.org</a> for the standard functions of the string lib already provided by Lua.</p>
 <ul>
 
