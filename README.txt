@@ -4,6 +4,13 @@
 You got blitwizard at your hands, a 2d engine that runs Lua scripts
 you write to specify the behaviour of your game/multimedia application.
 
+Run on Windows:
+  Double-click "Run-blitwizard.bat"
+Run on Linux/BSD/Mac:
+  Open a terminal
+  Change directory to the blitwizard directory
+  Type: cd bin/ && ./blitwizard
+
 If you don't have a binary release, you need to build blitwizard first.
 Please check out README-build.txt for this.
  (if there is no such file, you have a binary release)
