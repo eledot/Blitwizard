@@ -25,25 +25,20 @@ function blitwiz.on_init()
 	-- This function is called right after blitwizard has
 	-- started. You would normally want to open up a
 	-- window here with blitwiz.graphics.setWindow().
-	print("1")	
+
 	-- Open a window
 	function openwindow()
-		print "openwindow"
 		blitwiz.graphics.setWindow(640, 480, "Hello World", false) -- resolution/size: 640x480, title: "Hello World", fullscreen: false/no
 	end
-	print("2")
 	if pcall(openwindow) == false then
-		print "will try fullscreen"
 		-- Opening a window failed.
 		-- Open fullscreen at any resolution (for Android)
 		resolution = blitwiz.graphics.getDisplayModes()[1]
 		blitwiz.graphics.setWindow(resolution[1], resolution[2], "Hello World", true)
 	end
-	print("3")
 
 	-- Load image
 	blitwiz.graphics.loadImage("hello_world.png")
-	print("4")
 end
 
 function blitwiz.on_keydown(key)
