@@ -59,7 +59,7 @@ void* main_DefaultPhysicsPtr() {
 
 void main_Quit(int returncode) {
 	if (sdlinitialised) {
-		//audio_Quit(); //FIXME: workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1396
+		//audio_Quit(); //FIXME: workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1396 (causes an unclean shutdown)
 		graphics_Quit();
 	}
 	exit(returncode);

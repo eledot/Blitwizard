@@ -895,7 +895,6 @@ int luafuncs_play(lua_State* l) {
 		if (volume > 1) {volume = 1;}
 	}
 	if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
-		printf("Type: %d\n", lua_type(l, 3));
 		if (lua_type(l, 3) != LUA_TNUMBER) {
 			lua_pushstring(l, "Third parameter is not a valid panning number");
 			return lua_error(l);

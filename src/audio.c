@@ -116,7 +116,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		snprintf(errbuf,sizeof(errbuf),"Failed to open SDL audio: %s", SDL_GetError());
 		errbuf[sizeof(errbuf)-1] = 0;
 		*error = strdup(errbuf);
-		//FIXME: this is only a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343
+		//FIXME: this is only a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
 		//SDL_AudioQuit();
 		return 0;
 	}
