@@ -74,6 +74,10 @@ echo "Type a folder path or nothing and press [ENTER]:"
 read game_files_path
 
 if [ -n "$game_files_path" ]; then
+	if [ ! -e "$game_files_path"/game.lua ]; then
+		echo "game.lua is not present. Please check your game folder path!"
+		exit 1;
+	fi
 	echo "Copying game files..."
 	mkdir -p blitwizard-android/assets/
 	cp -R "$game_files_path"/* blitwizard-android/assets/
