@@ -371,15 +371,12 @@ int luafuncs_setWindow(lua_State* l) {
 	const char* renderer = lua_tostring(l, 5);
 	char* error;
 	if (!graphics_SetMode(x, y, fullscreen, 0, title, renderer, &error)) {
-		printinfo("b1");
 		if (error) {
 			lua_pushstring(l, error);
 			free(error);
 			return lua_error(l);
 		}
-		printinfo("b2");
 		lua_pushstring(l, "Unknown error on setting mode");
-		printinfo("b3");;
 		return lua_error(l);
 	}
 	return 0;
