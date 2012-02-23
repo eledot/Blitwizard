@@ -52,7 +52,7 @@ AS_IF([test -z "$maybeos"],[
 		LIBS="-pthread -ldl -lm"
         WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	],[
-		LIBS="$LIBS -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
+		LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
         WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
 	])
 

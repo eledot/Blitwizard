@@ -21,6 +21,10 @@
 
 */
 
+#include <stdlib.h>
+#include <math.h>
+#include <stdio.h>
+
 #include "mathhelpers.h"
 
 static float distfromzero(float x, float y) {
