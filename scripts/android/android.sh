@@ -45,13 +45,14 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	mv blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp.2 blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp
 
 	# Another SDL fix for static build: don't load SDL at runtime
-	cat blitwizard-android/src/org/libsdl/app/SDLActivity.java | sed "s/System.loadLibrary(\"SDL2\");/\/\/System.loadLibrary(\"SDL\")/g" > blitwizard-android/src/org/libsdl/app/SDLActivity.java.2
+	cat blitwizard-android/src/org/libsdl/app/SDLActivity.java | sed "s/System.loadLibrary(\"SDL2\");/\/\/System.loadLibrary(\"SDL2\")/g" > blitwizard-android/src/org/libsdl/app/SDLActivity.java.2
 	mv blitwizard-android/src/org/libsdl/app/SDLActivity.java.2 blitwizard-android/src/org/libsdl/app/SDLActivity.java
 
 else
 	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
 		read -p "Recompile NDK code? [y/N]"
-		[ "$REPLY" = [yY] ] || { COMPILE="no"; }
+		COMPILE="no"
+		[ "$REPLY" = [yY] ] || { COMPILE="yes"; }
 	fi
 fi
 
