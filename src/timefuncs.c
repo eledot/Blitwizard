@@ -26,15 +26,17 @@
 #include "timefuncs.h"
 
 uint64_t oldtime = 0;
-uint64_t timeadd = 0;
+uint64_t timeoffset = 0;
 uint64_t time_GetMilliSeconds() {
 	uint64_t i = SDL_GetTicks();
-	i += timeadd;
+	i += timeoffset; //add an offset we might have set
 	if (i > oldtime) {
+		//normal time difference
 		oldtime = i;
 	}else{
-		timeadd = (oldtime-i)+1;
-		i += timeadd;	
+		//we wrapped around. set a time offset to avoid the wrap
+		timeoffset = (oldtime-i)+1;
+		i += timeoffset;	
 	}
 	return i;
 }
