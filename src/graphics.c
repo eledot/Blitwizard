@@ -939,9 +939,11 @@ void graphics_CompleteFrame() {
 	SDL_RenderPresent(mainrenderer);
 }
 
+int lastfingerdownx,lastfingerdowny;
+
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text)) {
 	SDL_Event e;
-        while (SDL_PollEvent(&e) == 1) {
+    while (SDL_PollEvent(&e) == 1) {
 		if (e.type == SDL_QUIT) {
 			quitevent();
 		}
@@ -956,9 +958,21 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 		}
 		if (e.type == SDL_FINGERDOWN || e.type == SDL_FINGERUP) {
 			int release = 0;
-			if (e.type == SDL_FINGERUP) {release = 1;}
+			int x,y;
+			if (e.type == SDL_FINGERUP) {
+				//take fingerdown coordinates on fingerup
+				x = lastfingerdownx;
+				y = lastfingerdowny;
+				release = 1;
+			}else{
+				//remember coordinates on fingerdown
+				x = e.tfinger.x;
+				y = e.tfinger.y;
+				lastfingerdownx = x;
+				lastfingerdowny = y;
+			}
 			int button = SDL_BUTTON_LEFT;
-			mousebuttonevent(button, release, e.tfinger.x, e.tfinger.y);
+			mousebuttonevent(button, release, x, y);
 		}
 		if (e.type == SDL_TEXTINPUT) {
 			textevent(e.text.text);
