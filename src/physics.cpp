@@ -79,7 +79,7 @@ int physics_GetStepSize(struct physicsworld* world) {
 void physics_Step(struct physicsworld* world) {
 	int i = 0;
 	while (i < 2) {
-		double forcefactor = (1.0/(1000.0f/physics_GetStepSize(world->w)))*8;
+		double forcefactor = (1.0/(1000.0f/physics_GetStepSize(world)))*8;
 		b2Body* b = world->w->GetBodyList();
 		while (b) {
 			struct physicsobject* obj = (struct physicsobject*)b->GetUserData();
@@ -101,7 +101,7 @@ void physics_Step(struct physicsworld* world) {
 		int it1 = 10;
 		int it2 = 7;
 #endif
-		world->w->Step(1.0 /(1000.0f/physics_GetStepSize(world->w)), it1, it2);
+		world->w->Step(1.0 /(1000.0f/physics_GetStepSize(world)), it1, it2);
 		i++;
 	}
 }
