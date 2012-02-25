@@ -34,7 +34,8 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 
 	# Copy templates
-	cp -R blitwizard/templates/ blitwizard-android/assets/templates/
+	mkdir -p blitwizard-android/assets/
+	cp -R blitwizard/templates/ ./blitwizard-android/assets/templates/
 
 	# Generate templates init list
 	sh android/generate-template-script.sh > blitwizard-android/assets/templates/filelist.lua
@@ -122,7 +123,6 @@ if [ -n "$game_files_path" ]; then
 		exit 1
 	fi
 	echo "Copying game files..."
-	mkdir -p blitwizard-android/assets/
 	cp -R "$game_files_path"/* blitwizard-android/assets/
 	echo "Game files copied."
 else
