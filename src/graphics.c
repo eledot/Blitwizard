@@ -39,6 +39,9 @@
 #include "timefuncs.h"
 #include "hash.h"
 #include "file.h"
+#ifdef NOTHREADEDSDLRW
+#include "main.h"
+#endif
 
 static SDL_Window* mainwindow;
 static int mainwindowfullscreen;

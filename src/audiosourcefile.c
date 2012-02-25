@@ -28,6 +28,10 @@
 #include "audiosource.h"
 #include "audiosourcefile.h"
 
+#ifdef NOTHREADEDSDLRW
+#include "main.h"
+#endif
+
 #if defined(ANDROID) || defined(__ANDROID__)
 #include "SDL.h"
 #endif
@@ -74,7 +78,12 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 	}
 
 #if defined(ANDROID) || defined(__ANDROID__)
+#ifndef NOTHREADEDSDLRW
 	int bytesread = idata->file->read(idata->file, buffer, 1, bytes);
+#else
+	//workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1422
+	int bytesread = main_NoThreadedRWopsRead(idata->file, buffer, 1, bytes);
+#endif
 #else
 	int bytesread = fread(buffer, 1, bytes, idata->file);
 #endif
