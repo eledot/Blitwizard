@@ -67,13 +67,19 @@ void physics_DestroyWorld(struct physicsworld* world) {
 }
 
 int physics_GetStepSize(struct physicsworld* world) {
+#if defined(ANDROID) || defined(__ANDROID__)
+	//less accurate physics on Android
 	return (1000/50);
+#else
+	//more accurate physics on desktop
+	return (1000/100);
+#endif
 }
 
 void physics_Step(struct physicsworld* world) {
 	int i = 0;
 	while (i < 2) {
-		double forcefactor = (1.0/100.0)*8;
+		double forcefactor = (1.0/(1000.0f/physics_GetStepSize(world->w)))*8;
 		b2Body* b = world->w->GetBodyList();
 		while (b) {
 			struct physicsobject* obj = (struct physicsobject*)b->GetUserData();
@@ -86,7 +92,16 @@ void physics_Step(struct physicsworld* world) {
 			}
 			b = b->GetNext();
 		}
-		world->w->Step(1.0 / 100, 10, 7);
+#if defined(ANDROID) || defined(__ANDROID__)
+		//less accurate on Android
+		int it1 = 7;
+		int it2 = 4;
+#else
+		//more accurate on desktop
+		int it1 = 10;
+		int it2 = 7;
+#endif
+		world->w->Step(1.0 /(1000.0f/physics_GetStepSize(world->w)), it1, it2);
 		i++;
 	}
 }
