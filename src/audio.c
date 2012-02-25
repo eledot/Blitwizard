@@ -56,6 +56,7 @@ void audio_Quit() {
 int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
 	if (soundenabled) {
 		//quit old sound first
+		SDL_PauseAudio(1);
 		SDL_AudioQuit();
 		soundenabled = 0;
 	}
@@ -116,7 +117,14 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		snprintf(errbuf,sizeof(errbuf),"Failed to open SDL audio: %s", SDL_GetError());
 		errbuf[sizeof(errbuf)-1] = 0;
 		*error = strdup(errbuf);
-		//FIXME: this is only a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
+		//FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
+		//SDL_AudioQuit();
+		return 0;
+	}
+
+	if (fmt.channels != 2 || (s16 && fmt.format != AUDIO_S16) || (!s16 && fmt.format != AUDIO_F32SYS)) {
+		*error = strdup("SDL audio delivered wrong/unusable format");
+		//FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
 		//SDL_AudioQuit();
 		return 0;
 	}

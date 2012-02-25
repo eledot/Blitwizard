@@ -288,10 +288,66 @@ static void imgloaded(int success, const char* texture) {
 	}
 }
 
+#ifdef NOTHREADEDSDLRW
+SDL_RWops* rwread_rwops = NULL;
+void* rwread_buffer;
+size_t rwread_readsize;
+unsigned int rwread_readbytes;
+int rwread_result = 0;
+mutex* rwread_querymutex = NULL; //only one thread may pose a query at once
+mutex* rwread_executemutex = NULL; //the main thread locks this during execution of the query
+
+void main_NoThreadedRWopsRead(SDL_RWops* rwops, void* buffer, size_t size, unsigned int bytes) {
+	//get permission to pose a query
+	mutex_LockMutex(rwread_querymutex);
+
+	//make sure main thread is not doing anything
+	mutex_LockMutex(rwread_executemutex);
+
+	//pose query:
+	rwread_rwops = rwops;
+	rwread_readsize = size;
+	rwread_readbytes = bytes;
+	rwread_buffer = buffer;
+	rwread_result = -2;
+
+	//wait for query to finish
+	mutex_UnlockMutex(rwread_executemutex);
+	while (1) {
+		time_Sleep(10);
+		mutex_LockMutex(rwread_executemutex);
+		if (rwread_result > -2) {break;}
+		mutex_UnlockMutex(rwread_executemutex);
+	}
+	
+	//we are done!
+	int r = rwread_result;
+	mutex_UnlockMutex(rwread_executemutex);
+	mutex_UnlockMutex(rwread_querymutex);
+	return r;
+}
+void main_ProcessNoThreadedReading() {
+	mutex_LockMutex(rwread_executemutex);
+	if (rwread_result == -2) {
+		//we should do something
+		rwread_result = rwread_rwops->read(rwread_rwops, rwread_buffer, rwread_size, rwread_bytes);
+		if (rwread_result < -1) {
+			rwread_result = -1;
+		}
+	}
+	mutex_UnlockMutex(rwread_executemutex);
+}
+#endif
+
 #if (defined(__ANDROID__) || defined(ANDROID))
 int SDL_main(int argc, char** argv) {
 #else
 int main(int argc, char** argv) {
+#endif
+
+#ifdef NOTHREADEDSDLRW
+	readquerymutex = mutex_CreateMutex();
+	rwread_executemutex = mutex_CreateMutex();
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
@@ -469,12 +525,17 @@ int main(int argc, char** argv) {
 		uint64_t physicstimestamp = time_GetMilliSeconds();
 		while (!wantquit) {
 			uint64_t time = time_GetMilliSeconds();
-			
+
+			//this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
+#ifdef NOTHREADEDSDLRW
+			main_ProcessNoThreadedReading();	
+#endif		
+	
 			//simulate audio
 			if (simulateaudio) {
 				while (simulateaudiotime < time_GetMilliSeconds()) {
-					audiomixer_GetBuffer(48 * 2 * 2);
-					simulateaudiotime += 1; // 48 * 1000 times * 2 byte * 2 channels per second = simulated 48kHz 16bit stereo audio
+					audiomixer_GetBuffer(48 * 4 * 2);
+					simulateaudiotime += 1; // 48 * 1000 times * 4 bytes * 2 channels per second = simulated 48kHz 32bit stereo audio
 				}
 			}
 

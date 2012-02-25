@@ -332,7 +332,12 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 #if defined(ANDROID) || defined(__ANDROID__)
 static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userdata) {
 	SDL_RWops* ops = (SDL_RWops*)userdata;
+#ifndef NOTHREADEDSDLRW
 	int i = ops->read(ops, buffer, 1, bytes);
+#else
+	//workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1422
+	int i = main_NoThreadedRWopsRead(ops, buffer, 1, bytes);
+#endif
 	return i;
 }
 #endif
