@@ -468,7 +468,7 @@ int main(int argc, char** argv) {
 #else
 	//on Android, see if we can read the file:
 	int exists = 0;
-	SDL_RWops* rwops = SDL_RWFromFile(gt->name, "rb");
+	SDL_RWops* rwops = SDL_RWFromFile("templates/init.lua", "rb");
     if (rwops) {
 		exists = 1;
 		SDL_FreeRW(rwops);
