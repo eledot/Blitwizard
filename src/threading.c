@@ -49,6 +49,6 @@ void mutex_Lock(mutex* m) {
 }
 
 void mutex_Release(mutex* m) {
-	SLD_UnlockMutex(m->m);
+	SDL_UnlockMutex(m->m);
 }
 

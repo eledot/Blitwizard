@@ -9,7 +9,7 @@ blitwizard_SOURCES = audio.c audiomixer.c audiosourcefadepanvol.c audiosourceffm
 blitwizard_LDADD = -limglib -lblitwizardSDL -lblitwizardpng -lblitwizardzlib -lblitwizardvorbisfile -lblitwizardvorbis -lblitwizardogg -lblitwizardlua -lblitwizardbox2d
 blitwizard_LDFLAGS = 
 
-AM_CFLAGS = -fno-PIC -O2 -Wall -Wextra -g -fomit-frame-pointer -Isdl/include/ -Iimgloader/ -L../libs -Ilua/src/ -Ivorbis/include/ -Iogg/include/ -Iffmpeg/
+AM_CFLAGS = -fno-PIC -O2 -Wall -Wextra -g -DNOTHREADEDSDLRW -fomit-frame-pointer -Isdl/include/ -Iimgloader/ -L../libs -Ilua/src/ -Ivorbis/include/ -Iogg/include/ -Iffmpeg/
 AM_CXXFLAGS = -fno-PIC -O2 -Wall -Wextra -g -fno-exceptions -fomit-frame-pointer -Isdl/include/ -Iimgloader/ -L../libs -Ilua/src/ -Ivorbis/include/ -Iogg/include/ -Iffmpeg/ -Ibox2d/
 
 # -fno-PIC is only added for some extra speed, same as -O2.

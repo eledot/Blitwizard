@@ -24,5 +24,5 @@
 void main_InitAudio();
 void main_Quit(int returncode);
 void* main_DefaultPhysicsPtr();
-void main_NoThreadedRWopsRead(SDL_RWops* rwops, void* buffer, size_t size, unsigned int bytes);
+int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned int bytes);
 

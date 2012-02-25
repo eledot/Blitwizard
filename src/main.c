@@ -49,6 +49,10 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "logging.h"
 #include "audiosourceffmpeg.h"
 #include "physics.h"
+#ifdef NOTHREADEDSDLRW
+#include "SDL.h"
+#include "threading.h"
+#endif
 
 #define TIMESTEP 16
 
@@ -297,45 +301,45 @@ int rwread_result = 0;
 mutex* rwread_querymutex = NULL; //only one thread may pose a query at once
 mutex* rwread_executemutex = NULL; //the main thread locks this during execution of the query
 
-void main_NoThreadedRWopsRead(SDL_RWops* rwops, void* buffer, size_t size, unsigned int bytes) {
+int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned int bytes) {
 	//get permission to pose a query
-	mutex_LockMutex(rwread_querymutex);
+	mutex_Lock(rwread_querymutex);
 
 	//make sure main thread is not doing anything
-	mutex_LockMutex(rwread_executemutex);
+	mutex_Lock(rwread_executemutex);
 
 	//pose query:
-	rwread_rwops = rwops;
+	rwread_rwops = (SDL_RWops*)rwops;
 	rwread_readsize = size;
 	rwread_readbytes = bytes;
 	rwread_buffer = buffer;
 	rwread_result = -2;
 
 	//wait for query to finish
-	mutex_UnlockMutex(rwread_executemutex);
+	mutex_Release(rwread_executemutex);
 	while (1) {
 		time_Sleep(10);
-		mutex_LockMutex(rwread_executemutex);
+		mutex_Lock(rwread_executemutex);
 		if (rwread_result > -2) {break;}
-		mutex_UnlockMutex(rwread_executemutex);
+		mutex_Release(rwread_executemutex);
 	}
 	
 	//we are done!
 	int r = rwread_result;
-	mutex_UnlockMutex(rwread_executemutex);
-	mutex_UnlockMutex(rwread_querymutex);
+	mutex_Release(rwread_executemutex);
+	mutex_Release(rwread_querymutex);
 	return r;
 }
 void main_ProcessNoThreadedReading() {
-	mutex_LockMutex(rwread_executemutex);
+	mutex_Lock(rwread_executemutex);
 	if (rwread_result == -2) {
 		//we should do something
-		rwread_result = rwread_rwops->read(rwread_rwops, rwread_buffer, rwread_size, rwread_bytes);
+		rwread_result = rwread_rwops->read(rwread_rwops, rwread_buffer, rwread_readsize, rwread_readbytes);
 		if (rwread_result < -1) {
 			rwread_result = -1;
 		}
 	}
-	mutex_UnlockMutex(rwread_executemutex);
+	mutex_Release(rwread_executemutex);
 }
 #endif
 
@@ -346,8 +350,8 @@ int main(int argc, char** argv) {
 #endif
 
 #ifdef NOTHREADEDSDLRW
-	readquerymutex = mutex_CreateMutex();
-	rwread_executemutex = mutex_CreateMutex();
+	rwread_querymutex = mutex_Create();
+	rwread_executemutex = mutex_Create();
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
