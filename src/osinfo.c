@@ -178,7 +178,7 @@ const char* osinfo_GetSystemName() {
 #if defined(__OpenBSD__)
 	strcpy(osbuf, "OpenBSD");
 #endif
-#if defined(__linux) || defined(linux)
+#if defined(__linux) || defined(linux) || defined(__linux__)
 	strcpy(osbuf, "Linux");
 #endif
 #if defined(sun) || defined(__sun)
@@ -190,7 +190,7 @@ const char* osinfo_GetSystemName() {
 #if defined(ANDROID) || defined(__ANDROID__)
 	strcpy(osbuf, "Android");
 #endif
-	if (strlen(versionbuf) <= 0) {
+	if (strlen(osbuf) <= 0) {
 		strcpy(osbuf,"Unknown Unix/POSIX");
 	}
 	return osbuf;

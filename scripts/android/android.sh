@@ -33,6 +33,12 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
 	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 
+	# Copy templates
+	cp -R blitwizard/templates/ blitwizard-android/assets/templates/
+
+	# Generate templates init list
+	sh android/generate-template-script.sh > blitwizard-android/assets/templates/filelist.lua
+
 	# Ensure our SDL project has the STL for Box2D
 	echo "APP_STL := stlport_static" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
     echo "STLPORT_FORCE_REBUILD := true" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
@@ -77,7 +83,8 @@ cp blitwizard-android/AndroidManifest.xml.orig blitwizard-android/AndroidManifes
 echo "Please enter a program version number, like 1 or 2."
 read -p "The number should be incremented for each new release:"
 PROGVERSION="$REPLY"
-test -z "$input" -o -n "`echo $PROGVERSION | tr -d '[0-9]'`" && { echo "You did not input a simple number. Please use only 0-9."; exit 1; }
+echo "Supplied version number is: [$PROGVERSION]"
+test -n "$input" -o -n "`echo $PROGVERSION | tr -d '[0-9]'`" && { echo "You did not input a simple number. Please use only 0-9."; exit 1; }
 echo "Please enter a program version string, like 1.0."
 read -p "This version string will be visible to the user:"
 PROGVERSIONFULL="$REPLY"
@@ -99,9 +106,9 @@ fi
 echo "App name will be $app_name"
 echo "You can include a blitwizard game which blitwizard will run."
 echo "For this, you can provide the path of a directory containing it."
-echo "Please note !!ONLY THE GAME FILES AND templates/ FOLDER!!"
-echo "should be in that directory, not any other files like blitwizard"
-echo "binaries, examples folder or anything."
+echo "Please note !!ONLY THE GAME FILES!! should be in that directory,"
+echo "not any other files like blitwizard binaries, examples/templates"
+echo "folder or anything."
 echo "Type a folder path or nothing and press [ENTER]:"
 read game_files_path
 
@@ -109,6 +116,10 @@ if [ -n "$game_files_path" ]; then
 	if [ ! -e "$game_files_path"/game.lua ]; then
 		echo "game.lua is not present. Please check your game folder path!"
 		exit 1;
+	fi
+	if [ -e "$game_files_path"/templates/ ]; then
+		echo "Folder contains \"templates\" sub folder or file. Please use a directory with only your game files in it!"
+		exit 1
 	fi
 	echo "Copying game files..."
 	mkdir -p blitwizard-android/assets/

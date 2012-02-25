@@ -412,6 +412,11 @@ static lua_State* luastate_New() {
 
 	//throw table "os" off the stack
 	lua_pop(l, 1);
+
+	char vstr[512];
+	snprintf(vstr, sizeof(vstr), "Blitwizard %s based on Lua 5.2", VERSION);
+	lua_pushstring(l, vstr);
+	lua_setglobal(l, "_VERSION");
 	
 	return l;
 }

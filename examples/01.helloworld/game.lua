@@ -24,8 +24,7 @@ print("Hello world example in blitwizard")
 -- Warn if we run without templates (you can remove this from
 -- your own game if you wish to, it is just for convenience)
 if blitwiz.templatesinitialised ~= true then
-    error "The templates/ sub folder with the templates is apparently missing. P
-lease copy it into the same folder as your game.lua before you start up."
+    error "The templates/ sub folder with the templates is apparently missing. Please copy it into the same folder as your game.lua before you start up."
 end
 
 function blitwiz.on_init()
@@ -79,6 +78,7 @@ function blitwiz.on_draw()
 
 	-- Actual drawing happens here
 	blitwiz.graphics.drawImage("hello_world.png", mw/2 - w/2, mh/2 - h/2)
+	blitwiz.font.draw("default", _VERSION .. ",\n   running on: "  .. os.sysname(), 10, 10)
 
 	-- Done!
 end
@@ -101,12 +101,12 @@ function blitwiz.on_step()
 	-- movements or calculations of any sort that are part
 	-- of your continuously running game simulation.
 
-	-- For this example, we just want to quit after 8 seconds
+	-- For this example, we just want to quit after 10 seconds
 	
 	if preloadedTime == nil then
 		preloadedTime = blitwiz.time.getTime()
 	end
-	if blitwiz.time.getTime() > preloadedTime + 8000 then
+	if blitwiz.time.getTime() > preloadedTime + 10000 then
 		os.exit(0)
 	end
 end
