@@ -489,7 +489,12 @@ int graphics_LoadTextureInstantly(const char* texture) {
 	}
 
 	//wait for loading to finish
-	while (!img_CheckSuccess(gt->threadingptr)) {time_Sleep(10);}
+	while (!img_CheckSuccess(gt->threadingptr)) {
+		time_Sleep(10);
+#ifdef NOTHREADEDSDLRW
+		main_ProcessNoThreadedReading();
+#endif
+	}
 	
 	//complete image
 	return graphics_FinishImageLoading(gt, graphics_GetPreviousTexture(gt), NULL);
