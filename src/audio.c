@@ -60,6 +60,12 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		SDL_AudioQuit();
 		soundenabled = 0;
 	}
+#if defined(ANDROID) || defined(__ANDROID__)
+	if (!s16) {
+		*error = strdup("No 32bit audio available on Android");
+		return 0;
+	}
+#endif
 	char errbuf[512];
 	char preferredbackend[20] = "";
 #ifdef WIN

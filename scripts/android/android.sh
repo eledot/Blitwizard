@@ -48,6 +48,9 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	cat blitwizard-android/src/org/libsdl/app/SDLActivity.java | sed "s/System.loadLibrary(\"SDL2\");/\/\/System.loadLibrary(\"SDL2\")/g" > blitwizard-android/src/org/libsdl/app/SDLActivity.java.2
 	mv blitwizard-android/src/org/libsdl/app/SDLActivity.java.2 blitwizard-android/src/org/libsdl/app/SDLActivity.java
 
+	# Make sure the status bar is gone in fullscreen
+	cat blitwizard-android/AndroidManifest.xml | sed "s/<application android:label=\"@string/app_name\" android:icon=\"@drawable/icon\">/<uses-sdk android:minSdkVersion=\"4\"/> <application android:label=\"@string/app_name\" android:icon=\"@drawable/icon\" android:theme=\"@android:style/Theme.NoTitleBar.Fullscreen\">/g" > blitwizard-android/AndroidManifest.xml.2
+	mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
 else
 	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
 		read -p "Recompile NDK code? [y/N]"
