@@ -70,7 +70,12 @@ else
 	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
 		read -p "Recompile NDK code? [y/N]"
 		COMPILE="no"
-		[ "$REPLY" = [yY] ] || { COMPILE="yes"; }
+		if [ "$REPLY" = "y" ]; then
+			COMPILE="yes"
+		fi
+		if [ "$REPLY" = "Y" ]; then
+			COMPILE="yes"
+		fi
 	fi
 fi
 

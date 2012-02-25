@@ -22,7 +22,15 @@ end
 
 function blitwiz.on_init()
 	-- Open a window
-	blitwiz.graphics.setWindow(640, 480, "Physics", false)
+    function openwindow()
+        blitwiz.graphics.setWindow(640, 480, "Physics", false)
+    end
+    if pcall(openwindow) == false then
+        -- Opening a window failed.
+        -- Open fullscreen at any resolution (for Android)
+        resolution = blitwiz.graphics.getDisplayModes()[1]
+        blitwiz.graphics.setWindow(resolution[1], resolution[2], "Physics", true)
+    end
 
 	-- Load image
 	blitwiz.graphics.loadImage("bg.png")
