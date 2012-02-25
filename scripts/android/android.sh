@@ -23,6 +23,7 @@ fi
 ANDROID_SDK_PATH="$1"
 ANDROID_NDK_PATH="$2"
 REDOWNLOADED="$3"
+ANDROIDINTVERSION=`cat ../configure.ac | grep "Int version" | sed "s/# Int version: //g" | sed "s/ (.*//g"`
 
 COMPILE="yes"
 
@@ -56,6 +57,9 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	cat blitwizard-android/AndroidManifest.xml | sed "s/<activity android:name=\"SDLActivity\"/<activity android:name=\"SDLActivity\" android:configChanges=\"orientation\" android:screenOrientation=\"landscape\"/g" > blitwizard-android/AndroidManifest.xml.2
     mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
 
+	# Insert version int
+	cat blitwizard-android/AndroidManifest.xml | sed "s/android:versionCode=\"1\"/android:versionCode=\"${ANDROIDINTVERSION}\"/g" | sed "s/android:versionName=\"1\\.0\"/android:versionName=\"${blitwizard_version}\"/g" > blitwizard-android/AndroidManifest.xml.2
+    mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
 else
 	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
 		read -p "Recompile NDK code? [y/N]"
