@@ -58,7 +58,7 @@ if [ "$REDOWNLOADED" = "yes" ]; then
     mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
 
 	# Preserve original manifest
-	cp blitwizard-android/AndroidManifext.xml blitwizard-android/AndroidManifext.xml.orig
+	cp blitwizard-android/AndroidManifest.xml blitwizard-android/AndroidManifest.xml.orig
 else
 	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
 		read -p "Recompile NDK code? [y/N]"
