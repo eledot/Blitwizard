@@ -249,7 +249,7 @@ echo "Done,"
 # Success!
 echo ""
 echo ""
-echo " -- Sucess:"
+echo " -- Success:"
 echo "Android \"${app_name}.apk\" should be complete."
 echo "You can now ship your blitwizard game to the phones!"
 echo "Small side note:"
