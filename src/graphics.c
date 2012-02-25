@@ -954,6 +954,12 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 			int button = e.button.button;
 			mousebuttonevent(button, release, e.button.x, e.button.y);
 		}
+		if (e.type == SDL_FINGERDOWN || e.type == SDL_FINGERUP) {
+			int release = 0;
+			if (e.type == SDL_FINGERUP) {release = 1;}
+			int button = SDL_BUTTON_LEFT;
+			mousebuttonevent(button, release, e.tfinger.x, e.tfinger.y);
+		}
 		if (e.type == SDL_TEXTINPUT) {
 			textevent(e.text.text);
 		}
