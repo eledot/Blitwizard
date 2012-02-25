@@ -21,6 +21,13 @@ print("Hello world example in blitwizard")
 -- available, check the other examples or see the full
 -- documentation on http://games.homeofjones.de/blitwizard/
 
+-- Warn if we run without templates (you can remove this from
+-- your own game if you wish to, it is just for convenience)
+if blitwiz.templatesinitialised ~= true then
+    error "The templates/ sub folder with the templates is apparently missing. P
+lease copy it into the same folder as your game.lua before you start up."
+end
+
 function blitwiz.on_init()
 	-- This function is called right after blitwizard has
 	-- started. You would normally want to open up a

@@ -51,6 +51,11 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	# Make sure the status bar is gone in fullscreen
 	cat blitwizard-android/AndroidManifest.xml | sed "s/<application android:label=\"@string\\/app_name\" android:icon=\"@drawable\\/icon\">/<uses-sdk android:minSdkVersion=\"4\"\\/> <application android:label=\"@string\\/app_name\" android:icon=\"@drawable\\/icon\" android:theme=\"@android:style\\/Theme.NoTitleBar.Fullscreen\">/g" > blitwizard-android/AndroidManifest.xml.2
 	mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
+
+	# Enforce landscape orientation since that is what all fancy games use
+	cat blitwizard-android/AndroidManifest.xml | sed "s/<activity android:name=\"SDLActivity\"/<activity android:name=\"SDLActivity\" android:configChanges=\"orientation\" android:screenOrientation=\"landscape\"/g" > blitwizard-android/AndroidManifest.xml.2
+    mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
+
 else
 	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
 		read -p "Recompile NDK code? [y/N]"

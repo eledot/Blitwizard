@@ -15,18 +15,10 @@ pixelspermeter = 30 -- meter (physics unit) to pixels factor
 cratesize = 64/pixelspermeter -- size of a crate
 ballsize = 32/pixelspermeter -- size of a ball
 
--- Try to load templates if we don't have them
--- (NOTE: This shouldn't be required for your own application!
---  It allows the templates to be outside of this folder,
---  which is unusual and nothing you will do in your own
---  program most likely.)
-if blitwiz.templatesinitialised ~= true and os.exists("../../templates/") == true then
-	local olddir = os.getcwd()
-	os.chdir("../../templates/")
-	dofile("templates/init.lua")
-	os.chdir(olddir)
+-- Warn if we run without templates
+if blitwiz.templatesinitialised ~= true then
+	error "The templates/ sub folder with the templates is apparently missing. Please copy it into the same folder as your game.lua before you start up."
 end
--- End of trying to load templates.
 
 function blitwiz.on_init()
 	-- Open a window
