@@ -57,9 +57,8 @@ if [ "$REDOWNLOADED" = "yes" ]; then
 	cat blitwizard-android/AndroidManifest.xml | sed "s/<activity android:name=\"SDLActivity\"/<activity android:name=\"SDLActivity\" android:configChanges=\"orientation\" android:screenOrientation=\"landscape\"/g" > blitwizard-android/AndroidManifest.xml.2
     mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
 
-	# Insert version int
-	cat blitwizard-android/AndroidManifest.xml | sed "s/android:versionCode=\"1\"/android:versionCode=\"${ANDROIDINTVERSION}\"/g" | sed "s/android:versionName=\"1\\.0\"/android:versionName=\"${blitwizard_version}\"/g" > blitwizard-android/AndroidManifest.xml.2
-    mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
+	# Preserve original manifest
+	cp blitwizard-android/AndroidManifext.xml blitwizard-android/AndroidManifext.xml.orig
 else
 	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
 		read -p "Recompile NDK code? [y/N]"
@@ -70,6 +69,26 @@ fi
 
 # Copy android config
 cp blitwizard-android/jni/SDL/include/SDL_config_android.h blitwizard-android/jni/SDL/include/SDL_config.h
+
+# Copy original manifest
+cp blitwizard-android/AndroidManifest.xml.orig blitwizard-android/AndroidManifest.xml
+
+# Ask the user for application version
+echo "Please enter a program version number, like 1 or 2."
+read -p "The number should be incremented for each new release:"
+PROGVERSION="$REPLY"
+test -z "$input" -o -n "`echo $PROGVERSION | tr -d '[0-9]'`" && { echo "You did not input a simple number. Please use only 0-9."; exit 1; }
+echo "Please enter a program version string, like 1.0."
+read -p "This version string will be visible to the user:"
+PROGVERSIONFULL="$REPLY"
+if [ -z "$PROGVERSIONFULL" ]; then
+    echo "You did not enter a program veersion.";
+    exit 1;
+fi
+
+# Insert version
+cat blitwizard-android/AndroidManifest.xml | sed "s/android:versionCode=\"1\"/android:versionCode=\"${PROGVERSION}\"/g" | sed "s/android:versionName=\"1\\.0\"/android:versionName=\"${PROGVERSIONFULL}\"/g" > blitwizard-android/AndroidManifest.xml.2
+mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
 
 # Ask the user some things:
 echo "Type intended app name (or nothing) and then press [ENTER]:"

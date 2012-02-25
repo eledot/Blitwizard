@@ -5,7 +5,6 @@
 AC_PREREQ([2.60])
 
 AC_INIT([blitwizard], [0.2.1])
-# Int version: 00201 (00.2.01)
 
 # Checks for programs.
 AM_INIT_AUTOMAKE([foreign])
