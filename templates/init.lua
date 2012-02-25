@@ -6,7 +6,7 @@ end
 blitwiz.templatesinitialised = true
 
 -- Load all the templates
-if os.sysname() ~= "android" then
+if os.sysname() ~= "Android" then
 	-- Crawl the templates/ folder for templates
 	for index,file in ipairs(os.ls("templates/")) do
 		if os.isdir("templates/" .. file) then
