@@ -463,7 +463,18 @@ int main(int argc, char** argv) {
 #endif
 
 	//run templates first if we can find them
+#if !defined(ANDROID) && !defined(__ANDROID__)
 	if (file_DoesFileExist("templates/init.lua")) {
+#else
+	//on Android, see if we can read the file:
+	int exists = 0;
+	SDL_RWops* rwops = SDL_RWFromFile(gt->name, "rb");
+    if (rwops) {
+		exists = 1;
+		SDL_FreeRW(rwops);
+	}
+	if (exists) {
+#endif
 		if (!luastate_DoInitialFile("templates/init.lua", &error)) {
 			if (error == NULL) {
 				error = outofmem;
