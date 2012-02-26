@@ -31,7 +31,7 @@
 #error "You should compile blitwizard natively for Windows, not using Cygwin."
 #endif
 
-#ifdef __ANDROID__
+#if defined(__ANDROID__) && !defined(ANDROID)
 #define ANDROID
 #endif
 
