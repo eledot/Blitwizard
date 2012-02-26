@@ -277,6 +277,7 @@ static void putinbackground(int background) {
 		//discard all textures
 		graphics_TransferTexturesFromSDL();
 		appinbackground = 1;
+		exit(1);
 	}else{
 		//restore textures
 		graphics_TransferTexturesToSDL();
