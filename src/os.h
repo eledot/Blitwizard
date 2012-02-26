@@ -60,4 +60,6 @@
 
 #endif
 
+#define SDLRW
+#define NOTHREADEDSDLRW
 

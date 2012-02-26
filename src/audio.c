@@ -25,7 +25,11 @@
 #include <stdint.h>
 #include "SDL.h"
 
+#ifndef NOTHREADEDSDLRW
 #define DEFAULTSOUNDBUFFERSIZE 2048
+#else
+#define DEFAULTSOUNDBUFFERSIZE 4096
+#endif
 #define MINSOUNDBUFFERSIZE 512
 #define MAXSOUNDBUFFERSIZE (1024 * 10)
 
