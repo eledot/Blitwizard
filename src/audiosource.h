@@ -21,6 +21,8 @@
 
 */
 
+#include "os.h"
+
 struct audiosource {
 	//Read data:
 	int (*read)(struct audiosource* source, char* buffer, unsigned int bytes);
@@ -28,6 +30,11 @@ struct audiosource {
 	//When -1 is returned, an error occured (the buffer is left untouched).
 	//When 0 is returned, the end of the source is reached.
 	//In case of 0/-1, you should close the audio resource.
+
+#ifdef NOTHREADEDSDLRW
+	//An ugly hack needed as part of the workaround for SDL bug #1422.
+	int (*readmainthread)(struct audiosource* source, char* buffer, unsigned int bytes);
+#endif
 	
 	//Rewind:
 	void (*rewind)(struct audiosource* source);

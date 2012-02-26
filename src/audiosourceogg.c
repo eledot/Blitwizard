@@ -21,6 +21,7 @@
 
 */
 
+#include "os.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,7 +40,11 @@ struct audiosourceogg_internaldata {
 	int returnerroroneof;
 	char decodedbuf[512];
 	unsigned int decodedbytes;
-	
+#ifdef NOTHREADEDSDLRW
+	int rwmainthreadhack;
+	int nohackonrewind;
+#endif
+
 	int vorbisopened;
 	OggVorbis_File vorbisfile;
 	int vbitstream; //required by libvorbisfile internally
@@ -62,6 +67,7 @@ static void audiosourceogg_Rewind(struct audiosource* source) {
 		idata->fetchedbytes = 0;
 		idata->decodedbytes = 0;
 		idata->vorbiseof = 0;
+		idata->nohackonrewind = 1;
 	}
 }
 
@@ -79,7 +85,16 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
 	//fetch new bytes
 	if (idata->fetchedbytes < sizeof(idata->fetchedbuf)) {
 		if (!idata->filesourceeof) {
-			int i = idata->filesource->read(idata->filesource, idata->fetchedbuf + idata->fetchedbytes, sizeof(idata->fetchedbuf) - idata->fetchedbytes);
+			int i;
+#ifdef NOTHREADEDSDLRW
+			if (idata->rwmainthreadhack) {
+				i = idata->filesource->readmainthread(idata->filesource, idata->fetchedbuf + idata->fetchedbytes, sizeof(idata->fetchedbuf) - idata->fetchedbytes);
+			}else{
+#endif
+			i = idata->filesource->read(idata->filesource, idata->fetchedbuf + idata->fetchedbytes, sizeof(idata->fetchedbuf) - idata->fetchedbytes);
+#ifdef NOTHREADEDSDLRW
+			}
+#endif
 			if (i <= 0) {
 				idata->filesourceeof = 1;
 				if (i < 0) {
@@ -154,6 +169,11 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 	
 	//open up ogg file if we don't have one yet
 	if (!idata->vorbisopened) {
+#ifdef NOTHREADEDSDLRW
+		if (!idata->nohackonrewind) {
+			idata->rwmainthreadhack = 1;
+		}
+#endif
 		if (!audiosourceogg_InitOgg(source)) {
 			idata->eof = 1;
 			idata->returnerroroneof = 1;
@@ -161,6 +181,9 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 			source->channels = -1;
 			return -1;
 		}
+#ifdef NOTHREADEDSDLRW
+		idata->rwmainthreadhack = 0;
+#endif
 		vorbis_info* vi = ov_info(&idata->vorbisfile, -1);
 		source->samplerate = vi->rate;
 		source->channels = vi->channels;

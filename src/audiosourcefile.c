@@ -43,6 +43,9 @@ struct audiosourcefile_internaldata {
 #else
 	FILE* file;
 #endif
+#ifdef NOTHREADEDSDLRW
+	int frommainthread;
+#endif
 	int eof;
 	char* path;
 };
@@ -59,6 +62,7 @@ static void audiosourcefile_Rewind(struct audiosource* source) {
 		idata->file = 0;
 	}
 }
+
 
 static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;
@@ -83,7 +87,12 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 	int bytesread = idata->file->read(idata->file, buffer, 1, bytes);
 #else
 	//workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1422
-	int bytesread = main_NoThreadedRWopsRead(idata->file, buffer, 1, bytes);
+	int bytesread;
+	if (!idata->frommainthread) {
+		bytesread = main_NoThreadedRWopsRead(idata->file, buffer, 1, bytes);
+	}else{
+		bytesread = idata->file->read(idata->file, buffer, 1, bytes);
+	}
 #endif
 #else
 	int bytesread = fread(buffer, 1, bytes, idata->file);
@@ -104,6 +113,18 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 		return 0;
 	}
 }
+
+#ifdef SDLRW
+#ifdef NOTHREADEDSDLRW
+static int audiosourcefile_ReadMainthread(struct audiosource* source, char* buffer, unsigned int bytes) {
+    struct audiosourcefile_internaldata* idata = source->internaldata;
+    idata->frommainthread = 1;
+    int i = audiosourcefile_Read(source, buffer, bytes);
+	idata->frommainthread = 0;
+	return i;
+}
+#endif
+#endif
 
 static void audiosourcefile_Close(struct audiosource* source) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;	
@@ -153,6 +174,9 @@ struct audiosource* audiosourcefile_Create(const char* path) {
 	a->read = &audiosourcefile_Read;
 	a->close = &audiosourcefile_Close;
 	a->rewind = &audiosourcefile_Rewind;
+#ifdef NOTHREADEDSDLRW
+	a->readmainthread = &audiosourcefile_ReadMainthread;
+#endif
 	
 	return a;
 }

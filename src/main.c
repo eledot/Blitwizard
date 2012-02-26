@@ -308,6 +308,8 @@ static void imgloaded(int success, const char* texture) {
 	}
 }
 
+
+
 #ifdef NOTHREADEDSDLRW
 SDL_RWops* rwread_rwops = NULL;
 void* rwread_buffer;
@@ -346,7 +348,8 @@ int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned in
 	mutex_Release(rwread_querymutex);
 	return r;
 }
-void main_ProcessNoThreadedReading() {
+int main_ProcessNoThreadedReading() {
+	int querydone = 0;
 	mutex_Lock(rwread_executemutex);
 	if (rwread_result == -2) {
 		//we should do something
@@ -354,8 +357,10 @@ void main_ProcessNoThreadedReading() {
 		if (rwread_result < -1) {
 			rwread_result = -1;
 		}
+		querydone = 1;
 	}
 	mutex_Release(rwread_executemutex);
+	return querydone;
 }
 #endif
 
@@ -559,7 +564,7 @@ int main(int argc, char** argv) {
 
 			//this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
 #ifdef NOTHREADEDSDLRW
-			main_ProcessNoThreadedReading();	
+			while (main_ProcessNoThreadedReading()) {time_Sleep(1);}
 #endif		
 	
 			//simulate audio

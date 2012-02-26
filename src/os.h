@@ -21,6 +21,10 @@
 
 */
 
+#ifndef _HAVE_BLITWIZARD_OS_H
+
+#define _HAVE_BLITWIZARD_OS_H
+
 // Detect operating system:
 
 #if defined(__CYGWIN__)
@@ -60,4 +64,7 @@
 #define SDLRW
 #define NOTHREADEDSDLRW
 #endif
+
+#endif
+
 
