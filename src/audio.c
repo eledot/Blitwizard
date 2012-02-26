@@ -21,6 +21,7 @@
 
 */
 
+#include "os.h"
 #include <stdint.h>
 #include "SDL.h"
 
@@ -60,7 +61,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		SDL_AudioQuit();
 		soundenabled = 0;
 	}
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef ANDROID
 	if (!s16) {
 		*error = strdup("No 32bit audio available on Android");
 		return 0;
@@ -68,7 +69,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 #endif
 	char errbuf[512];
 	char preferredbackend[20] = "";
-#ifdef WIN
+#ifdef WINDOWS
 	if (backend && strcasecmp(backend, "waveout") == 0) {
 		strcpy(preferredbackend, "waveout");
 	}
@@ -76,7 +77,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		strcpy(preferredbackend, "directsound");
 	}
 #else
-#if defined(__linux) || defined(linux)
+#ifdef LINUX
 	if (backend && strcasecmp(backend, "alsa") == 0) {
 		strcpy(preferredbackend, "alsa");
 	}

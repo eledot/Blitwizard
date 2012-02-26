@@ -21,6 +21,7 @@
 
 */
 
+#include "os.h"
 #include <stdio.h>
 #include "osinfo.h"
 #include "file.h"
@@ -30,7 +31,7 @@
 
 static char versionbuf[512] = "";
 
-#ifdef WIN
+#ifdef WINDOWS
 #include <windows.h>
 static char staticwindowsbuf[] = "Windows";
 const char* osinfo_GetSystemName() {
@@ -49,10 +50,10 @@ const char* osinfo_GetSystemVersion() {
 }
 #else
 
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef MAC
 #include <CoreServices/CoreServices.h>
 #endif
-#if defined(__linux) || defined(linux)
+#ifdef LINUX
 #include <sys/utsname.h>
 #endif
 
@@ -128,7 +129,7 @@ static const char* osinfo_GetDistributionName() {
 const char* osinfo_GetSystemVersion() {
 	//print out detailed system version
 	if (strlen(versionbuf) > 0) {return versionbuf;}
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef MAC
 	//Mac OS X:
 	SInt32 majorVersion,minorVersion,bugfixVersion;
 
@@ -140,7 +141,7 @@ const char* osinfo_GetSystemVersion() {
         versionbuf[sizeof(versionbuf)-1] = 0;
         return versionbuf;
 #endif
-#if defined(__linux) || defined(linux)
+#ifdef LINUX
 	//Linux:
 	struct utsname b;
 	memset(&b, 0, sizeof(b));
@@ -153,7 +154,7 @@ const char* osinfo_GetSystemVersion() {
 	versionbuf[sizeof(versionbuf)-1] = 0;
 	return versionbuf;
 #endif
-#if defined(ANDROID) || (__ANDROID__)
+#ifdef ANDROID
 	//Android:
 	strcpy(versionbuf,"Unknown");
 	return versionbuf;	
@@ -166,7 +167,7 @@ const char* osinfo_GetSystemVersion() {
 static char osbuf[64] = "";
 const char* osinfo_GetSystemName() {
 	if (strlen(osbuf) > 0) {return osbuf;}
-#if defined(__APPLE__) && defined(__MACH__)
+#ifdef MAC
 	strcpy(osbuf, "Mac OS X");
 #endif
 #if defined(__FreeBSD__)
@@ -178,7 +179,7 @@ const char* osinfo_GetSystemName() {
 #if defined(__OpenBSD__)
 	strcpy(osbuf, "OpenBSD");
 #endif
-#if defined(__linux) || defined(linux) || defined(__linux__)
+#ifdef LINUX
 	strcpy(osbuf, "Linux");
 #endif
 #if defined(sun) || defined(__sun)
@@ -187,7 +188,7 @@ const char* osinfo_GetSystemName() {
 #if defined(__BEOS__)
 	strcpy(osbuf, "BeOS");
 #endif
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef ANDROID
 	strcpy(osbuf, "Android");
 #endif
 	if (strlen(osbuf) <= 0) {
@@ -196,3 +197,4 @@ const char* osinfo_GetSystemName() {
 	return osbuf;
 }
 #endif
+

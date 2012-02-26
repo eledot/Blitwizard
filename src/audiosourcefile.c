@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "os.h"
 #include "audiosource.h"
 #include "audiosourcefile.h"
 
@@ -32,12 +33,12 @@
 #include "main.h"
 #endif
 
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 #include "SDL.h"
 #endif
 
 struct audiosourcefile_internaldata {
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 	SDL_RWops* file;
 #else
 	FILE* file;
@@ -50,7 +51,7 @@ static void audiosourcefile_Rewind(struct audiosource* source) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;
 	idata->eof = 0;
 	if (idata->file) {
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 		SDL_FreeRW(idata->file);
 #else
 		fclose(idata->file);
@@ -66,7 +67,7 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 		if (idata->eof) {
 			return -1;
 		}
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 		idata->file = SDL_RWFromFile(idata->path, "r");
 #else
 		idata->file = fopen(idata->path,"rb");
@@ -77,7 +78,7 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 		}
 	}
 
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 #ifndef NOTHREADEDSDLRW
 	int bytesread = idata->file->read(idata->file, buffer, 1, bytes);
 #else
@@ -90,7 +91,7 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 	if (bytesread > 0) {
 		return bytesread;
 	}else{
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 		SDL_FreeRW(idata->file);
 #else
 		fclose(idata->file);
@@ -107,7 +108,7 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 static void audiosourcefile_Close(struct audiosource* source) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;	
 	//close file we might have opened
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 	if (idata->file) {
 		SDL_FreeRW(idata->file);
 	}

@@ -21,7 +21,8 @@
 
 */
 
-#ifdef WIN
+#include "os.h"
+#ifdef WINDOWS
 #include <windows.h>
 #else
 #include <dlfcn.h>
@@ -40,10 +41,10 @@ const char* library_GetFileExtension() {
 		return fileext;
 	}
 
-	#ifdef WIN
+	#ifdef WINDOWS
 	strcpy(fileext, ".dll");
 	#else
-	#if defined(__APPLE__) && defined(__MACH__)
+	#ifdef MAC
 	strcpy(fileext, ".dylib");
 	#else
 	strcpy(fileext, ".so");
@@ -56,8 +57,8 @@ const char* library_GetFileExtension() {
 void* library_Load(const char* libname) {
 	//ignore .<number> endings for the extension check on linux/bsd
 	unsigned int ignoreextbytes = 0;
-#ifndef WIN
-#if !defined(__APPLE__) && !defined(__MACH__)
+#ifndef WINDOWS
+#ifndef MAC
 	int dot = -1;
 	unsigned int k = 0;
 	while (k < strlen(libname)) {
@@ -108,7 +109,7 @@ void* library_Load(const char* libname) {
 	}
 
 	//Load library
-	#ifdef WIN
+	#ifdef WINDOWS
 	void* ptr = (void*)LoadLibrary(libname);
 	#else
 	void* ptr = dlopen(libname, RTLD_LAZY|RTLD_LOCAL);
@@ -165,8 +166,8 @@ void* library_LoadSearch(const char* name) {
 	}
 
 	//try a more interesting search:
-#ifndef WIN
-#if !defined(__APPLE__) && !defined(__MACH__)
+#ifndef WINDOWS
+#ifdef APPLE
 	library_SearchDir("/usr/lib", name, &ptr);
 	library_SearchDir("/lib", name, &ptr);
 	library_SearchDir("/usr/local/lib", name, &ptr);
@@ -179,7 +180,7 @@ void* library_LoadSearch(const char* name) {
 }
 
 void* library_GetSymbol(void* ptr, const char* name) {
-	#ifdef WIN
+	#ifdef WINDOWS
 	return (void*)GetProcAddress((HMODULE)ptr, name);
 	#else
 	return dlsym(ptr, name);
@@ -187,7 +188,7 @@ void* library_GetSymbol(void* ptr, const char* name) {
 }
 
 void library_Close(void* ptr) {
-	#ifdef WIN
+	#ifdef WINDOWS
 	FreeLibrary((HMODULE)ptr);
 	#else
 	dlclose(ptr);

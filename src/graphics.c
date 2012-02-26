@@ -26,11 +26,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#ifdef WIN
+#ifdef WINDOWS
 #include <windows.h>
 #endif
 #include <stdarg.h>
 
+#include "os.h"
 #include "logging.h"
 #include "SDL.h"
 #include "SDL_syswm.h"
@@ -61,7 +62,7 @@ struct graphicstexture {
 	void* threadingptr;
 	//SDL info
 	SDL_Texture* tex; //NULL if not loaded yet
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 	SDL_RWops* rwops;
 #endif
 	
@@ -154,7 +155,7 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 	}
 
 	//if on the desktop, discard texture
-#if !defined(ANDROID) && !defined(__ANDROID__)
+#if !defined(ANDROID)
 	free(gt->pixels);
 	gt->pixels = NULL;
 #endif
@@ -338,7 +339,7 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 	return 1;
 }
 
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userdata) {
 	SDL_RWops* ops = (SDL_RWops*)userdata;
 #ifndef NOTHREADEDSDLRW
@@ -376,7 +377,7 @@ int graphics_PromptTextureLoading(const char* texture) {
 	}
 
 	//trigger image fetching thread
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 	gt->rwops = SDL_RWFromFile(gt->name, "rb");
 	if (!gt->rwops) {
 		free(gt->name);
@@ -397,7 +398,7 @@ int graphics_PromptTextureLoading(const char* texture) {
     if (!gt->threadingptr) {
         free(gt->name);
         free(gt);
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 		SDL_FreeRW(gt->rwops);
 #endif
         return 0;
@@ -427,7 +428,7 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
     if (gt->threadingptr) {
         return 0;
     }
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef SDLRW
 	if (gt->rwops) {
 		SDL_FreeRW(gt->rwops);
 		gt->rwops = NULL;
@@ -497,8 +498,10 @@ int graphics_LoadTextureInstantly(const char* texture) {
 	//wait for loading to finish
 	while (!img_CheckSuccess(gt->threadingptr)) {
 		time_Sleep(10);
+#ifdef SDLRW
 #ifdef NOTHREADEDSDLRW
 		main_ProcessNoThreadedReading();
+#endif
 #endif
 	}
 	
@@ -582,13 +585,13 @@ void graphics_Quit() {
 }
 
 SDL_RendererInfo info;
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(ANDROID)
 static char openglstaticname[] = "opengl";
 #endif
 const char* graphics_GetCurrentRendererName() {
 	if (!mainrenderer) {return NULL;}
 	SDL_GetRendererInfo(mainrenderer, &info);
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(ANDROID)
 	if (strcasecmp(info.name, "opengles") == 0) {
 		//we return "opengl" here aswell, since we want "opengl" to represent
 		//the best opengl renderer consistently across all platforms, which is
@@ -722,7 +725,7 @@ void graphics_ToggleFullscreen() {
 	}
 }
 
-#ifdef WIN
+#ifdef WINDOWS
 HWND graphics_GetWindowHWND() {
 	if (!mainwindow) {return NULL;}
 	SDL_SysWMinfo info;
@@ -739,7 +742,7 @@ HWND graphics_GetWindowHWND() {
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
 	char errormsg[512];
 
-#if defined(ANDROID) || defined(__ANDROID__)
+#if defined(ANDROID)
 	if (!fullscreen) {
 		//do not use windowed on Android
 		*error = strdup("Windowed mode is not supported on Android");
@@ -753,8 +756,8 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	}
 
 	//think about the renderer we want
-#ifndef WIN
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifndef WINDOWS
+#ifdef ANDROID
 	char preferredrenderer[20] = "opengles";
 #else
     char preferredrenderer[20] = "opengl";
@@ -765,7 +768,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 	int softwarerendering = 0;
 	if (renderer) {
 		if (strcasecmp(renderer, "software") == 0) {
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef ANDROID
 			//we don't want software rendering on Android
 #else
 			softwarerendering = 1;
@@ -773,7 +776,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 #endif
 		}else{
 			if (strcasecmp(renderer, "opengl") == 0) {
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef ANDROID
 				//opengles is the opengl we want for android :-)
 				strcpy(preferredrenderer, "opengles");
 #else
@@ -781,7 +784,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 				strcpy(preferredrenderer, "opengl");
 #endif
 			}
-#ifdef WIN
+#ifdef WINDOWS
 			//only windows knows direct3d obviously
 			if (strcasecmp(renderer,"direct3d") == 0) {
 				strcpy(preferredrenderer, "direct3d");
@@ -956,7 +959,7 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 		if (e.type == SDL_MOUSEMOTION) {
 			mousemoveevent(e.motion.x, e.motion.y);
 		}
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef ANDROID
 		if (e.type == SDL_WINDOWEVENT_MINIMIZED) {
 			putinbackground(1);
 		}
@@ -994,7 +997,7 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 		if (e.type == SDL_WINDOWEVENT) {
 			if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
 #ifndef WIN
-#if defined(__linux) || defined(linux)
+#ifdef LINUX
 				//if we are a fullscreen window, ensure we are fullscreened
 				//FIXME: just a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1349
 				if (mainwindowfullscreen) {

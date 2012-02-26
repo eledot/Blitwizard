@@ -21,6 +21,7 @@
 
 */
 
+#include "os.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -29,7 +30,7 @@
 #include "filelist.h"
 #include "file.h"
 
-#ifdef WIN
+#ifdef WINDOWS
 #include <windows.h>
 #else
 #include <stddef.h>
@@ -39,7 +40,7 @@
 
 struct filelistcontext {
 	char* path;
-#ifdef WIN
+#ifdef WINDOWS
 	int reporterror;
 	WIN32_FIND_DATA finddata;
 	HANDLE findhandle;
@@ -82,7 +83,7 @@ struct filelistcontext* filelist_Create(const char* path) {
 		return NULL;
 	}
 
-#ifndef WIN
+#ifndef WINDOWS
 	//initialise context on Unix
 	ctx->directoryptr = opendir(p);
 	free(p);
@@ -147,7 +148,7 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
     if (isdirectory) {
         originalisdirectoryvalue = *isdirectory;
     }
-#ifndef WIN
+#ifndef WINDOWS
 	//read next file entry on Unix
 	struct dirent* result;
 	if (readdir_r(ctx->directoryptr, ctx->entrybuf, &result) != 0) {
@@ -253,7 +254,7 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 void filelist_Free(struct filelistcontext* ctx) {
 	free(ctx->path);
 
-#ifndef WIN
+#ifndef WINDOWS
 	//free file list on Unix
 	free(ctx->entrybuf);
 	closedir(ctx->directoryptr);

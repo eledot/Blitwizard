@@ -21,16 +21,17 @@
 
 */
 
+#include "os.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <stdarg.h>
-#ifdef WIN
+#ifdef WINDOWS
 #include <windows.h>
 #define _WINDOWS_
 #endif
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef ANDROID
 #include <android/log.h>
 #endif
 
@@ -82,13 +83,13 @@ void printerror(const char* fmt, ...) {
 	vsnprintf(printline, sizeof(printline)-1, fmt, a);
 	printline[sizeof(printline)-1] = 0;
 	va_end(a);
-#if defined(ANDROID) || defined(__ANDROID__)
+#ifdef ANDROID
 	__android_log_print(ANDROID_LOG_ERROR, "blitwizard", "%s", printline);
 #else
 	fprintf(stderr,"%s\n",printline);
 	fflush(stderr);
 #endif
-#ifdef WIN
+#ifdef WINDOWS
 	//we want graphical error messages for windows
 	if (!suppressfurthererrors) {
 		//minimize drawing window if fullscreen
@@ -276,6 +277,7 @@ static void putinbackground(int background) {
 	if (background) {
 		//remember we are in the background
 		appinbackground = 1;
+		exit(1);
 	}else{
 		//wipe out old textures since they are most likely garbage
 		graphics_TransferTexturesFromSDL();

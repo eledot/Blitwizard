@@ -21,7 +21,8 @@
 
 */
 
-#ifdef WIN
+#include "os.h"
+#ifdef WINDOWS
 #include <windows.h>
 #include <stdio.h>
 #include <io.h>
@@ -33,7 +34,7 @@
 static int consoleopen = 0;
 
 void win32console_Launch() {
-#ifdef WIN
+#ifdef WINDOWS
 	if (consoleopen) {return;}
 
 	AllocConsole();
@@ -49,7 +50,7 @@ void win32console_Launch() {
 }
 
 void win32console_Close() {
-#ifdef WIN
+#ifdef WINDOWS
 	if (!consoleopen) {return;}
 
 	fclose(stdout);

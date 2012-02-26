@@ -21,6 +21,7 @@
 
 */
 
+#include "os.h"
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -28,7 +29,7 @@
 #include <ctype.h>
 #include <stdint.h>
 
-#ifdef WIN
+#ifdef WINDOWS
 #include <windows.h>
 #include "shlwapi.h"
 #else
@@ -39,7 +40,7 @@
 #include "file.h"
 
 static char file_NativeSlash() {
-#ifdef WIN
+#ifdef WINDOWS
         return '\\';
 #else
         return '/';
@@ -47,7 +48,7 @@ static char file_NativeSlash() {
 }
 
 static int file_IsDirectorySeparator(char c) {
-#ifdef WIN
+#ifdef WINDOWS
 	if (c == '/' || c == '\\') {return 1;}
 #else
 	if (file_NativeSlash() == c
@@ -78,7 +79,7 @@ int file_Cwd(const char* path) {
 		return 0;
 	}
 	file_MakeSlashesNative(pathcopy);
-#ifdef WIN
+#ifdef WINDOWS
 	if (SetCurrentDirectory(pathcopy) == 0) {
 		free(pathcopy);
 		return 0;
@@ -95,7 +96,7 @@ int file_Cwd(const char* path) {
 
 char* file_GetCwd() {
 	char cwdbuf[2048] = "";
-#ifdef WIN
+#ifdef WINDOWS
 	if (GetCurrentDirectory(sizeof(cwdbuf), cwdbuf) <= 0) {
 		return 0;
 	}
@@ -114,14 +115,14 @@ char* file_GetCwd() {
 }
 
 int file_IsDirectory(const char* path) {
-#ifndef WIN
+#ifndef WINDOWS
 	struct stat info;
 	int r = stat(path,&info);
 	if (r < 0) {return 0;}
 	if (S_ISDIR(info.st_mode) != 0) {return 1;}
 	return 0;
 #endif
-#ifdef WIN
+#ifdef WINDOWS
 	if (PathIsDirectory(path) != FALSE) {
 		return 1;
 	}
@@ -130,7 +131,7 @@ int file_IsDirectory(const char* path) {
 }
 
 int file_DoesFileExist(const char* path) {
-#ifndef WIN
+#ifndef WINDOWS
         struct stat st;
         if (stat(path,&st) == 0) {return 1;}
         return 0;
@@ -156,7 +157,7 @@ static void file_CutOffOneElement(char* path) {
 	while (1) {
 		int i = file_LatestSlash(path);
 		//check if there is nothing left to cut off for absolute paths
-#ifdef WIN
+#ifdef WINDOWS
 		if (i == 2 && path[1] == ':' && (tolower(path[0]) >= 'a' && tolower(path[0]) <= 'z')) {
 			return;
 		}
@@ -273,7 +274,7 @@ char* file_GetDirectoryPathFromFilePath(const char* path) {
 }
 
 int file_IsPathRelative(const char* path) {
-#ifdef WIN
+#ifdef WINDOWS
 	if (PathIsRelative(path) == TRUE) {return 1;}
 	return 0;
 #else
@@ -336,10 +337,7 @@ int file_ContentToBuffer(const char* path, char** buf, size_t* buflen) {
 	return 1;
 }
 
-#ifdef WIN
-#if defined __MINGW_H
-#define _WIN32_IE 0x0400
-#endif
+#ifdef WINDOWS
 #include <shlobj.h>
 char* file_GetUserFileDir() {
 	char programsdirbuf[MAX_PATH+1];
