@@ -102,7 +102,6 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 	}else{
 #ifdef SDLRW
 		idata->file->close(idata->file);
-		SDL_FreeRW(idata->file);
 #else
 		fclose(idata->file);
 #endif

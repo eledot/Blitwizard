@@ -400,7 +400,6 @@ int graphics_PromptTextureLoading(const char* texture) {
         free(gt);
 #ifdef SDLRW
 		gt->rwops->close(gt->rwops);
-		SDL_FreeRW(gt->rwops);
 #endif
         return 0;
     }
@@ -432,7 +431,6 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
 #ifdef SDLRW
 	if (gt->rwops) {
 		gt->rwops->close(gt->rwops);
-		SDL_FreeRW(gt->rwops);
 		gt->rwops = NULL;
 	}
 #endif
