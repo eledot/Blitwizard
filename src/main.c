@@ -36,6 +36,7 @@
 
 int wantquit = 0;
 int suppressfurthererrors = 0;
+int appinbackground = 0;
 static int sdlinitialised = 0;
 extern int drawingallowed; //stored in luafuncs.c
 
@@ -271,6 +272,17 @@ static void textevent(const char* text) {
 	}
 }
 
+static void putinbackground(int background) {
+	if (background) {
+		//discard all textures
+		graphics_TransferTexturesFromSDL();
+		appinbackground = 1;
+	}else{
+		//restore textures
+		graphics_TransferTexturesToSDL();
+		appinbackground = 0;
+	}
+}
 
 static void imgloaded(int success, const char* texture) {
 	char* error;
@@ -578,26 +590,35 @@ int main(int argc, char** argv) {
 			}
 
 			//check for image loading progress
-			graphics_CheckTextureLoading(&imgloaded);
-			
-			//check and trigger all sort of input events
-			graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent);
-			
-			//start drawing
-			drawingallowed = 1;
-			graphics_StartFrame();
-			
-			//call the drawing function
-			if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error)) {
-				printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
-				if (error) {free(error);}
-				fatalscripterror();
-				main_Quit(1);
+			if (!appinbackground) {
+				graphics_CheckTextureLoading(&imgloaded);
 			}
 			
-			//complete the drawing
-			drawingallowed = 0;
-			graphics_CompleteFrame();
+			//check and trigger all sort of input events
+			graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
+		
+			if (!appinbackground) {	
+				//start drawing
+				drawingallowed = 1;
+				graphics_StartFrame();
+				
+				//call the drawing function
+				if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error)) {
+					printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
+					if (error) {free(error);}
+					fatalscripterror();
+					main_Quit(1);
+				}
+				
+				//complete the drawing
+				drawingallowed = 0;
+				graphics_CompleteFrame();
+			}
+
+			//be very sleepy if in background
+			if (appinbackground) {
+				time_Sleep(100);
+			}
 		}
 	}
 	main_Quit(0);

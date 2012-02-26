@@ -152,6 +152,12 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
 	if (SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND) < 0) {
 		printf("Warning: Blend mode SDL_BLENDMODE_BLEND not applied: %s\n",SDL_GetError());
 	}
+
+	//if on the desktop, discard texture
+#if !defined(ANDROID) && !defined(__ANDROID__)
+	free(gt->pixels);
+	gt->pixels = NULL;
+#endif
 	
 	gt->tex = t;
 	return 1;
@@ -941,7 +947,7 @@ void graphics_CompleteFrame() {
 
 int lastfingerdownx,lastfingerdowny;
 
-void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text)) {
+void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background)) {
 	SDL_Event e;
     while (SDL_PollEvent(&e) == 1) {
 		if (e.type == SDL_QUIT) {
@@ -950,6 +956,14 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 		if (e.type == SDL_MOUSEMOTION) {
 			mousemoveevent(e.motion.x, e.motion.y);
 		}
+#if defined(ANDROID) || defined(__ANDROID__)
+		if (e.type == SDL_WINDOWEVENT_MINIMIZED) {
+			putinbackground(1);
+		}
+		if (e.type == SDL_WINDOWEVENT_RESTORED) {
+			putinbackground(0);
+		}
+#endif
 		if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
 			int release = 0;
 			if (e.type == SDL_MOUSEBUTTONUP) {release = 1;}

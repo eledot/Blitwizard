@@ -466,6 +466,11 @@ int luafuncs_getWindowSize(lua_State* l) {
 }
 
 int luafuncs_drawRectangle(lua_State* l) {
+	if (!drawingallowed) {
+        lua_pushstring(l, "You cannot draw now");
+        return lua_error(l);
+    }
+
     //rectangle position
 	int x,y;
     float alpha = 1;
@@ -547,6 +552,11 @@ int luafuncs_drawImage(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
 		lua_pushstring(l, "First parameter is not a valid image name string");
+		return lua_error(l);
+	}
+
+	if (!drawingallowed) {
+		lua_pushstring(l, "You cannot draw now");
 		return lua_error(l);
 	}
 	
