@@ -67,7 +67,9 @@ static void audiosourceogg_Rewind(struct audiosource* source) {
 		idata->fetchedbytes = 0;
 		idata->decodedbytes = 0;
 		idata->vorbiseof = 0;
+#ifdef NOTHREADEDSDLRW
 		idata->nohackonrewind = 1;
+#endif
 	}
 }
 
