@@ -274,13 +274,14 @@ static void textevent(const char* text) {
 
 static void putinbackground(int background) {
 	if (background) {
-		//discard all textures
-		graphics_TransferTexturesFromSDL();
+		//remember we are in the background
 		appinbackground = 1;
-		exit(1);
 	}else{
+		//wipe out old textures since they are most likely garbage
+		graphics_TransferTexturesFromSDL();
 		//restore textures
 		graphics_TransferTexturesToSDL();
+		//we are back in the foreground! \o/
 		appinbackground = 0;
 	}
 }
