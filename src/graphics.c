@@ -988,6 +988,10 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 				lastfingerdownx = x;
 				lastfingerdowny = y;
 			}
+			//swap coordinates for landscape mode
+			int temp = x;
+			x = y;
+			y = temp;
 			int button = SDL_BUTTON_LEFT;
 			mousebuttonevent(button, release, x, y);
 		}
