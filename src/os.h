@@ -58,13 +58,6 @@
 #define NOTHREADEDSDLRW
 #endif
 
-// For debugging, set SDLRW for Linux too:
-
-#ifdef LINUX
-#define SDLRW
-#define NOTHREADEDSDLRW
-#endif
-
 #endif
 
 
