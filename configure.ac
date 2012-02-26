@@ -93,8 +93,8 @@ AS_IF([test -z "$maybeos"],[
 	WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
 	echo -e "$WRITELINE" > scripts/.buildinfo
 
-	CFLAGS="$CFLAGS -static-libgcc -static-libstdc++ -mwindows -mthreads -L../ -I../ `cd scripts && sh ./checksse.sh`"
-	CXXFLAGS="$CXXFLAGS -static-libgcc -static-libstdc++ -mwindows -L../ -I../ `cd scripts && sh ./checksse.sh`"
+	CFLAGS="$CFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd scripts && sh ./checksse.sh`"
+	CXXFLAGS="$CXXFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd scripts && sh ./checksse.sh`"
 	LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lole32 -lwinmm -luuid -lversion"
 
 	AC_CHECK_HEADERS([windows.h string.h stdio.h unistd.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
