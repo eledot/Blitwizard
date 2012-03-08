@@ -181,6 +181,18 @@ static void audiosourcefadepanvol_Close(struct audiosource* source) {
 	free(source);
 }
 
+#define NOTHREADEDSDLRW
+static void audiosourcefadepanvol_CloseMainthread(struct audiosource* source) {
+	struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
+
+	if (idata->source) {
+		idata->source->closemainthread(idata->source);
+		idata->source = NULL;
+	}
+	audiosourcefadepanvol_Close(source);
+}
+#endif
+
 struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	if (!source) {
 		//no source given
@@ -188,14 +200,22 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	}
 	if (source->channels != 2) {
 		//we only support stereo audio
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 
 	//allocate visible data struct
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 	
@@ -204,7 +224,11 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	a->internaldata = malloc(sizeof(struct audiosourcefadepanvol_internaldata));
 	if (!a->internaldata) {
 		free(a);
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 	
@@ -219,6 +243,9 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 	a->read = &audiosourcefadepanvol_Read;
 	a->close = &audiosourcefadepanvol_Close;
 	a->rewind = &audiosourcefadepanvol_Rewind;
+#ifdef NOTHREADEDSDLRW
+	a->closemainthread = &audiosourcefadepanvol_CloseMainthread;
+#endif
 	
 	return a;
 }

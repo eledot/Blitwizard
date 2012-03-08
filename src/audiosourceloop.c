@@ -107,6 +107,20 @@ static void audiosourceloop_Close(struct audiosource* source) {
 	free(source);
 }
 
+#ifdef NOTHREADEDSDLRW
+static void audiosourceloop_CloseMainthread(struct audiosource* source) {
+    struct audiosourceloop_internaldata* idata = source->internaldata;
+
+    //close the processed source
+    if (idata->source) {
+        idata->source->closemainthread(idata->source);
+		idata->source = NULL;
+    }
+	
+	audiosourceloop_CloseMainthread(source);
+}
+#endif
+
 struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 	if (!source) {
 		//no source given
@@ -114,14 +128,22 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 	}
 	if (source->channels != 2) {
 		//we only support stereo audio
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 
 	//allocate visible data struct
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 	
@@ -130,7 +152,11 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 	a->internaldata = malloc(sizeof(struct audiosourceloop_internaldata));
 	if (!a->internaldata) {
 		free(a);
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 	
@@ -145,6 +171,9 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 	a->read = &audiosourceloop_Read;
 	a->close = &audiosourceloop_Close;
 	a->rewind = &audiosourceloop_Rewind;
+#ifdef NOTHREADEDSDLRW
+	a->closemainthread = &audiosourceloop_CloseMainthread;
+#endif
 	
 	return a;
 }

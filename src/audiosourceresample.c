@@ -57,6 +57,19 @@ static void audiosourceresample_Close(struct audiosource* source) {
 	free(source);
 }
 
+#ifdef NOTHREADEDSDLRW
+static void audiosourceresample_CloseMainthread(struct audiosource* source) {
+    struct audiosourceresample_internaldata* idata = source->internaldata;
+
+    //close the processed source
+    if (idata->source) {
+        idata->source->closemainthread(idata->source);
+		idata->source = NULL;
+    }
+	audiosourceresample_Close(source);
+}
+#endif
+
 static void audiosourcefadepanvol_Rewind(struct audiosource* source) {
 	struct audiosourceresample_internaldata* idata = source->internaldata;
 	if (!idata->eof || !idata->returnerroroneof) {
@@ -223,21 +236,33 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
 			if (!source) {return NULL;}
 		}else{
 			//sorry, we don't support this.
+#ifdef NOTHREADEDSDLRW
+			source->closemainthread(source);
+#else
 			source->close(source);
+#endif
 		}
 		return NULL;
 	}
 
 	//we only support stereo audio
 	if (source->channels != 2) {
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 
 	//allocate data struct
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 	
@@ -246,7 +271,11 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
 	a->internaldata = malloc(sizeof(struct audiosourceresample_internaldata));
 	if (!a->internaldata) {
 		free(a);
+#ifdef NOTHREADEDSDLRW
+		source->closemainthread(source);
+#else
 		source->close(source);
+#endif
 		return NULL;
 	}
 	
@@ -262,7 +291,10 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
 	a->read = &audiosourceresample_Read;
 	a->close = &audiosourceresample_Close;
 	a->rewind = &audiosourcefadepanvol_Rewind;
-	
+#ifdef NOTHREADEDSDLRW
+	a->closemainthread = &audiosourcefadepanvol_CloseMainthread;
+#endif
+
 	//complete!
 	return a;
 }

@@ -57,9 +57,25 @@ void audiomixer_Init() {
 	memset(&channels,0,sizeof(struct soundchannel) * MAXCHANNELS);
 }
 
+#ifdef NOTHREADEDSDLRW
+static void audiomixer_CancelChannelHack(int slot) {
+    if (channels[slot].mixsource) {
+        channels[slot].mixsource->close(channels[slot].mixsource);
+        channels[slot].mixsource = NULL;
+        channels[slot].loopsource = NULL;
+        channels[slot].fadepanvolsource = NULL;
+        channels[slot].id = 0;
+    }
+}
+#endif
+
 static void audiomixer_CancelChannel(int slot) {
 	if (channels[slot].mixsource) {
+#ifdef NOTHREADEDSDLRW
+		channels[slot].mixsource->closemainthread(channels[slot].mixsource);
+#else
 		channels[slot].mixsource->close(channels[slot].mixsource);
+#endif
 		channels[slot].mixsource = NULL;
 		channels[slot].loopsource = NULL;
 		channels[slot].fadepanvolsource = NULL;
@@ -199,11 +215,15 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 	return id;
 }
 
-static void audiomixer_HandleChannelEOF(int channel, int returnvalue) {
+static void audiomixer_HandleChannelEOF(int channel, int returnvalue) { // SOUND THREAD
 	if (returnvalue) {
 		//FIXME: we probably want to emit some sort of warning here
 	}
+#ifdef NOTHREADEDSDLRW
+	audiomixer_CancelChannelHack(channel);
+#else
 	audiomixer_CancelChannel(channel);
+#endif
 }
 
 #define MIXTYPE float

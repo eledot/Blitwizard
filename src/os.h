@@ -27,22 +27,27 @@
 
 // Detect operating system:
 
+// We don't want Cygwin:
 #if defined(__CYGWIN__)
 #error "You should compile blitwizard natively for Windows, not using Cygwin."
 #endif
 
+// Android:
 #if defined(__ANDROID__) && !defined(ANDROID)
 #define ANDROID
 #endif
 
+// Linux:
 #if defined(linux__) || defined(__linux) || defined(__linux__) || defined(linux)
 #define LINUX
 #endif
 
+// Mac:
 #if defined(__APPLE__) && defined(__MACH__)
 #define MAC
 #endif
 
+// Windows:
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(_MSC_VER)
 #define WINDOWS
 #define _WIN32_WINNT=0x0501
@@ -52,14 +57,15 @@
 #endif
 
 // Set SDLRW for Android:
-
 #ifdef ANDROID
 #define SDLRW
+//SDL bug with Android SDL_RWops threading:
 #define NOTHREADEDSDLRW
 #endif
 
 #endif
 
+// Debugging the Android/SDL_RWops approach on Linux:
 #define SDLRW
 #define NOTHREADEDSDLRW
 

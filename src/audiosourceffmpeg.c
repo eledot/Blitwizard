@@ -437,6 +437,18 @@ static void audiosourceffmpeg_Close(struct audiosource* source) {
 	free(source);
 }
 
+#ifdef NOTHREADEDSDLRW
+static void audiosourceffmpeg_CloseMainthread(struct audiosource* source) {
+	struct audiosourceffmpeg_internaldata* idata = source->internaldata;
+    //close audio source we might have opened
+    if (idata && idata->source) {
+        idata->source->close(idata->source);
+		idata->source = NULL;
+    }
+	audiosourceffmpeg_Close(source);
+}
+#endif
+
 struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
@@ -460,12 +472,19 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
 	a->read = &audiosourceffmpeg_Read;
 	a->close = &audiosourceffmpeg_Close;
 	a->rewind = &audiosourceffmpeg_Rewind;
+#ifdef NOTHREADEDSDLRW
+	a->closemainthread = &audiosourceffmpeg_CloseMainthread;
+#endif	
 
 	//ensure proper initialisation of sample rate + channels variables
     audiosourceffmpeg_Read(a, NULL, 0);
     if (idata->eof && idata->returnerroroneof) {
         //There was an error reading this ogg file - probably not ogg (or broken ogg)
+#ifdef NOTHREADEDSDLRW
+		audiosourceffmpeg_CloseMainthread(a);
+#else
         audiosourceffmpeg_Close(a);
+#endif
         return NULL;
     }
 	
