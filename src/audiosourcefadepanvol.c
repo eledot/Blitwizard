@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "os.h"
 #include "audiosource.h"
 #include "audiosourcefadepanvol.h"
 
@@ -181,7 +182,7 @@ static void audiosourcefadepanvol_Close(struct audiosource* source) {
 	free(source);
 }
 
-#define NOTHREADEDSDLRW
+#ifdef NOTHREADEDSDLRW
 static void audiosourcefadepanvol_CloseMainthread(struct audiosource* source) {
 	struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
 

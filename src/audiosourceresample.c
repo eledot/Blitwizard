@@ -25,8 +25,12 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "os.h"
 #include "audiosource.h"
 #include "audiosourceresample.h"
+#ifdef NOTHREADEDSDLRW
+#include "main.h"
+#endif
 
 struct audiosourceresample_internaldata {
 	struct audiosource* source;
@@ -70,7 +74,7 @@ static void audiosourceresample_CloseMainthread(struct audiosource* source) {
 }
 #endif
 
-static void audiosourcefadepanvol_Rewind(struct audiosource* source) {
+static void audiosourceresample_Rewind(struct audiosource* source) {
 	struct audiosourceresample_internaldata* idata = source->internaldata;
 	if (!idata->eof || !idata->returnerroroneof) {
 		idata->source->rewind(idata->source);
@@ -290,9 +294,9 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
 	//set function pointers
 	a->read = &audiosourceresample_Read;
 	a->close = &audiosourceresample_Close;
-	a->rewind = &audiosourcefadepanvol_Rewind;
+	a->rewind = &audiosourceresample_Rewind;
 #ifdef NOTHREADEDSDLRW
-	a->closemainthread = &audiosourcefadepanvol_CloseMainthread;
+	a->closemainthread = &audiosourceresample_CloseMainthread;
 #endif
 
 	//complete!

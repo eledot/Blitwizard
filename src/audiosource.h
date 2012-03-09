@@ -45,7 +45,7 @@ struct audiosource {
 	void (*close)(struct audiosource* source);
 	//Closes the audio source and frees this struct and all data.
 
-#ifdef NOTHREADINGSDLRW
+#ifdef NOTHREADEDSDLRW
 	//Another ugly hack for SDL bug #1422
 	void (*closemainthread)(struct audiosource* source);
 #endif

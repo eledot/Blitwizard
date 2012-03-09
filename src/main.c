@@ -316,6 +316,9 @@ void* rwread_buffer;
 size_t rwread_readsize;
 unsigned int rwread_readbytes;
 int rwread_result = 0;
+void* rwclose_handle;
+char* rwopen_path;
+void* rwopen_result;
 mutex* rwread_querymutex = NULL; //only one thread may pose a query at once
 mutex* rwread_executemutex = NULL; //the main thread locks this during execution of the query
 
@@ -414,7 +417,7 @@ int main_ProcessNoThreadedReading() {
 	}
 	if (rwclose_handle) {
 		//we should close something
-		rwclose_handle->close(rwclose_handle);
+		((SDL_RWops*)rwclose_handle)->close(rwclose_handle);
 		rwclose_handle = NULL;
 	}
 	if (rwopen_path) {
