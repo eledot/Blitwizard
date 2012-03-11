@@ -337,6 +337,19 @@ int file_ContentToBuffer(const char* path, char** buf, size_t* buflen) {
 	return 1;
 }
 
+char* file_GetTempPath(const char* name) {
+#ifdef WINDOWS
+    return NULL;
+#else
+    char* tmppath = malloc(strlen("/tmp/") + 1 + strlen(name));
+    if (!tmppath) {return NULL;}
+    memcpy(tmppath, "/tmp/", strlen("/tmp/"));
+    memcpy(tmppath + strlen("/tmp/"), name, strlen(name));
+    tmppath[strlen("/tmp/") + strlen(name)] = 0;
+    return tmppath;
+#endif
+}
+
 #ifdef WINDOWS
 #include <shlobj.h>
 char* file_GetUserFileDir() {

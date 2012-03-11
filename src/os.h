@@ -50,7 +50,7 @@
 // Windows:
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(_MSC_VER)
 #define WINDOWS
-#define _WIN32_WINNT=0x0501
+#define _WIN32_WINNT 0x0501
 #if defined __MINGW_H
 #define _WIN32_IE 0x0400
 #endif
@@ -63,9 +63,9 @@
 #define NOTHREADEDSDLRW
 #endif
 
-#endif
-
 // Debugging the Android/SDL_RWops approach on Linux:
-#define SDLRW
-#define NOTHREADEDSDLRW
+//#define SDLRW
+//#define NOTHREADEDSDLRW
 
+
+#endif

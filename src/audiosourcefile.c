@@ -55,22 +55,21 @@ static void audiosourcefile_Rewind(struct audiosource* source) {
 	idata->eof = 0;
 	if (idata->file) {
 #ifdef SDLRW
+		//Close the file. it will be reopened on next read
 #ifdef NOTHREADEDSDLRW
-		//we need to close and reopen the file
-		//(to make sure BOTH happens in the main thread as required)
 		main_NoThreadedRWopsClose(idata->file);
-		idata->file = main_NoThreadedRWopsOpen(idata->path);
 #else
-		//close the file. it will be reopend on next read.
 		idata->file->close(idata->file);
-		idata->file = NULL;
 #endif
 #else
-		//close the file. it will be reopened on next read.
 		fclose(idata->file);
-		idata->file = NULL;
 #endif
+		idata->file = NULL;
 	}
+#ifdef NOTHREADEDSDLRW
+	//We need to reopen the file here to ensure it is done in the mainthread
+	idata->file = main_NoThreadedRWopsOpen(idata->path);
+#endif
 }
 
 
@@ -111,7 +110,15 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 		return bytesread;
 	}else{
 #ifdef SDLRW
+#ifdef NOTHREADEDSDLRW
+		if (!idata->frommainthread) {
+			main_NoThreadedRWopsClose(idata->file);
+		}else{
+			idata->file->close(idata->file);
+		}
+#else
 		idata->file->close(idata->file);
+#endif
 #else
 		fclose(idata->file);
 #endif

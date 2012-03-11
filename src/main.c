@@ -316,9 +316,9 @@ void* rwread_buffer;
 size_t rwread_readsize;
 unsigned int rwread_readbytes;
 int rwread_result = 0;
-void* rwclose_handle;
-char* rwopen_path;
-void* rwopen_result;
+void* rwclose_handle = NULL;
+char* rwopen_path = NULL;
+void* rwopen_result = NULL;
 mutex* rwread_querymutex = NULL; //only one thread may pose a query at once
 mutex* rwread_executemutex = NULL; //the main thread locks this during execution of the query
 
@@ -355,6 +355,7 @@ void* main_NoThreadedRWopsOpen(const char* path) {
 
     //pose query:
     rwopen_path = strdup(path);
+	rwopen_result = NULL;
 
 	//wait for query to be completed:
 	mutex_Release(rwread_executemutex);
