@@ -400,7 +400,7 @@ int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned in
 	
 	//we are done!
 	int r = rwread_result;
-	rwread_result = -2;
+	rwread_result = 0;
 	mutex_Release(rwread_executemutex);
 	mutex_Release(rwread_querymutex);
 	return r;

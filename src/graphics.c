@@ -347,6 +347,7 @@ static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userd
 #else
 	//workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1422
 	int i = main_NoThreadedRWopsRead(ops, buffer, 1, bytes);
+	time_Sleep(10); //let other threads read stuff aswell
 #endif
 	return i;
 }
