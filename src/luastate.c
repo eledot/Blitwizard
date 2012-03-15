@@ -212,6 +212,9 @@ static void luastate_CreateTimeTable(lua_State* l) {
 	lua_pushstring(l, "getTime");
 	lua_pushcfunction(l, &luafuncs_getTime);
 	lua_settable(l, -3);
+	lua_pushstring(l, "sleep");
+	lua_pushcfunction(l, &luafuncs_sleep);
+	lua_settable(l, -3);
 }
 
 static int openlib_blitwiz(lua_State* l) {

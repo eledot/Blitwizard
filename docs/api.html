@@ -56,7 +56,7 @@ ul {
 <li><a href="#5blitwiz.physics">5. <i>blitwiz.physics</i> namespace</a></li>
 <li><a href="#6blitwiz.random">6. <i>blitwiz.random</i> namespace</a></li>
 <li><a href="#7blitwiz.sound">7. <i>blitwiz.sound</i> namespace</a></li>
-<li><a href="#8blitwiz.time">8. <i>blitwiz.time</i> namespace</a></li>
+<li><a href="#blitwiz.time">8. <i>blitwiz.time</i> namespace</a></li>
 <li><a href="#9blitwiz.on_*">9. Event callbacks</a></li>
 <li><a href="#10os">10. <i>os</i> standard namespace extension</a></li>
 <li><a href="#11string">11. <i>string</i> standard namespace extension</a></li>
@@ -1065,7 +1065,35 @@ blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
 </li>
 
 </ul>
-<a name="9blitwiz.on_*"><h1>9. Event callbacks</h1></a>
+<a name="blitwiz.time"><h1>8. <i>blitwiz.time</i> namespace</h1></a>
+<ul>
+
+<li><h2><a name="blitwiz.time.getTime">blitwiz.time.getTime()</a></h2>
+<p>
+Return the elapsed time in milliseconds from a fixed point in time (which might be application start or anything else) which blitwizard chooses at application start. If you call this function multiple times and then check the difference between the values it gave you, this difference will represent the elapsed time between the calls in milliseconds.
+</p>
+<p>
+Parameters: None
+</p>
+<p>Return value: the time elapsed in milliseconds since an unspecified fixed point in time <i>(number)</i></p>
+</li>
+
+<li><h2><a name="blitwiz.time.sleep">blitwiz.time.sleep(milliseconds <i>(number)</i>)</a></h2>
+<p>
+Stop the execution of the whole program for the specified amount of time. This function will block until the given amount of time has passed, and then return and allow your program to continue.
+</p>
+<p>During the blocking of this function, no drawing or event or physics processing will be done. However, sound will continue to play. Please note physics and game logic (on_step) will attempt to catch up for the missed time, so blocking your program for multiple seconds might be a bad idea.</p>
+<p>Therefore, the only senseful usage of this call is probably using it for small (20-200 milliseconds) sleeps to lower cpu usage.</p>
+<p>Parameters:
+<ul>
+<li>milliseconds <i>(number)</i> &mdash; the amount of milliseconds you want execution to stop</li>
+</ul>
+</p>
+<p>Return value: None</p>
+</li>
+
+</ul>
+<a name="blitwiz.on_*"><h1>9. Event callbacks</h1></a>
 <ul>
 
 <li><h2><a name="blitwiz.on_close">blitwiz.on_close</a>()</h2>

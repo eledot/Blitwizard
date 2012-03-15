@@ -438,6 +438,16 @@ int luafuncs_getTime(lua_State* l) {
 	return 1;
 }
 
+int luafuncs_sleep(lua_State* l) {
+	if (lua_type(l, 1) != LUA_TNUMBER || lua_tonumber(l, 1) < 0) {
+		lua_pushstring(l, "First parameter is not a valid milliseconds number");
+		return lua_error(l);
+	}
+	unsigned int i = lua_tointeger(l, 1);
+	time_Sleep(i);
+	return 0;
+}
+
 int luafuncs_getImageSize(lua_State* l) {
 	const char* p = lua_tostring(l,1);
 	if (!p) {
