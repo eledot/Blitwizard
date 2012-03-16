@@ -30,6 +30,7 @@
 #define EPSILON 0.0001
 
 #include "physics.h"
+#include "mathhelpers.h"
 
 extern "C" {
 
@@ -202,31 +203,26 @@ struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void*
 		return physics_CreateObjectCircle(world, userdata, movable, friction, width);
 	}
 
-	//construct oval shape
+	//construct oval shape - by manually calculating the vertices
 	b2PolygonShape shape;
     b2Vec2 vertices[OVALVERTICES];
 	int i = 0;
 	int sideplace = 0;
 	int sideplacedir = 1;
 	double angle = 0;
+
+	printf("Oval shape: %f, %f\n",width,height);
+
+	//go around with the angle in one full circle:
 	while (angle < 2*M_PI && i < OVALVERTICES) {
-		if (sideplacedir > 0) {
-			if (sideplace < OVALVERTICESQUARTER) {
-				sideplace++;
-			}else{
-				sideplace++;
-				sideplacedir = -1;
-			}
-		}else{
-			if (sideplace > 2) {
-				sideplace--;
-			}else{
-				sideplace--;
-				sideplacedir = 1;
-			}
-		}
-		double ovalsidepercentage = ((double)sideplace-1.0)/((double)OVALVERTICESQUARTER);
-		printf("oval side percentage: %f\n", ovalsidepercentage);
+		//calculate and set vertex point
+		double x,y;
+		ovalpoint(angle, width, height, &x, &y);
+		vertices[i].x = x;
+		vertices[i].y = y;
+		printf("pos: %f,%f (%f)\n", x, y, angle * 180 / M_PI);
+
+		//advance to next position
 		angle += (2*M_PI)/((double)OVALVERTICES);
 		i++;
 	}

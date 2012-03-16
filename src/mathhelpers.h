@@ -21,9 +21,18 @@
 
 */
 
-float getangle(float x, float y, float x2, float y2);
-float getdist(float x, float y, float x2, float y2);
-void pointonline(float x1, float y1, float x2, float y2, float px, float py, float* linepointx, float* linepointy, float* relativepos);
-void rotatevec(float x, float y, float rotation, float* x2, float* y2);
-float normalizeangle(float angle);
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+double getangle(double x, double y, double x2, double y2);
+double getdist(double x, double y, double x2, double y2);
+void pointonline(double x1, double y1, double x2, double y2, double px, double py, double* linepointx, double* linepointy, double* relativepos);
+void rotatevec(double x, double y, double rotation, double* x2, double* y2);
+double normalizeangle(double angle);
+void ovalpoint(double angle, double width, double height, double* x, double* y);
+
+#ifdef __cplusplus
+}
+#endif
 
