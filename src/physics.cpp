@@ -195,8 +195,7 @@ static struct physicsobject* physics_CreateObjectCircle(struct physicsworld* wor
 	return obj;
 }
 
-#define OVALVERTICES 16
-#define OVALVERTICESQUARTER 4
+#define OVALVERTICES 8
 
 struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height) {
   	if (fabs(width - height) < EPSILON) {
@@ -207,26 +206,20 @@ struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void*
 	b2PolygonShape shape;
     b2Vec2 vertices[OVALVERTICES];
 	int i = 0;
-	int sideplace = 0;
-	int sideplacedir = 1;
 	double angle = 0;
-
-	printf("Oval shape: %f, %f\n",width,height);
 
 	//go around with the angle in one full circle:
 	while (angle < 2*M_PI && i < OVALVERTICES) {
 		//calculate and set vertex point
 		double x,y;
 		ovalpoint(angle, width, height, &x, &y);
-		vertices[i].x = x;
-		vertices[i].y = y;
-		printf("pos: %f,%f (%f)\n", x, y, angle * 180 / M_PI);
+		vertices[i].Set(x, -y);
 
 		//advance to next position
-		angle += (2*M_PI)/((double)OVALVERTICES);
+		angle -= (2*M_PI)/((double)OVALVERTICES);
 		i++;
 	}
-	shape.Set(vertices, OVALVERTICES);
+	shape.Set(vertices, (int32_t)OVALVERTICES);
 
 	//get physics object
     struct physicsobject* obj = createobj(world, userdata, movable);
