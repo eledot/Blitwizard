@@ -141,6 +141,18 @@ int physics_Ray(struct physicsworld* world, double startx, double starty, double
 	return 0;
 }
 
+void physics_SetGravity(struct physicsobject* obj, float x, float y) {
+	if (!obj) {return;}
+	obj->gravityset = 1;
+	obj->gravityx = x;
+	obj->gravityy = y;
+}
+
+void physics_UnsetGravity(struct physicsobject* obj) {
+	if (!obj) {return;}
+	obj->gravityset = 0;
+}
+
 void physics_ApplyImpulse(struct physicsobject* obj, double forcex, double forcey, double sourcex, double sourcey) {
 	if (!obj->body || !obj->movable) {return;}
 	obj->body->ApplyLinearImpulse(b2Vec2(forcex, forcey), b2Vec2(sourcex, sourcey));

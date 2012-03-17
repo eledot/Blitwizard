@@ -38,4 +38,5 @@ int luafuncs_setLinearDamping(lua_State* l);
 int luafuncs_getRotation(lua_State* l);
 int luafuncs_getPosition(lua_State* l);
 int luafuncs_warp(lua_State* l);
+int luafuncs_setGravity(lua_State* l);
 

@@ -206,6 +206,36 @@ int luafuncs_restrictRotation(lua_State* l) {
 	return 0;
 }
 
+int luafuncs_setGravity(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (!obj->object) {
+        lua_pushstring(l, "Physics object has no shape");
+        return lua_error(l);
+    }
+
+	int set = 0;
+	double gx,gy;
+	if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
+		if (lua_type(l, 2) != LUA_TNUMBER) {
+			lua_pushstring(l, "Second parameter is not a valid gravity x number");
+			return lua_error(l);
+		}
+		if (lua_type(l, 3) != LUA_TNUMBER) {
+            lua_pushstring(l, "Third parameter is not a valid gravity y number");
+            return lua_error(l);
+        }
+		gx = lua_tonumber(l, 2);
+		gy = lua_tonumber(l, 3);
+		set = 1;
+	}
+	if (set) {
+		physics_SetGravity(obj->object, gx, gy);
+	}else{
+		physics_UnsetGravity(obj->object);
+	}
+	return 0;
+}
+
 int luafuncs_setMass(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (!obj->movable) {

@@ -71,8 +71,8 @@ function blitwiz.on_init()
 	-- Add character
 	char = blitwiz.physics.createMovableObject()
 	blitwiz.physics.setShapeOval(char, (50+x)/pixelspermeter, (140+y)/pixelspermeter)
-	blitwiz.physics.setMass(char, 10)
-	blitwiz.physics.setFriction(char, 0.5)
+	blitwiz.physics.setMass(char, 60)
+	blitwiz.physics.setFriction(char, 0.3)
 	--blitwiz.physics.setLinearDamping(char, 10)
 	blitwiz.physics.warp(char, (456+x)/pixelspermeter, (188+y)/pixelspermeter)
 	blitwiz.physics.restrictRotation(char, true)
@@ -138,17 +138,20 @@ function blitwiz.on_step()
 	local charsizex,charsizey = blitwiz.graphics.getImageSize("char1.png")
 	charsizex = charsizex / pixelspermeter
 	charsizey = charsizey / pixelspermeter
-	if obj ~= nil and posy < chary + charsizey/2 + 17/pixelspermeter then
+	if obj ~= nil and posy < chary + charsizey/2 + 2/pixelspermeter then
 		onthefloor = true
 	end
 	if onthefloor == true then
+		blitwiz.physics.setGravity(char, 0, 0) -- deactivate gravity
 		-- walk
 		if leftright < 0 then
-			blitwiz.physics.impulse(char, charx + 5, chary - 5, -1, -2)
+			blitwiz.physics.impulse(char, charx + 5, chary - 3, -0.4, -0.6)
 		end
 		if leftright > 0 then
-        	blitwiz.physics.impulse(char, charx - 5, chary - 5, 1, -2)
+        	blitwiz.physics.impulse(char, charx - 5, chary - 3, 0.4, -0.6)
 		end
+	else
+		blitwiz.physics.setGravity(char) -- activate gravity
 	end
 end
 

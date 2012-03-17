@@ -98,6 +98,9 @@ void luastate_PrintStackDebug() {
 
 static void luastate_CreatePhysicsTable(lua_State* l) {
 	lua_newtable(l);
+	lua_pushstring(l, "setGravity");
+	lua_pushcfunction(l, &luafuncs_setGravity);
+	lua_settable(l, -3);
 	lua_pushstring(l, "createMovableObject");
 	lua_pushcfunction(l, &luafuncs_createMovableObject);
 	lua_settable(l, -3);
