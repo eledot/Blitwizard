@@ -10,7 +10,12 @@
 print("Moving character example in blitwizard")
 pixelspermeter = 30
 cratesize = 64/pixelspermeter
-frame = 1
+frame = 1 -- animation frame to be displayed (can be 1, 2, 3)
+leftright = 0 -- keyboard left/right input
+animationstate = 0 -- used for timing the animation
+flipped = false -- whether to draw the character flipped (=facing left)
+jump = false -- keyboard jump input
+lastjump = 0 -- remember our last jump to enforce a short no-jump time after each jump
 
 function blitwiz.on_init()
 	-- Open a window
@@ -79,19 +84,22 @@ function blitwiz.on_init()
 end
 
 function bgimagepos()
+	-- Return the position of the background image (normally just 0,0):
 	local w,h = blitwiz.graphics.getImageSize("bg.png")
     local mw,mh = blitwiz.graphics.getWindowSize()
 	return mw/2 - w/2, mh/2 - h/2
 end
 
-leftright = 0
-
 function blitwiz.on_keydown(key)
+	-- Process keyboard walk/jump input
 	if key == "a" then
 		leftright = -1
 	end
 	if key == "d" then
 		leftright = 1
+	end
+	if key == "w" then
+		jump = true
 	end
 end
 
@@ -102,9 +110,16 @@ function blitwiz.on_keyup(key)
 	if key == "d" and leftright > 0 then
 		leftright = 0
 	end
+	if key == "w" then
+		jump = false
+	end
 end
 
 function blitwiz.on_draw()
+	if flipped == nil then
+		flipped = false
+	end
+
 	-- Draw the background image centered:
 	local bgx,bgy = bgimagepos()
 	blitwiz.graphics.drawImage("bg.png", bgx, bgy)
@@ -112,13 +127,7 @@ function blitwiz.on_draw()
 	-- Draw the character
 	local x,y = blitwiz.physics.getPosition(char)
 	local w,h = blitwiz.graphics.getImageSize("char1.png")
-	blitwiz.graphics.drawImage("char" .. frame .. ".png", x*pixelspermeter - w/2 + bgx, y*pixelspermeter - h/2 + bgy)
-
-	-- Draw impact position
-	if drawblubx ~= nil and drawbluby ~= nil then
-		local w,h = blitwiz.graphics.getImageSize("crate.png")
-		--blitwiz.graphics.drawImage("crate.png", drawblubx*pixelspermeter - w/2, drawbluby*pixelspermeter - h/2)
-	end
+	blitwiz.graphics.drawImage("char" .. frame .. ".png", x*pixelspermeter - w/2 + bgx, y*pixelspermeter - h/2 + bgy, nil, nil, nil, nil, nil, 1, 1, 0, 0, 0, flipped)
 end
 
 function blitwiz.on_close()
@@ -129,29 +138,52 @@ function blitwiz.on_step()
 	local onthefloor = false
 	local charx,chary = blitwiz.physics.getPosition(char)
 
-	-- Floor info
+	-- Cast a ray to check for the floor
 	local obj,posx,posy,normalx,normaly = blitwiz.physics.ray(charx,chary,charx,chary+350/pixelspermeter)
 
-	drawblubx = posx
-	drawbluby = posy
-
+	-- Check if we reach the floor:
 	local charsizex,charsizey = blitwiz.graphics.getImageSize("char1.png")
 	charsizex = charsizex / pixelspermeter
 	charsizey = charsizey / pixelspermeter
-	if obj ~= nil and posy < chary + charsizey/2 + 2/pixelspermeter then
+	if obj ~= nil and posy < chary + charsizey/2 + 1/pixelspermeter then
 		onthefloor = true
 	end
+
+	local walkanim = false
+	-- Enable walking if on the floor
 	if onthefloor == true then
-		blitwiz.physics.setGravity(char, 0, 0) -- deactivate gravity
 		-- walk
 		if leftright < 0 then
+			flipped = true
+			walkanim = true
 			blitwiz.physics.impulse(char, charx + 5, chary - 3, -0.4, -0.6)
 		end
 		if leftright > 0 then
+			flipped = false
+			walkanim = true
         	blitwiz.physics.impulse(char, charx - 5, chary - 3, 0.4, -0.6)
 		end
+		-- jump
+		if jump == true and lastjump + 500 < blitwiz.time.getTime() then
+			lastjump = blitwiz.time.getTime()
+			blitwiz.physics.impulse(char, charx, chary - 1, 0, -20)
+		end
+	end
+
+	-- Check out how to animate
+	if walkanim == true then
+		-- We walk, animate:
+		frame = 2
+		animationstate = animationstate + 1
+		if animationstate >= 13 then -- half of the animation time is reached, switch to second walk frame
+			frame = 3
+		end
+		if animationstate >= 26 then -- wrap over at the end of the animation
+			animationstate = 0
+			frame = 2
+		end
 	else
-		blitwiz.physics.setGravity(char) -- activate gravity
+		frame = 1
 	end
 end
 
