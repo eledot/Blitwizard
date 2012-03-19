@@ -250,7 +250,7 @@ static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
 		ffmpeg_av_free(idata->codeccontext);
         idata->codeccontext = NULL;
 	}*/
-	if (idata->codeccontext) {
+	if (idata->formatcontext) {
         ffmpeg_av_free(idata->formatcontext);
         idata->formatcontext = NULL;
 	}
@@ -295,6 +295,9 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
+
+		//av_dict_set(&codec_opts, "request_channels", "2", 0);
+		//opts = setup_find_stream_info_opts(ic, codec_opts);
 
 		//Get IO context
 		idata->aviobuf = ffmpeg_av_malloc(AVIOBUFSIZE);
@@ -341,6 +344,12 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
   			audiosourceffmpeg_FatalError(source);
   			return -1;
 		}
+	
+		//If this isn't an audio stream, we don't want it:
+		if (idata->codeccontext->codec_type != AVMEDIA_TYPE_AUDIO) {
+			audiosourceffmpeg_FatalError(source);
+			return -1;
+		}
 
 		//Initialise codec. XXX avcodec_open2 is not thread-safe!
 		if (ffmpeg_avcodec_open2(idata->codeccontext, idata->audiocodec, NULL) < 0) {
@@ -358,16 +367,16 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 			return -1;
 		}
 		
+		//Remember format data
 		source->channels = idata->codeccontext->channels;
 		source->samplerate = idata->codeccontext->sample_rate;
 		printf("4: %u, %u\n", source->channels, source->samplerate);
 		
-		/*if (source->channels <= 0 || source->samplerate <= 0) {
+		if (source->channels <= 0 || source->samplerate <= 0) {
+			//not a known format apparently
 			audiosourceffmpeg_FatalError(source);
 			return -1;
-		}*/
-		source->channels = 2;
-		source->samplerate = 44100;
+		}
 	}
 
 	int writtenbytes = 0;

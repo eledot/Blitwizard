@@ -99,7 +99,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		return 0;
 	}
 	
-	SDL_AudioSpec fmt;
+	SDL_AudioSpec fmt,actualfmt;
 	
 	int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
 	if (buffersize > 0) {
@@ -124,7 +124,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 	
 	samplecallbackptr = samplecallback;
 		
-	if (SDL_OpenAudio(&fmt, NULL) < 0) {
+	if (SDL_OpenAudio(&fmt, &actualfmt) < 0) {
 		snprintf(errbuf,sizeof(errbuf),"Failed to open SDL audio: %s", SDL_GetError());
 		errbuf[sizeof(errbuf)-1] = 0;
 		*error = strdup(errbuf);
@@ -133,7 +133,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 		return 0;
 	}
 
-	if (fmt.channels != 2 || (s16 && fmt.format != AUDIO_S16) || (!s16 && fmt.format != AUDIO_F32SYS)) {
+	if (actualfmt.channels != 2 || actualfmt.freq != 48000 || (s16 && actualfmt.format != AUDIO_S16) || (!s16 && actualfmt.format != AUDIO_F32SYS)) {
 		*error = strdup("SDL audio delivered wrong/unusable format");
 		//FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
 		//SDL_AudioQuit();

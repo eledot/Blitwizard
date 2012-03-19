@@ -980,14 +980,6 @@ Return value: None
 <a name="7blitwiz.sound"><h1>7. <i>blitwiz.sound</i> namespace</h1></a>
 <ul>
 
-<li><h2><a name="blitwiz.sound.getBackendName">blitwiz.sound.getBackendName</a>()</h2>
-<p>
-Get the name of the currently active audio backend, which can be e.g. "directsound" or "waveout" on Windows, "alsa" or "oss" on Linux, or "coreaudio" for Mac.
-</p>
-<p>Parameters: None</p>
-<p>Return value: backend name <i>(string)</i></p>
-</li>
-
 <li><h2><a name="blitwiz.sound.adjust">blitwiz.sound.adjust</a>(sound <a href="#sound_handle"><i>(sound handle)</i></a>, volume <i>(number)</i>, panning <i>(number)</i>)</h2>
 <p>Adjust the parameters of a playing sound: You can change the volume and the panning (stereo placement). Does nothing if the sound is no longer playing.</p>
 <p>Parameters:
@@ -998,6 +990,14 @@ Get the name of the currently active audio backend, which can be e.g. "directsou
 </ul>
 </p>
 <p>Return value: None</p>
+</li>
+
+<li><h2><a name="blitwiz.sound.getBackendName">blitwiz.sound.getBackendName</a>()</h2>
+<p>
+Get the name of the currently active audio backend, which can be e.g. "directsound" or "waveout" on Windows, "alsa" or "oss" on Linux, or "coreaudio" for Mac.
+</p>
+<p>Parameters: None</p>
+<p>Return value: backend name <i>(string)</i></p>
 </li>
 
 <li><h2><a name="blitwiz.sound.play">blitwiz.sound.play</a>(path <i>(string)</i>, volume <i>(number)</i>, panning <i>(number)</i>, loop <i>(boolean)</i>, priority <i>(number)</i>, fadein <i>(number)</i>)</h2>
