@@ -21,6 +21,8 @@
 
 */
 
+#define FFMPEGDEBUG
+
 #ifdef USE_FFMPEG
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
@@ -193,14 +195,29 @@ int audiosourceffmpeg_LoadFFmpeg() {
 
 	//Check library load state
 	if (!avcodecptr || !avformatptr || !avutilptr) {
+#ifdef FFMPEGDEBUG
+		printinfo("[FFmpeg-debug] A FFmpeg lib pointer is not present");
+#endif
 		if (avcodecptr) {
 			library_Close(avcodecptr);
+		}else{
+#ifdef FFMPEGDEBUG
+			printinfo("[FFmpeg-debug] avcodecptr NOT present");
+#endif
 		}
 		if (avformatptr) {
 			library_Close(avformatptr);
+		}else{
+#ifdef FFMPEGDEBUG
+			printinfo("[FFmpeg-debug] avformatptr NOT present");
+#endif
 		}
 		if (avutilptr) {
 			library_Close(avutilptr);
+		}else{
+#ifdef FFMPEGDEBUG
+			printinfo("[FFmpeg-debug] avutilptr NOT present");
+#endif
 		}
 	
 		printinfo("[FFmpeg] Library not found or cannot be loaded, FFmpeg support will be unavailable");

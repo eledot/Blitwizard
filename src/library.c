@@ -29,6 +29,7 @@
 #endif
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "library.h"
 #include "filelist.h"
@@ -167,7 +168,7 @@ void* library_LoadSearch(const char* name) {
 
 	//try a more interesting search:
 #ifndef WINDOWS
-#ifdef APPLE
+#ifndef APPLE
 	library_SearchDir("/usr/lib", name, &ptr);
 	library_SearchDir("/lib", name, &ptr);
 	library_SearchDir("/usr/local/lib", name, &ptr);
