@@ -335,20 +335,18 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
+
+		//Read detailed stream info
+        if (ffmpeg_av_find_stream_info(idata->formatcontext, NULL) < 0) {
+            audiosourceffmpeg_FatalError(source);
+            return -1;
+        }
 		
-		//Find stream
+		//Find best stream
 		int stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, &idata->audiocodec, 0);
 		if (stream < 0) {
-			//We need more detailed stream info to find the stream
-			if (ffmpeg_av_find_stream_info(idata->formatcontext, NULL) < 0) {
-				audiosourceffmpeg_FatalError(source);
-				return -1;
-			}
-			stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, &idata->audiocodec, 0);
-			if (stream < 0) {
-				audiosourceffmpeg_FatalError(source);
-				return -1;
-			}
+			audiosourceffmpeg_FatalError(source);
+			return -1;
 		}
 
 		//Get codec context
