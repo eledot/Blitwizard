@@ -145,6 +145,7 @@ static int audiosourcefile_ReadMainthread(struct audiosource* source, char* buff
 
 static void audiosourcefile_Close(struct audiosource* source) {
 	struct audiosourcefile_internaldata* idata = source->internaldata;	
+	if (!idata) {return;}
 	//close file we might have opened
 #ifdef SDLRW
 	if (idata->file) {
