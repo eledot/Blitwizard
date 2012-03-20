@@ -438,37 +438,43 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 	//we might have some decoded bytes left:
 	if (idata->decodedbufbytes > 0 && bytes > 0) {
+		//see how many we want to copy and how many we can actually copy:
 		int copybytes = bytes;
 		if (copybytes > idata->decodedbufbytes) {
 			copybytes = idata->decodedbufbytes;
 		}
+
+		//copy bytes to passed buffer:
 		memcpy(buffer, idata->decodedbuf, copybytes);
 		buffer += copybytes;
+
+		//trim copied bytes from our internal buffer of decoded data:
 		if (copybytes < idata->decodedbufbytes) {
 			memmove(idata->decodedbuf, idata->decodedbuf + copybytes, DECODEDBUFSIZE - copybytes);
 		}
+		
 		idata->decodedbufbytes -= copybytes;
 		bytes -= copybytes;
 	}
 
 	while (bytes > 0) {
-		//read undecoded data for FFmpeg into the packet:
+		//read undecoded data for FFmpeg into the buffer:
 		while (idata->bufbytes + idata->bufoffset < DECODEBUFUSESIZE) {
 			int i = idata->source->read(idata->source, (char*)idata->buf + idata->bufbytes + idata->bufoffset, DECODEBUFUSESIZE - (idata->bufbytes + idata->bufoffset));
-			if (i < 0) {
+			if (i < 0) { // read error
 				audiosourceffmpeg_FatalError(source);
 				return -1;
 			}
-			if (i == 0) {break;}
-			idata->bufbytes += i;
+			if (i == 0) {break;} // EOF
+			idata->bufbytes += i; // read was successful, continue if required
 		}
-		if (idata->bufbytes <= 0) {break;}
+		if (idata->bufbytes <= 0) {break;} // we haven't read anything new
 
 		//prepare packet
 		idata->packet.size = idata->bufbytes;
 		idata->packet.data = (unsigned char*)idata->buf + idata->bufoffset;
 
-		//decode with FFmpeg
+		//decode with FFmpeg:
 		//decode_audio3:
 		if (!idata->tempbuf) {
 			idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
@@ -484,6 +490,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         //int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
 
 		if (len < 0) {
+			//A decode error occured:
 #ifdef FFMPEGDEBUG
 			char errbuf[512] = "Unknown";
 			ffmpeg_av_strerror(len, errbuf, sizeof(errbuf)-1);
@@ -496,6 +503,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 		//return data if we have some
 		if (gotframe) {
+			//decode_audio3:
 			int framesize = bufsize;
 			const char* p = outputbuf;
 
