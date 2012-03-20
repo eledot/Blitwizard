@@ -476,7 +476,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		char* outputbuf __attribute__ ((aligned(16))) = idata->tempbuf;
 		int bufsize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
 		int gotframe = 0;
-		int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)&outputbuf, &bufsize, &idata->packet);
+		int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)outputbuf, &bufsize, &idata->packet);
 		if (len > 0) {gotframe = 1;}
 
 		//decode_audio4:
