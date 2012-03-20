@@ -1,7 +1,7 @@
 
 /* blitwizard 2d engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2012 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -161,12 +161,14 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
 }
 
 static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
+	errno = 0;
 	struct audiosource* source = data;
 	struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
 	if (idata->sourceeof) {return 0;}
 	
 	if (idata->source) {
 		int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size); 
+		errno = 0;
 		if (i < 0) {
 			idata->returnerroroneof = 1;
 		}
@@ -420,8 +422,10 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		//Remember format data
 		source->channels = idata->codeccontext->channels;
 		source->samplerate = idata->codeccontext->sample_rate;
-		printf("4: %u, %u\n", source->channels, source->samplerate);
-		
+
+		//Rewind the audio source:
+		idata->source->rewind(idata->source); //XXX: DO WE WANT THIS?!
+
 		if (source->channels <= 0 || source->samplerate <= 0) {
 			//not a known format apparently
 			audiosourceffmpeg_FatalError(source);
@@ -465,19 +469,27 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		idata->packet.data = (unsigned char*)idata->buf + idata->bufoffset;
 
 		//decode with FFmpeg
+		//decode_audio3:
 		if (!idata->tempbuf) {
 			idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
 		}
 		char* outputbuf __attribute__ ((aligned(16))) = idata->tempbuf;
 		int bufsize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-		int gotframe = 1;
+		int gotframe = 0;
 		int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)&outputbuf, &bufsize, &idata->packet);
+		if (len > 0) {gotframe = 1;}
 
 		//decode_audio4:
 		//int gotframe;
         //int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
 
 		if (len < 0) {
+#ifdef FFMPEGDEBUG
+			char errbuf[512] = "Unknown";
+			ffmpeg_av_strerror(len, errbuf, sizeof(errbuf)-1);
+			errbuf[sizeof(errbuf)-1] = 0;
+			printwarning("[FFmpeg-debug] avcodec_decode_audio3 error: %s\n",errbuf);
+#endif
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
@@ -493,8 +505,13 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 			//first, export as much as we can
 			if (bytes > 0) {
+				//ideally, we would copy the whole frame:
 				unsigned int copybytes = framesize;
+
+				//practically, we don't want more than specified in 'bytes':
 				if (copybytes > bytes) {copybytes = bytes;}
+
+				//copy the bytes, move the buffers accordingly:
 				memcpy(buffer, p, copybytes);
 				buffer += copybytes;
 				bytes -= copybytes;
@@ -555,25 +572,27 @@ static void audiosourceffmpeg_CloseMainthread(struct audiosource* source) {
 #endif
 
 struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
+	//without an audio source we can't do anything senseful
+	if (!source) {return NULL;}
+
+	//allocate main data struct:
 	struct audiosource* a = malloc(sizeof(*a));
 	if (!a) {
 		return NULL;
-	}
-	if (!source) {
-		return NULL;
-	}
-	
+	}	
 	memset(a,0,sizeof(*a));
+
+	//allocate internal data struct:
 	a->internaldata = malloc(sizeof(struct audiosourceffmpeg_internaldata));
 	if (!a->internaldata) {
 		free(a);
 		return NULL;
 	}
 	
+	//prepare internal data:
 	struct audiosourceffmpeg_internaldata* idata = a->internaldata;
 	memset(idata, 0, sizeof(*idata));
 	idata->source = source;
-
 #ifdef USE_FFMPEG
 	if (audiosourceffmpeg_LoadFFmpeg()) {
 		ffmpeg_av_init_packet(&idata->packet);
@@ -581,6 +600,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
 	}
 #endif
 
+	//without packet data we cannot continue:
 	if (!idata->decodedframe) {
 		free(idata);
 		free(a);
