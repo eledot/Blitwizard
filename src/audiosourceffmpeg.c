@@ -473,6 +473,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		//prepare packet
 		idata->packet.size = idata->bufbytes;
 		idata->packet.data = (unsigned char*)idata->buf + idata->bufoffset;
+		idata->buf[DECODEBUFSIZE-1] = 0; //apparently required to avoid MPEG overshooting buffer
 
 		//decode with FFmpeg:
 		//decode_audio3:
@@ -499,6 +500,9 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 #endif
 			audiosourceffmpeg_FatalError(source);
 			return -1;
+		}else{
+			idata->bufoffset += len;
+			idata->bufbytes -= len;
 		}
 
 		//return data if we have some
