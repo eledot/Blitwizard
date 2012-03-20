@@ -488,7 +488,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 			char errbuf[512] = "Unknown";
 			ffmpeg_av_strerror(len, errbuf, sizeof(errbuf)-1);
 			errbuf[sizeof(errbuf)-1] = 0;
-			printwarning("[FFmpeg-debug] avcodec_decode_audio3 error: %s\n",errbuf);
+			printwarning("[FFmpeg-debug] avcodec_decode_audio3 error: %s",errbuf);
 #endif
 			audiosourceffmpeg_FatalError(source);
 			return -1;
