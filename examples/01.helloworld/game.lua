@@ -78,7 +78,7 @@ function blitwiz.on_draw()
 
 	-- Actual drawing happens here
 	blitwiz.graphics.drawImage("hello_world.png", mw/2 - w/2, mh/2 - h/2)
-	blitwiz.font.draw("default", _VERSION .. ",\n   running on: "  .. os.sysname(), 10, 10)
+	blitwiz.font.draw("default", _VERSION .. ",\n   running on: "  .. os.sysname() .. " (" .. os.sysversion() .. ")", 10, 10)
 
 	-- Done!
 end

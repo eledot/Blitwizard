@@ -34,6 +34,23 @@ static char versionbuf[512] = "";
 #ifdef WINDOWS
 #include <windows.h>
 static char staticwindowsbuf[] = "Windows";
+static int osinfo_DetectWine() {
+    HMODULE lib = GetModuleHandle("ntdll.dll");
+    if (lib) {
+        void* p = (void*)GetProcAddress(lib, "wine_get_version");
+        if (p) {
+            return 1;
+        }
+        FreeLibrary(ib);
+    }
+    return 0;
+}
+static char wineversionbuf[] = "";
+static const char* osinfo_GetWineVersion() {
+	if (strlen(wineversionbuf) > 0) {return wineversionbuf;}
+
+	return wineversionbuf;	
+}
 const char* osinfo_GetSystemName() {
 	return staticwindowsbuf;
 }
@@ -43,8 +60,11 @@ const char* osinfo_GetSystemVersion() {
 	memset(&osvi, 0, sizeof(OSVERSIONINFO));
 	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
 	GetVersionEx(&osvi);
-	
-	snprintf(versionbuf,sizeof(versionbuf),"%d.%d",(int)osvi.dwMajorVersion,(int)osvi.dwMinorVersion);
+
+	char ntorwine[20] = "NT";
+	if (osinfo_DetectWine()) {strcpy(ntorwine, "Wine");}	
+
+	snprintf(versionbuf,sizeof(versionbuf),"%s/%d.%d",ntowrine,(int)osvi.dwMajorVersion,(int)osvi.dwMinorVersion);
 	versionbuf[sizeof(versionbuf)-1] = 0;
 	return versionbuf;
 }
@@ -71,14 +91,16 @@ int filecontains(const char* file, const char* name) {
 			filecontents[i] = 0;
 			if (i < (int)strlen(name)) {return 0;}
 			int j = 0;
-			while (j < i) {
+			while (j < i-(int)strlen(name)) {
 				int r = j;
+				int matched = 1;
 				while (r < i && r < (int)strlen(name)+j) {
 					if (toupper(filecontents[r]) != toupper(name[r-j])) {
-						return 0;
+						matched = 0;
 					}
 					r++;
 				}
+				if (matched) {break;}
 				j++;
 			}
 			return 1;
@@ -90,11 +112,11 @@ static char distribuf[64] = "";
 static const char* osinfo_GetDistributionName() {
 	if (strlen(distribuf) > 0) {return distribuf;}
 	if (file_DoesFileExist("/etc/redhat-release")) {
+		if (filecontains("/etc/redhat-release", "Red Hat")) {
+            strcpy(distribuf, "Red Hat");
+        }
 		if (filecontains("/etc/redhat-release", "Fedora")) {
 			strcpy(distribuf, "Fedora");
-		}
-		if (filecontains("/etc/redhat-release", "Red Hat")) {
-			strcpy(distribuf, "Red Hat");
 		}
 	}
 	if (filecontains("/etc/SuSE-release", "SUSE")) {
@@ -138,15 +160,15 @@ const char* osinfo_GetSystemVersion() {
 	Gestalt(gestaltSystemVersionBugFix, &bugfixVersion);
 	
 	snprintf(versionbuf,sizeof(versionbuf),"%d.%d.%d",majorVersion,minorVersion,bugfixVersion);
-        versionbuf[sizeof(versionbuf)-1] = 0;
-        return versionbuf;
+    versionbuf[sizeof(versionbuf)-1] = 0;
+    return versionbuf;
 #endif
 #ifdef LINUX
 	//Linux:
 	struct utsname b;
 	memset(&b, 0, sizeof(b));
 	if (uname(&b) != 0) {
-		snprintf(versionbuf, sizeof(versionbuf), "%s/Unknown", osinfo_GetDistributionName());
+		snprintf(versionbuf, sizeof(versionbuf), "%s/Unknown kernel info", osinfo_GetDistributionName());
 		versionbuf[sizeof(versionbuf)-1] = 0;
 		return versionbuf;
 	}
@@ -156,11 +178,11 @@ const char* osinfo_GetSystemVersion() {
 #endif
 #ifdef ANDROID
 	//Android:
-	strcpy(versionbuf,"Unknown");
+	strcpy(versionbuf,"Unknown system version");
 	return versionbuf;	
 #endif
 	//All others:
-	strcpy(versionbuf,"Unknown");
+	strcpy(versionbuf,"Unknown system version");
 	return versionbuf;
 }
 
