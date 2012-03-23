@@ -83,7 +83,6 @@ struct audiosourceffmpeg_internaldata {
 	AVFormatContext* formatcontext;
 	AVIOContext* iocontext;
 	AVCodec* audiocodec;
-	AVStream* audiostream;
 	AVPacket packet;
 	AVFrame* decodedframe;
 };
@@ -164,7 +163,7 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
 	errno = 0;
 	struct audiosource* source = data;
 	struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
-	if (idata->sourceeof) {printf("Returning: 0\n");return 0;}
+	if (idata->sourceeof) {return 0;}
 	
 	if (idata->source) {
 		int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size); 
@@ -175,10 +174,8 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
 		if (i == 0) {
 			idata->sourceeof = 1;
 		}
-		printf("Returning: %d\n",i);
 		return i;
 	}
-	printf("Returning: -1\n");
 	return -1;
 }
 
@@ -408,9 +405,6 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 			return -1;
 		}	
 
-		//Remember the stream we want to use
-		//idata->audiostream = idata->formatcontext->streams[stream];
-
 		//Allocate actual decoding buf
 		idata->buf = ffmpeg_av_malloc(DECODEBUFSIZE);
 		if (!idata->buf) {
@@ -448,8 +442,8 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 #endif
 	}
 
+	//we need to return how many bytes we read, so remember it here:
 	int writtenbytes = 0;
-	printf("ffmpeg: reading %d bytes\n",bytes);
 
 	//we might have some decoded bytes left:
 	if (idata->decodedbufbytes > 0 && bytes > 0) {
@@ -491,7 +485,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		idata->buf[DECODEBUFSIZE-1] = 0; //apparently required to avoid MPEG overshooting buffer
 
 		//decode with FFmpeg:
-		//decode_audio3:
+		//decode_audio3 (old, current variant):
 		if (!idata->tempbuf) {
 			idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
 		}
@@ -501,7 +495,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)outputbuf, &bufsize, &idata->packet);
 		if (len > 0) {gotframe = 1;}
 
-		//decode_audio4:
+		//decode_audio4 (new, upcoming variant):
 		//int gotframe;
         //int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
 
@@ -522,11 +516,11 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 		//return data if we have some
 		if (gotframe) {
-			//decode_audio3:
+			//decode_audio3 (old, current variant):
 			int framesize = len;
 			const char* p = outputbuf;
 
-			//decode_audio4:
+			//decode_audio4 (new, upcoming variant):
 			//int framesize = ffmpeg_av_samples_get_buffer_size(NULL, idata->codeccontext->channels, idata->decodedframe->nb_samples, idata->codeccontext->sample_fmt, 1);
 			//const char* p = (char*)idata->decodedframe->data[0];
 
@@ -544,6 +538,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 				bytes -= copybytes;
 				framesize -= copybytes;
 				p += copybytes;
+				writtenbytes += copybytes;
 			}
 
 			//maximal preserval size:
