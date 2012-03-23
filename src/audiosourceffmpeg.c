@@ -164,7 +164,7 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
 	errno = 0;
 	struct audiosource* source = data;
 	struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
-	if (idata->sourceeof) {return 0;}
+	if (idata->sourceeof) {printf("Returning: 0\n");return 0;}
 	
 	if (idata->source) {
 		int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size); 
@@ -175,8 +175,10 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
 		if (i == 0) {
 			idata->sourceeof = 1;
 		}
+		printf("Returning: %d\n",i);
 		return i;
 	}
+	printf("Returning: -1\n");
 	return -1;
 }
 
@@ -282,10 +284,10 @@ static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
 		return;
 	}
 	struct audiosourceffmpeg_internaldata* idata = source->internaldata;
-	/*if (idata->codeccontext) { //part of the stream
+	if (idata->codeccontext) {
 		ffmpeg_av_free(idata->codeccontext);
         idata->codeccontext = NULL;
-	}*/
+	}
 	if (idata->formatcontext) {
         ffmpeg_av_free(idata->formatcontext);
         idata->formatcontext = NULL;
@@ -381,10 +383,10 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		}
 
 		//Get codec context
-		idata->codeccontext = idata->formatcontext->streams[stream]->codec;
+		struct AVCodecContext* c = idata->formatcontext->streams[stream]->codec;
 
 		//Find best codec, we don't trust av_find_best_stream on this for now
-		idata->audiocodec = ffmpeg_avcodec_find_decoder(idata->codeccontext->codec_id);
+		idata->audiocodec = ffmpeg_avcodec_find_decoder(c->codec_id);
 		if (!idata->audiocodec) {
 			//Format is recognised, but codec unsupported
   			audiosourceffmpeg_FatalError(source);
@@ -392,10 +394,13 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		}
 	
 		//If this isn't an audio stream, we don't want it:
-		if (idata->codeccontext->codec_type != AVMEDIA_TYPE_AUDIO) {
+		if (c->codec_type != AVMEDIA_TYPE_AUDIO) {
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
+
+		//Get our actual codec context:
+		idata->codeccontext = ffmpeg_avcodec_alloc_context3(idata->audiocodec);
 
 		//Initialise codec. XXX avcodec_open2 is not thread-safe!
 		if (ffmpeg_avcodec_open2(idata->codeccontext, idata->audiocodec, NULL) < 0) {
@@ -404,7 +409,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		}	
 
 		//Remember the stream we want to use
-		idata->audiostream = idata->formatcontext->streams[stream];
+		//idata->audiostream = idata->formatcontext->streams[stream];
 
 		//Allocate actual decoding buf
 		idata->buf = ffmpeg_av_malloc(DECODEBUFSIZE);
@@ -420,17 +425,27 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		}
 		
 		//Remember format data
-		source->channels = idata->codeccontext->channels;
-		source->samplerate = idata->codeccontext->sample_rate;
+		source->channels = c->channels;
+		source->samplerate = c->sample_rate;
+
+		//Forget about the format context again (we only needed it to probe the format):
+		ffmpeg_av_free(idata->formatcontext);
+		idata->formatcontext = NULL;
 
 		//Rewind the audio source:
 		idata->source->rewind(idata->source); //XXX: DO WE WANT THIS?!
 
 		if (source->channels <= 0 || source->samplerate <= 0) {
+#ifdef FFMPEGDEBUG
+        	printwarning("[FFmpeg-debug] format probing failed: channels or sample rate unknown");
+#endif
 			//not a known format apparently
 			audiosourceffmpeg_FatalError(source);
 			return -1;
 		}
+#ifdef FFMPEGDEBUG
+        printinfo("[FFmpeg-debug] audiostream initialised: rate: %d, channels: %d", source->samplerate, source->channels);
+#endif
 	}
 
 	int writtenbytes = 0;
@@ -508,7 +523,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 		//return data if we have some
 		if (gotframe) {
 			//decode_audio3:
-			int framesize = bufsize;
+			int framesize = len;
 			const char* p = outputbuf;
 
 			//decode_audio4:
