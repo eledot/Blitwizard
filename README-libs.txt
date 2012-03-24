@@ -1,8 +1,9 @@
 This README should be shipped with all blitwizard builds
 that statically link the dependencies (which is the default).
 
-Blitwizard contains libogg and libvorbis/libvorbisfile:
+Blitwizard contains Speex, libogg and libvorbis/libvorbisfile:
 
+Speex: Copyright (c) 2002-2003, Jean-Marc Valin/Xiph.Org Foundation
 libogg: Copyright (c) 2002, Xiph.org Foundation
 libvorbis: Copyright (c) 2002-2008 Xiph.org Foundation
 
