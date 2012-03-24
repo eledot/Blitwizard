@@ -149,7 +149,7 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
 	loadorfail((void**)(&ffmpeg_avcodec_find_decoder), avcodecptr, "avcodec_find_decoder");
 	loadorfail((void**)(&ffmpeg_avcodec_alloc_frame), avcodecptr, "avcodec_alloc_frame");
 
-	//decode_audio4:
+	//decode_audio4 (new, unused variant):
 	//loadorfail((void**)(&ffmpeg_avcodec_decode_audio4), avcodecptr, "avcodec_decode_audio4");
 	//loadorfail((void**)(&ffmpeg_av_samples_get_buffer_size), avutilptr, "av_samples_get_buffer_size");
 
