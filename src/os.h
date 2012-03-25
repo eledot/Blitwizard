@@ -64,7 +64,7 @@
 #endif
 
 // Debugging the Android/SDL_RWops approach on Linux:
-#define SDLRW
+//#define SDLRW
 //#define NOTHREADEDSDLRW
 
 
