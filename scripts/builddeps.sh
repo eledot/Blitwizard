@@ -137,7 +137,7 @@ if [ "$changedhost" = "yes" ]; then
 fi
 
 # Copy libraries
-cp src/sdl/build/.libs/libSDL.a libs/libblitwizardSDL.a
+cp src/sdl/build/.libs/libSDL2.a libs/libblitwizardSDL.a
 cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a
 cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a
 cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a
