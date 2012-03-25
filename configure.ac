@@ -101,6 +101,7 @@ AS_IF([test -z "$maybeos"],[
 
 ])
 
+# Check whether we can access cmake
 AC_MSG_CHECKING([for cmake build system])
 sh scripts/checkforcmake.sh
 AS_IF([test "x$?" != x0],[
