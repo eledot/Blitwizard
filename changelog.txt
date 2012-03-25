@@ -1,5 +1,0 @@
-
-Release 0.1, 15 November 2011:
- - Initial release to demonstrate how this all works
- - Sound is still missing.
-
