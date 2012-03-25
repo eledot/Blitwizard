@@ -33,32 +33,32 @@
 #endif
 
 struct audiosourceresample_internaldata {
-	struct audiosource* source;
-	unsigned int targetrate;
-	int sourceeof;
-	int eof;
-	int returnerroroneof;
+    struct audiosource* source;
+    unsigned int targetrate;
+    int sourceeof;
+    int eof;
+    int returnerroroneof;
 
-	char unprocessedbuf[4096];
-	unsigned int unprocessedbytes;
-	
-	char processedbuf[4096];
-	unsigned int processedbytes;
+    char unprocessedbuf[4096];
+    unsigned int unprocessedbytes;
+    
+    char processedbuf[4096];
+    unsigned int processedbytes;
 };
 
 static void audiosourceresample_Close(struct audiosource* source) {
-	struct audiosourceresample_internaldata* idata = source->internaldata;
-	
-	//close the processed source
-	if (idata->source) {
-		idata->source->close(idata->source);
-	}
-	
-	//free all structs
-	if (source->internaldata) {
-		free(source->internaldata);
-	}
-	free(source);
+    struct audiosourceresample_internaldata* idata = source->internaldata;
+    
+    //close the processed source
+    if (idata->source) {
+        idata->source->close(idata->source);
+    }
+    
+    //free all structs
+    if (source->internaldata) {
+        free(source->internaldata);
+    }
+    free(source);
 }
 
 #ifdef NOTHREADEDSDLRW
@@ -68,239 +68,239 @@ static void audiosourceresample_CloseMainthread(struct audiosource* source) {
     //close the processed source
     if (idata->source) {
         idata->source->closemainthread(idata->source);
-		idata->source = NULL;
+        idata->source = NULL;
     }
-	audiosourceresample_Close(source);
+    audiosourceresample_Close(source);
 }
 #endif
 
 static void audiosourceresample_Rewind(struct audiosource* source) {
-	struct audiosourceresample_internaldata* idata = source->internaldata;
-	if (!idata->eof || !idata->returnerroroneof) {
-		idata->source->rewind(idata->source);
-		idata->sourceeof = 0;
-		idata->eof = 0;
-		idata->returnerroroneof = 0;
-		idata->unprocessedbytes = 0;
-		idata->processedbytes = 0;
-	}
+    struct audiosourceresample_internaldata* idata = source->internaldata;
+    if (!idata->eof || !idata->returnerroroneof) {
+        idata->source->rewind(idata->source);
+        idata->sourceeof = 0;
+        idata->eof = 0;
+        idata->returnerroroneof = 0;
+        idata->unprocessedbytes = 0;
+        idata->processedbytes = 0;
+    }
 }
 
 static void audiosourceresample_AppendResampled(struct audiosource* source, char* buffer, int size) {
-	struct audiosourceresample_internaldata* idata = source->internaldata;
-	memcpy(idata->processedbuf + idata->processedbytes, buffer, size);
-	idata->processedbytes += size;
+    struct audiosourceresample_internaldata* idata = source->internaldata;
+    memcpy(idata->processedbuf + idata->processedbytes, buffer, size);
+    idata->processedbytes += size;
 }
 
 static unsigned int audiosourceresample_GetResampleSpace(struct audiosource* source) {
-	struct audiosourceresample_internaldata* idata = source->internaldata;
-	return sizeof(idata->processedbuf) - idata->processedbytes;
+    struct audiosourceresample_internaldata* idata = source->internaldata;
+    return sizeof(idata->processedbuf) - idata->processedbytes;
 }
 
 static int audiosourceresample_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
-	struct audiosourceresample_internaldata* idata = source->internaldata;
-	if (idata->eof) {
-		return -1;
-	}
-	
-	unsigned int byteswritten = 0;
-	while (bytes > 0) {
-		if (!idata->sourceeof) {
-			//see how many samples we want to fetch
-			unsigned int wantsamples = bytes / (sizeof(float) * source->channels);
-			if (wantsamples * sizeof(float) * source->channels < bytes) {
-				wantsamples += sizeof(float) * source->channels;
-			}
-			if (wantsamples < 12 && (source->samplerate == 44100 ||source->samplerate == 22050) && idata->targetrate == 48000) {
-				wantsamples = 12;
-			}
+    struct audiosourceresample_internaldata* idata = source->internaldata;
+    if (idata->eof) {
+        return -1;
+    }
+    
+    unsigned int byteswritten = 0;
+    while (bytes > 0) {
+        if (!idata->sourceeof) {
+            //see how many samples we want to fetch
+            unsigned int wantsamples = bytes / (sizeof(float) * source->channels);
+            if (wantsamples * sizeof(float) * source->channels < bytes) {
+                wantsamples += sizeof(float) * source->channels;
+            }
+            if (wantsamples < 12 && (source->samplerate == 44100 ||source->samplerate == 22050) && idata->targetrate == 48000) {
+                wantsamples = 12;
+            }
 
-			//fetch new bytes from the source
-			while (wantsamples > 0 && idata->unprocessedbytes < sizeof(idata->unprocessedbuf) - sizeof(float) * source->channels) {
-				int i = idata->source->read(idata->source, idata->unprocessedbuf + idata->unprocessedbytes, sizeof(float) * source->channels);
-				if (i > 0) {
-					idata->unprocessedbytes += i;
-				}else{
-					if (i < 0) {
-						idata->returnerroroneof = 1;
-					}
-					idata->sourceeof = 1;
-					break;
-				}
-				wantsamples--;
-			}
-		}
-		
-		char zerobuf[] = "\0\0\0\0\0\0\0\0"; //contains some zeroes
-		
-		//resample 22050 -> 44100
-		if (source->samplerate == 22050 && idata->targetrate == 44100) {
-			char* offsetptr = idata->unprocessedbuf;
-			unsigned int availablebytes = idata->unprocessedbytes;
-			unsigned int processed = 0;
-			while (availablebytes >= sizeof(float) * source->channels && audiosourceresample_GetResampleSpace(source) > sizeof(float) * source->channels * 2) {
-				//first, copy the original block of samples unchanged:
-				audiosourceresample_AppendResampled(source, offsetptr, sizeof(float) * source->channels);
-				//blow up each sample to two samples by adding in a zero block:
-				unsigned int i = 0;
-				while (i < source->channels) {
-					audiosourceresample_AppendResampled(source, zerobuf, sizeof(float));
-					i++;
-				}
-				//update status
-				availablebytes -= sizeof(float) * source->channels;
-				offsetptr += sizeof(float) * source->channels;
-				processed += sizeof(float) * source->channels;
-			}
-			
-			//strip the now processed data
-			memmove(idata->unprocessedbuf, idata->unprocessedbuf + processed, sizeof(idata->unprocessedbuf) - processed);
-			idata->unprocessedbytes -= processed;
-		}
-		
-		//resample 44100 -> 48000
-		if (source->samplerate == 44100 && idata->targetrate == 48000) {
-			//we use an upsample factor of 11. obviously, that is inaccurate
-			char* offsetptr = idata->unprocessedbuf;
-			unsigned int availablebytes = idata->unprocessedbytes;
-			unsigned int processed = 0;
-			while (audiosourceresample_GetResampleSpace(source) >= 12 * sizeof(float) * source->channels && availablebytes >= 11 * sizeof(float) * source->channels) {
-				//first, copy the original block of samples unchanged:
-				audiosourceresample_AppendResampled(source, offsetptr, sizeof(float) * source->channels * 11);
-				
-				//add in an additional zero:
-				unsigned int i = 0;
-				while (i < source->channels) {
-					audiosourceresample_AppendResampled(source, zerobuf, sizeof(float));
-					i++;
-				}
-				
-				//update status
-				availablebytes -= sizeof(float) * source->channels * 11;
-				offsetptr += sizeof(float) * source->channels * 11;
-				processed += sizeof(float) * source->channels * 11;
-			}
-			
-			//strip the now processed data
-			memmove(idata->unprocessedbuf, idata->unprocessedbuf + processed, sizeof(idata->unprocessedbuf) - processed);
-			idata->unprocessedbytes -= processed;
-		}
-		
-		//now we would love to do a lowpass filter. however, this remains to be coded!
-		if (source->samplerate == idata->targetrate) {
+            //fetch new bytes from the source
+            while (wantsamples > 0 && idata->unprocessedbytes < sizeof(idata->unprocessedbuf) - sizeof(float) * source->channels) {
+                int i = idata->source->read(idata->source, idata->unprocessedbuf + idata->unprocessedbytes, sizeof(float) * source->channels);
+                if (i > 0) {
+                    idata->unprocessedbytes += i;
+                }else{
+                    if (i < 0) {
+                        idata->returnerroroneof = 1;
+                    }
+                    idata->sourceeof = 1;
+                    break;
+                }
+                wantsamples--;
+            }
+        }
+        
+        char zerobuf[] = "\0\0\0\0\0\0\0\0"; //contains some zeroes
+        
+        //resample 22050 -> 44100
+        if (source->samplerate == 22050 && idata->targetrate == 44100) {
+            char* offsetptr = idata->unprocessedbuf;
+            unsigned int availablebytes = idata->unprocessedbytes;
+            unsigned int processed = 0;
+            while (availablebytes >= sizeof(float) * source->channels && audiosourceresample_GetResampleSpace(source) > sizeof(float) * source->channels * 2) {
+                //first, copy the original block of samples unchanged:
+                audiosourceresample_AppendResampled(source, offsetptr, sizeof(float) * source->channels);
+                //blow up each sample to two samples by adding in a zero block:
+                unsigned int i = 0;
+                while (i < source->channels) {
+                    audiosourceresample_AppendResampled(source, zerobuf, sizeof(float));
+                    i++;
+                }
+                //update status
+                availablebytes -= sizeof(float) * source->channels;
+                offsetptr += sizeof(float) * source->channels;
+                processed += sizeof(float) * source->channels;
+            }
+            
+            //strip the now processed data
+            memmove(idata->unprocessedbuf, idata->unprocessedbuf + processed, sizeof(idata->unprocessedbuf) - processed);
+            idata->unprocessedbytes -= processed;
+        }
+        
+        //resample 44100 -> 48000
+        if (source->samplerate == 44100 && idata->targetrate == 48000) {
+            //we use an upsample factor of 11. obviously, that is inaccurate
+            char* offsetptr = idata->unprocessedbuf;
+            unsigned int availablebytes = idata->unprocessedbytes;
+            unsigned int processed = 0;
+            while (audiosourceresample_GetResampleSpace(source) >= 12 * sizeof(float) * source->channels && availablebytes >= 11 * sizeof(float) * source->channels) {
+                //first, copy the original block of samples unchanged:
+                audiosourceresample_AppendResampled(source, offsetptr, sizeof(float) * source->channels * 11);
+                
+                //add in an additional zero:
+                unsigned int i = 0;
+                while (i < source->channels) {
+                    audiosourceresample_AppendResampled(source, zerobuf, sizeof(float));
+                    i++;
+                }
+                
+                //update status
+                availablebytes -= sizeof(float) * source->channels * 11;
+                offsetptr += sizeof(float) * source->channels * 11;
+                processed += sizeof(float) * source->channels * 11;
+            }
+            
+            //strip the now processed data
+            memmove(idata->unprocessedbuf, idata->unprocessedbuf + processed, sizeof(idata->unprocessedbuf) - processed);
+            idata->unprocessedbytes -= processed;
+        }
+        
+        //now we would love to do a lowpass filter. however, this remains to be coded!
+        if (source->samplerate == idata->targetrate) {
 
-		}
+        }
 
-		//handle the pass-thru case
-		if (source->samplerate == idata->targetrate) {
-			unsigned int i = idata->unprocessedbytes;
-			if (i > sizeof(idata->processedbuf) - idata->processedbytes) {
-				i = (int)(sizeof(idata->processedbuf) - idata->processedbytes);
-			}
-			memcpy(idata->processedbuf + idata->processedbytes, idata->unprocessedbuf, i);
-			idata->processedbytes += i;
-			idata->unprocessedbytes -= i;
-			if (i < idata->unprocessedbytes) {
-				memmove(idata->unprocessedbuf, idata->unprocessedbuf + i, sizeof(idata->unprocessedbuf) - i);
-			}
-		}
-		
-		//serve processed/requested bytes
-		unsigned int i = bytes;
-		if (i > idata->processedbytes) {i = idata->processedbytes;}
-		if (i <= 0) {
-			if (byteswritten <= 0) {
-				if (idata->returnerroroneof) {
-					return -1;
-				}
-				return 0;
-			}else{
-				return byteswritten;
-			}
-		}else{
-			memcpy(buffer, idata->processedbuf, i);
-			memmove(idata->processedbuf, idata->processedbuf + i, sizeof(idata->processedbuf) - i);
-			idata->processedbytes -= i;
-			byteswritten += i;
-			bytes -= i;
-		}
-	}
-	return byteswritten;
+        //handle the pass-thru case
+        if (source->samplerate == idata->targetrate) {
+            unsigned int i = idata->unprocessedbytes;
+            if (i > sizeof(idata->processedbuf) - idata->processedbytes) {
+                i = (int)(sizeof(idata->processedbuf) - idata->processedbytes);
+            }
+            memcpy(idata->processedbuf + idata->processedbytes, idata->unprocessedbuf, i);
+            idata->processedbytes += i;
+            idata->unprocessedbytes -= i;
+            if (i < idata->unprocessedbytes) {
+                memmove(idata->unprocessedbuf, idata->unprocessedbuf + i, sizeof(idata->unprocessedbuf) - i);
+            }
+        }
+        
+        //serve processed/requested bytes
+        unsigned int i = bytes;
+        if (i > idata->processedbytes) {i = idata->processedbytes;}
+        if (i <= 0) {
+            if (byteswritten <= 0) {
+                if (idata->returnerroroneof) {
+                    return -1;
+                }
+                return 0;
+            }else{
+                return byteswritten;
+            }
+        }else{
+            memcpy(buffer, idata->processedbuf, i);
+            memmove(idata->processedbuf, idata->processedbuf + i, sizeof(idata->processedbuf) - i);
+            idata->processedbytes -= i;
+            byteswritten += i;
+            bytes -= i;
+        }
+    }
+    return byteswritten;
 }
 
 struct audiosource* audiosourceresample_Create(struct audiosource* source, unsigned int targetrate) {
-	//check if we got a source and if source samplerate + target rate are supported by our limited implementation
-	if (!source) {return NULL;}
-	if ((source->samplerate != 44100 || targetrate != 48000) &&
-		(source->samplerate != 22050 || targetrate != 44100) &&
-		source->samplerate != targetrate) {
-		if (source->samplerate == 22050 && targetrate == 48000) {
-			//do this as a two-step conversion
-			source = audiosourceresample_Create(source, 44100);
-			if (!source) {return NULL;}
-		}else{
-			//sorry, we don't support this.
+    //check if we got a source and if source samplerate + target rate are supported by our limited implementation
+    if (!source) {return NULL;}
+    if ((source->samplerate != 44100 || targetrate != 48000) &&
+        (source->samplerate != 22050 || targetrate != 44100) &&
+        source->samplerate != targetrate) {
+        if (source->samplerate == 22050 && targetrate == 48000) {
+            //do this as a two-step conversion
+            source = audiosourceresample_Create(source, 44100);
+            if (!source) {return NULL;}
+        }else{
+            //sorry, we don't support this.
 #ifdef NOTHREADEDSDLRW
-			source->closemainthread(source);
+            source->closemainthread(source);
 #else
-			source->close(source);
+            source->close(source);
 #endif
-		}
-		return NULL;
-	}
+        }
+        return NULL;
+    }
 
-	//we only support stereo audio
-	if (source->channels != 2) {
+    //we only support stereo audio
+    if (source->channels != 2) {
 #ifdef NOTHREADEDSDLRW
-		source->closemainthread(source);
+        source->closemainthread(source);
 #else
-		source->close(source);
+        source->close(source);
 #endif
-		return NULL;
-	}
+        return NULL;
+    }
 
-	//allocate data struct
-	struct audiosource* a = malloc(sizeof(*a));
-	if (!a) {
+    //allocate data struct
+    struct audiosource* a = malloc(sizeof(*a));
+    if (!a) {
 #ifdef NOTHREADEDSDLRW
-		source->closemainthread(source);
+        source->closemainthread(source);
 #else
-		source->close(source);
+        source->close(source);
 #endif
-		return NULL;
-	}
-	
-	//allocate data struct for internal (hidden) data
-	memset(a,0,sizeof(*a));
-	a->internaldata = malloc(sizeof(struct audiosourceresample_internaldata));
-	if (!a->internaldata) {
-		free(a);
+        return NULL;
+    }
+    
+    //allocate data struct for internal (hidden) data
+    memset(a,0,sizeof(*a));
+    a->internaldata = malloc(sizeof(struct audiosourceresample_internaldata));
+    if (!a->internaldata) {
+        free(a);
 #ifdef NOTHREADEDSDLRW
-		source->closemainthread(source);
+        source->closemainthread(source);
 #else
-		source->close(source);
+        source->close(source);
 #endif
-		return NULL;
-	}
-	
-	//remember some things
-	struct audiosourceresample_internaldata* idata = a->internaldata;
-	memset(idata, 0, sizeof(*idata));
-	idata->source = source;
-	idata->targetrate = targetrate;
-	a->samplerate = source->samplerate;
-	a->channels = source->channels;
-	
-	//set function pointers
-	a->read = &audiosourceresample_Read;
-	a->close = &audiosourceresample_Close;
-	a->rewind = &audiosourceresample_Rewind;
+        return NULL;
+    }
+    
+    //remember some things
+    struct audiosourceresample_internaldata* idata = a->internaldata;
+    memset(idata, 0, sizeof(*idata));
+    idata->source = source;
+    idata->targetrate = targetrate;
+    a->samplerate = source->samplerate;
+    a->channels = source->channels;
+    
+    //set function pointers
+    a->read = &audiosourceresample_Read;
+    a->close = &audiosourceresample_Close;
+    a->rewind = &audiosourceresample_Rewind;
 #ifdef NOTHREADEDSDLRW
-	a->closemainthread = &audiosourceresample_CloseMainthread;
+    a->closemainthread = &audiosourceresample_CloseMainthread;
 #endif
 
-	//complete!
-	return a;
+    //complete!
+    return a;
 }
 
 

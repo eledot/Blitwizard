@@ -64,8 +64,8 @@ double getangle(double x, double y, double x2, double y2) {
 }
 
 void ovalpoint(double angle, double width, double height, double* x, double* y) {
-	*x = (width/2) * cos(angle) * 1;
-	*y = (height/2) * sin(angle) * 1;
+    *x = (width/2) * cos(angle) * 1;
+    *y = (height/2) * sin(angle) * 1;
 }
 
 void rotatevec(double x, double y, double rotation, double* x2, double* y2) {

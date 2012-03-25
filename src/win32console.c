@@ -35,27 +35,27 @@ static int consoleopen = 0;
 
 void win32console_Launch() {
 #ifdef WINDOWS
-	if (consoleopen) {return;}
+    if (consoleopen) {return;}
 
-	AllocConsole();
+    AllocConsole();
 
     HANDLE outhandle = GetStdHandle(STD_OUTPUT_HANDLE);
     int outfhandle = _open_osfhandle((long)outhandle, _O_TEXT);
     FILE* outfile = _fdopen(outfhandle, "w");
     setvbuf(outfile, NULL, _IONBF, 1);
     *stdout = *outfile;
-	
-	consoleopen = 1;
+    
+    consoleopen = 1;
 #endif
 }
 
 void win32console_Close() {
 #ifdef WINDOWS
-	if (!consoleopen) {return;}
+    if (!consoleopen) {return;}
 
-	fclose(stdout);
-	FreeConsole();
-	consoleopen = 0;
+    fclose(stdout);
+    FreeConsole();
+    consoleopen = 0;
 #endif
 }
 

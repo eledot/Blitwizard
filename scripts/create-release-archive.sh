@@ -66,7 +66,7 @@ if [ -z "$1" ]; then
 fi
 
 if [ ! "$1" = "current" ]; then
-	useversion="$1"
+    useversion="$1"
 fi
 
 BINRELEASENAME="linux"
@@ -76,105 +76,105 @@ DOSOURCERELEASE="yes"
 REDOWNLOAD="yes"
 RELEASETYPE="$2"
 if [ "$RELEASETYPE" = "android" ]; then
-	if [ -d "blitwizard-android/" ]; then
-		read -p "Redownload source and deps? [y/N]"
-		[[ "$REPLY" == [yY] ]] || { REDOWNLOAD="no"; }
-	fi
-	RELEASETYPE="android"
+    if [ -d "blitwizard-android/" ]; then
+        read -p "Redownload source and deps? [y/N]"
+        [[ "$REPLY" == [yY] ]] || { REDOWNLOAD="no"; }
+    fi
+    RELEASETYPE="android"
 fi
 
 TARGETHOST=""
 if [ "$RELEASETYPE" = "linux-to-win" ]; then
-	echo "";
-	echo "Building with MinGW cross compiler..."
-	echo "IMPORTANT: Please set CROSSCCHOST in this script properly!"
-	echo "If you haven't, press CTRL+C now to cancel, then do so."
-	echo "   Given cross compiler host: $CROSSCCHOST"
-	echo ""
-	TARGETHOST="$CROSSCCHOST"
-	BINRELEASENAME="win32"
-	DOSOURCERELEASE="no"
+    echo "";
+    echo "Building with MinGW cross compiler..."
+    echo "IMPORTANT: Please set CROSSCCHOST in this script properly!"
+    echo "If you haven't, press CTRL+C now to cancel, then do so."
+    echo "   Given cross compiler host: $CROSSCCHOST"
+    echo ""
+    TARGETHOST="$CROSSCCHOST"
+    BINRELEASENAME="win32"
+    DOSOURCERELEASE="no"
 else
-	if [ "$RELEASETYPE" = "android" ]; then
-		echo "";
-		echo "Building with Android SDK..."
-		echo "IMPORTANT: Please set ANDROID_ paths in this script properly!"
-		echo "If you haven't, press CTRL+C now to cancel, then do so."
-		echo "   Given Android SDK path: $ANDROID_SDK_PATH"
-		echo "   Given Android NDK path: $ANDROID_NDK_PATH"
-		echo ""
-		DOSOURCERELEASE="no"
-		BINRELEASENAME="android"
-		echo "Checking for $ANDROID_NDK_PATH/ndk-build..."
-		if [ ! -e "$ANDROID_NDK_PATH/ndk-build" ]; then
-			echo "ERROR. NDK build utility not found. Is the Android NDK path correct?"
-			exit 1
-		fi
-		if [ ! -e "$ANDROID_SDK_PATH/SDK Readme.txt" ]; then
+    if [ "$RELEASETYPE" = "android" ]; then
+        echo "";
+        echo "Building with Android SDK..."
+        echo "IMPORTANT: Please set ANDROID_ paths in this script properly!"
+        echo "If you haven't, press CTRL+C now to cancel, then do so."
+        echo "   Given Android SDK path: $ANDROID_SDK_PATH"
+        echo "   Given Android NDK path: $ANDROID_NDK_PATH"
+        echo ""
+        DOSOURCERELEASE="no"
+        BINRELEASENAME="android"
+        echo "Checking for $ANDROID_NDK_PATH/ndk-build..."
+        if [ ! -e "$ANDROID_NDK_PATH/ndk-build" ]; then
+            echo "ERROR. NDK build utility not found. Is the Android NDK path correct?"
+            exit 1
+        fi
+        if [ ! -e "$ANDROID_SDK_PATH/SDK Readme.txt" ]; then
             echo "ERROR. SDK readme not found. Is the Android SDK path correct?"
             exit 1
         fi
-	else
-		echo "Building with native compiler";
-    	if [ "$RELEASETYPE" = "win" ]; then
-        	BINRELEASENAME="win32"
-    	fi	
-	fi
+    else
+        echo "Building with native compiler";
+        if [ "$RELEASETYPE" = "win" ]; then
+            BINRELEASENAME="win32"
+        fi  
+    fi
 fi
 
 if [ "$REDOWNLOAD" = "yes" ]; then
-	# Remove old stuff
-	rm -rf blitwizard-android/
-	# (Re)download the tarball
-	if [ "$DOSOURCERELEASE" = "yes" ]; then
-		rm blitwizard-$RELEASEVERSION-src.zip
-	fi
-	rm blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip
-	rm deps.zip
-	rm -r tarball/
-	mkdir -p tarball
-	cd tarball
-	git clone http://games.homeofjones.de/blitwizard/git-source/blitwizard.git/ . || { echo "Failed to do git checkout."; exit 1; }
-	rm -rf ./.git
-	if [ "$2" != "android" ]; then
-		sh autogen.sh || { echo "Autoconf generation failed."; exit 1; }
-	fi
+    # Remove old stuff
+    rm -rf blitwizard-android/
+    # (Re)download the tarball
+    if [ "$DOSOURCERELEASE" = "yes" ]; then
+        rm blitwizard-$RELEASEVERSION-src.zip
+    fi
+    rm blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip
+    rm deps.zip
+    rm -r tarball/
+    mkdir -p tarball
+    cd tarball
+    git clone http://games.homeofjones.de/blitwizard/git-source/blitwizard.git/ . || { echo "Failed to do git checkout."; exit 1; }
+    rm -rf ./.git
+    if [ "$2" != "android" ]; then
+        sh autogen.sh || { echo "Autoconf generation failed."; exit 1; }
+    fi
 
-	# Remove things from source release we don't want
-	rm .gitignore
-	rm bin/.gitignore
-	rm src/sdl/.gitignore
-	rm src/vorbis/.gitignore
-	rm src/ogg/.gitignore
-	rm src/lua/.gitignore
-	rm src/imgloader/png/.gitignore
-	rm src/imgloader/zlib/.gitignore
-	find ./ -iname "*.xcf" -delete
-	cd ..
+    # Remove things from source release we don't want
+    rm .gitignore
+    rm bin/.gitignore
+    rm src/sdl/.gitignore
+    rm src/vorbis/.gitignore
+    rm src/ogg/.gitignore
+    rm src/lua/.gitignore
+    rm src/imgloader/png/.gitignore
+    rm src/imgloader/zlib/.gitignore
+    find ./ -iname "*.xcf" -delete
+    cd ..
 
-	# Rename to ./blitwizard/ and zip for source release
-	rm -r blitwizard/
-	mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
-	if [ "$DOSOURCERELEASE" = "yes" ]; then
-		mv ./blitwizard/ffmpeg-*.tar.bz2 ./
-		zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/ || { mv ./ffmpeg-*.tar.bz2 ./blitwizard/; echo "zip doesn't work as expected - is zip installed?"; exit 1; }
-		mv ./ffmpeg-*.tar.bz2 ./blitwizard/
-	fi
-	cd blitwizard
+    # Rename to ./blitwizard/ and zip for source release
+    rm -r blitwizard/
+    mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
+    if [ "$DOSOURCERELEASE" = "yes" ]; then
+        mv ./blitwizard/ffmpeg-*.tar.bz2 ./
+        zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/ || { mv ./ffmpeg-*.tar.bz2 ./blitwizard/; echo "zip doesn't work as expected - is zip installed?"; exit 1; }
+        mv ./ffmpeg-*.tar.bz2 ./blitwizard/
+    fi
+    cd blitwizard
 
-	# Get dependencies
-	rm deps.zip
-	wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
-	unzip deps.zip
+    # Get dependencies
+    rm deps.zip
+    wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
+    unzip deps.zip
 else
-	cd blitwizard
+    cd blitwizard
 fi
 
 # Do android build here
 if [ "$RELEASETYPE" = "android" ]; then
-	cd ..
-	sh android/android.sh "$ANDROID_SDK_PATH" "$ANDROID_NDK_PATH" "$REDOWNLOAD" || { echo "Failed to complete Android build."; exit 1; }
-	exit 0;
+    cd ..
+    sh android/android.sh "$ANDROID_SDK_PATH" "$ANDROID_NDK_PATH" "$REDOWNLOAD" || { echo "Failed to complete Android build."; exit 1; }
+    exit 0;
 fi
 
 # Ensure FFmpeg support by providing the source of it
@@ -211,21 +211,21 @@ cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
 
 if [ -e "./bin/blitwizard.exe" ]; then
-	# Add easy start script
-	cp ../blitwizard/Run-Blitwizard.bat ./
-	
-	# Add FFmpeg to windows distribution
-	cp ../../src/ffmpeg/libavformat/avformat.dll ./bin/avformat.dll
+    # Add easy start script
+    cp ../blitwizard/Run-Blitwizard.bat ./
+    
+    # Add FFmpeg to windows distribution
+    cp ../../src/ffmpeg/libavformat/avformat.dll ./bin/avformat.dll
     cp ../../src/ffmpeg/libavutil/avutil.dll ./bin/avutil.dll
     cp ../../src/ffmpeg/libavcodec/avcodec.dll ./bin/avcodec.dll
-	cp ../blitwizard/ffmpeg-*.tar.bz2 ./
+    cp ../blitwizard/ffmpeg-*.tar.bz2 ./
 fi
 
 # detect todos or unix2dos
 UNIXTODOS="unix2dos"
 $UNIXTODOS ./README*.txt || {
-	UNIXTODOS="todos"
-	$UNIXTODOS ./README*.txt || { echo "unix2dos/todos not working - is any of them installed?"; exit 1; }
+    UNIXTODOS="todos"
+    $UNIXTODOS ./README*.txt || { echo "unix2dos/todos not working - is any of them installed?"; exit 1; }
 }
 $UNIXTODOS ./Credits.txt
 $UNIXTODOS ./Ship-your-game.txt

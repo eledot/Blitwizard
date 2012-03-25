@@ -26,29 +26,29 @@
 #include "SDL.h"
 
 struct mutex {
-	SDL_mutex *m;
+    SDL_mutex *m;
 };
 
 #include "threading.h"
 
 mutex* mutex_Create() {
-	mutex* m = malloc(sizeof(mutex));
-	if (!m) {return NULL;}
-	memset(m, 0, sizeof(*m));
-	m->m = SDL_CreateMutex();
-	return m;
+    mutex* m = malloc(sizeof(mutex));
+    if (!m) {return NULL;}
+    memset(m, 0, sizeof(*m));
+    m->m = SDL_CreateMutex();
+    return m;
 } 
 
 void mutex_Destroy(mutex* m) {
-	SDL_DestroyMutex(m->m);
-	free(m);
+    SDL_DestroyMutex(m->m);
+    free(m);
 }
 
 void mutex_Lock(mutex* m) {
-	SDL_LockMutex(m->m);
+    SDL_LockMutex(m->m);
 }
 
 void mutex_Release(mutex* m) {
-	SDL_UnlockMutex(m->m);
+    SDL_UnlockMutex(m->m);
 }
 

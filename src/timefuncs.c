@@ -28,20 +28,20 @@
 uint64_t oldtime = 0;
 uint64_t timeoffset = 0;
 uint64_t time_GetMilliSeconds() {
-	uint64_t i = SDL_GetTicks();
-	i += timeoffset; //add an offset we might have set
-	if (i > oldtime) {
-		//normal time difference
-		oldtime = i;
-	}else{
-		//we wrapped around. set a time offset to avoid the wrap
-		timeoffset = (oldtime-i)+1;
-		i += timeoffset;	
-	}
-	return i;
+    uint64_t i = SDL_GetTicks();
+    i += timeoffset; //add an offset we might have set
+    if (i > oldtime) {
+        //normal time difference
+        oldtime = i;
+    }else{
+        //we wrapped around. set a time offset to avoid the wrap
+        timeoffset = (oldtime-i)+1;
+        i += timeoffset;    
+    }
+    return i;
 }
 
 void time_Sleep(uint32_t milliseconds) {
-	SDL_Delay(milliseconds);
+    SDL_Delay(milliseconds);
 }
 

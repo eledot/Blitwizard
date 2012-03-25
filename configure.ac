@@ -29,80 +29,80 @@ maybeos=`echo $EXEEXT | grep exe`
 
 USE_FFMPEG=""
 AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
-	AC_MSG_NOTICE([FFmpeg source code appears to be present, will compile with FFmpeg support.])
-	USE_FFMPEG="-DUSE_FFMPEG"
-	AS_IF([test ! -e "src/ffmpeg/libavutil/avconfig.h"], [
-		AC_WARN([FFmpeg is not configured yet. FFmpeg will be now configured (but not built) with recommended options. If you want to do that yourself, please cancel and do it now, then rerun blitwizard ./configure.])
-		{ cd src/ffmpeg && ./configure --disable-libgsm --enable-runtime-cpudetect  --enable-version3 --disable-gpl --enable-shared --disable-doc --disable-ffmpeg --disable-avconv --disable-ffplay --disable-ffprobe --disable-ffserver --disable-protocols --disable-devices; } || { AC_MSG_ERROR([Failed to configure FFmpeg.]); exit 1; }
-		cd ../../
-	])
+    AC_MSG_NOTICE([FFmpeg source code appears to be present, will compile with FFmpeg support.])
+    USE_FFMPEG="-DUSE_FFMPEG"
+    AS_IF([test ! -e "src/ffmpeg/libavutil/avconfig.h"], [
+        AC_WARN([FFmpeg is not configured yet. FFmpeg will be now configured (but not built) with recommended options. If you want to do that yourself, please cancel and do it now, then rerun blitwizard ./configure.])
+        { cd src/ffmpeg && ./configure --disable-libgsm --enable-runtime-cpudetect  --enable-version3 --disable-gpl --enable-shared --disable-doc --disable-ffmpeg --disable-avconv --disable-ffplay --disable-ffprobe --disable-ffserver --disable-protocols --disable-devices; } || { AC_MSG_ERROR([Failed to configure FFmpeg.]); exit 1; }
+        cd ../../
+    ])
 ],[
-	AC_WARN([FFmpeg source code is not present or not properly placed. Blitwizard will NOT have any FFmpeg support.])
+    AC_WARN([FFmpeg source code is not present or not properly placed. Blitwizard will NOT have any FFmpeg support.])
 ])
 
 
 # Os dependent stuff:
 
 AS_IF([test -z "$maybeos"],[
-	AC_MSG_NOTICE([Trying to compile for a Unix target.]) 
-	# >> Unix
+    AC_MSG_NOTICE([Trying to compile for a Unix target.]) 
+    # >> Unix
 
-	MACTEST=`uname -a | grep Darwin`
-	AS_IF([test -z "$MACTEST"],[
-		LIBS="-pthread -ldl -lm"
+    MACTEST=`uname -a | grep Darwin`
+    AS_IF([test -z "$MACTEST"],[
+        LIBS="-pthread -ldl -lm"
         WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
-	],[
-		LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
+    ],[
+        LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
         WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
-	])
+    ])
 
-	echo -e "$WRITELINE" > scripts/.buildinfo
-	CFLAGS="$CFLAGS $USE_FFMPEG `cd scripts && sh ./checksse.sh`"	
+    echo -e "$WRITELINE" > scripts/.buildinfo
+    CFLAGS="$CFLAGS $USE_FFMPEG `cd scripts && sh ./checksse.sh`"   
 
-	AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 
-	# Checks for header files.
-	AC_CHECK_HEADERS([arpa/inet.h dlfcn.h ctype.h fcntl.h netdb.h netinet/in.h stdarg.h sys/stat.h sys/socket.h sys/wait.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
-	AC_CHECK_HEADERS([malloc.h])
+    # Checks for header files.
+    AC_CHECK_HEADERS([arpa/inet.h dlfcn.h ctype.h fcntl.h netdb.h netinet/in.h stdarg.h sys/stat.h sys/socket.h sys/wait.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
+    AC_CHECK_HEADERS([malloc.h])
 
 
-	# Checks for typedefs, structures, and compiler characteristics.
-	#AC_HEADER_STDBOOL
+    # Checks for typedefs, structures, and compiler characteristics.
+    #AC_HEADER_STDBOOL
 
-	AC_FUNC_ALLOCA(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
-	#AC_FUNC_CHOWN(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
-	#AC_FUNC_FORK(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
-	AC_CHECK_FUNCS([snprintf strncat],,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
-	AC_FUNC_MALLOC(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
-	#AC_FUNC_MKTIME(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
-	AC_FUNC_REALLOC(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    AC_FUNC_ALLOCA(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    #AC_FUNC_CHOWN(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    #AC_FUNC_FORK(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    AC_CHECK_FUNCS([snprintf strncat],,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    AC_FUNC_MALLOC(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    #AC_FUNC_MKTIME(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    AC_FUNC_REALLOC(,,AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
 
 ],[
-	AC_MSG_NOTICE([Attempting to compile for a Windows target.]) 
-	# >> Windows
+    AC_MSG_NOTICE([Attempting to compile for a Windows target.]) 
+    # >> Windows
 
-	# - check compiler first
-	compileros=`echo $CC | grep mingw`
-	AS_IF([test -z "$compileros"], [
-	AC_WARN([You have chosen a mingw target but apparently the compiler is not a mingw cross-compiler. Please fix this if you are on Unix trying to cross-compile for Windows (if you are on Windows, everything should be fine).])
-	])
+    # - check compiler first
+    compileros=`echo $CC | grep mingw`
+    AS_IF([test -z "$compileros"], [
+    AC_WARN([You have chosen a mingw target but apparently the compiler is not a mingw cross-compiler. Please fix this if you are on Unix trying to cross-compile for Windows (if you are on Windows, everything should be fine).])
+    ])
 
-	TGHOST="$host_alias"
-	AC_SUBST(TGHOST)
-	
-	WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
-	echo -e "$WRITELINE" > scripts/.buildinfo
+    TGHOST="$host_alias"
+    AC_SUBST(TGHOST)
+    
+    WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+    echo -e "$WRITELINE" > scripts/.buildinfo
 
-	CFLAGS="$CFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd scripts && sh ./checksse.sh`"
-	CXXFLAGS="$CXXFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd scripts && sh ./checksse.sh`"
-	LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lole32 -lwinmm -luuid -lversion"
+    CFLAGS="$CFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd scripts && sh ./checksse.sh`"
+    CXXFLAGS="$CXXFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd scripts && sh ./checksse.sh`"
+    LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lole32 -lwinmm -luuid -lversion"
 
-	AC_CHECK_HEADERS([windows.h string.h stdio.h unistd.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
+    AC_CHECK_HEADERS([windows.h string.h stdio.h unistd.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
 
 ])
 
 
 AC_CONFIG_FILES([Makefile
-		 src/Makefile])
+         src/Makefile])
 AC_OUTPUT
 

@@ -28,55 +28,55 @@ ANDROIDINTVERSION=`cat ../configure.ac | grep "Int version" | sed "s/# Int versi
 COMPILE="yes"
 
 if [ "$REDOWNLOADED" = "yes" ]; then
-	# Copy the project and SDL
-	rm -rf ./blitwizard-android/
-	cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
-	cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
+    # Copy the project and SDL
+    rm -rf ./blitwizard-android/
+    cp -R blitwizard/src/sdl/android-project ./blitwizard-android/ || { echo "Failed to copy android-project"; exit 1; }
+    cp -R blitwizard/src/sdl/ ./blitwizard-android/jni/SDL/ || { echo "Failed to copy SDL"; exit 1; }
 
-	# Copy templates
-	mkdir -p blitwizard-android/assets/
-	cp -R blitwizard/templates/ ./blitwizard-android/assets/templates/
+    # Copy templates
+    mkdir -p blitwizard-android/assets/
+    cp -R blitwizard/templates/ ./blitwizard-android/assets/templates/
 
-	# Generate templates init list
-	sh android/generate-template-script.sh > blitwizard-android/assets/templates/filelist.lua
+    # Generate templates init list
+    sh android/generate-template-script.sh > blitwizard-android/assets/templates/filelist.lua
 
-	# Ensure our SDL project has the STL for Box2D
-	echo "APP_STL := stlport_static" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
+    # Ensure our SDL project has the STL for Box2D
+    echo "APP_STL := stlport_static" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
     echo "STLPORT_FORCE_REBUILD := true" | cat - blitwizard-android/jni/Android.mk > /tmp/androidmk && mv /tmp/androidmk blitwizard-android/jni/Android.mk
 
-	# Tell SDL to build statically
-	cat blitwizard-android/jni/SDL/Android.mk | sed "s/include \\\$(BUILD_SHARED_LIBRARY)/include \$(BUILD_STATIC_LIBRARY)/g" > blitwizard-android/jni/SDL/Android.mk.2
-	mv blitwizard-android/jni/SDL/Android.mk.2 blitwizard-android/jni/SDL/Android.mk
+    # Tell SDL to build statically
+    cat blitwizard-android/jni/SDL/Android.mk | sed "s/include \\\$(BUILD_SHARED_LIBRARY)/include \$(BUILD_STATIC_LIBRARY)/g" > blitwizard-android/jni/SDL/Android.mk.2
+    mv blitwizard-android/jni/SDL/Android.mk.2 blitwizard-android/jni/SDL/Android.mk
 
-	# SDL fix for static Android build (gives an error otherwise)
-	cat blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp | sed "s/JNI_OnLoad/JNI_OnLoadUnused/g" > blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp.2
-	mv blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp.2 blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp
+    # SDL fix for static Android build (gives an error otherwise)
+    cat blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp | sed "s/JNI_OnLoad/JNI_OnLoadUnused/g" > blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp.2
+    mv blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp.2 blitwizard-android/jni/SDL/src/main/android/SDL_android_main.cpp
 
-	# Another SDL fix for static build: don't load SDL at runtime
-	cat blitwizard-android/src/org/libsdl/app/SDLActivity.java | sed "s/System.loadLibrary(\"SDL2\");/\/\/System.loadLibrary(\"SDL2\")/g" > blitwizard-android/src/org/libsdl/app/SDLActivity.java.2
-	mv blitwizard-android/src/org/libsdl/app/SDLActivity.java.2 blitwizard-android/src/org/libsdl/app/SDLActivity.java
+    # Another SDL fix for static build: don't load SDL at runtime
+    cat blitwizard-android/src/org/libsdl/app/SDLActivity.java | sed "s/System.loadLibrary(\"SDL2\");/\/\/System.loadLibrary(\"SDL2\")/g" > blitwizard-android/src/org/libsdl/app/SDLActivity.java.2
+    mv blitwizard-android/src/org/libsdl/app/SDLActivity.java.2 blitwizard-android/src/org/libsdl/app/SDLActivity.java
 
-	# Make sure the status bar is gone in fullscreen
-	cat blitwizard-android/AndroidManifest.xml | sed "s/<application android:label=\"@string\\/app_name\" android:icon=\"@drawable\\/icon\">/<uses-sdk android:minSdkVersion=\"4\"\\/> <application android:label=\"@string\\/app_name\" android:icon=\"@drawable\\/icon\" android:theme=\"@android:style\\/Theme.NoTitleBar.Fullscreen\">/g" > blitwizard-android/AndroidManifest.xml.2
-	mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
-
-	# Enforce landscape orientation since that is what all fancy games use
-	cat blitwizard-android/AndroidManifest.xml | sed "s/<activity android:name=\"SDLActivity\"/<activity android:name=\"SDLActivity\" android:configChanges=\"orientation\" android:screenOrientation=\"landscape\"/g" > blitwizard-android/AndroidManifest.xml.2
+    # Make sure the status bar is gone in fullscreen
+    cat blitwizard-android/AndroidManifest.xml | sed "s/<application android:label=\"@string\\/app_name\" android:icon=\"@drawable\\/icon\">/<uses-sdk android:minSdkVersion=\"4\"\\/> <application android:label=\"@string\\/app_name\" android:icon=\"@drawable\\/icon\" android:theme=\"@android:style\\/Theme.NoTitleBar.Fullscreen\">/g" > blitwizard-android/AndroidManifest.xml.2
     mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
 
-	# Preserve original manifest
-	cp blitwizard-android/AndroidManifest.xml blitwizard-android/AndroidManifest.xml.orig
+    # Enforce landscape orientation since that is what all fancy games use
+    cat blitwizard-android/AndroidManifest.xml | sed "s/<activity android:name=\"SDLActivity\"/<activity android:name=\"SDLActivity\" android:configChanges=\"orientation\" android:screenOrientation=\"landscape\"/g" > blitwizard-android/AndroidManifest.xml.2
+    mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.xml
+
+    # Preserve original manifest
+    cp blitwizard-android/AndroidManifest.xml blitwizard-android/AndroidManifest.xml.orig
 else
-	if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
-		read -p "Recompile NDK code? [y/N]"
-		COMPILE="no"
-		if [ "$REPLY" = "y" ]; then
-			COMPILE="yes"
-		fi
-		if [ "$REPLY" = "Y" ]; then
-			COMPILE="yes"
-		fi
-	fi
+    if [ -f "blitwizard-android/libs/armeabi/libmain.so" ]; then
+        read -p "Recompile NDK code? [y/N]"
+        COMPILE="no"
+        if [ "$REPLY" = "y" ]; then
+            COMPILE="yes"
+        fi
+        if [ "$REPLY" = "Y" ]; then
+            COMPILE="yes"
+        fi
+    fi
 fi
 
 # Copy android config
@@ -107,7 +107,7 @@ mv blitwizard-android/AndroidManifest.xml.2 blitwizard-android/AndroidManifest.x
 echo "Type intended app name (or nothing) and then press [ENTER]:"
 read app_name
 if [ -z "$app_name" ]; then
-	app_name="Blitwizard App"
+    app_name="Blitwizard App"
 fi
 echo "App name will be $app_name"
 echo "You can include a blitwizard game which blitwizard will run."
@@ -119,96 +119,96 @@ echo "Type a folder path or nothing and press [ENTER]:"
 read game_files_path
 
 if [ -n "$game_files_path" ]; then
-	if [ ! -e "$game_files_path"/game.lua ]; then
-		echo "game.lua is not present. Please check your game folder path!"
-		exit 1;
-	fi
-	if [ -e "$game_files_path"/templates/ ]; then
-		echo "Folder contains \"templates\" sub folder or file. Please use a directory with only your game files in it!"
-		exit 1
-	fi
-	echo "Copying game files..."
-	cp -R "$game_files_path"/* blitwizard-android/assets/
-	echo "Game files copied."
+    if [ ! -e "$game_files_path"/game.lua ]; then
+        echo "game.lua is not present. Please check your game folder path!"
+        exit 1;
+    fi
+    if [ -e "$game_files_path"/templates/ ]; then
+        echo "Folder contains \"templates\" sub folder or file. Please use a directory with only your game files in it!"
+        exit 1
+    fi
+    echo "Copying game files..."
+    cp -R "$game_files_path"/* blitwizard-android/assets/
+    echo "Game files copied."
 else
-	echo "No game file path given, not integrating any resources."
+    echo "No game file path given, not integrating any resources."
 fi
 
 # Get the blitwizard version
 blitwizard_version=`grep AC_INIT blitwizard/configure.ac | sed -e "s/AC_INIT[(][[]blitwizard[]], [[]//g" | sed -e "s/[]])//g"`
 
 if [ "$COMPILE" = "yes" ]; then
-	if [ ! -d "blitwizard-android/src/vorbis" ]; then
-		# Prepare vorbis
-		cp -R blitwizard/src/vorbis/ ./blitwizard-android/jni/vorbis/
-		cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
-		rm blitwizard-android/jni/vorbis/lib/psytune.c # dead code (see comments inside)
-		rm blitwizard-android/jni/vorbis/lib/tone.c # program with main()
-		rm blitwizard-android/jni/vorbis/lib/barkmel.c # program with main()
+    if [ ! -d "blitwizard-android/src/vorbis" ]; then
+        # Prepare vorbis
+        cp -R blitwizard/src/vorbis/ ./blitwizard-android/jni/vorbis/
+        cp android/Android-vorbis.mk ./blitwizard-android/jni/vorbis/Android.mk
+        rm blitwizard-android/jni/vorbis/lib/psytune.c # dead code (see comments inside)
+        rm blitwizard-android/jni/vorbis/lib/tone.c # program with main()
+        rm blitwizard-android/jni/vorbis/lib/barkmel.c # program with main()
 
-		# Vorbis define for ogg_types.h hack
-		cat blitwizard-android/jni/vorbis/lib/os.h | sed "s/\#define _OS_H/#define _OS_H\n#define VORBIS_HACK/g" > blitwizard-android/jni/vorbis/lib/os.h.2
-	fi
+        # Vorbis define for ogg_types.h hack
+        cat blitwizard-android/jni/vorbis/lib/os.h | sed "s/\#define _OS_H/#define _OS_H\n#define VORBIS_HACK/g" > blitwizard-android/jni/vorbis/lib/os.h.2
+    fi
 
-	# Prepare ogg
-	if [ ! -d "blitwizard-android/src/ogg" ]; then
-		cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
-		cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
-		cp android/ogg_config_types.h blitwizard-android/jni/ogg/include/ogg/config_types.h
-	fi
+    # Prepare ogg
+    if [ ! -d "blitwizard-android/src/ogg" ]; then
+        cp -R blitwizard/src/ogg/ ./blitwizard-android/jni/ogg/
+        cp android/Android-ogg.mk ./blitwizard-android/jni/ogg/Android.mk
+        cp android/ogg_config_types.h blitwizard-android/jni/ogg/include/ogg/config_types.h
+    fi
 
-	# Prepare Box2D
-	if [ ! -d "blitwizard-android/src/box2d" ]; then
-		cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
-		cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
-	fi
+    # Prepare Box2D
+    if [ ! -d "blitwizard-android/src/box2d" ]; then
+        cp -R blitwizard/src/box2d/ ./blitwizard-android/jni/box2d/
+        cp android/Android-box2d.mk ./blitwizard-android/jni/box2d/Android.mk
+    fi
 
-	# Prepare imgloader
-	if [ ! -d "blitwizard-android/jni/imgloader" ]; then
-    	mkdir blitwizard-android/jni/imgloader/
-    	cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
-    	cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
-    	cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/Android.mk
-	fi
+    # Prepare imgloader
+    if [ ! -d "blitwizard-android/jni/imgloader" ]; then
+        mkdir blitwizard-android/jni/imgloader/
+        cp blitwizard/src/imgloader/*.c blitwizard-android/jni/imgloader/
+        cp blitwizard/src/imgloader/*.h blitwizard-android/jni/imgloader/
+        cp android/Android-imgloader.mk ./blitwizard-android/jni/imgloader/Android.mk
+    fi
 
-	# Prepare png
-	if [ ! -d "blitwizard-android/src/png" ]; then
-		cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
-		rm blitwizard-android/jni/png/pngtest.c # program with main()
-		rm blitwizard-android/jni/png/pngvalid.c # we do not need this
-		cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
-		cp blitwizard-android/jni/png/scripts/pnglibconf.h.prebuilt blitwizard-android/jni/png/pnglibconf.h
-	fi
+    # Prepare png
+    if [ ! -d "blitwizard-android/src/png" ]; then
+        cp -R blitwizard/src/imgloader/png/ ./blitwizard-android/jni/png/
+        rm blitwizard-android/jni/png/pngtest.c # program with main()
+        rm blitwizard-android/jni/png/pngvalid.c # we do not need this
+        cp android/Android-png.mk ./blitwizard-android/jni/png/Android.mk
+        cp blitwizard-android/jni/png/scripts/pnglibconf.h.prebuilt blitwizard-android/jni/png/pnglibconf.h
+    fi
 
-	# Prepare zlib
-	if [ ! -d "blitwizard-android/src/zlib" ]; then
-		cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
-		rm blitwizard-android/jni/zlib/example.c # program with main()
-		cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
-	fi
+    # Prepare zlib
+    if [ ! -d "blitwizard-android/src/zlib" ]; then
+        cp -R blitwizard/src/imgloader/zlib/ ./blitwizard-android/jni/zlib/
+        rm blitwizard-android/jni/zlib/example.c # program with main()
+        cp android/Android-zlib.mk ./blitwizard-android/jni/zlib/Android.mk
+    fi
 
-	# Prepare Lua
-	if [ ! -d "blitwizard-android/jni/lua" ]; then
-		mkdir blitwizard-android/jni/lua/
-		cp blitwizard/src/lua/src/*.c blitwizard-android/jni/lua/
-		cp blitwizard/src/lua/src/*.h blitwizard-android/jni/lua/
-		rm blitwizard-android/jni/lua/lua.c
-		rm blitwizard-android/jni/lua/luac.c
-		cp android/Android-lua.mk blitwizard-android/jni/lua/Android.mk
-		cat blitwizard-android/jni/lua/llex.c | sed -e "s/#define llex_c/#define llex_c\nchar decpointstr() {return '.';}\n#define getlocaledecpoint (decpointstr)/g" > blitwizard-android/jni/lua/llex2.c
-		mv blitwizard-android/jni/lua/llex2.c blitwizard-android/jni/lua/llex.c
-	fi
+    # Prepare Lua
+    if [ ! -d "blitwizard-android/jni/lua" ]; then
+        mkdir blitwizard-android/jni/lua/
+        cp blitwizard/src/lua/src/*.c blitwizard-android/jni/lua/
+        cp blitwizard/src/lua/src/*.h blitwizard-android/jni/lua/
+        rm blitwizard-android/jni/lua/lua.c
+        rm blitwizard-android/jni/lua/luac.c
+        cp android/Android-lua.mk blitwizard-android/jni/lua/Android.mk
+        cat blitwizard-android/jni/lua/llex.c | sed -e "s/#define llex_c/#define llex_c\nchar decpointstr() {return '.';}\n#define getlocaledecpoint (decpointstr)/g" > blitwizard-android/jni/lua/llex2.c
+        mv blitwizard-android/jni/lua/llex2.c blitwizard-android/jni/lua/llex.c
+    fi
 
-	# Blitwizard Android.mk:
-	source_file_list="`cat ../src/Makefile.am | grep blitwizard_SOURCES | sed -e 's/^blitwizard_SOURCES \= //'`"
-	if [ ! -f "blitwizard-android/jni/src/main.c" ]; then
-		cp blitwizard/src/*.c blitwizard-android/jni/src
-		cp blitwizard/src/*.cpp blitwizard-android/jni/src
-		cp blitwizard/src/*.h blitwizard-android/jni/src
-		cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
-		cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android2.mk
-		cat blitwizard-android/jni/src/Android2.mk | sed "s/VERSIONINSERT/\\\\\"${blitwizard_version}\\\\\"/g" > blitwizard-android/jni/src/Android.mk
-	fi
+    # Blitwizard Android.mk:
+    source_file_list="`cat ../src/Makefile.am | grep blitwizard_SOURCES | sed -e 's/^blitwizard_SOURCES \= //'`"
+    if [ ! -f "blitwizard-android/jni/src/main.c" ]; then
+        cp blitwizard/src/*.c blitwizard-android/jni/src
+        cp blitwizard/src/*.cpp blitwizard-android/jni/src
+        cp blitwizard/src/*.h blitwizard-android/jni/src
+        cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
+        cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android2.mk
+        cat blitwizard-android/jni/src/Android2.mk | sed "s/VERSIONINSERT/\\\\\"${blitwizard_version}\\\\\"/g" > blitwizard-android/jni/src/Android.mk
+    fi
 fi
 
 # Use the Android NDK/SDK to complete our project:
@@ -220,8 +220,8 @@ cp ../android/Application.mk ./jni/Application.mk
 
 # NDK build:
 if [ "$COMPILE" = "yes" ]; then
-	mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
-	"$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; cd ..; exit 1; }
+    mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
+    "$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; cd ..; exit 1; }
 fi
 
 # Regenerate build.xml (SDL build.xml is outdated) and prepare some strings:

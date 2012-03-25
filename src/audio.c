@@ -37,119 +37,119 @@ static void*(*samplecallbackptr)(unsigned int) = NULL;
 static int soundenabled = 0;
 
 void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
-	memset(stream, 0, (size_t)len);
-	if (!samplecallbackptr) {return;}
-	SDL_MixAudio(stream, samplecallbackptr((unsigned int)len), (unsigned int)len, SDL_MIX_MAXVOLUME);
-	//memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
+    memset(stream, 0, (size_t)len);
+    if (!samplecallbackptr) {return;}
+    SDL_MixAudio(stream, samplecallbackptr((unsigned int)len), (unsigned int)len, SDL_MIX_MAXVOLUME);
+    //memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
 }
 
 const char* audio_GetCurrentBackendName() {
-	if (!soundenabled) {return NULL;}
-	return SDL_GetCurrentAudioDriver();
+    if (!soundenabled) {return NULL;}
+    return SDL_GetCurrentAudioDriver();
 }
 
 
 void audio_Quit() {
-	if (soundenabled) {
-		SDL_CloseAudio();
-		SDL_AudioQuit();
-		soundenabled = 0;
-	}
+    if (soundenabled) {
+        SDL_CloseAudio();
+        SDL_AudioQuit();
+        soundenabled = 0;
+    }
 }
 
 
 int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
-	if (soundenabled) {
-		//quit old sound first
-		SDL_PauseAudio(1);
-		SDL_AudioQuit();
-		soundenabled = 0;
-	}
+    if (soundenabled) {
+        //quit old sound first
+        SDL_PauseAudio(1);
+        SDL_AudioQuit();
+        soundenabled = 0;
+    }
 #ifdef ANDROID
-	if (!s16) {
-		*error = strdup("No 32bit audio available on Android");
-		return 0;
-	}
+    if (!s16) {
+        *error = strdup("No 32bit audio available on Android");
+        return 0;
+    }
 #endif
-	char errbuf[512];
-	char preferredbackend[20] = "";
+    char errbuf[512];
+    char preferredbackend[20] = "";
 #ifdef WINDOWS
-	if (backend && strcasecmp(backend, "waveout") == 0) {
-		strcpy(preferredbackend, "waveout");
-	}
-	if (backend && (strcasecmp(backend, "directsound") == 0 || strcasecmp(backend, "dsound") == 0)) {
-		strcpy(preferredbackend, "directsound");
-	}
+    if (backend && strcasecmp(backend, "waveout") == 0) {
+        strcpy(preferredbackend, "waveout");
+    }
+    if (backend && (strcasecmp(backend, "directsound") == 0 || strcasecmp(backend, "dsound") == 0)) {
+        strcpy(preferredbackend, "directsound");
+    }
 #else
 #ifdef LINUX
-	if (backend && strcasecmp(backend, "alsa") == 0) {
-		strcpy(preferredbackend, "alsa");
-	}
-	if (backend && (strcasecmp(backend, "oss") == 0 || strcasecmp(backend, "dsp") == 0)) {
-		strcpy(preferredbackend, "dsp");
-	}
+    if (backend && strcasecmp(backend, "alsa") == 0) {
+        strcpy(preferredbackend, "alsa");
+    }
+    if (backend && (strcasecmp(backend, "oss") == 0 || strcasecmp(backend, "dsp") == 0)) {
+        strcpy(preferredbackend, "dsp");
+    }
 #endif
 #endif
-	const char* b = preferredbackend;
-	if (strlen(b) <= 0) {b = NULL;}
-	if (SDL_AudioInit(b) < 0) {
-		snprintf(errbuf,sizeof(errbuf),"Failed to initialize SDL audio: %s", SDL_GetError());
-		errbuf[sizeof(errbuf)-1] = 0;
-		*error = strdup(errbuf);
-		return 0;
-	}
-	
-	SDL_AudioSpec fmt,actualfmt;
-	
-	int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
-	if (buffersize > 0) {
-		if (buffersize < MINSOUNDBUFFERSIZE) {buffersize = MINSOUNDBUFFERSIZE;}
-		if (buffersize > MAXSOUNDBUFFERSIZE) {
-			buffersize = MAXSOUNDBUFFERSIZE;
-		}
-		custombuffersize = buffersize;
-	}
+    const char* b = preferredbackend;
+    if (strlen(b) <= 0) {b = NULL;}
+    if (SDL_AudioInit(b) < 0) {
+        snprintf(errbuf,sizeof(errbuf),"Failed to initialize SDL audio: %s", SDL_GetError());
+        errbuf[sizeof(errbuf)-1] = 0;
+        *error = strdup(errbuf);
+        return 0;
+    }
+    
+    SDL_AudioSpec fmt,actualfmt;
+    
+    int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
+    if (buffersize > 0) {
+        if (buffersize < MINSOUNDBUFFERSIZE) {buffersize = MINSOUNDBUFFERSIZE;}
+        if (buffersize > MAXSOUNDBUFFERSIZE) {
+            buffersize = MAXSOUNDBUFFERSIZE;
+        }
+        custombuffersize = buffersize;
+    }
 
-	memset(&fmt,0,sizeof(fmt));
-	fmt.freq = 48000;
-	if (!s16) {
-		fmt.format = AUDIO_F32SYS;
-	}else{
-		fmt.format = AUDIO_S16;
-	}
-	fmt.channels = 2;
-	fmt.samples = custombuffersize;
-	fmt.callback = audiocallback;
-	fmt.userdata = NULL;
-	
-	samplecallbackptr = samplecallback;
-		
-	if (SDL_OpenAudio(&fmt, &actualfmt) < 0) {
-		snprintf(errbuf,sizeof(errbuf),"Failed to open SDL audio: %s", SDL_GetError());
-		errbuf[sizeof(errbuf)-1] = 0;
-		*error = strdup(errbuf);
-		//FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
-		//SDL_AudioQuit();
-		return 0;
-	}
+    memset(&fmt,0,sizeof(fmt));
+    fmt.freq = 48000;
+    if (!s16) {
+        fmt.format = AUDIO_F32SYS;
+    }else{
+        fmt.format = AUDIO_S16;
+    }
+    fmt.channels = 2;
+    fmt.samples = custombuffersize;
+    fmt.callback = audiocallback;
+    fmt.userdata = NULL;
+    
+    samplecallbackptr = samplecallback;
+        
+    if (SDL_OpenAudio(&fmt, &actualfmt) < 0) {
+        snprintf(errbuf,sizeof(errbuf),"Failed to open SDL audio: %s", SDL_GetError());
+        errbuf[sizeof(errbuf)-1] = 0;
+        *error = strdup(errbuf);
+        //FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
+        //SDL_AudioQuit();
+        return 0;
+    }
 
-	if (actualfmt.channels != 2 || actualfmt.freq != 48000 || (s16 && actualfmt.format != AUDIO_S16) || (!s16 && actualfmt.format != AUDIO_F32SYS)) {
-		*error = strdup("SDL audio delivered wrong/unusable format");
-		//FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
-		//SDL_AudioQuit();
-		return 0;
-	}
-	
-	soundenabled = 1;
-	SDL_PauseAudio(0);
-	return 1;
+    if (actualfmt.channels != 2 || actualfmt.freq != 48000 || (s16 && actualfmt.format != AUDIO_S16) || (!s16 && actualfmt.format != AUDIO_F32SYS)) {
+        *error = strdup("SDL audio delivered wrong/unusable format");
+        //FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
+        //SDL_AudioQuit();
+        return 0;
+    }
+    
+    soundenabled = 1;
+    SDL_PauseAudio(0);
+    return 1;
 }
 
 void audio_LockAudioThread() {
-	SDL_LockAudio();
+    SDL_LockAudio();
 }
 
 void audio_UnlockAudioThread() {
-	SDL_UnlockAudio();
+    SDL_UnlockAudio();
 }
 
