@@ -137,16 +137,24 @@ if [ "$changedhost" = "yes" ]; then
 fi
 
 # Copy libraries
-cp src/sdl/build/.libs/libSDL2.a libs/libblitwizardSDL.a
-cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a
-cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a
-cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a
-cp src/imgloader/libimglib.a libs/
+cp src/sdl/build/.libs/libSDL2.a libs/libblitwizardSDL.a || { echo "Failed to copy SDL2 library"; exit 1; }
+cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a || { echo "Failed to copy libvorbis"; exit 1; }
+cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a || { echo "Failed to copy libvorbisfile"; exit 1; }
+cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a || { echo "Failed to copy libogg"; exit 1; }
+cp src/imgloader/libimglib.a libs/ || { echo "Failed to copy imglib"; exit 1; }
 cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
 cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
 cp src/lua/src/liblua.a libs/libblitwizardlua.a
-cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a
-cp src/box2d/Box2D/Box2D.lib libs/libblitwizardbox2d.a
+BOX2DCOPIED1="true"
+BOX2DCOPIED2="true"
+cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a || { BOX2DCOPIED1="false"; }
+cp src/box2d/Box2D/Box2D.lib libs/libblitwizardbox2d.a || { BOX2DCOPIED2="false"; }
+if [ "$BOX2DCOPIED1" = "false" ]; then
+	if [ "$BOX2DCOPIED2" = "false" ]; then
+		echo "Failed to copy Box2D library"
+		exit 1
+	fi
+fi
 
 # Remember for which target we built
 echo "$luatarget" > scripts/.depsarebuilt

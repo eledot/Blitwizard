@@ -14,6 +14,6 @@ AM_CXXFLAGS = -fno-PIC -O2 -Wall -Wextra -g -fno-exceptions -fomit-frame-pointer
 
 # -fno-PIC is only added for some extra speed, same as -O2.
 
-all-local:
+all-local: $(PROGRAMS)
 	-mv ./blitwizard ../bin/
 	-mv ./blitwizard.exe ../bin/
