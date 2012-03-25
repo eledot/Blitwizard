@@ -154,7 +154,7 @@ static void audiosourcefile_Close(struct audiosource* source) {
 #else
     FILE* r = idata->file;
     if (r) {
-        free(r);
+        fclose(r);
     }
 #endif
     //free all structs & strings
