@@ -101,6 +101,15 @@ AS_IF([test -z "$maybeos"],[
 
 ])
 
+AC_MSG_CHECKING([for cmake build system])
+sh scripts/checkforcmake.sh
+AS_IF([test "x$?" != x0],[
+    AC_MSG_RESULT([no])
+    AC_MSG_ERROR([cmake was not found on your machine.])
+    exit 1;
+],[
+    AC_MSG_RESULT([yes])
+])
 
 AC_CONFIG_FILES([Makefile
          src/Makefile])
