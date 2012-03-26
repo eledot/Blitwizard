@@ -68,6 +68,6 @@
 //#define NOTHREADEDSDLRW
 
 //Debugging forced S16 audio:
-#define FORCES16AUDIO
+//#define FORCES16AUDIO
 
 #endif
