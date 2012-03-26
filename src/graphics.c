@@ -1016,7 +1016,7 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
         }
         if (e.type == SDL_WINDOWEVENT) {
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
-#ifndef WIN
+#ifndef WINDOWS
 #ifdef LINUX
                 //if we are a fullscreen window, ensure we are fullscreened
                 //FIXME: just a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1349
