@@ -135,8 +135,8 @@ else
 fi
 
 # Get the blitwizard version
-echo "bla"
 blitwizard_version=`grep AC_INIT blitwizard/configure.ac | sed -e "s/AC_INIT[(][[]blitwizard[]], [[]//g" | sed -e "s/[]])//g"`
+
 
 if [ "$COMPILE" = "yes" ]; then
     if [ ! -d "blitwizard-android/src/vorbis" ]; then
@@ -206,6 +206,9 @@ if [ "$COMPILE" = "yes" ]; then
         cp blitwizard/src/*.c blitwizard-android/jni/src
         cp blitwizard/src/*.cpp blitwizard-android/jni/src
         cp blitwizard/src/*.h blitwizard-android/jni/src
+        mkdir -p blitwizard-android/src/speex/
+        cp blitwizard/src/speex/*.h blitwizard-android/jni/src/speex/
+        cp blitwizard/src/speex/*.c blitwizard-android/jni/src/speex/
     fi
     cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
     cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android2.mk
