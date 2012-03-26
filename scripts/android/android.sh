@@ -206,7 +206,7 @@ if [ "$COMPILE" = "yes" ]; then
         cp blitwizard/src/*.c blitwizard-android/jni/src
         cp blitwizard/src/*.cpp blitwizard-android/jni/src
         cp blitwizard/src/*.h blitwizard-android/jni/src
-        mkdir -p blitwizard-android/src/speex/
+        mkdir -p blitwizard-android/jni/src/speex/
         cp blitwizard/src/speex/*.h blitwizard-android/jni/src/speex/
         cp blitwizard/src/speex/*.c blitwizard-android/jni/src/speex/
     fi
