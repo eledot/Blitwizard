@@ -434,7 +434,7 @@ int main_ProcessNoThreadedReading() {
 }
 #endif
 
-//with a maximum of 40 iterations, we render at least every 40 * TIMESTEP = 40 * 16 = 640 seconds
+//with a maximum of 50 iterations, we render at least every 50 * TIMESTEP = 50 * 16 = 800 seconds
 #define MAXLOGICITERATIONS 40
 
 #if (defined(__ANDROID__) || defined(ANDROID))
@@ -674,6 +674,9 @@ int main(int argc, char** argv) {
                     physicstimestamp += physics_GetStepSize(physicsdefaultworld);
                 }
                 iterations++;
+            }
+            if (iterations >= MAXLOGICITERATIONS) {
+                printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
             }
 
             //check for image loading progress
