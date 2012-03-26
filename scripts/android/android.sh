@@ -95,7 +95,7 @@ echo "Please enter a program version string, like 1.0."
 read -p "This version string will be visible to the user:"
 PROGVERSIONFULL="$REPLY"
 if [ -z "$PROGVERSIONFULL" ]; then
-    echo "You did not enter a program veersion.";
+    echo "You did not enter a program version.";
     exit 1;
 fi
 
@@ -135,6 +135,7 @@ else
 fi
 
 # Get the blitwizard version
+echo "bla"
 blitwizard_version=`grep AC_INIT blitwizard/configure.ac | sed -e "s/AC_INIT[(][[]blitwizard[]], [[]//g" | sed -e "s/[]])//g"`
 
 if [ "$COMPILE" = "yes" ]; then
@@ -200,15 +201,18 @@ if [ "$COMPILE" = "yes" ]; then
     fi
 
     # Blitwizard Android.mk:
-    source_file_list="`cat ../src/Makefile.am | grep blitwizard_SOURCES | sed -e 's/^blitwizard_SOURCES \= //'`"
+    source_file_list="`cat ../src/Makefile.am | grep blitwizard_SOURCES | sed -e 's/^blitwizard_SOURCES \= //' | sed -e 's/\\//\\\\\\//'`"
     if [ ! -f "blitwizard-android/jni/src/main.c" ]; then
         cp blitwizard/src/*.c blitwizard-android/jni/src
         cp blitwizard/src/*.cpp blitwizard-android/jni/src
         cp blitwizard/src/*.h blitwizard-android/jni/src
-        cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
-        cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android2.mk
-        cat blitwizard-android/jni/src/Android2.mk | sed "s/VERSIONINSERT/\\\\\"${blitwizard_version}\\\\\"/g" > blitwizard-android/jni/src/Android.mk
     fi
+    cp android/Android-blitwizard.mk blitwizard-android/jni/src/Android.mk
+    cat blitwizard-android/jni/src/Android.mk | sed -e "s/SOURCEFILELIST/${source_file_list}/g" > blitwizard-android/jni/src/Android2.mk
+    cat blitwizard-android/jni/src/Android2.mk | sed "s/VERSIONINSERT/\\\\\"${blitwizard_version}\\\\\"/g" > blitwizard-android/jni/src/Android.mk
+    SPEEXFLAGS=`cat ../src/speex/flags.txt`
+    cat blitwizard-android/jni/src/Android.mk | sed -e "s/SPEEXFLAGSINSERT/${SPEEXFLAGS}/g" > blitwizard-android/jni/src/Android2.mk
+    mv blitwizard-android/jni/src/Android2.mk blitwizard-android/jni/src/Android.mk
 fi
 
 # Use the Android NDK/SDK to complete our project:
@@ -219,10 +223,15 @@ export HOST_AWK="awk"
 cp ../android/Application.mk ./jni/Application.mk
 
 # NDK build:
+echo "hello: $COMPILE"
 if [ "$COMPILE" = "yes" ]; then
     mv "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk" "$ANDROID_NDK_PATH/prebuilt/linux-x86/bin/awk_"
+    echo "build... ($ANDROID_NDK_PATH)"
     "$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; cd ..; exit 1; }
 fi
+
+echo "bleb"
+exit 1
 
 # Regenerate build.xml (SDL build.xml is outdated) and prepare some strings:
 rm -f build.xml
