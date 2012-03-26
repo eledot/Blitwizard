@@ -126,8 +126,8 @@ int graphics_Init(char** error) {
 }
 
 int graphics_TextureToSDL(struct graphicstexture* gt, int forceretransfer) {
-    if ((gt->tex && !forcetransfer) || gt->threadingptr || !gt->name) {return 1;}
-    if (gt->tex && forcetransfer) { //force abandoning the SDL texture
+    if ((gt->tex && !forceretransfer) || gt->threadingptr || !gt->name) {return 1;}
+    if (gt->tex && forceretransfer) { //force abandoning the SDL texture
         SDL_DestroyTexture(gt->tex);
         gt->tex = NULL;
     }
@@ -474,7 +474,7 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstextu
         gt->height = height;
         success = 1;
         if (graphics_AreGraphicsRunning() && gt->name && mainwindow) {
-            if (!graphics_TextureToSDL(gt)) {
+            if (!graphics_TextureToSDL(gt, 0)) {
                 success = 0;
             }
         }
