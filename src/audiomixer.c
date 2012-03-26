@@ -178,9 +178,9 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
     }
 
     //check audio format first
-    struct audiosource* decodesource = audiosourceogg_Create(audiosourcefile_Create(path));
+    struct audiosource* decodesource = audiosourceogg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
     if (!decodesource) {
-        decodesource = audiosourceffmpeg_Create(audiosourcefile_Create(path));
+        decodesource = audiosourceffmpeg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
         if (!decodesource) {
             //unsupported audio format
             audio_UnlockAudioThread();
