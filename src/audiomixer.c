@@ -36,6 +36,7 @@
 #include "audiosourcefile.h"
 #include "audiosourceloop.h"
 #include "audiosourceffmpeg.h"
+#include "mathhelpers.h"
 
 #define MAXCHANNELS 32
 
@@ -378,9 +379,9 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
         unsigned int i = 0;
         unsigned int i2 = 0;
         while (i + sizeof(MIXTYPE) <= s16downmixlen) {
-            float fval = *((float*)((char*)streambuf+i));
+            double fval = *((float*)((char*)streambuf+i));
             fval *= 32767;
-            *((int16_t*)((char*)streambuf+i2)) = (int16_t)fval;
+            *((int16_t*)((char*)streambuf+i2)) = (int16_t)fastdoubletoint32(fval);
             i += sizeof(MIXTYPE);
             i2 += sizeof(int16_t);
         }

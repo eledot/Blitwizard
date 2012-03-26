@@ -32,6 +32,28 @@ void rotatevec(double x, double y, double rotation, double* x2, double* y2);
 double normalizeangle(double angle);
 void ovalpoint(double angle, double width, double height, double* x, double* y);
 
+#define FASTMATH
+
+#ifdef FASTMATH
+
+//use the fast double > int32 conversion from Lua
+#include "lua.h"
+#include "llimits.h"
+static inline int fastdoubletoint32(double i) {
+    int n;
+    lua_number2int(n, i);
+    return n;
+}
+
+#else
+
+//use slow normal cast
+static inline int fastdoubletoint32(double i) {
+    return (int)i;
+}
+
+#endif
+
 #ifdef __cplusplus
 }
 #endif

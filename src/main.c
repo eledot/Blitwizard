@@ -155,8 +155,10 @@ void main_InitAudio() {
 
     //initialise audio - try 32bit first
     s16mixmode = 0;
+#ifndef FORCES16AUDIO
     if (!audio_Init(&audiomixer_GetBuffer, 0, p, 0, &error)) {
         if (error) {free(error);}
+#endif
         //try 16bit now
         s16mixmode = 1;
         if (!audio_Init(&audiomixer_GetBuffer, 0, p, 1, &error)) {
@@ -168,7 +170,9 @@ void main_InitAudio() {
             simulateaudio = 1;
             s16mixmode = 0;
         }
+#ifndef FORCES16AUDIO
     }
+#endif
     if (p) {
         free(p);
     }

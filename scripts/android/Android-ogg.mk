@@ -12,6 +12,7 @@ LOCAL_SRC_FILES := \
 	$(subst $(LOCAL_PATH)/,, \
 	$(wildcard $(LOCAL_PATH)/src/*.c))
 
+LOCAL_CFLAGS := -O2 -s
 LOCAL_LDLIBS := -ldl
 
 include $(BUILD_STATIC_LIBRARY)

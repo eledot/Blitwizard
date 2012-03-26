@@ -18,6 +18,7 @@ LOCAL_SRC_FILES := \
     $(wildcard $(LOCAL_PATH)/Box2D/Collision/Shapes/*.cpp) \
 	$(wildcard $(LOCAL_PATH)/Box2D/Rope/*.cpp))
 
+LOCAL_CFLAGS := -O2 -s
 LOCAL_LDLIBS := -ldl
 
 include $(BUILD_STATIC_LIBRARY)

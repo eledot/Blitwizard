@@ -1,6 +1,6 @@
 LOCAL_PATH := $(call my-dir)
 
-APP_ABI := armeabi armeabi-v7a
+APP_ABI := armeabi-v7a
 
 include $(CLEAR_VARS)
 
@@ -12,6 +12,7 @@ LOCAL_SRC_FILES := \
 	$(subst $(LOCAL_PATH)/,, \
 	$(wildcard $(LOCAL_PATH)/lib/*.c))
 
+LOCAL_CFLAGS := -O2 -s
 LOCAL_STATIC_LIBRARIES := ogg
 
 LOCAL_LDLIBS := -ldl -logg
