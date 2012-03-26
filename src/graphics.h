@@ -115,3 +115,7 @@ void graphics_TransferTexturesFromSDL();
 
 int graphics_TransferTexturesToSDL();
 //Transfer textures back to SDL
+
+int graphics_ForceTransferTexturesToSDL();
+//Transfer textures back to SDL, even if they were already loaded previously
+

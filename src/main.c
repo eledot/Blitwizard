@@ -434,6 +434,9 @@ int main_ProcessNoThreadedReading() {
 }
 #endif
 
+//with a maximum of 40 iterations, we render at least every 40 * TIMESTEP = 40 * 16 = 640 seconds
+#define MAXLOGICITERATIONS 40
+
 #if (defined(__ANDROID__) || defined(ANDROID))
 int SDL_main(int argc, char** argv) {
 #else
@@ -651,8 +654,12 @@ int main(int argc, char** argv) {
                 time_Sleep(16-delta);
             }
 
-            //first, call the step function and advance physics
-            while (logictimestamp < time || physicstimestamp < time) {
+            //check and trigger all sort of input events
+            graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
+
+            //call the step function and advance physics
+            int iterations = 0;
+            while ((logictimestamp < time || physicstimestamp < time) && iterations < MAXLOGICITERATIONS) {
                 if (logictimestamp < time && logictimestamp < physicstimestamp) {
                     if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error)) {
                         printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
@@ -666,15 +673,13 @@ int main(int argc, char** argv) {
                     physics_Step(physicsdefaultworld);
                     physicstimestamp += physics_GetStepSize(physicsdefaultworld);
                 }
+                iterations++;
             }
 
             //check for image loading progress
             if (!appinbackground) {
                 graphics_CheckTextureLoading(&imgloaded);
             }
-            
-            //check and trigger all sort of input events
-            graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
         
             if (!appinbackground) { 
                 //start drawing
