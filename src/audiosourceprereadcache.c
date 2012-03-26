@@ -65,7 +65,7 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
     unsigned int writtenbytes = 0;
     while (bytes > 0) {
         //first, refill our cache if it cannot satisfy the demands
-        if (bytes > idata->prereadcachebytes && idata->prereadcachebytes < idata->prereadcachesize && !idata->sourceeof) {
+        if (bytes > idata->prereadcachebytes && idata->prereadcachebytes < idata->prereadcachesize/4 && !idata->sourceeof) {
             int i;
 #ifndef NOTHREADEDSDLRW
             i = idata->source->read(idata->source, idata->prereadcache + idata->prereadcachebytes, idata->prereadcachesize - idata->prereadcachebytes);
