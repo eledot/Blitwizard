@@ -67,7 +67,9 @@
 //#define SDLRW
 //#define NOTHREADEDSDLRW
 
-//Debugging forced S16 audio:
-//#define FORCES16AUDIO
+//Force S16 audio on Android:
+#ifdef ANDROID
+#define FORCES16AUDIO
+#endif
 
 #endif
