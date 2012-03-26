@@ -233,9 +233,6 @@ if [ "$COMPILE" = "yes" ]; then
     "$ANDROID_NDK_PATH/ndk-build" || { echo "NDK build failed."; cd ..; exit 1; }
 fi
 
-echo "bleb"
-exit 1
-
 # Regenerate build.xml (SDL build.xml is outdated) and prepare some strings:
 rm -f build.xml
 "$ANDROID_SDK_PATH/tools/android" update project -p . --target android-10 || { echo "android update failed."; cd ..; exit 1; }
