@@ -64,8 +64,8 @@
 #endif
 
 // Debugging the Android/SDL_RWops approach on Linux:
-#define SDLRW
-#define NOTHREADEDSDLRW
+//#define SDLRW
+//#define NOTHREADEDSDLRW
 
 //Debugging forced S16 audio:
 #define FORCES16AUDIO
