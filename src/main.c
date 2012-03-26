@@ -283,10 +283,8 @@ static void putinbackground(int background) {
         appinbackground = 1;
         exit(1);
     }else{
-        //wipe out old textures since they are most likely garbage
-        graphics_TransferTexturesFromSDL();
-        //restore textures
-        graphics_TransferTexturesToSDL();
+        //restore textures and wipe old ones
+        graphics_ForceTransferTexturesToSDL();
         //we are back in the foreground! \o/
         appinbackground = 0;
     }

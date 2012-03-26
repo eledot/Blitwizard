@@ -125,8 +125,12 @@ int graphics_Init(char** error) {
     return 1;
 }
 
-int graphics_TextureToSDL(struct graphicstexture* gt) {
-    if (gt->tex || gt->threadingptr || !gt->name) {return 1;}
+int graphics_TextureToSDL(struct graphicstexture* gt, int forceretransfer) {
+    if ((gt->tex && !forcetransfer) || gt->threadingptr || !gt->name) {return 1;}
+    if (gt->tex && forcetransfer) { //force abandoning the SDL texture
+        SDL_DestroyTexture(gt->tex);
+        gt->tex = NULL;
+    }
 
     //create texture
     SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
@@ -237,7 +241,18 @@ void graphics_TransferTexturesFromSDL() {
 int graphics_TransferTexturesToSDL() {
     struct graphicstexture* gt = texlist;
     while (gt) {
-        if (!graphics_TextureToSDL(gt)) {
+        if (!graphics_TextureToSDL(gt, 0)) {
+            return 0;
+        }
+        gt = gt->next;
+    }
+    return 1;
+}
+
+int graphics_ForceTransferTexturesToSDL() {
+    struct graphicstexture* gt = texlist;
+    while (gt) {
+        if (!graphics_TextureToSDL(gt, 1)) {
             return 0;
         }
         gt = gt->next;
