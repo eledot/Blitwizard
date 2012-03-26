@@ -36,6 +36,7 @@
 #include "audiosourcefile.h"
 #include "audiosourceloop.h"
 #include "audiosourceffmpeg.h"
+#include "audiosourceprereadcache.h"
 #include "mathhelpers.h"
 
 #ifndef ANDROID

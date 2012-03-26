@@ -118,7 +118,7 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
 static int audiosourceprereadcache_ReadMainthread(struct audiosource* source, char* buffer, unsigned int bytes) {
     struct audiosourceprereadcache_internaldata* idata = source->internaldata;
     idata->frommainthread = 1;
-    int i = audiosourcefile_Read(source, buffer, bytes);
+    int i = audiosourceprereadcache_Read(source, buffer, bytes);
     idata->frommainthread = 0;
     return i;
 }
@@ -154,7 +154,7 @@ struct audiosource* audiosourceprereadcache_Create(struct audiosource* source) {
     a->close = &audiosourceprereadcache_Close;
     a->rewind = &audiosourceprereadcache_Rewind;
 #ifdef NOTHREADEDSDLRW
-    a->readmainthread = &audiosourceprereadcahce_ReadMainthread;
+    a->readmainthread = &audiosourceprereadcache_ReadMainthread;
 #endif
 
     return a;
