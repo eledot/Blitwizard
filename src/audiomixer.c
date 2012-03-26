@@ -38,7 +38,11 @@
 #include "audiosourceffmpeg.h"
 #include "mathhelpers.h"
 
+#ifndef ANDROID
 #define MAXCHANNELS 32
+#else
+#define MAXCHANNELS 8
+#endif
 
 int lastusedsoundid = -1;
 
