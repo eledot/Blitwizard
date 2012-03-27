@@ -637,8 +637,8 @@ int main(int argc, char** argv) {
 
             //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
 #ifdef NOTHREADEDSDLRW
-            uint64_t start = time_GetMilliseconds();
-            while (main_ProcessNoThreadedReading() || start + 10 > time_GetMilliseconds()) {time_Sleep(5);}
+            uint64_t start = time_GetMilliSeconds();
+            while (main_ProcessNoThreadedReading() || start + 10 > time_GetMilliSeconds()) {time_Sleep(5);}
 #endif      
     
             //simulate audio
