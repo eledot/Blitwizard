@@ -394,7 +394,6 @@ int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned in
     //wait for query to finish
     mutex_Release(rwread_executemutex);
     while (1) {
-        time_Sleep(10);
         mutex_Lock(rwread_executemutex);
         if (rwread_result > -2) {break;}
         mutex_Release(rwread_executemutex);
@@ -637,7 +636,7 @@ int main(int argc, char** argv) {
 
             //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
 #ifdef NOTHREADEDSDLRW
-            while (main_ProcessNoThreadedReading()) {time_Sleep(1);}
+            while (main_ProcessNoThreadedReading()) {time_Sleep(10);}
 #endif      
     
             //simulate audio
