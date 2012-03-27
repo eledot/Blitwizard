@@ -246,7 +246,7 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
 
     //calculate the desired amount of samples
     int sampleamount = (bytes - filledbytes)/sizeof(MIXTYPE);
-    while (sampleamount * sizeof(MIXTYPE) < actualbytes - filledbytes) {
+    while (sampleamount * sizeof(MIXTYPE) < bytes - filledbytes) {
         sampleamount += sizeof(MIXTYPE);
     }
 
@@ -261,14 +261,14 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
     }
 
     //initialise buffer properly
-    int i = 0;
-    while (i < sampleamount) {
+    unsigned int i = 0;
+    while (i < (unsigned int)sampleamount) {
         *((float*)mixbuf + filledbytes + sizeof(MIXTYPE) * i) = -1;
         i++;
     }
 
     //cycle all channels and mix them into the buffer
-    unsigned int i = 0;
+    i = 0;
     while (i < MAXCHANNELS) {
         if (channels[i].mixsource) {
             //read bytes
