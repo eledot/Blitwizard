@@ -618,7 +618,7 @@ void graphics_ReopenForAndroid() {
 
     //reopen:
     char* e;
-    graphics_SetMode(w, h, 1, 0, "blubb", renderer, &e);
+    graphics_SetMode(w, h, 1, 0, title, renderer, &e);
 
     //transfer textures back to hardware:
     graphics_TransferTexturesToSDL();
@@ -1017,12 +1017,14 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
         }
 #ifdef ANDROID
         if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_MINIMIZED || e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)) {
+            //app was put into background
             if (!inbackground) {
                 putinbackground(1);
                 inbackground = 1;
             }
         }
         if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_RESTORED || e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)) {
+            //app is pulled back into foreground
             if (inbackground) {
                 putinbackground(0);
                 inbackground = 0;
