@@ -125,12 +125,8 @@ int graphics_Init(char** error) {
     return 1;
 }
 
-int graphics_TextureToSDL(struct graphicstexture* gt, int forceretransfer) {
-    if ((gt->tex && !forceretransfer) || gt->threadingptr || !gt->name) {return 1;}
-    if (gt->tex && forceretransfer) { //force abandoning the SDL texture
-        SDL_DestroyTexture(gt->tex);
-        gt->tex = NULL;
-    }
+int graphics_TextureToSDL(struct graphicstexture* gt) {
+    if (gt->tex || gt->threadingptr || !gt->name) {return 1;}
 
     //create texture
     SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
@@ -238,21 +234,21 @@ void graphics_TransferTexturesFromSDL() {
     }
 }
 
-int graphics_TransferTexturesToSDL() {
+void graphics_InvalidateSDLTextures() {
     struct graphicstexture* gt = texlist;
     while (gt) {
-        if (!graphics_TextureToSDL(gt, 0)) {
-            return 0;
+        if (gt->tex) {
+            SDL_DestroyTexture(gt->tex);
+            gt->tex = NULL;
         }
         gt = gt->next;
     }
-    return 1;
 }
 
-int graphics_ForceTransferTexturesToSDL() {
+int graphics_TransferTexturesToSDL() {
     struct graphicstexture* gt = texlist;
     while (gt) {
-        if (!graphics_TextureToSDL(gt, 1)) {
+        if (!graphics_TextureToSDL(gt)) {
             return 0;
         }
         gt = gt->next;
@@ -474,7 +470,7 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstextu
         gt->height = height;
         success = 1;
         if (graphics_AreGraphicsRunning() && gt->name && mainwindow) {
-            if (!graphics_TextureToSDL(gt, 0)) {
+            if (!graphics_TextureToSDL(gt)) {
                 success = 0;
             }
         }
@@ -589,6 +585,49 @@ void graphics_Close(int preservetextures) {
         SDL_DestroyWindow(mainwindow);
         mainwindow = NULL;
     }
+}
+
+#ifdef ANDROID
+void graphics_ReopenForAndroid() {
+    //throw away hardware textures:
+    graphics_InvalidateSDLTextures();
+    
+    //preserve old window size:
+    int w,h;
+    w = 0;h = 0;
+    graphics_GetWindowDimensions(&w, &h);
+
+    //preserve renderer:
+    char renderer[512];
+    const char* p = graphics_GetCurrentRendererName();
+    int len = strlen(p)+1;
+    if (len >= sizeof(renderer)) {len = sizeof(renderer)-1;}
+    memcpy(renderer, p, len);
+    renderer[sizeof(renderer)-1] = 0;
+
+    //preserve window title:
+    char title[512];
+    const char* p = graphics_GetWindowTitle();
+    int len = strlen(p)+1;
+    if (len >= sizeof(title)) {len = sizeof(title)-1;}
+    memcpy(title, p, len);
+    title[sizeof(title)-1] = 0;
+
+    //close window:
+    graphics_Close(0);
+
+    //reopen:
+    char* e;
+    graphics_SetMode(w, h, 1, 0, "blubb", renderer, &e);
+
+    //transfer textures back to hardware:
+    graphics_TransferTexturesToSDL();
+}
+#endif
+
+const char* graphics_GetWindowTitle() {
+    if (!mainrenderer || !mainwindow) {return NULL;}
+    return SDL_GetWindowTitle(mainwindow); 
 }
 
 void graphics_Quit() {

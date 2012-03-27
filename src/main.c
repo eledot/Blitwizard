@@ -283,7 +283,9 @@ static void putinbackground(int background) {
         appinbackground = 1;
     }else{
         //restore textures and wipe old ones
-        graphics_ForceTransferTexturesToSDL();
+#ifdef ANDROID
+        graphics_ReopenForAndroid();
+#endif
         //we are back in the foreground! \o/
         appinbackground = 0;
     }
@@ -704,7 +706,11 @@ int main(int argc, char** argv) {
 
             //be very sleepy if in background
             if (appinbackground) {
+#ifndef NOTHREADEDSDLRW
                 time_Sleep(100);
+#else
+                time_Sleep(20);
+#endif
             }
         }
     }
