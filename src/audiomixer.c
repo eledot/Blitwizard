@@ -260,19 +260,16 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
         return;
     }
 
-    //initialise buffer properly
-    unsigned int i = 0;
-    while (i < (unsigned int)sampleamount) {
-        *((float*)mixbuf + filledbytes + sizeof(MIXTYPE) * i) = -1;
-        i++;
-    }
+    int samplebytes = sampleamount * sizeof(MIXTYPE);
 
     //cycle all channels and mix them into the buffer
-    i = 0;
+    int notzerochannels = 0;
+    unsigned int i = 0;
     while (i < MAXCHANNELS) {
         if (channels[i].mixsource) {
+            notzerochannels = 1;
             //read bytes
-            int k = channels[i].mixsource->read(channels[i].mixsource, mixbuf2, sampleamount * sizeof(MIXTYPE));
+            int k = channels[i].mixsource->read(channels[i].mixsource, mixbuf2, samplebytes);
             if (k <= 0) {
                 audiomixer_HandleChannelEOF(i, k);
                 i++;
@@ -280,31 +277,56 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
             }
             
             //see how many samples we can actually mix from this
-            unsigned int mixsamples = k / sizeof(MIXTYPE);
-            while (mixsamples * sizeof(MIXTYPE) > (unsigned int)k) {
-                mixsamples--;
+            unsigned int mixsamples,mixbytes;
+            if (k != samplebytes) {
+                mixsamples = k / sizeof(MIXTYPE);
+                while (mixsamples * sizeof(MIXTYPE) > (unsigned int)k) {
+                    mixsamples--;
+                }
+                mixbytes = mixsamples * sizeof(MIXTYPE);
+            }else{
+                mixsamples = sampleamount;
+                mixbytes = samplebytes;
             }
 
-            //mix samples
-            MIXTYPE* mixtarget = (MIXTYPE*)((char*)mixbuf + filledbytes);
-            float* mixsource = (float*)mixbuf2;
-            unsigned int r = 0;
-            while (r < mixsamples) {
-                float sourcevalue = *mixsource;
-                sourcevalue = (sourcevalue + 1)/2;
-                float targetvalue = *mixtarget;
-                targetvalue = (targetvalue + 1)/2;
+            if (i > 0) {
+                //mix samples
+                MIXTYPE* mixtarget = (MIXTYPE*)((char*)mixbuf + filledbytes);
+                float* mixsource = (float*)mixbuf2;
+                unsigned int r = 0;
+                while (r < mixsamples) {
+                    float sourcevalue = *mixsource;
+                    sourcevalue = (sourcevalue + 1)/2;
+                    float targetvalue = *mixtarget;
+                    targetvalue = (targetvalue + 1)/2;
                 
-                float result = -(targetvalue * sourcevalue) + (targetvalue + sourcevalue);
-                result = (result * 2) - 1;
-                *mixtarget = (MIXTYPE)result;
-                r++;
-                mixsource++;
-                mixtarget++;
+                    float result = -(targetvalue * sourcevalue) + (targetvalue + sourcevalue);
+                    result = (result * 2) - 1;
+                    *mixtarget = (MIXTYPE)result;
+                    r++;
+                    mixsource++;
+                    mixtarget++;
+                }
+            }else{
+                //simply copy the channel into the stream
+                memcpy(mixbuf + filledbytes, mixbuf2, mixbytes);
+
+                //calculate the amount of additional zeroes we might need:
+                int addzeroes = samplebytes - mixbytes;
+                if (addzeroes > 0) {
+                    memset(mixbuf + filledbytes + mixbytes, 0, addzeroes);
+                }
             }
         }
         i++;
     }
+
+    //zero buffer if no channel was copied into it:
+    if (!notzerochannels) {
+        memset(mixbuf + filledbytes, 0, samplebytes);
+    }
+
+    //remember how much new mix buffer we processed now
     filledmixfull += sampleamount;
 }
 
