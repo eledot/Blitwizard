@@ -966,6 +966,7 @@ void graphics_CompleteFrame() {
 
 int lastfingerdownx,lastfingerdowny;
 
+int inbackground = 0;
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background)) {
     SDL_Event e;
     while (SDL_PollEvent(&e) == 1) {
@@ -976,11 +977,17 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
             mousemoveevent(e.motion.x, e.motion.y);
         }
 #ifdef ANDROID
-        if (e.type == SDL_WINDOWEVENT_MINIMIZED) {
-            putinbackground(1);
+        if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_MINIMIZED || e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)) {
+            if (!inbackground) {
+                putinbackground(1);
+                inbackground = 1;
+            }
         }
-        if (e.type == SDL_WINDOWEVENT_RESTORED) {
-            putinbackground(0);
+        if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_RESTORED || e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)) {
+            if (inbackground) {
+                putinbackground(0);
+                inbackground = 0;
+            }
         }
 #endif
         if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
