@@ -281,7 +281,6 @@ static void putinbackground(int background) {
     if (background) {
         //remember we are in the background
         appinbackground = 1;
-        exit(1);
     }else{
         //restore textures and wipe old ones
         graphics_ForceTransferTexturesToSDL();
