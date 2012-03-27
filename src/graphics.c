@@ -607,8 +607,8 @@ void graphics_ReopenForAndroid() {
 
     //preserve window title:
     char title[512];
-    const char* p = graphics_GetWindowTitle();
-    int len = strlen(p)+1;
+    p = graphics_GetWindowTitle();
+    len = strlen(p)+1;
     if (len >= sizeof(title)) {len = sizeof(title)-1;}
     memcpy(title, p, len);
     title[sizeof(title)-1] = 0;
