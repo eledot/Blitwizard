@@ -318,8 +318,31 @@ static int gettraceback(lua_State* l) {
 }
 
 //The next two functions are stolen (slightly modified) from Lua 5 :)
-//Lua is MIT-licensed - see README-libs.txt,
-//  Copyright (C) 1994-2011 Lua.org, PUC-Rio. All rights reserved.
+/*
+ 
+ Lua licensing:
+
+Lua Copyright (c) 1994-2011 Lua.org, PUC-Rio
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+*/
 //Lua does not export those symbols, which is why I copied them here
 
 static lua_State *getthread(lua_State *L, int *arg) { //FROM LUA 5
@@ -345,6 +368,7 @@ static int debug_traceback(lua_State *L) { //FROM LUA 5
     return 1;
 }
 
+// End of (modified) Lua 5 code
 
 static lua_State* luastate_New() {
     lua_State* l = luaL_newstate();
