@@ -1,7 +1,7 @@
 
 /* blitwizard 2d engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2012 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,6 +25,8 @@
 
 #define _HAVE_BLITWIZARD_OS_H
 
+#define USE_SOCKETS
+
 // Detect operating system:
 
 // We don't want Cygwin:
@@ -35,6 +37,7 @@
 // Android:
 #if defined(__ANDROID__) && !defined(ANDROID)
 #define ANDROID
+#undef USE_SOCKETS
 #endif
 
 // Linux:
