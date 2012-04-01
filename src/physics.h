@@ -43,6 +43,7 @@ struct physicsobjectedgecontext;
 struct physicsobjectedgecontext* physics_CreateObjectEdges_Begin(struct physicsworld* world, void* userdata, int movable, double friction);
 void physics_CreateObjectEdges_Do(struct physicsobjectedgecontext* context, double x1, double y1, double x2, double y2);
 struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecontext* context);
+void physics_DestroyObject(struct physicsobject* obj);
 
 //get/set various properties
 void physics_SetMass(struct physicsobject* obj, double mass);

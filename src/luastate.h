@@ -30,7 +30,7 @@ int luastate_DoInitialFile(const char* file, char** error);
 char* luastate_GetPreferredAudioBackend();
 int luastate_GetWantFFmpeg();
 void luastate_PrintStackDebug();
-
+void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)(void*));
 
 //Call functions:
 

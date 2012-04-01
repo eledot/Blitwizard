@@ -43,34 +43,34 @@ struct luaphysicsobj {
 
 static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
     char invalid[] = "Not a valid physics object reference";
-    if (lua_type(l, index) != LUA_TTABLE) {
+    if (lua_type(l, index) != LUA_TUSERDATA) {
         lua_pushstring(l, invalid);
         lua_error(l);
         return NULL;
     }
-    lua_pushnumber(l, 1);
-    if (index < 0) {index--;}
-    lua_gettable(l, index);
-    if (lua_type(l, -1) != LUA_TUSERDATA) {
-        lua_pop(l, 1);
+    if (lua_rawlen(l, index) != sizeof(struct luaidref)) {
         lua_pushstring(l, invalid);
         lua_error(l);
         return NULL;
     }
-    if (lua_rawlen(l, -1) != sizeof(struct luaidref)) {
-        lua_pushstring(l, invalid);
-        lua_error(l);
-        return NULL;
-    }
-    struct luaidref* idref = (struct luaidref*)lua_touserdata(l, -1);
+    struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
     if (!idref || idref->magic != IDREF_MAGIC || idref->type != IDREF_PHYSICS) {
         lua_pushstring(l, invalid);
         lua_error(l);
         return NULL;
     }
     struct luaphysicsobj* obj = idref->ref.ptr;
-    lua_pop(l, 1);
     return obj;
+}
+
+static int garbagecollect_physobj(lua_State* l) {
+    struct luaphysicsobj* lobj = toluaphysicsobj(l, -1);
+    if (!lobj) {return 0;}
+    if (lobj->object) {
+        physics_DestroyObject(lobj->object);
+    }
+    free(lobj);
+    return 0;
 }
 
 static struct luaidref* createphysicsobj(lua_State* l) {
@@ -87,23 +87,18 @@ static struct luaidref* createphysicsobj(lua_State* l) {
     ref->magic = IDREF_MAGIC;
     ref->type = IDREF_PHYSICS;
     ref->ref.ptr = obj;
+    luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
     return ref;
 }
 
 int luafuncs_createMovableObject(lua_State* l) {
-    lua_newtable(l);
-    lua_pushnumber(l, 1);
     struct luaidref* ref = createphysicsobj(l);
     ((struct luaphysicsobj*)ref->ref.ptr)->movable = 1;
-    lua_settable(l, -3);
     return 1;
 }
 
 int luafuncs_createStaticObject(lua_State* l) {
-    lua_newtable(l);
-    lua_pushnumber(l, 1);
     createphysicsobj(l);
-    lua_settable(l, -3);
     return 1;
 }
 

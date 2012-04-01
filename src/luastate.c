@@ -96,6 +96,18 @@ void luastate_PrintStackDebug() {
     }
 }
 
+//table must be on stack to which you want to set this function
+void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)(void*)) {
+    lua_State* l = luastate;
+    lua_newtable(l);
+    lua_pushstring(l, "__gc");
+    lua_pushcfunction(l, (lua_CFunction)callback);
+    lua_rawset(l, -3);
+    if (tablestackindex < 0) {tablestackindex--;} //metatable is now at the top
+    lua_setmetatable(l, tablestackindex);
+    if (tablestackindex < 0) {tablestackindex++;}
+}
+
 static void luastate_CreatePhysicsTable(lua_State* l) {
     lua_newtable(l);
     lua_pushstring(l, "setGravity");
@@ -306,11 +318,11 @@ static int gettraceback(lua_State* l) {
 }
 
 //The next two functions are stolen (slightly modified) from Lua 5 :)
-//Lua is zlib-licensed as this engine,
+//Lua is MIT-licensed - see README-libs.txt,
 //  Copyright (C) 1994-2011 Lua.org, PUC-Rio. All rights reserved.
 //Lua does not export those symbols, which is why I copied them here
 
-static lua_State *getthread (lua_State *L, int *arg) { //FROM LUA 5
+static lua_State *getthread(lua_State *L, int *arg) { //FROM LUA 5
     if (lua_isthread(L, 1)) {
         *arg = 1;
         return lua_tothread(L, 1);
@@ -320,7 +332,7 @@ static lua_State *getthread (lua_State *L, int *arg) { //FROM LUA 5
     }
 }
 
-static int debug_traceback (lua_State *L) { //FROM LUA 5
+static int debug_traceback(lua_State *L) { //FROM LUA 5
     int arg;
     lua_State *L1 = getthread(L, &arg);
     const char *msg = lua_tostring(L, arg + 1);
@@ -336,7 +348,10 @@ static int debug_traceback (lua_State *L) { //FROM LUA 5
 
 static lua_State* luastate_New() {
     lua_State* l = luaL_newstate();
-    
+
+    lua_gc(l, LUA_GCSETPAUSE, 110);
+    lua_gc(l, LUA_GCSETSTEPMUL, 300);
+
     //standard libs
     lua_pushcfunction(l, &luastate_AddStdFuncs);
     lua_pcall(l, 0, 0, 0);

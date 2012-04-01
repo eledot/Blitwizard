@@ -59,6 +59,13 @@ function blitwiz.on_init()
 	})
 	blitwiz.physics.setFriction(levelcollision, 0.5)
 
+    -- Testing automatic garbage collection of physics objects:
+    local gctestobj = blitwiz.physics.createStaticObject()
+    blitwiz.physics.setShapeRectangle(gctestobj, 100/pixelspermeter, 20/pixelspermeter)
+    blitwiz.physics.warp(gctestobj, 0, 0)
+    blitwiz.physics.setFriction(gctestobj, 0.3)
+    gctestobj = nil
+
 	-- Even more basic level collision (that black rectangle part in bg.png)
 	levelcollision2 = blitwiz.physics.createStaticObject()
 	blitwiz.physics.setShapeRectangle(levelcollision2, (382 - 222)/pixelspermeter, (314 - 242)/pixelspermeter)
