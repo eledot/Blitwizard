@@ -7,11 +7,19 @@ you write to specify the behaviour of your game/multimedia application.
 LICENSE:
 
   The license of blitwizard is zlib (open e.g. src/main.c and read at the top).
-  However, code of Speex is also in the core source of blitwizard.
-  Read Speex license and copyright info in README-libs.txt.
+
+  However, code of Speex/Lua is also in the core source of blitwizard.
+  The template contains parts of random-lua.
+  Read Speex/Lua/random-lua license and copyright info in README-libs.txt.
+
   The complete source package for blitwizard including the deps for building
   also contains many other libs apart from Speex, check README-libs.txt and
   their included source code for license remarks.
+
+  The binary package for blitwizard might also include FFmpeg.
+  See README-ffmpeg.txt for license and copyright info.
+  See Ship-your-game.txt on how to properly redistribute blitwizard along
+  with your game.
   
 HOW TO USE:
 

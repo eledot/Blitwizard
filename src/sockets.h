@@ -40,10 +40,10 @@
 
 #ifndef IPMAXLEN
 #ifdef IPV6
-	#define IPV6LEN INET6_ADDRSTRLEN
-	#define IPMAXLEN (INET6_ADDRSTRLEN+2)
+    #define IPV6LEN INET6_ADDRSTRLEN
+    #define IPMAXLEN (INET6_ADDRSTRLEN+2)
 #else
-	#define IPMAXLEN 16
+    #define IPMAXLEN 16
 #endif
 #endif
 
