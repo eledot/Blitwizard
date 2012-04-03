@@ -47,6 +47,8 @@ struct connection {
     int connected;
     int linebuffered;
     int error;
+
+    struct connection* next;
 };
 
 extern struct connection* connectionlist;

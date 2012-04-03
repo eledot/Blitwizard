@@ -49,6 +49,10 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
     while (c) {
         //don't process connections with errors
         if (c->error >= 0) {
+            if (!c->errorreported) {
+                c->errorreported = 1;
+                errorcallback(c, c->error);
+            }
             c = c->next;
             continue;
         }
@@ -137,7 +141,16 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
 
         //if the connection is attempting to connect, check if it succeeded:
         if (!c->connected && c->socket) {
-            if (so_SelectSaysWrite(c->socket, 
+            if (so_SelectSaysWrite(c->socket)) {
+                if (sockets_CheckIfConnected(c->socket, c->sslptr)) {
+                    if (connectedcallback) {
+                        connectedcallback(c);
+                    }
+                }else{
+                    c->error = CONNECTIONERROR_CONNECTIONFAILED;
+                    continue;
+                }
+            }
         }
 
         c = c->next;
@@ -155,6 +168,11 @@ void connections_Init(struct connection* c, const char* target, int port, int li
     c->socket = -i;
     c->error = -1;
     c->targetport = port;
+    if (connectionlist) {
+        c->next = connectionlist;
+    }else{
+        connectionlist = c;
+    }
     //initialise socket system (just in case it's not done yet):
     if (!so_Startup()) {
         c->error = CONNECTIONERROR_INITIALISATIONFAILED;
@@ -216,6 +234,15 @@ void connections_Send(struct connection* c, char* data, int datalength);
 void connections_Close(struct connection* c) {
     if (c->socket) {
         so_CloseSSLSocket(c->socket, &c->sslptr);
+    }
+    if (c->inbuf) {
+        free(c->inbuf);
+    }
+    if (c->outbuf) {
+        free(c->outbuf);
+    }
+    if (c->retryipv4) {
+        free(c->retryipv4);
     }
 }
 

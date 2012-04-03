@@ -987,7 +987,16 @@ int so_CheckIfConnected(int socket, void* sslptr) {
         return 1;
     }
 #endif
-    
+    int val;
+    unsigned int len = sizeof(val);
+    int result = getsockopt(socket, SOL_SOCKET, SO_ERROR, &val, &len);
+    if (result < 0) { //failed to obtain option
+        return 0;
+    }
+    if (val == 0) { //connect success
+        return 1;
+    }
+    return 0;
 }
 
 int so_ReceiveData_internal(int socket, char* buf, int len, int usessl, void* sslptr) {
