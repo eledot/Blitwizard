@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "sockets.h"
 
@@ -108,9 +109,19 @@ static int soinitfunc(const char* cert, const char* key) {
     FD_ZERO(&weircdselectset_readers);
     FD_ZERO(&weircdselectset_writers);
 #ifdef WINDOWS
+    //Launch WSA sockets on Windows
     WSADATA wsa;
     long r = WSAStartup(MAKEWORD(2,0),&wsa);
     if (r != 0) {
+        return 0;
+    }
+#else
+    //deactivate SIGPIPE on Unix
+    struct sigaction signalst;
+    if (sigaction(SIGPIPE, NULL, &signalst) == 0) {
+        signalst.sa_handler = SIG_IGN;
+        sigaction(SIGPIPE, &signalst, NULL);
+    }else{
         return 0;
     }
 #endif
