@@ -975,6 +975,21 @@ int so_SendData_internal(int socket, const char* buf, int len, int usessl, void*
 #endif
     }
 }
+
+int so_CheckIfConnected(int socket, void* sslptr) {
+#ifdef USESSL
+    if (sslptr) {
+        //XXX: is this sufficient for connection checks?
+        int z = so_DoAcceptThings(socket, sslptr);
+        if (z <= 0) {
+            return 0;
+        }
+        return 1;
+    }
+#endif
+    
+}
+
 int so_ReceiveData_internal(int socket, char* buf, int len, int usessl, void* sslptr) {
     if (so_sysinited == 0) {return -1;}
     if (usessl == 0) {

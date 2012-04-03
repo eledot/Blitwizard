@@ -135,6 +135,11 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
             }
         }
 
+        //if the connection is attempting to connect, check if it succeeded:
+        if (!c->connected && c->socket) {
+            if (so_SelectSaysWrite(c->socket, 
+        }
+
         c = c->next;
     }
 }
