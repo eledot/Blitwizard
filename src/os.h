@@ -21,9 +21,9 @@
 
 */
 
-#ifndef _HAVE_BLITWIZARD_OS_H
+#ifndef _BLITWIZARD_OS_H
 
-#define _HAVE_BLITWIZARD_OS_H
+#define _BLITWIZARD_OS_H
 
 #define USE_SOCKETS
 

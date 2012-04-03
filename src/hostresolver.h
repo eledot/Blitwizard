@@ -49,7 +49,7 @@ void hostresolv_FreeRequest(void* handle);
     NEVER use this if the request is still pending (will break horribly).
    */
  
- void hostresolv_CancelRequest(void* handle);
+void hostresolv_CancelRequest(void* handle);
  /* Cancel a host resolve request. If the request is already terminated,
     it will be instantly free'd. */
  
