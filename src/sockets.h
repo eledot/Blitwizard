@@ -117,7 +117,7 @@ void so_SelectWantWrite(int socket, int enabled);
 /* === accept new connections, connect and send/recv data === */
 int so_AcceptConnection(int socket, int iptype, char* writeip, int* writesocket); //0: failure, 1: success
 int so_ConnectSocketToIP(int socket, const char* ip, unsigned int port);
-int so_CheckIfConnected(int socket, void* sslptr); //0: not connected, 1: connected
+int so_CheckIfConnected(int socket, void** sslptr); //0: not connected, 1: connected
 int so_SendData(int sock,const char* buf, int len);
 int so_ReceiveData(int socket, char* buf, int len); //>0: amonut of bytes read, -1: temp failure (retry later), 2: failure (connection dead)
 

@@ -987,11 +987,11 @@ int so_SendData_internal(int socket, const char* buf, int len, int usessl, void*
     }
 }
 
-int so_CheckIfConnected(int socket, void* sslptr) {
+int so_CheckIfConnected(int socket, void** sslptr) {
 #ifdef USESSL
-    if (sslptr) {
+    if (sslptr && *sslptr) {
         //XXX: is this sufficient for connection checks?
-        int z = so_DoAcceptThings(socket, sslptr);
+        int z = so_DoAcceptThings(socket, *sslptr);
         if (z <= 0) {
             return 0;
         }

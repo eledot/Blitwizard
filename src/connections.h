@@ -46,6 +46,7 @@ struct connection {
     char* retryv4ip;
     int connected;
     int linebuffered;
+    int throwawaynextline;
     int error;
 
     struct connection* next;
