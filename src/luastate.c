@@ -27,6 +27,7 @@
 #include "luastate.h"
 #include "luafuncs.h"
 #include "luafuncs_physics.h"
+#include "luafuncs_net.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -163,6 +164,13 @@ static void luastate_CreatePhysicsTable(lua_State* l) {
     lua_settable(l, -3);
     lua_pushstring(l, "ray");
     lua_pushcfunction(l, &luafuncs_ray);
+    lua_settable(l, -3);
+}
+
+static void luastate_CreateNetTable(lua_State* l) {
+    lua_newtable(l);
+    lua_pushstring(l, "open");
+    lua_pushcfunction(l, &luafuncs_netopen);
     lua_settable(l, -3);
 }
 
@@ -396,9 +404,13 @@ static lua_State* luastate_New() {
     //obtain the blitwiz lib
     lua_getglobal(l, "blitwiz");
 
-    //blitwiz namespace
+    //blitwiz namespaces
     lua_pushstring(l, "graphics");
     luastate_CreateGraphicsTable(l);
+    lua_settable(l, -3);
+
+    lua_pushstring(l, "net");
+    luastate_CreateNetTable(l);
     lua_settable(l, -3);
     
     lua_pushstring(l, "sound");

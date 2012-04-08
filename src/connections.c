@@ -307,6 +307,11 @@ void connections_Init(struct connection* c, const char* target, int port, int li
         c->error = CONNECTIONERROR_INITIALISATIONFAILED;
         return;
     }
+    //with an empty target, we simply won't do anything except instant-error:
+    if (!target) {
+        c->error = CONNECTIONERROR_NOSUCHHOST;
+        return;
+    }
     //allocate buffers:
     c->inbuf = malloc(CONNECTIONINBUFSIZE);
     if (!c->inbuf) {
