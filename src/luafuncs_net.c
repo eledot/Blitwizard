@@ -134,6 +134,18 @@ int luafuncs_netopen(lua_State* l) {
         return lua_error(l);
     }
     lua_pop(l, 1); //pop linebuffered setting again
+    //check if we want a low delay connection:
+    int lowdelay = 0;
+    lua_pushstring(l, "lowdelay");
+    lua_gettable(l, -2);
+    if (lua_type(l, -1) == LUA_TBOOLEAN) {
+        if (lua_toboolean(l, -1)) {linebuffered = 1;}
+    }else{
+        free(server);
+        lua_pushstring(l, "The settings table contains an invalid lowdelay setting: boolean expected");
+        return lua_error(l);
+    }
+    lua_pop(l, 1); //pop linebuffered setting again
     //ok, now it's time to get a connection object:
     struct luaidref* idref = createnetstreamobj(l); //FIXME: this can error! and then "server" won't be freed -> possible memory leak
     if (!idref) {
@@ -142,8 +154,8 @@ int luafuncs_netopen(lua_State* l) {
         return lua_error(l);
     }
     //attempt to connect:
-    connections_Init(&((struct luanetstream*)idref->ref.ptr)->c, server, port, linebuffered); 
-    printf("Target is: %s:%d (%d)\n", server, port, linebuffered);
+    connections_Init(&((struct luanetstream*)idref->ref.ptr)->c, server, port, linebuffered, lowdelay); 
+    printf("Target is: %s:%d (%d, %d)\n", server, port, linebuffered, lowdelay);
     free(server);
     return 1; //return the netstream object
 }

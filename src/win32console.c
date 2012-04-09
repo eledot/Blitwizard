@@ -44,9 +44,9 @@ void win32console_Launch() {
     FILE* outfile = _fdopen(outfhandle, "w");
     setvbuf(outfile, NULL, _IONBF, 1);
     *stdout = *outfile;
-    
-    consoleopen = 1;
+
 #endif
+    consoleopen = 1;
 }
 
 void win32console_Close() {
@@ -55,7 +55,7 @@ void win32console_Close() {
 
     fclose(stdout);
     FreeConsole();
-    consoleopen = 0;
 #endif
+    consoleopen = 0;
 }
 

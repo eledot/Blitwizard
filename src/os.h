@@ -75,4 +75,9 @@
 #define FORCES16AUDIO
 #endif
 
+//We want to know if we have Unix for sockets and such:
+#ifndef WINDOWS
+#define UNIX
+#endif
+
 #endif

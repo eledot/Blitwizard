@@ -34,6 +34,8 @@ struct connection {
     int socket;
     void* sslptr;
     int iptype;
+    void* hostresolveptr;
+    void* hostresolveptrv6;
 
     char* inbuf;
     int inbufsize;
@@ -42,12 +44,15 @@ struct connection {
     char* outbuf;
     int outbufsize;
     int outbufbytes;
+    int outbufoffset;
 
+    int targetport;
     char* retryv4ip;
     int connected;
     int linebuffered;
     int throwawaynextline;
     int error;
+    int errorreported;
 
     struct connection* next;
 };
@@ -66,7 +71,7 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
 void connections_SleepWait(int timeoutms);
 
 //Initialise the given connection struct and open the connection
-void connections_Init(struct connection* c, const char* target, int port, int linebuffered);
+void connections_Init(struct connection* c, const char* target, int port, int linebuffered, int lowdelay);
 
 //Send on a connection. Do not use if ->connected is not 1 yet!
 void connections_Send(struct connection* c, char* data, int datalength);

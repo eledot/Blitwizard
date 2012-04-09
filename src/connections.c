@@ -21,17 +21,36 @@
 
 */
 
+#include "os.h"
+
+#include <stdlib.h>
+#include <string.h>
+#ifdef UNIX
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#endif
+#ifdef WINDOWS
+#include <winsock2.h>
+#endif
+
+#include "ipcheck.h"
 #include "logging.h"
+#include "sockets.h"
 #include "connections.h"
+#include "hostresolver.h"
+
+struct connection* connectionlist;
 
 //Attempt connect:
 static int connections_TryConnect(struct connection* c, const char* target) {
     //connect:
     int result;
     if (0) { //ssl
-        result = so_ConnectSSLSocketToIp(c->socket, target, c->targetport, &c->sslptr);
+        result = so_ConnectSSLSocketToIP(c->socket, target, c->targetport, &c->sslptr);
     }else{
-        result = so_ConnectSSLSocketToIp(c->socket, target, c->targetport, NULL);
+        result = so_ConnectSSLSocketToIP(c->socket, target, c->targetport, NULL);
     }
     if (!result) {
         c->error = CONNECTIONERROR_CONNECTIONFAILED;
@@ -61,7 +80,6 @@ int readconnectionclosed = 0;
 void connections_CheckAll(void (*readcallback)(struct connection* c, char* data, unsigned int datalength), void (*connectedcallback)(struct connection* c), void (*errorcallback)(struct connection* c, int error)) {
     //initialise socket system (just in case it's not done yet):
     if (!so_Startup()) {
-        c->error = CONNECTIONERROR_INITIALISATIONFAILED;
         return;
     }
 
@@ -83,13 +101,14 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
             if (c->hostresolveptr) {
                 hostresolv_GetRequestStatus(c->hostresolveptr);
             }
-            int rqstate2 = RESOLVESSTATUS_SUCCESS;
+            int rqstate2 = RESOLVESTATUS_SUCCESS;
             if (c->hostresolveptrv6) {
                 rqstate2 = hostresolv_GetRequestStatus(c->hostresolveptrv6);
             }
             if (rqstate1 != RESOLVESTATUS_PENDING && rqstate2 != RESOLVESTATUS_PENDING) {
                 //requests are done, get ips:
-                char* ipv4,*ipv6;
+                char* ipv4 = NULL;
+                char* ipv6 = NULL;
 
                 //ipv4 ip:
                 const char* p = NULL;
@@ -102,8 +121,8 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
 
                 //ipv6 ip:
                 p = NULL;
-                if (rqstate2 == ERSOLVESTATUS_SUCCESS && c->hostresolveptrv6) {
-                    p = hostresolv_GetRequestResult(c->hostresolveeptrv6);
+                if (rqstate2 == RESOLVESTATUS_SUCCESS && c->hostresolveptrv6) {
+                    p = hostresolv_GetRequestResult(c->hostresolveptrv6);
                 }
                 if (p) {
                     ipv6 = strdup(p);
@@ -167,11 +186,11 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
 
         //if the connection is attempting to connect, check if it succeeded:
         if (!c->connected && c->socket) {
-            if (so_SelectSaysWrite(c->socket)) {
+            if (so_SelectSaysWrite(c->socket, &c->sslptr)) {
                 if (c->outbufbytes <= 0) {
                     so_SelectWantWrite(c->socket, 0);
                 }
-                if (sockets_CheckIfConnected(c->socket, &c->sslptr)) {
+                if (so_CheckIfConnected(c->socket, &c->sslptr)) {
 #ifdef CONNECTIONSDEBUG
                     printinfo("[connections] now connected");
 #endif
@@ -180,13 +199,13 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
                     }
                 }else{
                     //we aren't connected!
-                    if (c->tryv4ip) { //we tried ipv6, now try ipv4
+                    if (c->retryv4ip) { //we tried ipv6, now try ipv4
 #ifdef CONNECTIONSDEBUG
                         printinfo("[connections] retrying v4 after v6 fail...");
 #endif
-                        int result = connections_TryConnect(c, c->tryv4ip);
-                        free(c->tryv4ip);
-                        c->tryv4ip = NULL;
+                        int result = connections_TryConnect(c, c->retryv4ip);
+                        free(c->retryv4ip);
+                        c->retryv4ip = NULL;
                         if (!result) {
                             connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED);
                         }
@@ -204,7 +223,7 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
         }
 
         //read things if we can:
-        if (c->connected && so_SelectSaysRead(c->socket)) {
+        if (c->connected && so_SelectSaysRead(c->socket, &c->sslptr)) {
             if (c->inbufbytes >= c->inbufsize && c->linebuffered == 1) {
                 //we will break this mega line into two:
                 justreadingfromconnection = c;
@@ -243,11 +262,11 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
         }
 
         //write things if we can:
-        if (c->connected && c->outbufbytes > 0 && so_SelectSaysWrite(c->socket)) {
+        if (c->connected && c->outbufbytes > 0 && so_SelectSaysWrite(c->socket, &c->sslptr)) {
             int r = so_SendSSLData(c->socket, c->outbuf + c->outbufoffset, c->outbufbytes, &c->sslptr);
             if (r == 0) {
                 //connection closed:
-                connection_E(c, errorcallback, CONNECTIONERROR_CONNECTIONCLOSED);
+                connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONCLOSED);
 #ifdef CONNECTIONSDEBUG
                 printinfo("[connections] send returned end of stream");
 #endif
@@ -279,7 +298,6 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
 void connections_SleepWait(int timeoutms) {
     //initialise socket system (just in case it's not done yet):
     if (!so_Startup()) {
-        c->error = CONNECTIONERROR_INITIALISATIONFAILED;
         return;
     }
     //use select to wait for events:
@@ -294,9 +312,10 @@ void connections_SetLineBuffered(struct connection* c, int linebuffered) {
 //Initialise the given connection struct and open the connection
 void connections_Init(struct connection* c, const char* target, int port, int linebuffered, int lowdelay) {
     memset(c, 0, sizeof(*c));
-    c->socket = -i;
+    c->socket = -1;
     c->error = -1;
     c->targetport = port;
+    c->linebuffered = linebuffered;
     if (connectionlist) {
         c->next = connectionlist;
     }else{
@@ -334,7 +353,7 @@ void connections_Init(struct connection* c, const char* target, int port, int li
     //set a low delay option if desired
     if (lowdelay) {
         int flag = 1;
-        setsockopt(sock, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
+        setsockopt(c->socket, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
     }
     //without a socket, we cannot continue:
     if (c->socket < 0) {
@@ -387,7 +406,13 @@ void connections_Close(struct connection* c) {
         //that this connection is now closed.
         readconnectionclosed = 1;
     }
-    if (c->socket) {
+    if (c->hostresolveptr) {
+        hostresolv_CancelRequest(c->hostresolveptr);
+    }
+    if (c->hostresolveptrv6) {
+        hostresolv_CancelRequest(c->hostresolveptrv6);
+    }
+    if (c->socket >= 0) {
         so_CloseSSLSocket(c->socket, &c->sslptr);
     }
     if (c->inbuf) {
@@ -396,8 +421,8 @@ void connections_Close(struct connection* c) {
     if (c->outbuf) {
         free(c->outbuf);
     }
-    if (c->retryipv4) {
-        free(c->retryipv4);
+    if (c->retryv4ip) {
+        free(c->retryv4ip);
     }
 }
 
