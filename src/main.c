@@ -431,6 +431,12 @@ int main_ProcessNoThreadedReading() {
         rwopen_path = NULL;
     }
     mutex_Release(rwread_executemutex);
+    //make sure to wait until the query has been fully processed by
+    //the requesting thread:
+    mutex_Lock(rwread_querymutex);
+    mutex_Release(rwread_querymutex);
+    //This should improve the possibility that another thread poses
+    //a new request right now and we can process it immediately.
     return querydone;
 }
 #endif
@@ -639,7 +645,7 @@ int main(int argc, char** argv) {
             //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
 #ifdef NOTHREADEDSDLRW
             uint64_t start = time_GetMilliSeconds();
-            while (main_ProcessNoThreadedReading() || start + 10 > time_GetMilliSeconds()) {time_Sleep(5);}
+            while (main_ProcessNoThreadedReading() && start + 20 > time_GetMilliSeconds()) { }
 #endif      
     
             //simulate audio

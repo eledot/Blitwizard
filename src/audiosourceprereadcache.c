@@ -54,7 +54,7 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
     if (idata->eof) {return -1;}
     if (idata->prereadcachesize == 0) {
         //cache was not initialised yet - initialise with standard size
-        idata->prereadcachesize = (1024 * 200);
+        idata->prereadcachesize = (1024 * 20);
         idata->prereadcache = malloc(idata->prereadcachesize);
         if (!idata->prereadcache) {
             return -1;
