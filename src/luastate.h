@@ -45,6 +45,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 
 #define IDREF_SOUND 1
 #define IDREF_PHYSICS 2
+#define IDREF_NETSTREAM 3
 struct luaidref {
     int magic;
     int type;

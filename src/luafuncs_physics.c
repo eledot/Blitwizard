@@ -64,16 +64,22 @@ static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
 }
 
 static int garbagecollect_physobj(lua_State* l) {
-    struct luaphysicsobj* lobj = toluaphysicsobj(l, -1);
-    if (!lobj) {return 0;}
-    if (lobj->object) {
-        physics_DestroyObject(lobj->object);
+    struct luaphysicsobj* pobj = toluaphysicsobj(l, -1);
+    if (!pobj) {
+        //not a physics object!
+        return 0;
     }
-    free(lobj);
+    if (pobj->object) {
+        //Close the associated physics object
+        physics_DestroyObject(pobj->object);
+    }
+    //free the physics object itself
+    free(pobj);
     return 0;
 }
 
 static struct luaidref* createphysicsobj(lua_State* l) {
+    //Create a luaidref userdata struct which points to a luaphysicsobj:
     struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
     struct luaphysicsobj* obj = malloc(sizeof(*obj));
     if (!obj) {
@@ -82,11 +88,13 @@ static struct luaidref* createphysicsobj(lua_State* l) {
         lua_error(l);
         return NULL;
     }
+    //initialise structs:
     memset(obj, 0, sizeof(*obj));
     memset(ref, 0, sizeof(*ref));
     ref->magic = IDREF_MAGIC;
     ref->type = IDREF_PHYSICS;
     ref->ref.ptr = obj;
+    //make sure it gets garbage collected lateron:
     luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
     return ref;
 }
