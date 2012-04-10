@@ -51,6 +51,7 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "logging.h"
 #include "audiosourceffmpeg.h"
 #include "physics.h"
+#include "connections.h"
 #ifdef NOTHREADEDSDLRW
 #include "SDL.h"
 #include "threading.h"
@@ -181,7 +182,7 @@ void main_InitAudio() {
 
 static void quitevent() {
     char* error;
-    if (!luastate_CallFunctionInMainstate("blitwiz.on_close", 0, 1, 1, &error)) {
+    if (!luastate_CallFunctionInMainstate("blitwiz.on_close", 0, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_close: %s",error);
         if (error) {free(error);}
         fatalscripterror();
@@ -213,7 +214,7 @@ static void mousebuttonevent(int button, int release, int x, int y) {
         main_Quit(1);
         return;
     }
-    if (!luastate_CallFunctionInMainstate(funcname, 3, 1, 1, &error)) {
+    if (!luastate_CallFunctionInMainstate(funcname, 3, 1, 1, &error, NULL)) {
         printerror("Error when calling %s: %s", funcname, error);
         if (error) {free(error);}
         fatalscripterror();
@@ -235,7 +236,7 @@ static void mousemoveevent(int x, int y) {
         main_Quit(1);
         return;
     }
-    if (!luastate_CallFunctionInMainstate("blitwiz.on_mousemove", 2, 1, 1, &error)) {
+    if (!luastate_CallFunctionInMainstate("blitwiz.on_mousemove", 2, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_mousemove: %s", error);
         if (error) {free(error);}
         fatalscripterror();
@@ -254,7 +255,7 @@ static void keyboardevent(const char* button, int release) {
         main_Quit(1);
         return;
     }
-    if (!luastate_CallFunctionInMainstate(funcname, 1, 1, 1, &error)) {
+    if (!luastate_CallFunctionInMainstate(funcname, 1, 1, 1, &error, NULL)) {
         printerror("Error when calling %s: %s", funcname, error);
         if (error) {free(error);}
         fatalscripterror();
@@ -269,7 +270,7 @@ static void textevent(const char* text) {
         fatalscripterror();
         return;
     }
-    if (!luastate_CallFunctionInMainstate("blitwiz.on_text", 1, 1, 1, &error)) {
+    if (!luastate_CallFunctionInMainstate("blitwiz.on_text", 1, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_text: %s", error);
         if (error) {free(error);}
         fatalscripterror();
@@ -303,7 +304,7 @@ static void imgloaded(int success, const char* texture) {
         fatalscripterror();
         return;
     }
-    if (!luastate_CallFunctionInMainstate("blitwiz.on_image", 2, 1, 1, &error)) {
+    if (!luastate_CallFunctionInMainstate("blitwiz.on_image", 2, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_image: %s", error);
         if (error) {free(error);}
         fatalscripterror();
@@ -441,8 +442,10 @@ int main_ProcessNoThreadedReading() {
 }
 #endif
 
-//with a maximum of 50 iterations, we render at least every 50 * TIMESTEP = 50 * 16 = 800 seconds
+//with a maximum of 50 iterations, we render at least every 50 * TIMESTEP = 50 * 16 = 800 milliseconds
 #define MAXLOGICITERATIONS 40
+
+void luafuncs_ProcessNetEvents();
 
 #if (defined(__ANDROID__) || defined(ANDROID))
 int SDL_main(int argc, char** argv) {
@@ -464,6 +467,7 @@ int main(int argc, char** argv) {
     int i = 1;
     int scriptargfound = 0;
     int option_changedir = 0;
+    int gcframecount = 0;
     while (i < argc) {
         if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
             if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
@@ -611,7 +615,7 @@ int main(int argc, char** argv) {
 #endif
 
     //call init
-    if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error)) {
+    if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error, NULL)) {
         printerror("Error: An error occured when calling blitwiz.on_init: %s",error);
         if (error != outofmem) {    
             free(error);
@@ -621,8 +625,9 @@ int main(int argc, char** argv) {
     }
     
     //when graphics or audio is open, run the main loop
-    if (graphics_AreGraphicsRunning() || audioinitialised) {
-
+    if (graphics_AreGraphicsRunning() || (audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen()) {
+        int blitwizonstepworked = 0;
+        int blitwizondrawworked = 0;
 #if defined(ANDROID) || defined(__ANDROID__)
         printinfo("Blitwizard startup: Entering main loop...");
 #endif
@@ -640,6 +645,8 @@ int main(int argc, char** argv) {
         uint64_t lastdrawingtime = 0;
         uint64_t physicstimestamp = time_GetMilliSeconds();
         while (!wantquit) {
+            blitwizonstepworked = 0;
+            blitwizondrawworked = 0;
             uint64_t time = time_GetMilliSeconds();
 
             //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
@@ -659,8 +666,14 @@ int main(int argc, char** argv) {
             //limit to roughly 60 FPS
             uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;
             if (delta < 15) {
-                time_Sleep(16-delta);
+                if (connections_NoConnectionsOpen()) {
+                    time_Sleep(16-delta);
+                    connections_SleepWait(0);
+                }else{
+                    connections_SleepWait(16-delta);
+                }
             }
+            luafuncs_ProcessNetEvents();
 
             //check and trigger all sort of input events
             graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
@@ -669,11 +682,14 @@ int main(int argc, char** argv) {
             int iterations = 0;
             while ((logictimestamp < time || physicstimestamp < time) && iterations < MAXLOGICITERATIONS) {
                 if (logictimestamp < time && logictimestamp < physicstimestamp) {
-                    if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error)) {
+                    int onstepdoesntexist = 0;
+                    if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error, &onstepdoesntexist)) {
                         printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
                         if (error) {free(error);}
                         fatalscripterror();
                         main_Quit(1);
+                    }else{
+                        if (!onstepdoesntexist) {blitwizonstepworked = 1;}
                     }
                     logictimestamp += TIMESTEP;
                 }
@@ -684,6 +700,8 @@ int main(int argc, char** argv) {
                 iterations++;
             }
             if (iterations >= MAXLOGICITERATIONS) {
+                physicstimestamp = time_GetMilliSeconds();
+                logictimestamp = time_GetMilliSeconds();
                 printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
             }
 
@@ -698,16 +716,26 @@ int main(int argc, char** argv) {
                 graphics_StartFrame();
                 
                 //call the drawing function
-                if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error)) {
+                int ondrawdoesntexist = 0;
+                if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error, &ondrawdoesntexist)) {
                     printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
                     if (error) {free(error);}
                     fatalscripterror();
                     main_Quit(1);
+                }else{
+                    if (!ondrawdoesntexist) {blitwizondrawworked = 1;}
                 }
                 
                 //complete the drawing
                 drawingallowed = 0;
                 graphics_CompleteFrame();
+            }else{
+                blitwizondrawworked = 1;
+            }
+
+            //we might want to quit if there is nothing else to do
+            if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && audiomixer_NoSoundsPlaying()) {
+                main_Quit(1);
             }
 
             //be very sleepy if in background
@@ -717,6 +745,13 @@ int main(int argc, char** argv) {
 #else
                 time_Sleep(20);
 #endif
+            }
+
+            //do some garbage collection:
+            gcframecount++;
+            if (gcframecount > 100) {
+                //do a gc step once in a while
+                luastate_GCCollect();
             }
         }
     }

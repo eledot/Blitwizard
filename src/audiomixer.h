@@ -29,4 +29,5 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 void audiomixer_StopSound(int id);
 void audiomixer_AdjustSound(int id, float volume, float panning);
 int audiomixer_IsSoundPlaying(int id);
+int audiomixer_NoSoundsPlaying();
 

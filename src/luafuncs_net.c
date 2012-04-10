@@ -129,9 +129,11 @@ int luafuncs_netopen(lua_State* l) {
     if (lua_type(l, -1) == LUA_TBOOLEAN) {
         if (lua_toboolean(l, -1)) {linebuffered = 1;}
     }else{
-        free(server);
-        lua_pushstring(l, "The settings table contains an invalid linebuffered setting: boolean expected");
-        return lua_error(l);
+        if (lua_type(l, -1) != LUA_TNIL) {
+            free(server);
+            lua_pushstring(l, "The settings table contains an invalid linebuffered setting: boolean expected");
+            return lua_error(l);
+        }
     }
     lua_pop(l, 1); //pop linebuffered setting again
     //check if we want a low delay connection:
@@ -141,9 +143,11 @@ int luafuncs_netopen(lua_State* l) {
     if (lua_type(l, -1) == LUA_TBOOLEAN) {
         if (lua_toboolean(l, -1)) {linebuffered = 1;}
     }else{
-        free(server);
-        lua_pushstring(l, "The settings table contains an invalid lowdelay setting: boolean expected");
-        return lua_error(l);
+        if (lua_type(l, -1) != LUA_TNIL) {
+            free(server);
+            lua_pushstring(l, "The settings table contains an invalid lowdelay setting: boolean expected");
+            return lua_error(l);
+        }
     }
     lua_pop(l, 1); //pop linebuffered setting again
     //ok, now it's time to get a connection object:
@@ -155,8 +159,23 @@ int luafuncs_netopen(lua_State* l) {
     }
     //attempt to connect:
     connections_Init(&((struct luanetstream*)idref->ref.ptr)->c, server, port, linebuffered, lowdelay); 
-    printf("Target is: %s:%d (%d, %d)\n", server, port, linebuffered, lowdelay);
     free(server);
     return 1; //return the netstream object
+}
+
+static void connectedevents(struct connection* c) {
+
+}
+
+static void readevents(struct connection* c, char* data, unsigned int datalength) {
+
+}
+
+static void errorevents(struct connection* c, int error) {
+
+}
+
+void luafuncs_ProcessNetEvents() {
+    connections_CheckAll(&readevents, &connectedevents, &errorevents);
 }
 

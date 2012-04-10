@@ -45,7 +45,7 @@
 #define MAXCHANNELS 8
 #endif
 
-int lastusedsoundid = -1;
+int lastusedsoundid = 0;
 
 struct soundchannel {
     struct audiosource* mixsource;
@@ -64,7 +64,20 @@ void audiomixer_Init() {
     memset(&channels,0,sizeof(struct soundchannel) * MAXCHANNELS);
 }
 
+//Check whether no sound is playing right now (1), or if some is playing (0):
+int audiomixer_NoSoundsPlaying() {
+    int i = 0;
+    while (i < MAXCHANNELS) {
+        if (channels[i].mixsource) {
+            return 0;
+        }
+        i++;
+    }
+    return 1;
+}
+
 #ifdef NOTHREADEDSDLRW
+//Cancel channel, but with the knowledge of being in the main thread
 static void audiomixer_CancelChannelHack(int slot) {
     if (channels[slot].mixsource) {
         channels[slot].mixsource->close(channels[slot].mixsource);
@@ -76,6 +89,7 @@ static void audiomixer_CancelChannelHack(int slot) {
 }
 #endif
 
+//Cancel channel, we are in the sound thread
 static void audiomixer_CancelChannel(int slot) {
     if (channels[slot].mixsource) {
 #ifdef NOTHREADEDSDLRW
@@ -114,6 +128,7 @@ static int audiomixer_GetFreeChannelSlot(int priority) {
 }
 
 static int audiomixer_GetChannelSlotById(int id) {
+    if (id <= 0) {return -1;}
     int i = 0;
     while (i < MAXCHANNELS) {
         if (channels[i].id == id && channels[i].mixsource) {
@@ -128,7 +143,7 @@ static int audiomixer_FreeSoundId() {
     while (1) {
         lastusedsoundid++;
         if (lastusedsoundid >= INT_MAX-1) {
-            lastusedsoundid = -1;
+            lastusedsoundid = 0;
             continue;
         }
         if (audiomixer_GetChannelSlotById(lastusedsoundid) >= 0) {

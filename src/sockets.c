@@ -600,7 +600,7 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
         SSL_set_fd(((struct sslinfo*)*sslptr)->sslhandle, socket);
     }
 #endif
-    
+
     // ( 4 ) --- connect!
     int r;
     if (iptype == IPTYPE_IPV6) {
@@ -613,7 +613,8 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
         r = connect(socket, (struct sockaddr*)&addressstruct4, sizeof(addressstruct4));
     }
     if (r == 0) {return 1;}
-    
+    printf("errno: %d, iptype: %d\n",errno, iptype);
+
     //check for async error code
     #ifdef WINDOWS
     int err = WSAGetLastError();

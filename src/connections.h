@@ -79,5 +79,8 @@ void connections_Send(struct connection* c, char* data, int datalength);
 //Close the given connection struct
 void connections_Close(struct connection* c);
 
+//Returns 1 if no connections are open, otherwise 0.
+int connections_NoConnectionsOpen();
+
 #endif // _BLITWIZARD_CONNECTIONS_H
 

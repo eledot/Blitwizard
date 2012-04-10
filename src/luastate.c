@@ -530,7 +530,7 @@ int luastate_PushFunctionArgumentToMainstate_Double(double i) {
     return 1;
 }
 
-int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error) {
+int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error, int* functiondidnotexist) {
     //push error function
     lua_pushcfunction(scriptstate, &gettraceback);
     if (args > 0) {
@@ -610,6 +610,10 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
             //clean up recursive origin table left on stack
             lua_pop(scriptstate, 1);
         }
+        //give back the info that it did not exist:
+        if (functiondidnotexist) {
+            *functiondidnotexist = 1;
+        }
         return 1;
     }
 
@@ -650,3 +654,8 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 
     return returnvalue;
 }
+
+void luastate_GCCollect() {
+    lua_gc(scriptstate, LUA_GCSTEP, 0);
+}
+

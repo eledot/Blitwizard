@@ -47,6 +47,9 @@ struct connection* connectionlist;
 static int connections_TryConnect(struct connection* c, const char* target) {
     //connect:
     int result;
+#ifdef CONNECTIONSDEBUG
+    printinfo("[connections] TryConnect: %s:%d (%d)",target,c->targetport,c->socket);
+#endif
     if (0) { //ssl
         result = so_ConnectSSLSocketToIP(c->socket, target, c->targetport, &c->sslptr);
     }else{
@@ -424,6 +427,23 @@ void connections_Close(struct connection* c) {
     if (c->retryv4ip) {
         free(c->retryv4ip);
     }
+    //Remove use from the list:
+    struct connection* prevc = connectionlist;
+    while (prevc && prevc->next != c) {
+        prevc = prevc->next;
+    }
+    if (prevc) {
+        prevc = c->next;
+    }else{
+        connectionlist = NULL;
+    }
+#ifdef CONNECTIONSDEBUG
+    printinfo("[connections] connection closed and removed from the list.");
+#endif
 }
 
+int connections_NoConnectionsOpen() {
+    if (connectionlist) {return 0;}
+    return 1;
+}
 
