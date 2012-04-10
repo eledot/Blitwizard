@@ -48,7 +48,7 @@ static int connections_TryConnect(struct connection* c, const char* target) {
     //connect:
     int result;
 #ifdef CONNECTIONSDEBUG
-    printinfo("[connections] TryConnect: %s:%d (%d)",target,c->targetport,c->socket);
+    printinfo("[connections] TryConnect: %s:%d (%d)", target, c->targetport, c->socket);
 #endif
     if (0) { //ssl
         result = so_ConnectSSLSocketToIP(c->socket, target, c->targetport, &c->sslptr);

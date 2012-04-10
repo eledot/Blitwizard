@@ -555,17 +555,6 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
     int iptype = IPTYPE_IPV4;
     if (isipv6ip(ip)) {iptype = IPTYPE_IPV6;}
     
-    //clear struct
-    if (iptype == IPTYPE_IPV6) {
-#ifdef IPV6
-        memset(&addressstruct6, 0, sizeof(addressstruct6));
-#else
-        return 0;
-#endif
-    }else{
-        memset(&addressstruct4, 0, sizeof(addressstruct4));
-    }
-    
     // ( 2 ) --- fill in ip of struct
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
