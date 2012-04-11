@@ -221,22 +221,22 @@ int so_ReverseResolveBlocking(const char* ip, char* hostbuf, int hostbuflen) {
         r++;
     }
     if (iptype == IPTYPE_IPV6) {
-        #ifdef IPV6
-            memset(&addressstruct6,0,sizeof(addressstruct6));
-            addressstruct6.sin6_family = AF_INET6;
-            #ifdef WINDOWS
-            DWORD size = sizeof(addressstruct6.sin6_addr);
-            if (WSAStringToAddress(ip, AF_INET6, NULL, &(addressstruct6.sin6_addr), &size) != 0) {
-                return 0;
-            }
-            #else
-            inet_pton(AF_INET6, ip, &(addressstruct6.sin6_addr));
-            #endif
-            sa = (struct sockaddr*)&addressstruct6;
-            salen = sizeof(struct sockaddr_in6);
-        #else
+    #ifdef IPV6
+        memset(&addressstruct6,0,sizeof(addressstruct6));
+        addressstruct6.sin6_family = AF_INET6;
+        #ifdef WINDOWS
+        DWORD size = sizeof(addressstruct6.sin6_addr);
+        if (WSAStringToAddress(ip, AF_INET6, NULL, &(addressstruct6.sin6_addr), &size) != 0) {
             return 0;
+        }
+        #else
+        inet_pton(AF_INET6, ip, &(addressstruct6.sin6_addr));
         #endif
+        sa = (struct sockaddr*)&addressstruct6;
+        salen = sizeof(struct sockaddr_in6);
+    #else
+        return 0;
+    #endif
     }else{
         memset(&addressstruct4,0,sizeof(addressstruct4));
         addressstruct4.sin_family = AF_INET;
@@ -256,7 +256,10 @@ int so_ReverseResolveBlocking(const char* ip, char* hostbuf, int hostbuflen) {
     if (strlen(hostbuf) <= 0) {return 0;}
     return 1;
 }
+
+//Resolve a host to an ip (blocking but reentrant/thread-safe):
 int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) {
+    //prepare structs:
     struct addrinfo hints;
     memset(&hints,0,sizeof(hints));
     hints.ai_family = AF_INET;
@@ -264,7 +267,9 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
         hints.ai_family = AF_INET6;
     }
     struct addrinfo *result = NULL;
+    //attempt to resolve:
     if (getaddrinfo(host, NULL, &hints, &result) != 0) {return 0;}
+    //convert first result to an ipv4 address:
     if (result && iptype == IPTYPE_IPV4) {
         struct sockaddr_in  *sockaddr_ipv4;
         sockaddr_ipv4 = (struct sockaddr_in *)result->ai_addr;
@@ -274,6 +279,7 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
         if (strlen(ipbuf) <= 0) {return 0;}
         return 1;
     }
+    //convert first result to an ipv6 address:
     if (result && iptype == IPTYPE_IPV6) {
         #ifdef WINDOWS
         struct sockaddr* sockaddr;
@@ -302,6 +308,8 @@ void so_ManageSocketWithSelect(int socket) {
     if (fdnr <= socket) {fdnr = socket+1;}
     return;
 }
+
+//Mark a socket for writing so so_SelectWait will notify us when it's ready
 void so_SelectWantWrite(int socket, int enabled) {
     if (so_sysinited == 0) {return;}
     if (enabled == 1) {
@@ -310,27 +318,32 @@ void so_SelectWantWrite(int socket, int enabled) {
         FD_CLR(socket,&weircdselectset_writers);
     }
 }
-void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {
+
+void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {    
     if (so_sysinited == 0) {return;}
 #ifdef USESSL
-    if (sslptr == NULL || *sslptr == NULL) {so_SelectWantWrite(socket,enabled);return;}
+    if (sslptr == NULL || *sslptr == NULL) {
+        //Use the normal more simple variant for connections without SSL:
+        so_SelectWantWrite(socket,enabled);
+        return;
+    }
     struct sslinfo* i = *sslptr;
-    if (enabled == 1) {
+    if (enabled == 1) { //marking for writing is requested
         FD_SET(socket,&weircdselectset_writers);
         if (i->ssl_settosend == 1) { //mark SSL wants to keep this when we remove it
             i->ssl_settosend = 0;
-            i->ssl_requiresend = 1;
+            i->ssl_requiresend = 1; //ssl also requires this -> remember
         }
-    }else{
-        if (i->ssl_requiresend == 1) {
+    }else{ //unmarking from writing is requested
+        if (i->ssl_requiresend == 1) { //if SSL wanted it originally, remember it
             i->ssl_requiresend = 0;
-            i->ssl_settosend = 1;
+            i->ssl_settosend = 1; //it is only still set for ssl now -> remember
         }
-        if (i->ssl_settosend == 1) {return;} //we really do want to keep it
+        if (i->ssl_settosend == 1) {return;} //SSL still needs it -> keep
         FD_CLR(socket,&weircdselectset_writers);
     }
 #else
-    so_SelectWantWrite(socket,enabled);
+    so_SelectWantWrite(socket, enabled);
 #endif
 }
 int so_CreateSocket(int addToSelect, int iptype) {
@@ -485,9 +498,12 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
             return 0;
         #endif
         }else{
+            printf("Setting address with inet_pton\n");
             if (inet_pton(AF_INET, addr, &(addressstruct4->sin_addr.s_addr)) != 1) {
+                printf("Not Set\n");
                 return 0;
             }
+            printf("Set!\n");
         }
 #endif
         /* WINDOWS */
@@ -571,12 +587,13 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
 #endif
     }else{
         addressstruct4.sin_port = htons(port);
+        printf("Setting port\n");
     }
 
     // ( 3b ) -- initialize SSL
 #ifdef USESSL
     if (sslptr != NULL && !sslerror && !*sslptr) {
-        //initialize ssl thing
+        //initialize SSL thing
         *sslptr = malloc(sizeof(struct sslinfo));
         if (!(*sslptr)) {return 0;}
         memset(*sslptr,0,sizeof(struct sslinfo));
