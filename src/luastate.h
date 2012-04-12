@@ -32,6 +32,8 @@ int luastate_GetWantFFmpeg();
 void luastate_PrintStackDebug();
 void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)(void*));
 void luastate_GCCollect();
+void* luastate_GetStatePtr(); //pointer of the lua state
+void* internaltracebackfunc(); //function pointer of traceback function
 
 //Call functions:
 

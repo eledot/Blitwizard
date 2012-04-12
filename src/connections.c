@@ -70,20 +70,23 @@ static int connections_TryConnect(struct connection* c, const char* target) {
 }
 
 //Set error and report it back immediately:
-static void connections_E(struct connection* c, void (*errorcallback)(struct connection* c, int error), int error) {
+static int connections_E(struct connection* c, int (*errorcallback)(struct connection* c, int error), int error) {
     if (!c->errorreported) {
         c->error = error;
-        errorcallback(c, error);
+        if (errorcallback) {
+            if (!errorcallback(c, error)) {return 0;}
+        }
     }
+    return 1;
 }
 
 //Check all connections for events, updates etc
 struct connection* justreadingfromconnection = NULL;
 int readconnectionclosed = 0;
-void connections_CheckAll(void (*readcallback)(struct connection* c, char* data, unsigned int datalength), void (*connectedcallback)(struct connection* c), void (*errorcallback)(struct connection* c, int error)) {
+int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, unsigned int datalength), int (*connectedcallback)(struct connection* c), int (*errorcallback)(struct connection* c, int error)) {
     //initialise socket system (just in case it's not done yet):
     if (!so_Startup()) {
-        return;
+        return 1;
     }
 
     struct connection* c = connectionlist;
@@ -93,7 +96,9 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
         if (c->error >= 0) {
             if (!c->errorreported) {
                 c->errorreported = 1;
-                errorcallback(c, c->error);
+                if (errorcallback) {
+                    if (!errorcallback(c, c->error)) {return 0;}
+                }
             }
             c = cnext;
             continue;
@@ -153,7 +158,9 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
                             result = connections_TryConnect(c, ipv4);
                             free(ipv4);
                             if (!result) {
-                                connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED);
+                                if (!connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED)) {
+                                    return 0;
+                                }
                             }
                         }
                         c = cnext;
@@ -176,10 +183,14 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
                         }
 
                         //Didn't work, so nothing we can do:
-                        connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED);
                         free(ipv4);
+                        if (!connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED)) {
+                            return 0;
+                        }
                     }else{
-                        connections_E(c, errorcallback, CONNECTIONERROR_NOSUCHHOST);
+                        if (!connections_E(c, errorcallback, CONNECTIONERROR_NOSUCHHOST)) {
+                            return 0;
+                        }
                     }
                     c = cnext;
                     continue;
@@ -198,7 +209,7 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
                     printinfo("[connections] now connected");
 #endif
                     if (connectedcallback) {
-                        connectedcallback(c);
+                        if (!connectedcallback(c)) {return 0;}
                     }
                 }else{
                     //we aren't connected!
@@ -210,7 +221,9 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
                         free(c->retryv4ip);
                         c->retryv4ip = NULL;
                         if (!result) {
-                            connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED);
+                            if (!connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED)) {
+                                return 0;
+                            }
                         }
                         c = cnext;
                         continue;
@@ -218,7 +231,9 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
 #ifdef CONNECTIONSDEBUG
                     printinfo("[connections] connection couldn't be established");
 #endif
-                    connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED);
+                    if (!connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONFAILED)) {
+                        return 0;
+                    }
                     c = cnext;
                     continue;
                 }
@@ -231,7 +246,9 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
                 //we will break this mega line into two:
                 justreadingfromconnection = c;
                 readconnectionclosed = 0;
-                readcallback(c, c->inbuf, c->inbufbytes);
+                if (readcallback) {
+                    if (!readcallback(c, c->inbuf, c->inbufbytes)) {return 0;}
+                }
                 if (readconnectionclosed) {
                     c = cnext;
                     continue;
@@ -245,14 +262,18 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
                 if (c->inbufbytes > 0) {
                     justreadingfromconnection = c;
                     readconnectionclosed = 0;
-                    readcallback(c, c->inbuf, c->inbufbytes);
+                    if (readcallback) {
+                        if (!readcallback(c, c->inbuf, c->inbufbytes)) {return 0;}
+                    }
                     if (readconnectionclosed) {
                         c = cnext;
                         continue;
                     }
                 }
                 //then error:
-                connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONCLOSED);
+                if (!connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONCLOSED)) {
+                    return 0;
+                }
 #ifdef CONNECTIONSDEBUG
                 printinfo("[connections] receive returned end of stream");
 #endif
@@ -269,7 +290,9 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
             int r = so_SendSSLData(c->socket, c->outbuf + c->outbufoffset, c->outbufbytes, &c->sslptr);
             if (r == 0) {
                 //connection closed:
-                connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONCLOSED);
+                if (!connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONCLOSED)) {
+                    return 0;
+                }
 #ifdef CONNECTIONSDEBUG
                 printinfo("[connections] send returned end of stream");
 #endif
@@ -295,6 +318,7 @@ void connections_CheckAll(void (*readcallback)(struct connection* c, char* data,
 
         c = cnext;
     }
+    return 1;
 }
 
 //Sleep until an event happens (process it with CheckAll) or the timeout expires
@@ -314,7 +338,9 @@ void connections_SetLineBuffered(struct connection* c, int linebuffered) {
 
 //Initialise the given connection struct and open the connection
 void connections_Init(struct connection* c, const char* target, int port, int linebuffered, int lowdelay) {
+    int oldluaref = c->luarefcount;
     memset(c, 0, sizeof(*c));
+    c->luarefcount = oldluaref;
     c->socket = -1;
     c->error = -1;
     c->targetport = port;

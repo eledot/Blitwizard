@@ -37,6 +37,10 @@
 
 static lua_State* scriptstate = NULL;
 
+void* luastate_GetStatePtr() {
+    return scriptstate;
+}
+
 void luastate_PrintStackDebug() {
     //print the contents of the Lua stack
     printf("Debug stack:\n");
@@ -323,6 +327,10 @@ static int gettraceback(lua_State* l) {
 
     lua_pushstring(l, errormsg);
     return 1;
+}
+
+void* internaltracebackfunc() {
+    return &gettraceback;
 }
 
 //The next two functions are stolen (slightly modified) from Lua 5 :)

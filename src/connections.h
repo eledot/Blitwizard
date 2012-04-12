@@ -53,6 +53,7 @@ struct connection {
     int throwawaynextline;
     int error;
     int errorreported;
+    int luarefcount; //reference counter used by the Lua net stream wrapper
 
     struct connection* next;
 };
@@ -65,7 +66,7 @@ extern struct connection* connectionlist;
 #define CONNECTIONERROR_CONNECTIONCLOSED 3
 
 //Check all connections for events, updates etc
-void connections_CheckAll(void (*readcallback)(struct connection* c, char* data, unsigned int datalength), void (*connectedcallback)(struct connection* c), void (*errorcallback)(struct connection* c, int error));
+int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, unsigned int datalength), int (*connectedcallback)(struct connection* c), int (*errorcallback)(struct connection* c, int error));
 
 //Sleep until an event happens (process it with CheckAll) or the timeout expires
 void connections_SleepWait(int timeoutms);

@@ -22,5 +22,5 @@
 */
 
 int luafuncs_netopen(lua_State* l);
-void luafuncs_ProcessNetEvents();
+int luafuncs_ProcessNetEvents();
 

@@ -445,7 +445,7 @@ int main_ProcessNoThreadedReading() {
 //with a maximum of 50 iterations, we render at least every 50 * TIMESTEP = 50 * 16 = 800 milliseconds
 #define MAXLOGICITERATIONS 40
 
-void luafuncs_ProcessNetEvents();
+int luafuncs_ProcessNetEvents();
 
 #if (defined(__ANDROID__) || defined(ANDROID))
 int SDL_main(int argc, char** argv) {
@@ -673,7 +673,10 @@ int main(int argc, char** argv) {
                     connections_SleepWait(16-delta);
                 }
             }
-            luafuncs_ProcessNetEvents();
+            if (!luafuncs_ProcessNetEvents()) {
+                //there was an error processing the events
+                exit(1);
+            }
 
             //check and trigger all sort of input events
             graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
