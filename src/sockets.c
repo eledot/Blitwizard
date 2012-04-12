@@ -346,9 +346,12 @@ void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {
     so_SelectWantWrite(socket, enabled);
 #endif
 }
+
+//Create a new socket with the given iptype (IPTYPE_IPV4, IPTYPE_IPV6)
 int so_CreateSocket(int addToSelect, int iptype) {
-    if (so_sysinited == 0) {return -1;}
+    if (so_sysinited == 0) {return -1;} //socket system needs to work!
     int newsock = -1;
+    //Get the socket:
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
         newsock = socket(AF_INET6, SOCK_STREAM, 0);
@@ -357,8 +360,11 @@ int so_CreateSocket(int addToSelect, int iptype) {
     if (iptype == IPTYPE_IPV4) {
         newsock = socket(AF_INET, SOCK_STREAM, 0);
     }
+    //Return failure if we didn't obtain a socket:
     if (newsock < 0) {return -1;}
+    //Set socket nonblocking (we use nonblocking sockets purely!)
     so_SetSocketNonblocking(newsock);
+    //Manage socket with our select facility if the user wants it:
     if (addToSelect == 1) {so_ManageSocketWithSelect(newsock);}
     return newsock;
 }
@@ -382,7 +388,7 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
     }
     // ( 2 ) --- get the ip specified in "bindip" into the address struct
     if (strcasecmp(bindip,"any") != 0) {
-        //1- now bind depending on operating system and ip family (ipv4 or ipv6)
+        //2.1- now bind depending on operating system and ip family (ipv4 or ipv6)
         /* LINUX/UNIX */
 #ifndef WINDOWS
         if (iptype == IPTYPE_IPV6) {
@@ -411,7 +417,7 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
         }
 #endif
 
-        //2- check if binding worked
+        //2.2- check if binding worked
         
         if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
@@ -470,10 +476,12 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
     return 1;
 }
 int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
+    //Get pointers for later use:
 #ifdef IPV6
     struct sockaddr_in6* addressstruct6 = structptr;
 #endif
     struct sockaddr_in* addressstruct4 = structptr;
+    //Prepare struct by zero'ing and setting the right address family:
     if (iptype == IPTYPE_IPV6) {
         #ifdef IPV6
         memset(addressstruct6, 0, sizeof(*addressstruct6));
@@ -485,6 +493,7 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
         memset(addressstruct4, 0, sizeof(*addressstruct4));
         addressstruct4->sin_family = AF_INET;
     }
+    //Now set the ip to the struct:
     if (strcasecmp(addr,"any") != 0) {
         // 1 - extract ip to struct depending on OS and ipv4/ipv6
         /* LINUX/UNIX */
@@ -538,6 +547,7 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
             }
         }
     }else{
+        //address is "any", so bind to any:
         if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
             addressstruct6->sin6_addr = in6addr_any;
@@ -550,16 +560,19 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
     }
     return 1;
 }
+
 int so_ConnectSocketToIP(int socket, const char* ip, unsigned int port) {
     return so_ConnectSSLSocketToIP(socket, ip, port, NULL);
 }
+
 int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void** sslptr) {
-    if (so_sysinited == 0) {return 0;}
+    //Connect a socket to a given IP:
+    if (so_sysinited == 0) {return 0;} //we need the socket system, obviously
 
 #ifndef USESSL
-    if (sslptr) {return 0;}
+    if (sslptr) {return 0;} //user wants SSL, but we don't support it!
 #else
-    if (sslptr && sslerror) {return 0;}
+    if (sslptr && sslerror) {return 0;} //user wants SSL, but there was an error with it!
 #endif
 
     // ( 1 ) --- prepare address struct
@@ -568,6 +581,7 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
 #endif
     struct sockaddr_in addressstruct4;
     
+    // Detect ip type:
     int iptype = IPTYPE_IPV4;
     if (isipv6ip(ip)) {iptype = IPTYPE_IPV6;}
     
@@ -575,6 +589,8 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
         if (!so_AddressToStruct(ip, iptype, &addressstruct6)) {return 0;}
+#else
+        return 0; //ipv6 is not supported.
 #endif
     }else{
         if (!so_AddressToStruct(ip, iptype, &addressstruct4)) {return 0;}
