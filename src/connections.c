@@ -72,6 +72,7 @@ static int connections_TryConnect(struct connection* c, const char* target) {
 //Set error and report it back immediately:
 static int connections_E(struct connection* c, int (*errorcallback)(struct connection* c, int error), int error) {
     if (!c->errorreported) {
+        c->errorreported = 1;
         c->error = error;
         if (errorcallback) {
             if (!errorcallback(c, error)) {return 0;}
