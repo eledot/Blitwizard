@@ -190,7 +190,7 @@ int luafuncs_netopen(lua_State* l) {
 
     //check for server name:
     lua_pushstring(l, "server");
-    lua_gettable(l, -2);
+    lua_gettable(l, 1);
     const char* p = lua_tostring(l, -1);
     if (!p) {
         lua_pushstring(l, "The settings table doesn't contain a valid target server name ('server' setting)");
@@ -201,7 +201,7 @@ int luafuncs_netopen(lua_State* l) {
 
     //check for server port:
     lua_pushstring(l, "port");
-    lua_gettable(l, -2);
+    lua_gettable(l, 1);
     if (lua_type(l, -1) != LUA_TNUMBER) {
         free(server);
         lua_pushstring(l, "The settings table doesn't contain a valid target port number ('port'setting)");
@@ -218,7 +218,7 @@ int luafuncs_netopen(lua_State* l) {
     //check if it should be line buffered:
     int linebuffered = 0;
     lua_pushstring(l, "linebuffered");
-    lua_gettable(l, -2);
+    lua_gettable(l, 1);
     if (lua_type(l, -1) == LUA_TBOOLEAN) {
         if (lua_toboolean(l, -1)) {linebuffered = 1;}
     }else{
@@ -233,7 +233,7 @@ int luafuncs_netopen(lua_State* l) {
     //check if we want a low delay connection:
     int lowdelay = 0;
     lua_pushstring(l, "lowdelay");
-    lua_gettable(l, -2);
+    lua_gettable(l, 1);
     if (lua_type(l, -1) == LUA_TBOOLEAN) {
         if (lua_toboolean(l, -1)) {linebuffered = 1;}
     }else{
@@ -254,11 +254,12 @@ int luafuncs_netopen(lua_State* l) {
     }
 
     //set the callbacks onto the metatable of our connection object:
+    void* cptr = ((struct luanetstream*)idref->ref.ptr)->c;
     char regname[500];
 #ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "connectcallback%I64u", (uint64_t)idref->ref.ptr);
+    snprintf(regname, sizeof(regname), "connectcallback%I64u", (uint64_t)cptr);
 #else
-    snprintf(regname, sizeof(regname), "connectcallback%llu", (uint64_t)idref->ref.ptr);
+    snprintf(regname, sizeof(regname), "connectcallback%llu", (uint64_t)cptr);
 #endif
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
@@ -266,9 +267,9 @@ int luafuncs_netopen(lua_State* l) {
     lua_settable(l, LUA_REGISTRYINDEX);
     if (haveread) {
 #ifdef WINDOWS
-        snprintf(regname, sizeof(regname), "readcallback%I64u", (uint64_t)idref->ref.ptr);
+        snprintf(regname, sizeof(regname), "readcallback%I64u", (uint64_t)cptr);
 #else
-        snprintf(regname, sizeof(regname), "readcallback%llu", (uint64_t)idref->ref.ptr);
+        snprintf(regname, sizeof(regname), "readcallback%llu", (uint64_t)cptr);
 #endif
         regname[sizeof(regname)-1] = 0;
         lua_pushstring(l, regname);
@@ -277,9 +278,9 @@ int luafuncs_netopen(lua_State* l) {
     }
     if (haveerror) {
 #ifdef WINDOWS
-        snprintf(regname, sizeof(regname), "errorcallback%I64u", (uint64_t)idref->ref.ptr);
+        snprintf(regname, sizeof(regname), "errorcallback%I64u", (uint64_t)cptr);
 #else
-        snprintf(regname, sizeof(regname), "errorcallback%llu", (uint64_t)idref->ref.ptr);
+        snprintf(regname, sizeof(regname), "errorcallback%llu", (uint64_t)cptr);
 #endif
         regname[sizeof(regname)-1] = 0;
         lua_pushstring(l, regname);
