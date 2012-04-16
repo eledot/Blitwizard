@@ -208,10 +208,7 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
   liblua: shared"
     ],[
         #nothing there
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  liblua: no"
-        AUDIO_FEATURE_ENABLED="no, need liblua"
-        NULL_AUDIO_FEATURE_ENABLED="no, need liblua"
+        AC_MSG_ERROR([Lua is required for blitwizard.])
     ])
 ],[
     AC_MSG_RESULT([yes])

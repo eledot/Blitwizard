@@ -48,7 +48,13 @@ using those instead:
 
 Alternatively, get them yourself in hand-picked, current versions:
 
-REQUIRED:
+Required (always):
+ - drop the contents of a source tarball of a recent Lua 5.2 release into
+    src/lua
+   see http://www.lua.org/download.html
+   (IMPORTANT: You should apply the patches aswell if you need a secure Lua!)
+
+Required for null device audio, audio:
  - drop the contents of a source tarball of a recent libogg release into
     src/ogg
    see http://xiph.org/downloads/
@@ -57,24 +63,22 @@ REQUIRED:
     src/vorbis
    http://xiph.org/downloads/
 
- - drop the contents of a source tarball of a recent Lua 5.2 release into
-    src/lua
-   see http://www.lua.org/download.html
-   (IMPORTANT: You should apply the patches aswell if you need a secure Lua!)
-
+Required for null device graphics, graphics:
  - drop the contents of a source tarball of a recent libpng release into
     src/imgloader/png
    see http://libpng.org/pub/png/libpng.html
 
+Required for null device graphics, graphics:
  - drop the contents of a source tarball of a recent zlib release into
     src/imgloader/zlib
    see http://zlib.net/
 
+Required for physics simulation:
  - drop the contents of a source tarball of a recent Box2D release into
     src/box2d
    see http://box2d.org/
 
-OPTIONAL BUT IMPORTANT (required for graphics and audio devices):
+Required for graphics, audio:
  - drop the contents of a source tarball of a recent SDL 2 into
     src/sdl/
    see http://www.libsdl.org/hg.php
@@ -83,12 +87,12 @@ OPTIONAL BUT IMPORTANT (required for graphics and audio devices):
      you will have to patch this in manually.
      Check out the .patch inside src/sdl/ in deps.zip
 
-OPTIONAL (for FLAC audio format support):
+Required for additional FLAC audio format support (if not using FFmpeg):
  - drop the contents of a source tarball of a recent libFLAC release into
     src/flac/
    see http://sourceforge.net/projects/flac/
 
-OPTIONAL (for high quality audio resampling support):
+Required for additional high quality audio resampling support:
  - drop the contents of a source tarball of a recent Speex release into
     src/speex/
    see http://speex.org/
