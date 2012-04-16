@@ -8,6 +8,9 @@ autom4te.cache
 *.o
 *.exe
 *.dll
+scripts/.includeflags
+scripts/.ldflags
+scripts/.uselibflags
 scripts/blitwizard*
 scripts/tarball/
 scripts/ssetest
