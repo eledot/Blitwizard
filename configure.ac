@@ -24,7 +24,6 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Enable/disable features:
 
-enable_sdlgraphics=no
 AC_ARG_ENABLE([sdl-graphics],
     [AS_HELP_STRING([--disable-sdl-graphics],[disable graphics support through SDL (default is enabled)])],
 [case "${enableval}" in
@@ -33,7 +32,6 @@ AC_ARG_ENABLE([sdl-graphics],
 esac],
 [enable_sdlgraphics=yes])
 
-enable_sdlaudio=no
 AC_ARG_ENABLE([sdl-audio],
     [AS_HELP_STRING([--disable-sdl-audio],[disable audio support through SDL (default is enabled)])],
 [case "${enableval}" in
@@ -42,7 +40,6 @@ AC_ARG_ENABLE([sdl-audio],
  esac],
 [enable_sdlaudio=yes])
 
-enable_graphics=no
 AC_ARG_ENABLE([graphics],
     [AS_HELP_STRING([--disable-graphics],[disable graphics support completely, including the null graphics device (default is enabled)])],
 [case "${enableval}" in
@@ -51,16 +48,14 @@ AC_ARG_ENABLE([graphics],
  esac],
 [enable_graphics=yes])
 
-enable_audio=no
 AC_ARG_ENABLE([audio],
     [AS_HELP_STRING([--disable-audio],[disable audio support completely, including the null audio device (default is enabled)])],
 [case "${enableval}" in
      yes | no ) enable_audio="${enableval}" ;;
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-audio) ;;
  esac],
-[enable_audio=yes])
+[enable_audio="yes"])
 
-enable_physics=no
 AC_ARG_ENABLE([physics],
     [AS_HELP_STRING([--disable-physics],[disable physics simulation support (default is enabled)])],
 [case "${enableval}" in
