@@ -17,12 +17,13 @@ endif
 comp: clean-objs $(FILES)
 	rm -f ./libimglib.a
 	$(AR) rcs ./libimglib.a $(FILES)
-deps:
+deps-png:
 	yes n | cp -i png/scripts/pnglibconf.h.prebuilt png/pnglibconf.h
 	-mv png/pngvalid.c png/pngvalid.c.skip
 	cd png && rm -rf ./*.o && $(CC) -I./ -I../zlib/ -c $(CFLAGS) -DPNG_STATIC *.c && rm -rf ./*test*.o
 	rm -f ./libcustompng.a
 	$(AR) rcs libcustompng.a png/*.o
+deps-zlib:
 	cd zlib && rm -rf ./*.o && rm -f ./example.c && rm -rf ./minigzip.c && $(CC) -I./ -I../png/ -c $(CFLAGS) *.c
 	rm -f ./libcustomzlib.a
 	$(AR) rcs libcustomzlib.a zlib/*.o

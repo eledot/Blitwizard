@@ -34,65 +34,94 @@ export AR="$AR"
 
 dir=`pwd`
 
-# This will build libpng/zlib and our custom threaded image loader wrapper
-cd src/imgloader && make deps && make || { echo "Failed to compile libpng/zlib/imgloader"; exit 1; }
-cd $dir
-
-# Build ogg
-cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
-cd $dir
-
-# Build vorbis and remember to tell it where ogg is
-oggincludedir="`pwd`/src/ogg/include/"
-ogglibrarydir="`pwd`/src/ogg/src/.libs/"
-if [ "$MACBUILD" != "yes" ]; then
-    cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
-else
-    cd src/vorbis && ./configure --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+if [ -n "`cat $static_libs_use | grep imgloader`" ]; then
+    # static png:
+    if [ -n "`cat $static_libs_use | grep png`" ]; then
+        cd src/imgloader && make deps-png || { echo "Failed to compile libpng"; exit 1; }
+        cd $dir
+    fi
+    #static zlib
+    if [ -n "`cat $static_libs_use | grep zlib`" ]; tthen
+        cd src/imgloader && make deps-zlib || { echo "Failed to compile zlib"; exit 1; }
+        cd $dir
+    fi
+    # Our custom threaded image loader wrapper
+    cd src/imgloader && make || { echo "Failed to compile imgloader"; exit 1; }
 fi
 cd $dir
 
-# Build box2d
-box2dpremake="no"
+if [ -n "`cat $static_libs_use | grep ogg`" ]; then
+    # Build ogg
+    cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
 cd $dir
-export CMAKE_SYSTEM_NAME=""
-CROSSCMAKEFLAG=""
-if [ "$luatarget" = "mingw" ]; then
-    sed "s/AUTOTOOLS_HOST/${HOST}/g" scripts/box2dforwindows.cmake.template > scripts/box2dforwindows.cmake
-    CROSSCMAKEFLAG="-DCMAKE_TOOLCHAIN_FILE=../../scripts/box2dforwindows.cmake -Dhost_platform=${HOST} "
 fi
-cd src/box2d/
-echo "Appended option: (${CROSSCMAKEFLAG})"
-cmake ${CROSSCMAKEFLAG} -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
-    cd $dir
-    cd src/box2d && premake4 gmake || { echo "Failed to configure box2d"; exit 1; }
-    box2dpremake="yes"
-}
-cd $dir
-if [ "$box2dpremake" = "yes" ]; then
-    echo "Doing Box2D build (premake configured)"
-    cd src/box2d && make config="release" || { echo "Failed to build box2d"; exit 1; }
-else
-    echo "Doing Box2D build (cmake configured)"
-    cd src/box2d && make || { echo "Failed to build box2d"; exit 1; }
-fi
-cd $dir
 
-# Build SDL 1.3
-if [ "$MACBUILD" != "yes" ]; then
-    rm -r src/sdl/.hg/
-    cd src/sdl && ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL 1.3"; exit 1; }
-else
-    rm -r src/sdl/.hg/
-    cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL 1.3"; exit 1; }
-fi
-cd $dir
-if [ "$changeddeps" = "yes" ]; then
-    cd src/sdl && make clean || { echo "Failed to compile SDL 1.3"; exit 1; }
+if [ -n "`cat $static_libs_use | grep vorbis`" ]; then
+    if [ -n "`cat $static_libs_use | grep ogg`" ]; then
+        # Build vorbis and remember to tell it where ogg is
+        oggincludedir="`pwd`/src/ogg/include/"
+        ogglibrarydir="`pwd`/src/ogg/src/.libs/"
+        if [ "$MACBUILD" != "yes" ]; then
+            cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+        else
+            cd src/vorbis && ./configure --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+        fi
+    else
+        # Build vorbis and let's hope it finds the system ogg
+        if [ "$MACBUILD" != "yes" ]; then
+            cd src/vorbis && ./configure --host="$HOST" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+        else
+            cd src/vorbis && ./configure --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+        fi
+    fi
     cd $dir
 fi
-cd src/sdl && make || { echo "Failed to compile SDL 1.3"; exit 1; }
-cd $dir
+
+if [ -n "`cat $static_libs_use | grep box2d`" ]; then
+    # Build box2d
+    box2dpremake="no"
+    cd $dir
+    export CMAKE_SYSTEM_NAME=""
+    CROSSCMAKEFLAG=""
+    if [ "$luatarget" = "mingw" ]; then
+        sed "s/AUTOTOOLS_HOST/${HOST}/g" scripts/box2dforwindows.cmake.template > scripts/box2dforwindows.cmake
+        CROSSCMAKEFLAG="-DCMAKE_TOOLCHAIN_FILE=../../scripts/box2dforwindows.cmake -Dhost_platform=${HOST} "
+    fi
+    cd src/box2d/
+    echo "Appended option: (${CROSSCMAKEFLAG})"
+    cmake ${CROSSCMAKEFLAG} -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
+        cd $dir
+        cd src/box2d && premake4 gmake || { echo "Failed to configure box2d"; exit 1; }
+        box2dpremake="yes"
+    }
+    cd $dir
+    if [ "$box2dpremake" = "yes" ]; then
+        echo "Doing Box2D build (premake configured)"
+        cd src/box2d && make config="release" || { echo "Failed to build box2d"; exit 1; }
+    else
+        echo "Doing Box2D build (cmake configured)"
+        cd src/box2d && make || { echo "Failed to build box2d"; exit 1; }
+    fi
+    cd $dir
+fi
+
+if [ -n "`cat $static_libs_use | grep SDL2`" ]; then
+    # Build SDL 2
+    if [ "$MACBUILD" != "yes" ]; then
+        rm -r src/sdl/.hg/
+        cd src/sdl && ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
+    else
+        rm -r src/sdl/.hg/
+        cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
+    fi
+    cd $dir
+    if [ "$changeddeps" = "yes" ]; then
+        cd src/sdl && make clean || { echo "Failed to compile SDL2"; exit 1; }
+        cd $dir
+    fi
+    cd src/sdl && make || { echo "Failed to compile SDL2"; exit 1; }
+    cd $dir
+fi
 
 # Avoid the overly stupid Lua build script which doesn't even adhere to $CC
 cd src/lua/ && rm -f src/liblua.a && rm -rf build/ || { echo "Failed to compile Lua 5"; exit 1; }
@@ -111,22 +140,36 @@ if [ "$changedhost" = "yes" ]; then
 fi
 
 # Copy libraries
-cp src/sdl/build/.libs/libSDL2.a libs/libblitwizardSDL.a || { echo "Failed to copy SDL2 library"; exit 1; }
-cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a || { echo "Failed to copy libvorbis"; exit 1; }
-cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a || { echo "Failed to copy libvorbisfile"; exit 1; }
-cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a || { echo "Failed to copy libogg"; exit 1; }
-cp src/imgloader/libimglib.a libs/ || { echo "Failed to copy imglib"; exit 1; }
-cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
-cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
+if [ -n "`cat $static_libs_use | grep SDL2`" ]; then
+    cp src/sdl/build/.libs/libSDL2.a libs/libblitwizardSDL.a || { echo "Failed to copy SDL2 library"; exit 1; }
+fi
+if [ -n "`cat $static_libs_use | grep vorbis`" ]; then
+    cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a || { echo "Failed to copy libvorbis"; exit 1; }
+    cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a || { echo "Failed to copy libvorbisfile"; exit 1; }
+fi
+if [ -n "`cat $static_libs_use | grep ogg`" ]; then
+    cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a || { echo "Failed to copy libogg"; exit 1; }
+fi
+if [ -n "`cat $static_libs_use | grep imglib`" ]; then
+    cp src/imgloader/libimglib.a libs/ || { echo "Failed to copy imglib"; exit 1; }
+fi
+if [ -n "`cat $static_libs_use | grep png`" ]; then
+    cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
+fi
+if [ -n "`cat $static_libs_use | grep zlib`" ]; then
+    cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
+fi
 cp src/lua/src/liblua.a libs/libblitwizardlua.a
-BOX2DCOPIED1="true"
-BOX2DCOPIED2="true"
-cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a || { BOX2DCOPIED1="false"; }
-cp src/box2d/Box2D/Box2D.lib libs/libblitwizardbox2d.a || { BOX2DCOPIED2="false"; }
-if [ "$BOX2DCOPIED1" = "false" ]; then
-    if [ "$BOX2DCOPIED2" = "false" ]; then
-        echo "Failed to copy Box2D library"
-        exit 1
+if [ -n "`cat $static_libs_use | grep box2d`" ]; then
+    BOX2DCOPIED1="true"
+    BOX2DCOPIED2="true"
+    cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a || { BOX2DCOPIED1="false"; }
+    cp src/box2d/Box2D/Box2D.lib libs/libblitwizardbox2d.a || { BOX2DCOPIED2="false"; }
+    if [ "$BOX2DCOPIED1" = "false" ]; then
+        if [ "$BOX2DCOPIED2" = "false" ]; then
+            echo "Failed to copy Box2D library"
+            exit 1
+        fi
     fi
 fi
 
