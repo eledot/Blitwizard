@@ -13,7 +13,9 @@ AC_PROG_CXX
 AC_PROG_MAKE_SET
 AC_CANONICAL_HOST
 
-rm scripts/.depsarebuilt
+AS_IF([test -e "scripts/.depsarebuilt"], [
+    rm scripts/.depsarebuilt
+])
 
 #AC_DISABLE_SHARED
 #AC_PROG_LIBTOOL
@@ -111,7 +113,7 @@ AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
     AC_WARN([FFmpeg source code is not present or not properly placed. Blitwizard will NOT have any FFmpeg support.])
     LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   FFmpeg headers from tarball: no"
-    FFMPEG_FEATURE_ENABLED="no"
+    FFMPEG_FEATURE_ENABLED="no, tarball not found"
 ])
 
 
@@ -234,6 +236,9 @@ AS_IF([test ! -f "src/vorbis/lib/vorbisenc.c"],[
   libvorbis/vorbisfile: no"
             AUDIO_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
             NULL_AUDIO_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+            FFMPEG_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+            SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+            FLAC_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
         ])
     ],[
         #nothing there
@@ -241,6 +246,9 @@ AS_IF([test ! -f "src/vorbis/lib/vorbisenc.c"],[
   libvorbis/vorbisfile: no"
         AUDIO_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
         NULL_AUDIO_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+        FFMPEG_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+        SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+        FLAC_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
     ])
 ],[
     AC_MSG_RESULT([yes])
@@ -265,6 +273,9 @@ AS_IF([test ! -f "src/ogg/src/framing.c"],[
   libogg: no"
         AUDIO_FEATURE_ENABLED="no, need libogg"
         NULL_AUDIO_FEATURE_ENABLED="no, need libogg"
+        FFMPEG_FEATURE_ENABLED="no, need libogg"
+        SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libogg"
+        FLAC_FEATURE_ENABLED="no, need libogg"
     ])
 ],[
     AC_MSG_RESULT([yes])
@@ -331,6 +342,7 @@ AS_IF([test ! -f "src/speex/src/speexdec.c"],[
     NULL_AUDIO_FEATURE_ENABLED="no, disabled"
     FLAC_FEATURE_ENABLED="no, disabled"
     SPEEX_RESAMPLING_FEATURE_ENABLED="no, disabled"
+    FFMPEG_FEATURE_ENABLED="no, disabled"
 ])
 
 
@@ -477,7 +489,7 @@ This results in the following feature set:
 # Compose ld/include/define flags:
 
 FINAL_LD_FLAGS=""
-FINAL_INCLUDE_FLAGS="-Iimgloader/"
+FINAL_INCLUDE_FLAGS=""
 FINAL_USE_LIB_FLAGS=""
 
 SDLADDED=no
@@ -507,6 +519,7 @@ AS_IF([test "x$AUDIO_FEATURE_ENABLED" = xyes],[
 
 AS_IF([test "x$NULL_GRAPHICS_FEATURE_ENABLED" = xyes],[
     FINAL_LD_FLAGS="$FINAL_LD_FLAGS -limglib"
+    FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iimgloader/"
     statictest=`echo $STATIC_LIBS_USE | grep png`
     AS_IF([test -z "$statictest"],[
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lpng"
