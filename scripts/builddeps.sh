@@ -55,24 +55,24 @@ if [ -n "`echo $static_libs_use | grep imgloader`" ]; then
 fi
 cd $dir
 
-if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
-    echo "Compiling libFLAC..."
-    # Build ogg
-    cd src/flac && ./configure --host="$HOST" --enable-static --disable-shared --disable-ogg --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
-    cd $dir
-fi
-
-if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
-    echo "Compiling libFLAC..."
-    # Build ogg
-    cd src/flac && ./configure --host="$HOST" --enable-static --disable-shared --disable-ogg --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
-    cd $dir
-fi
-
 if [ -n "`echo $static_libs_use | grep ogg`" ]; then
     echo "Compiling libogg..."
     # Build ogg
     cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
+    cd $dir
+fi
+
+if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
+    echo "Compiling libFLAC..."
+    if [ -n "`echo $static_libs_use | grep ogg`" ]; then
+        # Build flac and tell it where ogg is
+        oggincludedir="`pwd`/src/ogg/include/"
+        ogglibrarydir="`pwd`/src/ogg/src/.libs/"
+        cd src/flac && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
+    else
+        # Build flac and make it guess where ogg is
+        cd src/flac && ./configure --host="$HOST" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
+    fi
     cd $dir
 fi
 
