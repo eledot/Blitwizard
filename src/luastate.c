@@ -250,26 +250,7 @@ static int openlib_blitwiz(lua_State* l) {
     return 1;
 }
 
-static const luaL_Reg libswithoutdebug[] = {
-    {"_G", luaopen_base},
-    {LUA_LOADLIBNAME, luaopen_package},
-    {LUA_COLIBNAME, luaopen_coroutine},
-    {LUA_TABLIBNAME, luaopen_table},
-    {LUA_IOLIBNAME, luaopen_io},
-    {LUA_OSLIBNAME, luaopen_os},
-    {LUA_STRLIBNAME, luaopen_string},
-    {LUA_BITLIBNAME, luaopen_bit32},
-    {LUA_MATHLIBNAME, luaopen_math},
-    {NULL, NULL}
-};
-
-static int luastate_AddStdFuncs(lua_State* l) {
-    const luaL_Reg* lib = libswithoutdebug;
-    while (lib->func) {
-        luaL_requiref(l, lib->name, lib->func, 1);
-        lua_pop(l, 1);  
-        lib++;
-    }
+static int luastate_AddBlitwizFuncs(lua_State* l) {
     luaL_requiref(l, "blitwiz", openlib_blitwiz, 1);
     lua_pop(l, 1);
     return 0;
@@ -333,58 +314,39 @@ void* internaltracebackfunc() {
     return &gettraceback;
 }
 
-//The next two functions are stolen (slightly modified) from Lua 5 :)
-/*
- 
- Lua licensing:
-
-Lua Copyright (c) 1994-2011 Lua.org, PUC-Rio
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be included
-in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-DEALINGS IN THE SOFTWARE.
-*/
-//Lua does not export those symbols, which is why I copied them here
-
-static lua_State *getthread(lua_State *L, int *arg) { //FROM LUA 5
-    if (lua_isthread(L, 1)) {
-        *arg = 1;
-        return lua_tothread(L, 1);
-    }else{
-        *arg = 0;
-        return L;
-    }
+static int debug_traceback(lua_State* l) {
+    lua_pushstring(l, "rememberedtraceback");
+    lua_gettable(l, LUA_REGISTRYINDEX);
+    lua_call(l, 0, 0);
 }
 
-static int debug_traceback(lua_State *L) { //FROM LUA 5
-    int arg;
-    lua_State *L1 = getthread(L, &arg);
-    const char *msg = lua_tostring(L, arg + 1);
-    if (msg == NULL && !lua_isnoneornil(L, arg + 1)) {  /* non-string 'msg'? */
-        lua_pushvalue(L, arg + 1);  /* return it untouched */
-    }else{
-        int level = luaL_optint(L, arg + 2, (L == L1) ? 1 : 0);
-        luaL_traceback(L, L1, msg, level);
-    }
-    return 1;
+void luastate_RememberTracebackFunc(lua_State* l) {
+    lua_pushstring(l, "rememberedtraceback"); //push table index
+
+    //obtain debug.traceback
+    lua_getglobal(l, "debug");
+    lua_pushstring(l, "traceback");
+    lua_gettable(l, -2);
+
+    //set it to the registry table
+    lua_settable(l, LUA_REGISTRYINDEX);
 }
 
-// End of (modified) Lua 5 code
+void luastate_VoidDebug() {
+    //void debug table
+    lua_pushnil(l);
+    lua_setglobal(l, "debug");
+
+    //void debug library from package.loaded
+    lua_getglobal(l, "package");
+    lua_pushstring(l, "loaded");
+    lua_gettable(l, -2);
+    lua_pushstring(l, "debug");
+    lua_pushnil(l);
+    lua_settable(l, -3);
+
+    //should we void binary loaders to avoid loading a debug.so?
+}
 
 static lua_State* luastate_New() {
     lua_State* l = luaL_newstate();
@@ -393,8 +355,10 @@ static lua_State* luastate_New() {
     lua_gc(l, LUA_GCSETSTEPMUL, 300);
 
     //standard libs
-    lua_pushcfunction(l, &luastate_AddStdFuncs);
-    lua_pcall(l, 0, 0, 0);
+    luaL_openlibs(l);
+    luastate_RememberTracebackFunc(l);
+    luastate_VoidDebug(l);
+    luastate_AddBlitwizFuncs(l);
 
     //preserve debug.traceback in the registry for our own use
     lua_pushstring(l, "debug_traceback_preserved");
