@@ -34,30 +34,65 @@ export AR="$AR"
 
 dir=`pwd`
 
-if [ -n "`cat $static_libs_use | grep imgloader`" ]; then
+echo "Will build static dependencies now."
+
+if [ -n "`echo $static_libs_use | grep imgloader`" ]; then
     # static png:
-    if [ -n "`cat $static_libs_use | grep png`" ]; then
+    if [ -n "`echo $static_libs_use | grep png`" ]; then
+        echo "Compiling libpng..."
         cd src/imgloader && make deps-png || { echo "Failed to compile libpng"; exit 1; }
         cd $dir
     fi
     #static zlib
-    if [ -n "`cat $static_libs_use | grep zlib`" ]; tthen
+    if [ -n "`echo $static_libs_use | grep zlib`" ]; then
+        echo "Compiling zlib..."
         cd src/imgloader && make deps-zlib || { echo "Failed to compile zlib"; exit 1; }
         cd $dir
     fi
+    echo "Compiling imgloader..."
     # Our custom threaded image loader wrapper
     cd src/imgloader && make || { echo "Failed to compile imgloader"; exit 1; }
 fi
 cd $dir
 
-if [ -n "`cat $static_libs_use | grep ogg`" ]; then
+if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
+    echo "Compiling libFLAC..."
     # Build ogg
-    cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
-cd $dir
+    cd src/flac && ./configure --host="$HOST" --enable-static --disable-shared --disable-ogg --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
+    cd $dir
 fi
 
-if [ -n "`cat $static_libs_use | grep vorbis`" ]; then
-    if [ -n "`cat $static_libs_use | grep ogg`" ]; then
+if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
+    echo "Compiling libFLAC..."
+    # Build ogg
+    cd src/flac && ./configure --host="$HOST" --enable-static --disable-shared --disable-ogg --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
+    cd $dir
+fi
+
+if [ -n "`echo $static_libs_use | grep ogg`" ]; then
+    echo "Compiling libogg..."
+    # Build ogg
+    cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
+    cd $dir
+fi
+
+if [ -n "`echo $static_libs_use | grep speex`" ]; then
+    echo "Compiling libspeex..."
+    if [ -n "`echo $static_libs_use | grep ogg`" ]; then
+        # Build speex and remember to tell it where ogg is
+        oggincludedir="`pwd`/src/ogg/include/"
+        ogglibrarydir="`pwd`/src/ogg/src/.libs/"
+        cd src/speex && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+    else
+        # Build speex
+        cd src/speex && ./configure --host="$HOST" --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+    fi
+    cd $dir
+fi
+
+if [ -n "`echo $static_libs_use | grep vorbis`" ]; then
+    echo "Compiling libvorbis..."
+    if [ -n "`echo $static_libs_use | grep ogg`" ]; then
         # Build vorbis and remember to tell it where ogg is
         oggincludedir="`pwd`/src/ogg/include/"
         ogglibrarydir="`pwd`/src/ogg/src/.libs/"
@@ -77,7 +112,7 @@ if [ -n "`cat $static_libs_use | grep vorbis`" ]; then
     cd $dir
 fi
 
-if [ -n "`cat $static_libs_use | grep box2d`" ]; then
+if [ -n "`echo $static_libs_use | grep box2d`" ]; then
     # Build box2d
     box2dpremake="no"
     cd $dir
@@ -105,7 +140,7 @@ if [ -n "`cat $static_libs_use | grep box2d`" ]; then
     cd $dir
 fi
 
-if [ -n "`cat $static_libs_use | grep SDL2`" ]; then
+if [ -n "`echo $static_libs_use | grep SDL2`" ]; then
     # Build SDL 2
     if [ "$MACBUILD" != "yes" ]; then
         rm -r src/sdl/.hg/
@@ -140,27 +175,27 @@ if [ "$changedhost" = "yes" ]; then
 fi
 
 # Copy libraries
-if [ -n "`cat $static_libs_use | grep SDL2`" ]; then
+if [ -n "`echo $static_libs_use | grep SDL2`" ]; then
     cp src/sdl/build/.libs/libSDL2.a libs/libblitwizardSDL.a || { echo "Failed to copy SDL2 library"; exit 1; }
 fi
-if [ -n "`cat $static_libs_use | grep vorbis`" ]; then
+if [ -n "`echo $static_libs_use | grep vorbis`" ]; then
     cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a || { echo "Failed to copy libvorbis"; exit 1; }
     cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a || { echo "Failed to copy libvorbisfile"; exit 1; }
 fi
-if [ -n "`cat $static_libs_use | grep ogg`" ]; then
+if [ -n "`echo $static_libs_use | grep ogg`" ]; then
     cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a || { echo "Failed to copy libogg"; exit 1; }
 fi
-if [ -n "`cat $static_libs_use | grep imglib`" ]; then
+if [ -n "`echo $static_libs_use | grep imglib`" ]; then
     cp src/imgloader/libimglib.a libs/ || { echo "Failed to copy imglib"; exit 1; }
 fi
-if [ -n "`cat $static_libs_use | grep png`" ]; then
+if [ -n "`echo $static_libs_use | grep png`" ]; then
     cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
 fi
-if [ -n "`cat $static_libs_use | grep zlib`" ]; then
+if [ -n "`echo $static_libs_use | grep zlib`" ]; then
     cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
 fi
 cp src/lua/src/liblua.a libs/libblitwizardlua.a
-if [ -n "`cat $static_libs_use | grep box2d`" ]; then
+if [ -n "`echo $static_libs_use | grep box2d`" ]; then
     BOX2DCOPIED1="true"
     BOX2DCOPIED2="true"
     cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a || { BOX2DCOPIED1="false"; }

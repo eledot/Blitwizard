@@ -398,7 +398,7 @@ AS_IF([test -z "$maybeos"],[
     MACTEST=`uname -a | grep Darwin`
     AS_IF([test -z "$MACTEST"],[
         LIBS="-pthread -ldl -lm"
-        WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE=\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+        WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
     ],[
         LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
         WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
@@ -501,6 +501,7 @@ AS_IF([test "x$GRAPHICS_FEATURE_ENABLED" = xyes],[
 ])
 AS_IF([test "x$AUDIO_FEATURE_ENABLED" = xyes],[
     AS_IF([test "x$SDLADDED" = xno],[
+        statictest=`echo $STATIC_LIBS_USE | grep SDL2`
         SDLADDED=yes
         AS_IF([test -z "$statictest"], [
             FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lSDL2"
@@ -558,6 +559,8 @@ AS_IF([test -z "$statictest"],[
 ])
 
 AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
+
+    # Checking on FLAC status:
     AS_IF([test "x$FLAC_FEATURE_ENABLED" = xyes],[
         statictest=`echo $STATIC_LIBS_USE | grep FLAC`
         AS_IF([test -z "$statictest"],[
@@ -569,6 +572,7 @@ AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
         FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_FLAC_AUDIO"
     ])
 
+    # Checking on Speex status:
     AS_IF([test "x$SPEEX_RESAMPLING_FEATURE_ENABLED" = xyes],[
         statictest=`echo $STATIC_LIBS_USE | grep FLAC`
         AS_IF([test -z "$statictest"],[
@@ -580,6 +584,7 @@ AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
         FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_SPEEX_RESAMPLING"
     ])
 
+    # Checking on FFmpeg status:
     AS_IF([test "x$FFMPEG_FEATURE_ENABLED" = xyes],[
         FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iffmpeg/"
         FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_FFMEG_AUDIO"
