@@ -66,8 +66,12 @@ void* main_DefaultPhysicsPtr() {
 
 void main_Quit(int returncode) {
     if (sdlinitialised) {
+#ifdef USE_SDL_AUDIO
         //audio_Quit(); //FIXME: workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1396 (causes an unclean shutdown)
+#endif
+#ifdef USE_GRAPHICS
         graphics_Quit();
+#endif
     }
     exit(returncode);
 }
@@ -154,6 +158,7 @@ void main_InitAudio() {
         audiosourceffmpeg_DisableFFmpeg();
     }
 
+#ifdef USE_SDL_AUDIO
     //initialise audio - try 32bit first
     s16mixmode = 0;
 #ifndef FORCES16AUDIO
@@ -177,6 +182,11 @@ void main_InitAudio() {
     if (p) {
         free(p);
     }
+#else
+    //simulate audio:
+    simulateaudio = 1;
+    s16mixmode = 0;
+#endif
 }
 
 
@@ -543,6 +553,7 @@ int main(int argc, char** argv) {
 #endif
 
     //initialise graphics
+#ifdef USE_GRAPHICS
     if (!graphics_Init(&error)) {
         printerror("Error: Failed to initialise graphics: %s",error);
         free(error);
@@ -550,6 +561,7 @@ int main(int argc, char** argv) {
         main_Quit(1);
     }
     sdlinitialised = 1;
+#endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Initialising physics...");
@@ -625,7 +637,19 @@ int main(int argc, char** argv) {
     }
     
     //when graphics or audio is open, run the main loop
+#ifdef USE_GRAPHICS
+#ifdef USE_SOUND
     if (graphics_AreGraphicsRunning() || (audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen()) {
+#else
+    if (graphics_AreGraphicsRunning() || !connections_NoConnectionsOpen()) {
+#endif
+#else
+#ifdef USE_SOUND
+    if ((audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen()) {
+#else
+    if (!connections_NoConnectionsOpen()) {
+#endif
+#endif
         int blitwizonstepworked = 0;
         int blitwizondrawworked = 0;
 #if defined(ANDROID) || defined(__ANDROID__)
@@ -678,8 +702,10 @@ int main(int argc, char** argv) {
                 exit(1);
             }
 
+#ifdef USE_GRAPHICS
             //check and trigger all sort of input events
             graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
+#endif
 
             //call the step function and advance physics
             int iterations = 0;
@@ -708,39 +734,50 @@ int main(int argc, char** argv) {
                 printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
             }
 
+#ifdef USE_GRAPHICS
             //check for image loading progress
             if (!appinbackground) {
                 graphics_CheckTextureLoading(&imgloaded);
             }
-        
-            if (!appinbackground) { 
-                //start drawing
-                drawingallowed = 1;
-                graphics_StartFrame();
-                
-                //call the drawing function
-                int ondrawdoesntexist = 0;
-                if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error, &ondrawdoesntexist)) {
+#endif
+
+#ifdef USE_GRAPHICS
+            if (graphics_AreGraphicsRunning()) {
+                if (!appinbackground) { 
+                    //start drawing
+                    drawingallowed = 1;
+                    graphics_StartFrame();
+                    
+                    //call the drawing function
+                    int ondrawdoesntexist = 0;
+                    if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error, &ondrawdoesntexist)) {
                     printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
-                    if (error) {free(error);}
-                    fatalscripterror();
-                    main_Quit(1);
+                        if (error) {free(error);}
+                        fatalscripterror();
+                        main_Quit(1);
+                    }else{
+                        if (!ondrawdoesntexist) {blitwizondrawworked = 1;}
+                    }
+                    
+                    //complete the drawing
+                    drawingallowed = 0;
+                    graphics_CompleteFrame();
                 }else{
-                    if (!ondrawdoesntexist) {blitwizondrawworked = 1;}
+                    blitwizondrawworked = 1;
                 }
-                
-                //complete the drawing
-                drawingallowed = 0;
-                graphics_CompleteFrame();
-            }else{
-                blitwizondrawworked = 1;
             }
+#endif
 
             //we might want to quit if there is nothing else to do
+#ifdef USE_SOUND
             if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && audiomixer_NoSoundsPlaying()) {
+#else
+            if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen()) {
+#endif
                 main_Quit(1);
             }
 
+#ifdef USE_GRAPHICS
             //be very sleepy if in background
             if (appinbackground) {
 #ifndef NOTHREADEDSDLRW
@@ -749,6 +786,7 @@ int main(int argc, char** argv) {
                 time_Sleep(20);
 #endif
             }
+#endif
 
             //do some garbage collection:
             gcframecount++;

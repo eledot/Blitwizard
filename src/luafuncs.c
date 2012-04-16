@@ -337,6 +337,7 @@ int luafuncs_ls(lua_State* l) {
 }
 
 int luafuncs_setWindow(lua_State* l) {
+#ifdef USE_GRAPHICS
     if (lua_gettop(l) <= 0) {
         graphics_Quit();
         return 0;
@@ -380,9 +381,14 @@ int luafuncs_setWindow(lua_State* l) {
         return lua_error(l);
     }
     return 0;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_isImageLoaded(lua_State* l) {
+#ifdef USE_GRAPHICS
     const char* p = lua_tostring(l,1);
     if (!p) {
         lua_pushstring(l, "First parameter is not a valid image name string");
@@ -394,9 +400,14 @@ int luafuncs_isImageLoaded(lua_State* l) {
         lua_pushboolean(l, 0);
     }
     return 1;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_loadImage(lua_State* l) {
+#ifdef USE_GRAPHICS
     const char* p = lua_tostring(l,1);
     if (!p) {
         lua_pushstring(l, "First parameter is not a valid image name string");
@@ -413,9 +424,14 @@ int luafuncs_loadImage(lua_State* l) {
         return lua_error(l);
     }
     return 0;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_loadImageAsync(lua_State* l) {
+#ifdef USE_GRAPHICS
     const char* p = lua_tostring(l,1);
     if (!p) {
         lua_pushstring(l, "First parameter is not a valid image name string");
@@ -431,6 +447,10 @@ int luafuncs_loadImageAsync(lua_State* l) {
         return lua_error(l);
     }
     return 0;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_getTime(lua_State* l) {
@@ -449,6 +469,7 @@ int luafuncs_sleep(lua_State* l) {
 }
 
 int luafuncs_getImageSize(lua_State* l) {
+#ifdef USE_GRAPHICS
     const char* p = lua_tostring(l,1);
     if (!p) {
         lua_pushstring(l, "First parameter is not a valid image name string");
@@ -462,9 +483,14 @@ int luafuncs_getImageSize(lua_State* l) {
     lua_pushnumber(l, w);
     lua_pushnumber(l, h);
     return 2;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_getWindowSize(lua_State* l) {
+#ifdef USE_GRAPHICS
     unsigned int w,h;
     if (!graphics_GetWindowDimensions(&w,&h)) {
         lua_pushstring(l, "Failed to get window size");
@@ -473,9 +499,14 @@ int luafuncs_getWindowSize(lua_State* l) {
     lua_pushnumber(l, w);
     lua_pushnumber(l, h);
     return 2;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_drawRectangle(lua_State* l) {
+#ifdef USE_GRAPHICS
     if (!drawingallowed) {
         lua_pushstring(l, "You cannot draw now");
         return lua_error(l);
@@ -549,16 +580,23 @@ int luafuncs_drawRectangle(lua_State* l) {
 
     graphics_DrawRectangle(x, y, width, height, r, g, b, alpha);
     return 0;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
+#ifdef USE_GRAPHICS
 void luafuncs_pushnosuchtex(lua_State* l, const char* tex) {
     char errmsg[512];
     snprintf(errmsg,sizeof(errmsg), "Requested texture \"%s\" isn't loaded or available", tex);
     errmsg[sizeof(errmsg)-1] = 0;
     lua_pushstring(l, errmsg);
 }
+#endif
 
 int luafuncs_drawImage(lua_State* l) {
+#ifdef USE_GRAPHICS
     const char* p = lua_tostring(l,1);
     if (!p) {
         lua_pushstring(l, "First parameter is not a valid image name string");
@@ -771,6 +809,10 @@ int luafuncs_drawImage(lua_State* l) {
         return lua_error(l);
     }
     return 0;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_getcwd(lua_State* l) {
@@ -797,6 +839,7 @@ int luafuncs_chdir(lua_State* l) {
 }
 
 int luafuncs_getRendererName(lua_State* l) {
+#ifdef USE_GRAPHICS
     const char* p = graphics_GetCurrentRendererName();
     if (!p) {
         lua_pushnil(l);
@@ -805,9 +848,14 @@ int luafuncs_getRendererName(lua_State* l) {
         lua_pushstring(l, p);
         return 1;
     }
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_getBackendName(lua_State* l) {
+#ifdef USE_GRAPHICS
     main_InitAudio();
     const char* p = audio_GetCurrentBackendName();
     if (p) {
@@ -816,6 +864,10 @@ int luafuncs_getBackendName(lua_State* l) {
         lua_pushstring(l, "null driver");
     }
     return 1;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_openConsole(lua_State* intentionally_unused) {
@@ -823,6 +875,7 @@ int luafuncs_openConsole(lua_State* intentionally_unused) {
     return 0;
 }
 
+#ifdef USE_SOUND
 static int soundfromstack(lua_State* l, int index) {
     if (lua_type(l, index) != LUA_TUSERDATA) {
         return -1;
@@ -836,8 +889,10 @@ static int soundfromstack(lua_State* l, int index) {
     }
     return idref->ref.id;
 }
+#endif
 
 int luafuncs_stop(lua_State* l) {
+#ifdef USE_SOUND
     main_InitAudio();
     int id = soundfromstack(l, 1);
     if (id < 0) {
@@ -846,9 +901,14 @@ int luafuncs_stop(lua_State* l) {
     }
     audiomixer_StopSound(id);
     return 0;
+#else //ifdef USE_SOUND
+    lua_pushstring(l, compiled_without_sound);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_playing(lua_State* l) {
+#ifdef USE_SOUND
     main_InitAudio();
     int id = soundfromstack(l, 1);
     if (id < 0) {
@@ -861,9 +921,14 @@ int luafuncs_playing(lua_State* l) {
         lua_pushboolean(l, 0);
     }
     return 1;
+#else //ifdef USE_SOUND
+    lua_pushstring(l, compiled_without_sound);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_adjust(lua_State* l) {
+#ifdef USE_SOUND
     main_InitAudio();
     int id = soundfromstack(l, 1);
     if (id < 0) {
@@ -886,11 +951,15 @@ int luafuncs_adjust(lua_State* l) {
     if (panning > 1) {panning = 1;}
 
     audiomixer_AdjustSound(id, volume, panning);
-
     return 0;
+#else //ifdef USE_SOUND
+    lua_pushstring(l, compiled_without_sound);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_play(lua_State* l) {
+#ifdef USE_SOUND
     main_InitAudio();
     const char* p = lua_tostring(l, 1);
     if (!p) {
@@ -961,17 +1030,27 @@ int luafuncs_play(lua_State* l) {
         return lua_error(l);
     }
     return 1;
+#else //ifdef USE_SOUND
+    lua_pushstring(l, compiled_without_sound);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_getDesktopDisplayMode(lua_State* l) {
+#ifdef USE_GRAPHICS
     int w,h;
     graphics_GetDesktopVideoMode(&w, &h);
     lua_pushnumber(l, w);
     lua_pushnumber(l, h);
     return 2;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_getDisplayModes(lua_State* l) {
+#ifdef USE_GRAPHICS
     int c = graphics_GetNumberOfVideoModes();
     lua_createtable(l, 1, 0);
 
@@ -1023,6 +1102,10 @@ int luafuncs_getDisplayModes(lua_State* l) {
         i++;
     }
     return 1;
+#else //ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
 }
 
 int luafuncs_exit(lua_State* l) {

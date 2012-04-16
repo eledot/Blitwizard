@@ -25,6 +25,9 @@
 #include <stdint.h>
 #include "SDL.h"
 
+#ifdef USE_SOUND
+#ifdef USE_SDL_SOUND
+
 #ifndef NOTHREADEDSDLRW
 #define DEFAULTSOUNDBUFFERSIZE 2048
 #else
@@ -152,4 +155,8 @@ void audio_LockAudioThread() {
 void audio_UnlockAudioThread() {
     SDL_UnlockAudio();
 }
+
+
+#endif
+#endif
 

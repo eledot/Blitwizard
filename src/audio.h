@@ -21,6 +21,9 @@
 
 */
 
+#ifdef USE_AUDIO
+#ifdef USE_SDL_AUDIO
+
 int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersize, const char* backend, int s16, char** error);
 //Initialise audio. Returns 1 on success, 0 on error (in which case
 //error will be modified so *error points at an error message you
@@ -46,4 +49,7 @@ void audio_UnlockAudioThread();
 
 void audio_Quit();
 //Quit audio backend completely
+
+#endif
+#endif
 

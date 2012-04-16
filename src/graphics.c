@@ -21,6 +21,8 @@
 
 */
 
+#ifdef USE_GRAPHICS
+
 // various standard headers
 #include <stdio.h>
 #include <string.h>
@@ -1119,4 +1121,6 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
         }
     }
 }
+
+#endif //ifdef USE_GRAPHICS
 

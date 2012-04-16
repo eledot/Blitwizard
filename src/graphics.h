@@ -21,6 +21,8 @@
 
 */
 
+#ifdef USE_GRAPHICS
+
 int graphics_AreGraphicsRunning();
 //Returns 1 if the graphics are open/active, otherwise 0.
 
@@ -126,4 +128,10 @@ void graphics_InvalidateSDLTextures();
 void graphics_ReopenForAndroid();
 //Reopen graphics and reupload textures. Required when coming back into foreground
 #endif
+
+#else //ifdef USE_GRAPHICS
+
+#define compiled_without_graphics "No graphics available - this binary was compiled with graphics (including null device) disabled"
+
+#endif //ifdef USE_GRAPHICS
 
