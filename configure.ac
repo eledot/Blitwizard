@@ -20,6 +20,18 @@ rm scripts/.depsarebuilt
 
 AC_CONFIG_MACRO_DIR([m4])
 
+# Enable/disable features:
+
+use_sdlgraphics=yes
+AC_ARG_WITH([sdl-graphics],
+    [AS_HELP_STRING([--with-sdl-graphics],[use graphics support through SDL (default is yes)])],
+[use_sdlgraphics=$withval], [use_sdlgraphics=no])
+
+use_sdlaudio=yes
+AC_ARG_WITH([sdl-audio],
+    [AS_HELP_STRING([--with-sdl-audio],[use audio support through SDL (default is yes)])],
+[use_sdlaudio=$withval], [use_sdlaudio=no])
+
 
 # Evaluate target os:
 
@@ -33,7 +45,6 @@ STATIC_LIBS_USE=""
 
 # Remember which flags we need because we don't use some libs at all
 
-DONT_USE_LIBS_FLAGS=""
 GRAPHICS_FEATURE_ENABLED="yes"
 NULL_GRAPHICS_FEATURE_ENABLED="yes"
 AUDIO_FEATURE_ENABLED="yes"
@@ -52,10 +63,8 @@ LIBS_DEP_INFO_TEXT="
 
 # Check whether ffmpeg is available
 
-USE_FFMPEG=""
 AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
     AC_MSG_NOTICE([FFmpeg source code appears to be present, will compile with FFmpeg support.])
-    USE_FFMPEG="-DUSE_FFMPEG"
     AS_IF([test ! -e "src/ffmpeg/libavutil/avconfig.h"], [
         AC_WARN([FFmpeg is not configured yet. FFmpeg will be now configured (but not built) with recommended options. If you want to do that yourself, please cancel and do it now, then rerun blitwizard ./configure.])
         { cd src/ffmpeg && ./configure --disable-libgsm --enable-runtime-cpudetect  --enable-version3 --disable-gpl --enable-shared --disable-doc --disable-ffmpeg --disable-avconv --disable-ffplay --disable-ffprobe --disable-ffserver --disable-protocols --disable-devices; } || { AC_MSG_ERROR([Failed to configure FFmpeg.]); exit 1; }
@@ -381,9 +390,142 @@ This results in the following feature set:
   Null device graphics: ${NULL_GRAPHICS_FEATURE_ENABLED}
   Audio: ${AUDIO_FEATURE_ENABLED}
   Null device audio: ${NULL_AUDIO_FEATURE_ENABLED}
-  Flac decooding: ${FLAC_FEATURE_ENABLED}
+  Flac decoding: ${FLAC_FEATURE_ENABLED}
   Speex-based resampling: ${SPEEX_RESAMPLING_FEATURE_ENABLED}
   Runtime FFmpeg support: ${FFMPEG_FEATURE_ENABLED}
-  Physics simulation support: ${PHYSICS_FEATURE_ENABLED}"
+  Physics simulation support: ${PHYSICS_FEATURE_ENABLED}
+"
+
+
+# Compose ld/include/define flags:
+
+FINAL_LD_FLAGS=""
+FINAL_INCLUDE_FLAGS="-Iimgloader/"
+FINAL_USE_LIB_FLAGS=""
+
+SDLADDED=no
+AS_IF([test "x$GRAPHICS_FEATURE_ENABLED" = xyes],[
+    statictest=`echo $STATIC_LIBS_USE | grep SDL2`
+    SDLADDED=yes
+    AS_IF([test -z "$statictest"], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lSDL2"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardSDL"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Isdl/include"
+    ])
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_SDL_GRAPHICS"
+])
+AS_IF([test "x$AUDIO_FEATURE_ENABLED" = xyes],[
+    AS_IF([test "x$SDLADDED" = xno],[
+        SDLADDED=yes
+        AS_IF([test -z "$statictest"], [
+            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lSDL2"
+        ], [
+            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardSDL"
+            FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Isdl/include"
+        ])
+    ])
+    FINAL_USE_LIBS_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_SDL_AUDIO"
+])
+
+AS_IF([test "x$NULL_GRAPHICS_FEATURE_ENABLED" = xyes],[
+    FINAL_LD_FLAGS="$FINAL_LD_FLAGS -limglib"
+    statictest=`echo $STATIC_LIBS_USE | grep png`
+    AS_IF([test -z "$statictest"],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lpng"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardpng"
+    ])
+    AS_IF([test -z "$statictest"],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lz"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardzlib"
+    ])
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_GRAPHICS"
+])
+
+AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
+    statictest=`echo $STATIC_LIBS_USE | grep vorbis`
+    AS_IF([test -z "$statictest"],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lvorbisfile -lvorbis"
+    ],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardvorbisfile -lblitwizardvorbis"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ivorbis/include"
+
+    ])
+    statictest=`echo $STATIC_LIBS_USE | grep ogg`
+    AS_IF([test -z "$statictest"],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -logg"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardogg"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iogg/include"
+    ])
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_AUDIO"
+])
+
+statictest=`echo $STATIC_LIBS_USE | grep lua`
+AS_IF([test -z "$statictest"],[
+    FINAL_LD_FLAGS="$FINAL_LD_FLAGS -llua"
+], [
+    FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardlua"
+    FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ilua/src"
+])
+
+AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
+    AS_IF([test "x$FLAC_FEATURE_ENABLED" = xyes],[
+        statictest=`echo $STATIC_LIBS_USE | grep FLAC`
+        AS_IF([test -z "$statictest"],[
+            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lFLAC"
+        ], [
+            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardFLAC"
+            FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iflac/include"
+        ])
+        FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_FLAC_AUDIO"
+    ])
+
+    AS_IF([test "x$SPEEX_RESAMPLING_FEATURE_ENABLED" = xyes],[
+        statictest=`echo $STATIC_LIBS_USE | grep FLAC`
+        AS_IF([test -z "$statictest"],[
+            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lspeex -lspeexdsp"
+        ], [
+            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardspeex -lblitwizardspeexdsp"
+            FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ispeex/include"
+        ])
+        FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_SPEEX_RESAMPLING"
+    ])
+
+    AS_IF([test "x$FFMPEG_FEATURE_ENABLED" = xyes],[
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iffmpeg/"
+        FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_FFMEG_AUDIO"
+    ])
+
+])
+
+AS_IF([test "x$PHYSICS_FEATURE_ENABLED" = xyes],[
+    statictest=`echo $STATIC_LIBS_USE | grep box2d`
+    AS_IF([test -z "$statictest"],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lbox2d"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardbox2d"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ibox2d/"
+    ])
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSICS"
+])
+
+
+# Echo the build flags
+
+echo "
+Build flags:
+  LD flags:      $FINAL_LD_FLAGS
+  include flags: $FINAL_INCLUDE_FLAGS
+  Feature flags: $FINAL_USE_LIB_FLAGS"
+
+
+# Conserve the build flags for the make script
+
+echo "$FINAL_LD_FLAGS" > scripts/.ldflags
+echo "$FINAL_INCLUDE_FLAGS" > scripts/.includeflags
+echo "$FINAL_USE_LIB_FLAGS" > scripts/.uselibflags
 
 
