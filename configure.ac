@@ -22,15 +22,50 @@ AC_CONFIG_MACRO_DIR([m4])
 
 # Enable/disable features:
 
-use_sdlgraphics=yes
-AC_ARG_WITH([sdl-graphics],
-    [AS_HELP_STRING([--with-sdl-graphics],[use graphics support through SDL (default is yes)])],
-[use_sdlgraphics=$withval], [use_sdlgraphics=no])
+enable_sdlgraphics=no
+AC_ARG_ENABLE([sdl-graphics],
+    [AS_HELP_STRING([--disable-sdl-graphics],[disable graphics support through SDL (default is enabled)])],
+[case "${enableval}" in
+    yes | no ) enable_sdlgraphics="${enableval}" ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --disable-sdl-graphics) ;;
+esac],
+[enable_sdlgraphics=yes])
 
-use_sdlaudio=yes
-AC_ARG_WITH([sdl-audio],
-    [AS_HELP_STRING([--with-sdl-audio],[use audio support through SDL (default is yes)])],
-[use_sdlaudio=$withval], [use_sdlaudio=no])
+enable_sdlaudio=no
+AC_ARG_ENABLE([sdl-audio],
+    [AS_HELP_STRING([--disable-sdl-audio],[disable audio support through SDL (default is enabled)])],
+[case "${enableval}" in
+     yes | no ) enable_sdlaudio="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-sdl-audio) ;;
+ esac],
+[enable_sdlaudio=yes])
+
+enable_graphics=no
+AC_ARG_ENABLE([graphics],
+    [AS_HELP_STRING([--disable-graphics],[disable graphics support completely, including the null graphics device (default is enabled)])],
+[case "${enableval}" in
+     yes | no ) enable_graphics="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-graphics) ;;
+ esac],
+[enable_graphics=yes])
+
+enable_audio=no
+AC_ARG_ENABLE([audio],
+    [AS_HELP_STRING([--disable-audio],[disable audio support completely, including the null audio device (default is enabled)])],
+[case "${enableval}" in
+     yes | no ) enable_audio="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-audio) ;;
+ esac],
+[enable_audio=yes])
+
+enable_physics=no
+AC_ARG_ENABLE([physics],
+    [AS_HELP_STRING([--disable-physics],[disable physics simulation support (default is enabled)])],
+[case "${enableval}" in
+     yes | no ) enable_physics="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics) ;;
+ esac],
+[enable_physics=yes])
 
 
 # Evaluate target os:
@@ -82,27 +117,52 @@ AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
 
 # Check for SDL2 availability:
 
-AC_MSG_CHECKING([for static SDL2 library])
-AS_IF([test ! -f "src/sdl/src/SDL.c"],[
-    AC_MSG_RESULT([no])
-    AC_CHECK_LIB([SDL2], [SDL_Init],[
-        #shared lib is there!
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  SDL2: shared"
-    ],[
-        #nothing there
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  SDL2: no"
-        GRAPHICS_FEATURE_ENABLED="no, need SDL2"
-        AUDIO_FEATURE_ENABLED="no, need SDL2"
-    ])
-],[
-    AC_MSG_RESULT([yes])
-    STATIC_LIBS_USE="${STATIC_LIBS_USE} SDL2"
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  SDL2: static"
+AS_IF([test "x$enable_audio" = xno], [
+    enable_sdlaudio="no"
+])
+AS_IF([test "x$enable_graphics" = xno], [
+    enable_sdlgraphics="no"
 ])
 
+NEEDSDL="no"
+AS_IF([test "x$enable_sdlaudio" = xyes], [
+    NEEDSDL="yes"
+])
+AS_IF([test "x$enable_sdlgraphics" = xyes], [
+    NEEDSDL="yes"
+])
+
+AS_IF([test "x$NEEDSDL" = xyes],[
+    AC_MSG_CHECKING([for static SDL2 library])
+    AS_IF([test ! -f "src/sdl/src/SDL.c"],[
+        AC_MSG_RESULT([no])
+        AC_CHECK_LIB([SDL2], [SDL_Init],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  SDL2: shared"
+        ],[
+            #nothing there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  SDL2: no"
+            GRAPHICS_FEATURE_ENABLED="no, need SDL2"
+            AUDIO_FEATURE_ENABLED="no, need SDL2"
+        ])
+    ],[
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} SDL2"
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  SDL2: static"
+    ])
+])
+
+AS_IF([test "x$enable_sdlgraphics" = xno],[
+    GRAPHICS_FEATURE_ENABLED="no, disabled"
+])
+AS_IF([test "x$enable_sdlaudio" = xno],[
+    AUDIO_FEATURE_ENABLED="no, disabled"
+])
+
+AS_IF([test "x$enable_graphics" = xyes],[ # START enable_graphics block
 
 # Check for libpng availability:
 
@@ -151,6 +211,12 @@ AS_IF([test ! -f "src/imgloader/zlib/gzlib.c"],[
   zlib: static"
 ])
 
+],[ # STOP enable_graphics block
+    GRAPHICS_FEATURE_ENABLED="no, disabled"
+    NULL_GRAPHICS_FEATURE_ENABLED="no, disabled"
+])
+
+AS_IF([test "x$enable_audio" = xyes],[ # START enable_audio block
 
 # Check for libvorbis availability:
 
@@ -208,50 +274,6 @@ AS_IF([test ! -f "src/ogg/src/framing.c"],[
 ])
 
 
-# Check for liblua availability:
-
-AC_MSG_CHECKING([for static lua library])
-AS_IF([test ! -f "src/lua/src/lua.h"],[
-    AC_MSG_RESULT([no])
-    AC_CHECK_LIB([lua], [lua_close],[
-        #shared lib is there!
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  liblua: shared"
-    ],[
-        #nothing there
-        AC_MSG_ERROR([Lua is required for blitwizard.])
-    ])
-],[
-    AC_MSG_RESULT([yes])
-    STATIC_LIBS_USE="${STATIC_LIBS_USE} lua"
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  liblua: static"
-])
-
-
-# Check for libbox2d availability:
-
-AC_MSG_CHECKING([for static Box2D library])
-AS_IF([test ! -f "src/box2d/Box2D/Box2D.h"],[
-    AC_MSG_RESULT([no])
-    AC_CHECK_LIB([box2d], [b2Alloc],[
-        #shared lib is there!
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  libbox2d: shared"
-    ],[
-        #nothing there
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  libbox2d: no"
-        PHYSICS_FEATURE_ENABLED="no, need libbox2d"
-    ])
-],[
-    AC_MSG_RESULT([yes])
-    STATIC_LIBS_USE="${STATIC_LIBS_USE} box2d"
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  libbox2d: static"
-])
-
-
 # Check for libFLAC availability:
 
 AC_MSG_CHECKING([for static libFLAC library])
@@ -302,6 +324,61 @@ AS_IF([test ! -f "src/speex/src/speexdec.c"],[
     STATIC_LIBS_USE="${STATIC_LIBS_USE} speex"
     LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libspeex: static"
+])
+
+],[ # STOP enable_audio block
+    AUDIO_FEATURE_ENABLED="no, disabled"
+    NULL_AUDIO_FEATURE_ENABLED="no, disabled"
+    FLAC_FEATURE_ENABLED="no, disabled"
+    SPEEX_RESAMPLING_FEATURE_ENABLED="no, disabled"
+])
+
+
+# Check for liblua availability:
+
+AC_MSG_CHECKING([for static lua library])
+AS_IF([test ! -f "src/lua/src/lua.h"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([lua], [lua_close],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  liblua: shared"
+    ],[
+        #nothing there
+        AC_MSG_ERROR([Lua is required for blitwizard.])
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} lua"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  liblua: static"
+])
+
+
+# Check for libbox2d availability:
+
+AS_IF([test "x$enable_physics" = xyes],[
+    AC_MSG_CHECKING([for static Box2D library])
+    AS_IF([test ! -f "src/box2d/Box2D/Box2D.h"],[
+        AC_MSG_RESULT([no])
+        AC_CHECK_LIB([box2d], [b2Alloc],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libbox2d: shared"
+        ],[
+            #nothing there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libbox2d: no"
+            PHYSICS_FEATURE_ENABLED="no, need libbox2d"
+        ])
+    ],[
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} box2d"
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libbox2d: static"
+    ])
+],[
+    PHYSICS_FEATURE_ENABLED="no, disabled"
 ])
 
 
