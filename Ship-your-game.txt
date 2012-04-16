@@ -12,7 +12,7 @@ So all you need to ship is:
 
  - game.lua from your own game and other files of your game (images etc)
 
- - README-libs.txt for licensing (see NOTE below)
+ - README-libs.txt for licensing (see disclaimer below)
 
 Ship a game for Android (you need a *Linux* machine for this!):
 

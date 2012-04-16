@@ -3,6 +3,8 @@
 cd ..
 
 luatarget=`cat scripts/.buildinfo | grep luatarget | sed -e 's/^luatarget\=//'`
+static_libs_use=`cat scripts/.buildinfo | grep STATIC_LIBS_USE | sed -e 's/^.*\=//'`
+
 changedhost=""
 
 if [ -f scripts/.depsarebuilt ]; then
@@ -25,34 +27,6 @@ MACBUILD=`cat scripts/.buildinfo | grep MACBUILD | sed -e 's/^.*\=//'`
 if [ "$MACBUILD" = "yes" ]; then
     # Enforce darwin gcc since llvm-gcc hates libvorbis
     CC="clang"
-fi
-
-if [ ! -f src/imgloader/png/png.c ]; then
-    echo "MISSING DEPENDENCY: Please extract the contents of a recent libpng tarball into src/imgloader/png/ - or read README-deps.txt";
-    exit 1;
-fi
-if [ ! -f src/imgloader/zlib/gzlib.c ]; then
-    echo "MISSING DEPENDENCY: Please extract the contents of a recent zlib tarball into src/imgloader/zlib/ - or read README-deps.txt";
-    exit 1;
-fi
-if [ ! -f src/sdl/src/SDL.c ]; then
-    echo "MISSING DEPENDENCY: Please extract the contents of a recent SDL 1.3 tarball into src/sdl/ - or read README-deps.txt";
-    exit 1;
-fi
-if [ ! -f src/vorbis/lib/vorbisenc.c ]; then
-    echo "MISSING DEPENDENCY: Please extract the contents of a recent libvorbis tarball into src/vorbis/ - or read README-deps.txt";
-    exit 1;
-fi
-if [ ! -f src/ogg/src/framing.c ]; then
-    echo "MISSING DEPENDENCY: Please extract the contents of a recent libogg tarball into src/ogg/ - or read README-deps.txt";
-    exit 1;
-fi
-if [ ! -f src/lua/src/lua.h ]; then
-    echo "MISSING DEPENDENCY: Please extract the contents of a recent Lua 5.2 tarball into src/lua/ - or read README-deps.txt";
-    exit 1;
-fi
-if [ ! -f src/box2d/Box2D/Box2D.h ]; then
-    echo "MISSING DEPENDENCY: Please extract the contents of a recent Box2D tarball into src/box2d/ - or read README-deps.txt";
 fi
 
 export CC="$CC"
