@@ -1,5 +1,6 @@
 This README should be shipped with all blitwizard builds
-that statically link the dependencies (which is the default).
+that statically link the dependencies (which is the default
+for the regular builds from the website).
 
 Blitwizard contains Speex, libogg and libvorbis/libvorbisfile:
 
