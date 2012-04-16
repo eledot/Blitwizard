@@ -4,8 +4,20 @@
 ---------------------
 
 This is the README for obtaining the dependencies for the source tarball
-of blitwizard.
-Getting the deps is also required on Unix/Linux!
+of blitwizard. Follow this guide if you wan to STATICALLY link any
+dependencies which is recommended if you consider distributing a blitwizard
+binary. Also, it is the recommended way when building on Windows!
+
+  Note on Shared libs on Unix systems:
+
+   If you are building on Linux/Unix, you can also simply install the required
+   libs in your system (including the dev packages for them). They will be
+   linked as SHARED libraries as a result. You should install those libs:
+   SDL2, libpng, zlib, libogg, libvorbis, Lua, Box2D, libFLAC, Speex
+
+Static libraries avoid dependency problems at runtime (if you run blitwizard
+only for yourself locally, you shouldn't worry about this!) and save you
+the bunch of external dlls on Windows.
 
 Before you start, extract the blitwizard archive (where this README is in)
 to a folder.
@@ -21,12 +33,14 @@ Either get the deps here: http://games.homeofjones.de/blitwizard/deps.zip
 
 That file contains:
     SDL 2 hg cloned/fetched sometime in Feb 2012, PATCHED for rotation support
-    libpng 1.5.6
+    libpng 1.5.10
     zlib 1.2.5
     libogg 1.3.0
     libvorbis 1.3.2
     Lua 5.2
 	Box2D 2.2.1
+    libFLAC 1.2.1
+    Speex
 
 WARNING: Those versions might be outdated and may contain bugs! Please
 always check if there are newer versions available, and consider
@@ -34,14 +48,7 @@ using those instead:
 
 Alternatively, get them yourself in hand-picked, current versions:
 
- - drop the contents of a source tarball of a recent SDL 2 into
-    src/sdl/
-   see http://www.libsdl.org/hg.php
-   WARNING: Blitwizard uses a patched SDL for rotation/flipping support.
-     I expect SDL to adopt this natively, but at this point,
-     you will have to patch this in manually.
-     Check out the .patch inside src/sdl/ in deps.zip
-
+REQUIRED:
  - drop the contents of a source tarball of a recent libogg release into
     src/ogg
    see http://xiph.org/downloads/
@@ -67,6 +74,25 @@ Alternatively, get them yourself in hand-picked, current versions:
     src/box2d
    see http://box2d.org/
 
+OPTIONAL BUT IMPORTANT (required for graphics and audio devices):
+ - drop the contents of a source tarball of a recent SDL 2 into
+    src/sdl/
+   see http://www.libsdl.org/hg.php
+   WARNING: Blitwizard uses a patched SDL for rotation/flipping support.
+     I expect SDL to adopt this natively, but at this point,
+     you will have to patch this in manually.
+     Check out the .patch inside src/sdl/ in deps.zip
+
+OPTIONAL (for FLAC audio format support):
+ - drop the contents of a source tarball of a recent libFLAC release into
+    src/flac/
+   see http://sourceforge.net/projects/flac/
+
+OPTIONAL (for high quality audio resampling support):
+ - drop the contents of a source tarball of a recent Speex release into
+    src/speex/
+   see http://speex.org/
+
 A source tarball is simply an archive that contains a folder with all
 the source code of the product in it. If you get your tarball as .tar.gz
 or .tar.bz2 (instead of .zip) and you are on Microsoft Windows, get
@@ -77,7 +103,7 @@ of a tarball into the directories, but just what the main folder
 *contains* (so enter the main folder in your archiver, then
 mark all the things inside, and extract those).
 
-You should get a verbose error later if you did this
-part wrong - so if you get errors about a "MISSING DEPENDENCY"
-which you provided, check back on this.
+If blitwizard cannot find a lib as STATIC library during compilation
+(so only as SHARED or not at all), you most likely did something wrong
+here and you should check back on this.
 

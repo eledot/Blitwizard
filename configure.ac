@@ -19,10 +19,33 @@ AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
 
 
-# --> EVALUATE TARGET OS
+# Evaluate target os:
 
 maybeos=`echo $EXEEXT | grep exe`
-# Checks for libraries.
+
+
+# Remember which libs we want to build ourselves for static use:
+
+STATIC_LIBS_USE=""
+
+
+# Remember which flags we need because we don't use some libs at all
+
+DONT_USE_LIBS_FLAGS=""
+GRAPHICS_FEATURE_ENABLED="yes"
+NULL_GRAPHICS_FEATURE_ENABLED="yes"
+AUDIO_FEATURE_ENABLED="yes"
+NULL_AUDIO_FEATURE_ENABLED="yes"
+FLAC_FEATURE_ENABLED="yes"
+SPEEX_RESAMPLING_FEATURE_ENABLED="yes"
+FFMPEG_FEATURE_ENABLED="yes"
+PHYSICS_FEATURE_ENABLED="yes"
+
+
+# Lib deps info text for later output:
+
+LIBS_DEP_INFO_TEXT="
+*** Dependency scan results ***"
 
 
 # Check whether ffmpeg is available
@@ -36,8 +59,241 @@ AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
         { cd src/ffmpeg && ./configure --disable-libgsm --enable-runtime-cpudetect  --enable-version3 --disable-gpl --enable-shared --disable-doc --disable-ffmpeg --disable-avconv --disable-ffplay --disable-ffprobe --disable-ffserver --disable-protocols --disable-devices; } || { AC_MSG_ERROR([Failed to configure FFmpeg.]); exit 1; }
         cd ../../
     ])
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  FFmpeg headers from tarball: yes"
 ],[
     AC_WARN([FFmpeg source code is not present or not properly placed. Blitwizard will NOT have any FFmpeg support.])
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  FFmpeg headers from tarball: no"
+    FFMPEG_FEATURE_ENABLED="no"
+])
+
+
+# Check for SDL2 availability:
+
+AC_MSG_CHECKING([for static SDL2 library])
+AS_IF([test ! -f "src/sdl/src/SDL.c"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([SDL2], [SDL_Init],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  SDL2: shared"
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  SDL2: no"
+        GRAPHICS_FEATURE_ENABLED="no, need SDL2"
+        AUDIO_FEATURE_ENABLED="no, need SDL2"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} SDL2"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  SDL2: static"
+])
+
+
+# Check for libpng availability:
+
+AC_MSG_CHECKING([for static png library])
+AS_IF([test ! -f "src/imgloader/png/png.c"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([png], [png_create_read_struct],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libpng: shared"
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libpng: no"
+        GRAPHICS_FEATURE_ENABLED="no, need libpng"
+        NULL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} png"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libpng: static"
+])
+
+
+# Check for zlib availability:
+
+AC_MSG_CHECKING([for static zlib library])
+AS_IF([test ! -f "src/imgloader/zlib/gzlib.c"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([z], [inflateInit2],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  zlib: shared"
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  zlib: no"
+        GRAPHICS_FEATURE_ENABLED="no, need libpng"
+        NULL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} zlib"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  zlib: static"
+])
+
+
+# Check for libvorbis availability:
+
+AC_MSG_CHECKING([for static vorbis/vorbisfile library])
+AS_IF([test ! -f "src/vorbis/lib/vorbisenc.c"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([vorbisfile], [ov_info],[
+        AC_CHECK_LIB([vorbis], [vorbis_block_init],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libvorbis/vorbisfile: shared"
+        ],[
+            #incomplete
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libvorbis/vorbisfile: no"
+            AUDIO_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+            NULL_AUDIO_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+        ])
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libvorbis/vorbisfile: no"
+        AUDIO_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+        NULL_AUDIO_FEATURE_ENABLED="no, need libvorbis/libvorbisfile"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} vorbis"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libvorbis/vorbisfile: static"
+])
+
+
+# Check for libogg availability:
+
+AC_MSG_CHECKING([for static ogg library])
+AS_IF([test ! -f "src/ogg/src/framing.c"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([ogg], [oggpack_read],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libogg: shared"
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libogg: no"
+        AUDIO_FEATURE_ENABLED="no, need libogg"
+        NULL_AUDIO_FEATURE_ENABLED="no, need libogg"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} ogg"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libogg: static"
+])
+
+
+# Check for liblua availability:
+
+AC_MSG_CHECKING([for static lua library])
+AS_IF([test ! -f "src/lua/src/lua.h"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([lua], [lua_close],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  liblua: shared"
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  liblua: no"
+        AUDIO_FEATURE_ENABLED="no, need liblua"
+        NULL_AUDIO_FEATURE_ENABLED="no, need liblua"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} lua"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  liblua: static"
+])
+
+
+# Check for libbox2d availability:
+
+AC_MSG_CHECKING([for static Box2D library])
+AS_IF([test ! -f "src/box2d/Box2D/Box2D.h"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([box2d], [b2Alloc],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libbox2d: shared"
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libbox2d: no"
+        PHYSICS_FEATURE_ENABLED="no, need libbox2d"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} box2d"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libbox2d: static"
+])
+
+
+# Check for libFLAC availability:
+
+AC_MSG_CHECKING([for static libFLAC library])
+AS_IF([test ! -f "src/flac/src/libFLAC/lpc.c"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([FLAC], [FLAC__stream_decoder_new],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libFLAC: shared"
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libFLAC: no"
+        FLAC_FEATURE_ENABLED="no, need libFLAC"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} FLAC"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libFLAC: static"
+])
+
+
+# Check for libspeex availability:
+
+AC_MSG_CHECKING([for static libspeex library])
+AS_IF([test ! -f "src/speex/src/speexdec.c"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([speexdsp], [speex_resampler_init],[
+        AC_CHECK_LIB([speex], [speex_encoder_init],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libspeex: shared"
+        ],[
+            #nothing here
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libspeex: no"
+            SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libspeex"
+        ])
+    ],[
+        #incomplete
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libspeex: no"
+        SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libspeex"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} speex"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libspeex: static"
 ])
 
 
@@ -115,4 +371,20 @@ AS_IF([test "x$?" != x0],[
 AC_CONFIG_FILES([Makefile
          src/Makefile])
 AC_OUTPUT
+
+
+# Print final deps info:
+
+AC_MSG_NOTICE([${LIBS_DEP_INFO_TEXT}])
+echo "
+This results in the following feature set:
+  Graphics: ${GRAPHICS_FEATURE_ENABLED}
+  Null device graphics: ${NULL_GRAPHICS_FEATURE_ENABLED}
+  Audio: ${AUDIO_FEATURE_ENABLED}
+  Null device audio: ${NULL_AUDIO_FEATURE_ENABLED}
+  Flac decooding: ${FLAC_FEATURE_ENABLED}
+  Speex-based resampling: ${SPEEX_RESAMPLING_FEATURE_ENABLED}
+  Runtime FFmpeg support: ${FFMPEG_FEATURE_ENABLED}
+  Physics simulation support: ${PHYSICS_FEATURE_ENABLED}"
+
 
