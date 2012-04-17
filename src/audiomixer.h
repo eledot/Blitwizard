@@ -21,7 +21,6 @@
 
 */
 
-#ifdef USE_SOUND
 
 extern int s16mixmode; // 1: output s16 samples, 0: output float32 samples (default)
 void* audiomixer_GetBuffer(unsigned int len);
@@ -33,9 +32,4 @@ void audiomixer_AdjustSound(int id, float volume, float panning);
 int audiomixer_IsSoundPlaying(int id);
 int audiomixer_NoSoundsPlaying();
 
-#else
-
-#define compiled_without_audio "No audio available - this binary was compiled with audio (including null device) disabled
-
-#endif
 

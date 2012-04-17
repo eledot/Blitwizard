@@ -50,6 +50,14 @@ void audio_UnlockAudioThread();
 void audio_Quit();
 //Quit audio backend completely
 
+#else
+
+#define compiled_without_audio "No audio available - this binary was compiled with audio (including null device) disabled"
+
 #endif
+#else
+
+#define compiled_without_audio "No audio available - this binary was compiled with audio (including null device) disabled"
+
 #endif
 

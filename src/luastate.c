@@ -317,7 +317,8 @@ void* internaltracebackfunc() {
 static int debug_traceback(lua_State* l) {
     lua_pushstring(l, "rememberedtraceback");
     lua_gettable(l, LUA_REGISTRYINDEX);
-    lua_call(l, 0, 0);
+    lua_call(l, 0, 1);
+    return 1;
 }
 
 void luastate_RememberTracebackFunc(lua_State* l) {
@@ -332,7 +333,7 @@ void luastate_RememberTracebackFunc(lua_State* l) {
     lua_settable(l, LUA_REGISTRYINDEX);
 }
 
-void luastate_VoidDebug() {
+static void luastate_VoidDebug(lua_State* l) {
     //void debug table
     lua_pushnil(l);
     lua_setglobal(l, "debug");

@@ -29,6 +29,7 @@
 #include "lua.h"
 #include "lauxlib.h"
 
+#include "os.h"
 #include "luafuncs.h"
 #include "graphics.h"
 #include "timefuncs.h"
@@ -875,7 +876,7 @@ int luafuncs_openConsole(lua_State* intentionally_unused) {
     return 0;
 }
 
-#ifdef USE_SOUND
+#ifdef USE_AUDIO
 static int soundfromstack(lua_State* l, int index) {
     if (lua_type(l, index) != LUA_TUSERDATA) {
         return -1;
@@ -892,7 +893,7 @@ static int soundfromstack(lua_State* l, int index) {
 #endif
 
 int luafuncs_stop(lua_State* l) {
-#ifdef USE_SOUND
+#ifdef USE_AUDIO
     main_InitAudio();
     int id = soundfromstack(l, 1);
     if (id < 0) {
@@ -901,14 +902,14 @@ int luafuncs_stop(lua_State* l) {
     }
     audiomixer_StopSound(id);
     return 0;
-#else //ifdef USE_SOUND
+#else //ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_sound);
     return lua_error(l);
 #endif
 }
 
 int luafuncs_playing(lua_State* l) {
-#ifdef USE_SOUND
+#ifdef USE_AUDIO
     main_InitAudio();
     int id = soundfromstack(l, 1);
     if (id < 0) {
@@ -921,14 +922,14 @@ int luafuncs_playing(lua_State* l) {
         lua_pushboolean(l, 0);
     }
     return 1;
-#else //ifdef USE_SOUND
+#else //ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_sound);
     return lua_error(l);
 #endif
 }
 
 int luafuncs_adjust(lua_State* l) {
-#ifdef USE_SOUND
+#ifdef USE_AUDIO
     main_InitAudio();
     int id = soundfromstack(l, 1);
     if (id < 0) {
@@ -952,14 +953,14 @@ int luafuncs_adjust(lua_State* l) {
 
     audiomixer_AdjustSound(id, volume, panning);
     return 0;
-#else //ifdef USE_SOUND
+#else //ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_sound);
     return lua_error(l);
 #endif
 }
 
 int luafuncs_play(lua_State* l) {
-#ifdef USE_SOUND
+#ifdef USE_AUDIO
     main_InitAudio();
     const char* p = lua_tostring(l, 1);
     if (!p) {
@@ -1030,7 +1031,7 @@ int luafuncs_play(lua_State* l) {
         return lua_error(l);
     }
     return 1;
-#else //ifdef USE_SOUND
+#else //ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_sound);
     return lua_error(l);
 #endif
