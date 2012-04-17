@@ -285,11 +285,18 @@ AS_IF([test ! -f "src/ogg/src/framing.c"],[
 AC_MSG_CHECKING([for static libFLAC library])
 AS_IF([test ! -f "src/flac/src/libFLAC/lpc.c"],[
     AC_MSG_RESULT([no])
+
+    # Check for shared FLAC lib:
+    HAVESHAREDFLAC="no"
     AC_CHECK_LIB([FLAC], [FLAC__stream_decoder_new],[
-        #shared lib is there!
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+        AC_CHECK_HEADER([FLAC/format.h], [
+            HAVESHAREDFLAC="yes"
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libFLAC: shared"
-    ],[
+        ])
+    ])
+
+    AS_IF([test "x$HAVESHAREDFLAC" = xno],[
         #nothing there
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libFLAC: no"
@@ -308,19 +315,21 @@ AS_IF([test ! -f "src/flac/src/libFLAC/lpc.c"],[
 AC_MSG_CHECKING([for static libspeex library])
 AS_IF([test ! -f "src/speex/src/speexdec.c"],[
     AC_MSG_RESULT([no])
+
+    # Check for shared speex lib:
+    HAVESHAREDSPEEX="no"
     AC_CHECK_LIB([speexdsp], [speex_resampler_init],[
         AC_CHECK_LIB([speex], [speex_encoder_init],[
-            #shared lib is there!
-            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+            AC_CHECK_HEADER([speex/speex_resampler.h], [
+                HAVESHAREDSPEEX="yes"
+                LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libspeex: shared"
-        ],[
-            #nothing here
-            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  libspeex: no"
-            SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libspeex"
+            ])
         ])
-    ],[
-        #incomplete
+    ])
+
+    # Deactivate features if necessary:
+    AS_IF([test "x$HAVESHAREDSPEEX" = xno],[
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libspeex: no"
         SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libspeex"

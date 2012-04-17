@@ -56,9 +56,9 @@ the blitwizard folder. Have fun!
 == Guide for FFmpeg support ==
 
 Blitwizard can use FFmpeg to support a huge amount of audio formats
-instead of just .ogg (see README.txt).
+instead of just .ogg and .flac (see README.txt).
 
-Provide blitwizard with the FFmpeg source code before you do the
+Provide Blitwizard with the FFmpeg source code before you do the
 configure step or it won't have FFmpeg support at runtime.
 
 Put the contents of a recent FFmpeg tarball (check http://ffmpeg.org/)

@@ -215,10 +215,10 @@ if [ -e "./bin/blitwizard.exe" ]; then
     cp ../blitwizard/Run-Blitwizard.bat ./
     
     # Add FFmpeg to windows distribution
-    cp ../../src/ffmpeg/libavformat/avformat.dll ./bin/avformat.dll
-    cp ../../src/ffmpeg/libavutil/avutil.dll ./bin/avutil.dll
-    cp ../../src/ffmpeg/libavcodec/avcodec.dll ./bin/avcodec.dll
-    cp ../blitwizard/ffmpeg-*.tar.bz2 ./
+#    cp ../../src/ffmpeg/libavformat/avformat.dll ./bin/avformat.dll
+#    cp ../../src/ffmpeg/libavutil/avutil.dll ./bin/avutil.dll
+#    cp ../../src/ffmpeg/libavcodec/avcodec.dll ./bin/avcodec.dll
+#    cp ../blitwizard/ffmpeg-*.tar.bz2 ./
 fi
 
 # detect todos or unix2dos
