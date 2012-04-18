@@ -7,6 +7,9 @@ you write to specify the behaviour of your game/multimedia application.
 LICENSE:
 
   The license of blitwizard is zlib (open e.g. src/main.c and read at the top).
+  The examples are public domain including graphics, except for the blitwizard
+  logo.
+  Logo copyright notice: Copyright (C) by uoou
 
   If you link libs statically by following the guide in README-deps.txt,
   check README-libs.txt and their source code for license remarks.

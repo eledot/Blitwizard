@@ -622,10 +622,9 @@ Build flags:
   Feature flags: $FINAL_USE_LIB_FLAGS"
 
 
-# Conserve the build flags for the make script
+# Add the build flags for the make script
 
-echo "$FINAL_LD_FLAGS" > scripts/.ldflags
-echo "$FINAL_INCLUDE_FLAGS" > scripts/.includeflags
-echo "$FINAL_USE_LIB_FLAGS" > scripts/.uselibflags
-
+CFLAGS="$FINAL_INCLUDE_FLAGS $CFLAGS $FINAL_USE_LIB_FLAGS"
+CXXFLAGS="$FINAL_INCLUDE_FLAGS $CFLAGS $FINAL_USE_LIB_FLAGS"
+LIBS="$FINAL_LD_FLAGS $LIBS"
 
