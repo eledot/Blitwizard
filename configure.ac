@@ -13,10 +13,6 @@ AC_PROG_CXX
 AC_PROG_MAKE_SET
 AC_CANONICAL_HOST
 
-AS_IF([test -e "scripts/.depsarebuilt"], [
-    rm scripts/.depsarebuilt
-])
-
 #AC_DISABLE_SHARED
 #AC_PROG_LIBTOOL
 

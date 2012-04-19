@@ -7,14 +7,23 @@ static_libs_use=`cat scripts/.buildinfo | grep STATIC_LIBS_USE | sed -e 's/^.*\=
 
 changedhost=""
 
+# Check if our previous build target was a different platform:
+REBUILDALL="no"
 if [ -f scripts/.depsarebuilt ]; then
     depsluatarget=`cat scripts/.depsarebuilt`
     if [ "$luatarget" != "$depsluatarget" ]; then
-        echo "Deps will be rebuilt to match new different target.";
-        changedhost="yes";
-        rm libs/libblitwwizard*.a
-        rm libs/libimglib.a
+        # target has changed
+        REBUILDALL="yes"
     fi
+else
+    # we had no previous known target at all, so obviously yes!
+    REBUILDALL="yes"
+fi
+if [ "$REBUILDALL" = "yes" ]; then
+    echo "Deps will be rebuilt to match new different target.";
+    changedhost="yes";
+    rm libs/libblitwizard*.a
+    rm libs/libimglib.a
 fi
 
 CC=`cat scripts/.buildinfo | grep CC | sed -e 's/^.*\=//'`
