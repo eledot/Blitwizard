@@ -65,7 +65,7 @@ if [ ! -e libs/libblitwizardogg.a ]; then
     fi
 fi
 
-if [ ! -e libs/libFLAC.a ]; then
+if [ ! -e libs/libblitwizardFLAC.a ]; then
     if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
         echo "Compiling libFLAC..."
         if [ -n "`echo $static_libs_use | grep ogg`" ]; then

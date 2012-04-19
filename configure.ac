@@ -469,11 +469,6 @@ AS_IF([test "x$?" != x0],[
     AC_MSG_RESULT([yes])
 ])
 
-AC_CONFIG_FILES([Makefile
-         src/Makefile])
-AC_OUTPUT
-
-
 # Print final deps info:
 
 AC_MSG_NOTICE([${LIBS_DEP_INFO_TEXT}])
@@ -624,7 +619,16 @@ Build flags:
 
 # Add the build flags for the make script
 
+AC_SUBST(FINAL_INCLUDE_FLAGS)
+AC_SUBST(FINAL_USE_LIB_FLAGS)
+AC_SUBST(FINAL_LD_FLAGS)
+
 CFLAGS="$FINAL_INCLUDE_FLAGS $CFLAGS $FINAL_USE_LIB_FLAGS"
 CXXFLAGS="$FINAL_INCLUDE_FLAGS $CFLAGS $FINAL_USE_LIB_FLAGS"
 LIBS="$FINAL_LD_FLAGS $LIBS"
 
+
+
+AC_CONFIG_FILES([Makefile
+                 src/Makefile])
+AC_OUTPUT
