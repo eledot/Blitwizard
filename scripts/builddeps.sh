@@ -221,12 +221,12 @@ if [ ! -e libs/libblitwizardFLAC.a ]; then
 fi
 if [ ! -e libs/libblitwizardspeex.a ]; then
     if [ -n "`echo $static_libs_use | grep speex`" ]; then
-        cp src/flac/src/libFLAC/.libs/libFLAC.a libs/libblitwizardspeex.a || { echo "Failed to copy libspeex"; exit 1; }
+        cp src/speex/libspeex/.libs/libspeex.a libs/libblitwizardspeex.a || { echo "Failed to copy libspeex"; exit 1; }
     fi  
 fi
 if [ ! -e libs/libblitwizardspeexdsp.a ]; then
     if [ -n "`echo $static_libs_use | grep speex`" ]; then
-        cp src/flac/src/libFLAC/.libs/libFLAC.a libs/libblitwizardspeexdsp.a || { echo "Failed to copy libspeexdsp"; exit 1; }
+        cp src/speex/libspeexdsp/.libs/libspeexdsp.a libs/libblitwizardspeexdsp.a || { echo "Failed to copy libspeexdsp"; exit 1; }
     fi  
 fi
 if [ ! -e libs/libimglib.a ]; then
