@@ -226,7 +226,7 @@ if [ ! -e libs/libblitwizardspeex.a ]; then
 fi
 if [ ! -e libs/libblitwizardspeexdsp.a ]; then
     if [ -n "`echo $static_libs_use | grep speex`" ]; then
-        cp src/speex/libspeexdsp/.libs/libspeexdsp.a libs/libblitwizardspeexdsp.a || { echo "Failed to copy libspeexdsp"; exit 1; }
+        cp src/speex/libspeex/.libs/libspeexdsp.a libs/libblitwizardspeexdsp.a || { echo "Failed to copy libspeexdsp"; exit 1; }
     fi  
 fi
 if [ ! -e libs/libimglib.a ]; then
