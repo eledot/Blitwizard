@@ -6,8 +6,10 @@
 # libpng versions known to work are: 1.5.5
 
 FILES:=pngloader.o imgloader.o
-SSEFLAGS:=`cd ../../ && sh scripts/checksse.sh && cd src/imgloader/`
+SSEFLAGS:=`cd ../../ && sh scripts/checksse.sh`
+SSEFLAGS2:=`cd ../../../ && sh scripts/checksse.sh`
 CFLAGS:=-O2 -fomit-frame-pointer -ffast-math $(SSEFLAGS) -I./zlib/ -I. -DDEBUGLOG
+CFLAGS2:=-O2 -fomit-frame-pointer -ffast-math $(SSEFLAGS2) -I./zlib/ -I. -DDEBUGLOG
 CROSSCOMPILER:=i686-pc-mingw32-gcc
 EMPTY:=
 ifeq ($(AR),$(EMPTY))
@@ -20,11 +22,11 @@ comp: clean-objs $(FILES)
 deps-png:
 	yes n | cp -i png/scripts/pnglibconf.h.prebuilt png/pnglibconf.h
 	-mv png/pngvalid.c png/pngvalid.c.skip
-	cd png && rm -rf ./*.o && $(CC) -I./ -I../zlib/ -c $(CFLAGS) -DPNG_STATIC *.c && rm -rf ./*test*.o
+	cd png && rm -rf ./*.o && $(CC) -I./ -I../zlib/ -c $(CFLAGS2) -DPNG_STATIC *.c && rm -rf ./*test*.o
 	rm -f ./libcustompng.a
 	$(AR) rcs libcustompng.a png/*.o
 deps-zlib:
-	cd zlib && rm -rf ./*.o && rm -f ./example.c && rm -rf ./minigzip.c && $(CC) -I./ -I../png/ -c $(CFLAGS) *.c
+	cd zlib && rm -rf ./*.o && rm -f ./example.c && rm -rf ./minigzip.c && $(CC) -I./ -I../png/ -c $(CFLAGS2) *.c
 	rm -f ./libcustomzlib.a
 	$(AR) rcs libcustomzlib.a zlib/*.o
 clean-objs:

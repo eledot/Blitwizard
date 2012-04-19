@@ -239,7 +239,7 @@ if [ ! -e libs/libblitwizardspeexdsp.a ]; then
     fi  
 fi
 if [ ! -e libs/libimglib.a ]; then
-    if [ -n "`echo $static_libs_use | grep imglib`" ]; then
+    if [ -n "`echo $static_libs_use | grep imgloader`" ]; then
         cp src/imgloader/libimglib.a libs/ || { echo "Failed to copy imglib"; exit 1; }
     fi
 fi

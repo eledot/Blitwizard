@@ -21,6 +21,8 @@
 
 */
 
+#ifdef USE_AUDIO
+
 #define FFMPEGDEBUG
 
 #ifdef USE_FFMPEG
@@ -57,7 +59,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
     return 0; //return failure
 }
 
-#else
+#else //ifdef USE_FFMPEG
 
 #define AVIOBUFSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
 
@@ -615,12 +617,10 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     struct audiosourceffmpeg_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->source = source;
-#ifdef USE_FFMPEG
     if (audiosourceffmpeg_LoadFFmpeg()) {
         ffmpeg_av_init_packet(&idata->packet);
         idata->decodedframe = ffmpeg_avcodec_alloc_frame();
     }
-#endif
 
     //without packet data we cannot continue:
     if (!idata->decodedframe) {
@@ -651,5 +651,6 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     return a;
 }
 
-#endif
+#endif //ifdef USE_FFMPEG
 
+#endif //ifdef USE_AUDIO

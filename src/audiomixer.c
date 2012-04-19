@@ -21,6 +21,8 @@
 
 */
 
+#ifdef USE_AUDIO
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -426,4 +428,6 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
     
     return streambuf;
 }
+
+#endif //ifdef USE_AUDIO
 

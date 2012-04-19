@@ -22,6 +22,8 @@
 */
 
 #include "os.h"
+
+#ifdef USE_AUDIO
 #include <stdlib.h>
 #include <string.h>
 
@@ -385,3 +387,4 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
     return a;
 }
 
+#endif //ifdef USE_AUDIO

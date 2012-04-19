@@ -144,6 +144,7 @@ void printinfo(const char* fmt, ...) {
 int simulateaudio = 0;
 int audioinitialised = 0;
 void main_InitAudio() {
+#ifdef USE_AUDIO
     if (audioinitialised) {return;}
     audioinitialised = 1;
     char* error;
@@ -187,6 +188,9 @@ void main_InitAudio() {
     simulateaudio = 1;
     s16mixmode = 0;
 #endif
+#else //ifdef USE_AUDIO
+    return;
+#endif //ifdef USE_AUDIO
 }
 
 
@@ -504,9 +508,11 @@ int main(int argc, char** argv) {
         }
         i++;
     }
-    
+
+#ifdef USE_AUDIO    
     //This needs to be done at some point before we actually initialise audio
     audiomixer_Init();
+#endif
 
     //check the provided path:
     char outofmem[] = "Out of memory";
@@ -679,6 +685,7 @@ int main(int argc, char** argv) {
             while (main_ProcessNoThreadedReading() && start + 20 > time_GetMilliSeconds()) { }
 #endif      
     
+#ifdef USE_AUDIO
             //simulate audio
             if (simulateaudio) {
                 while (simulateaudiotime < time_GetMilliSeconds()) {
@@ -686,6 +693,7 @@ int main(int argc, char** argv) {
                     simulateaudiotime += 1; // 48 * 1000 times * 4 bytes * 2 channels per second = simulated 48kHz 32bit stereo audio
                 }
             }
+#endif //ifdef USE_AUDIO
 
             //limit to roughly 60 FPS
             uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;

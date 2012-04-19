@@ -856,7 +856,7 @@ int luafuncs_getRendererName(lua_State* l) {
 }
 
 int luafuncs_getBackendName(lua_State* l) {
-#ifdef USE_GRAPHICS
+#ifdef USE_AUDIO
     main_InitAudio();
     const char* p = audio_GetCurrentBackendName();
     if (p) {
@@ -865,8 +865,8 @@ int luafuncs_getBackendName(lua_State* l) {
         lua_pushstring(l, "null driver");
     }
     return 1;
-#else //ifdef USE_GRAPHICS
-    lua_pushstring(l, compiled_without_graphics);
+#else //ifdef USE_AUDIO
+    lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
 }
@@ -903,7 +903,7 @@ int luafuncs_stop(lua_State* l) {
     audiomixer_StopSound(id);
     return 0;
 #else //ifdef USE_AUDIO
-    lua_pushstring(l, compiled_without_sound);
+    lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
 }
@@ -923,7 +923,7 @@ int luafuncs_playing(lua_State* l) {
     }
     return 1;
 #else //ifdef USE_AUDIO
-    lua_pushstring(l, compiled_without_sound);
+    lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
 }
@@ -954,7 +954,7 @@ int luafuncs_adjust(lua_State* l) {
     audiomixer_AdjustSound(id, volume, panning);
     return 0;
 #else //ifdef USE_AUDIO
-    lua_pushstring(l, compiled_without_sound);
+    lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
 }
@@ -1032,7 +1032,7 @@ int luafuncs_play(lua_State* l) {
     }
     return 1;
 #else //ifdef USE_AUDIO
-    lua_pushstring(l, compiled_without_sound);
+    lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
 }
