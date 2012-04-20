@@ -38,6 +38,7 @@
 #include "SDL.h"
 #include "SDL_syswm.h"
 #include "graphics.h"
+#include "graphicstexture.h"
 #include "imgloader.h"
 #include "timefuncs.h"
 #include "hash.h"
@@ -46,7 +47,14 @@
 #include "main.h"
 #endif
 
+#if USE_SDL_GRAPHICS
 static SDL_Window* mainwindow;
+#else
+static unsigned int nulldevicewidth = 0;
+static unsigned int nulldeviceheight = 0;
+static unsigned int nulldevicefullscreen = 0;
+static char* nulldevicetitle = NULL;
+#endif
 static int mainwindowfullscreen;
 static SDL_Renderer* mainrenderer;
 static int sdlvideoinit = 0;
@@ -75,18 +83,35 @@ struct graphicstexture {
 };
 
 hashmap* texhashmap = NULL;
-
-static struct graphicstexture* graphics_GetTextureByName(const char* name) {
-    uint32_t i = hashmap_GetIndex(texhashmap, name, strlen(name), 1);
-    struct graphicstexture* gt = (struct graphicstexture*)(texhashmap->items[i]);
-    while (gt && !(strcasecmp(gt->name, name) == 0)) {
-        gt = gt->hashbucketnext;
-    }
-    return gt;
-}
-
 int graphics_AreGraphicsRunning() {
     return graphicsvisible;
+}
+
+int graphics_HaveValidWindow() {
+#ifdef USE_SDL_GRAPHICS
+    if (mainwindow) {return 1;}
+#else
+    if (nulldevicewidth && nulldeviceheight) {return 1;}
+#endif
+    return 0;
+}
+
+void graphics_InvalidateHWTexture(struct graphicstexture* gt) {
+#ifdef USE_SDL_GRAPHICS
+    if (gt->tex) {
+        SDL_DestroyTexture(gt->tex);
+        gt->tex = NULL;
+    }
+#endif
+}
+
+void graphics_DestroyHWTexture(struct graphicstexture* gt) {
+#ifdef USE_SDL_GRAPHICS    
+    if (gt->tex){
+        SDL_DestroyTexture(gt->tex);
+        gt->tex = NULL;
+    }
+#endif
 }
 
 static int graphics_InitVideoSubsystem(char** error) {
@@ -127,7 +152,8 @@ int graphics_Init(char** error) {
     return 1;
 }
 
-int graphics_TextureToSDL(struct graphicstexture* gt) {
+int graphics_TextureToHW(struct graphicstexture* gt) {
+#ifdef USE_SDL_GRAPHICS
     if (gt->tex || gt->threadingptr || !gt->name) {return 1;}
 
     //create texture
@@ -164,35 +190,13 @@ int graphics_TextureToSDL(struct graphicstexture* gt) {
     
     gt->tex = t;
     return 1;
+#else //ifdef USE_SDL_GRAPHICS
+    return 1;
+#endif
 }
 
-void graphics_AddTextureToHashmap(struct graphicstexture* gt) {
-    uint32_t i = hashmap_GetIndex(texhashmap, gt->name, strlen(gt->name), 1);
-    gt->hashbucketnext = (struct graphicstexture*)(texhashmap->items[i]);
-    texhashmap->items[i] = gt;
-}
-
-void graphics_RemoveTextureFromHashmap(struct graphicstexture* gt) {
-    uint32_t i = hashmap_GetIndex(texhashmap, gt->name, strlen(gt->name), 1);
-    struct graphicstexture* gt2 = (struct graphicstexture*)(texhashmap->items[i]);
-    struct graphicstexture* gtprev = NULL;
-    while (gt2) {
-        if (gt2 == gt) {
-            if (gtprev) {
-                gtprev->next = gt->hashbucketnext;
-            }else{
-                texhashmap->items[i] = gt->hashbucketnext;
-            }
-            gt->hashbucketnext = NULL;
-            return;
-        }
-
-        gtprev = gt2;
-        gt2 = gt2->hashbucketnext;
-    }
-}
-
-void graphics_TextureFromSDL(struct graphicstexture* gt) {
+void graphics_TextureFromHW(struct graphicstexture* gt) {
+#ifdef USE_SDL_GRAPHICS
     if (!gt->tex || gt->threadingptr || !gt->name) {return;}
 
     if (!gt->pixels) {  
@@ -226,36 +230,9 @@ void graphics_TextureFromSDL(struct graphicstexture* gt) {
         
     SDL_DestroyTexture(gt->tex);
     gt->tex = NULL;
-}
-
-void graphics_TransferTexturesFromSDL() {
-    struct graphicstexture* gt = texlist;
-    while (gt) {
-        graphics_TextureFromSDL(gt);
-        gt = gt->next;
-    }
-}
-
-void graphics_InvalidateSDLTextures() {
-    struct graphicstexture* gt = texlist;
-    while (gt) {
-        if (gt->tex) {
-            SDL_DestroyTexture(gt->tex);
-            gt->tex = NULL;
-        }
-        gt = gt->next;
-    }
-}
-
-int graphics_TransferTexturesToSDL() {
-    struct graphicstexture* gt = texlist;
-    while (gt) {
-        if (!graphics_TextureToSDL(gt)) {
-            return 0;
-        }
-        gt = gt->next;
-    }
-    return 1;
+#else //ifdef USE_SDL_GRAPHICS
+    return;
+#endif
 }
 
 void graphics_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a) {
@@ -272,6 +249,7 @@ void graphics_DrawRectangle(int x, int y, int width, int height, float r, float 
 }
 
 int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
+#ifdef USE_SDL_GRAPHICS
     struct graphicstexture* gt = graphics_GetTextureByName(texname);
     if (!gt || gt->threadingptr || !gt->tex) {
         return 0;
@@ -325,6 +303,16 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
         SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
     }
     return 1;
+#else // #ifdef USE_SDL_GRAPHICS
+    //while we cannot truly draw with the null device,
+    //ensure the texture is at least valid and loaded from disk:
+
+    struct graphicstexture* gt = graphics_GetTextureByName(texname);
+    if (!gt || gt->threadingptr) {
+        return 0;
+    }
+    return 1;
+#endif // #ifdef USE_SDL_GRAPHICS
 }
 
 int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
@@ -332,6 +320,7 @@ int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int d
 }
 
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
+#ifdef USE_SDL_GRAPHICS
     if (mainwindow) {
         int w,h;
         SDL_GetWindowSize(mainwindow, &w,&h);
@@ -340,6 +329,13 @@ int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
         *height = h;
         return 1;
     }
+#else //ifdef USE_SDL_GRAPHICS
+    if (nullrendererwith) {
+        *width = nullrendererwith;
+        *height = nullrendererheight;
+        return 1;
+    }
+#endif
     return 0;
 }
 
@@ -360,7 +356,6 @@ static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userd
 #else
     //workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1422
     int i = main_NoThreadedRWopsRead(ops, buffer, 1, bytes);
-    time_Sleep(10); //let other threads read stuff aswell
 #endif
     return i;
 }
@@ -421,7 +416,7 @@ int graphics_PromptTextureLoading(const char* texture) {
     //add us to the list
     gt->next = texlist;
     texlist = gt;
-    graphics_AddTextureToHashmap(gt);
+    graphicstexlist_AddTextureToHashmap(gt);
     return 1;
 }
 
@@ -430,12 +425,9 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
         free(gt->pixels);
         gt->pixels = NULL;
     }
-    if (gt->tex){
-        SDL_DestroyTexture(gt->tex);
-        gt->tex = NULL;
-    }
+    graphics_DestroyHWTexture(gt);
     if (gt->name) {
-        graphics_RemoveTextureFromHashmap(gt);
+        graphicstexlist_RemoveTextureFromHashmap(gt);
         free(gt->name);
         gt->name = NULL;
     }
@@ -471,8 +463,8 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstextu
         gt->width = width;
         gt->height = height;
         success = 1;
-        if (graphics_AreGraphicsRunning() && gt->name && mainwindow) {
-            if (!graphics_TextureToSDL(gt)) {
+        if (graphics_AreGraphicsRunning() && gt->name && graphics_HaveValidWindow()) {
+            if (!graphics_TextureToHW(gt)) {
                 success = 0;
             }
         }
@@ -491,27 +483,19 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstextu
     return 1;
 }
 
-struct graphicstexture* graphics_GetPreviousTexture(struct graphicstexture* gt) {
-    struct graphicstexture* gtprev = texlist;
-    while (gtprev && !(gtprev->next == gt)) {
-        gtprev = gtprev->next;
-    }
-    return gtprev;
-}
 
 int graphics_LoadTextureInstantly(const char* texture) {
     //prompt normal async texture loading
     if (!graphics_PromptTextureLoading(texture)) {
         return 0;
     }
-    struct graphicstexture* gt = graphics_GetTextureByName(texture);
+    struct graphicstexture* gt = graphicstexturelist_GetTextureByName(texture);
     if (!gt) {
         return 0;
     }
 
     //wait for loading to finish
     while (!img_CheckSuccess(gt->threadingptr)) {
-        time_Sleep(10);
 #ifdef SDLRW
 #ifdef NOTHREADEDSDLRW
         main_ProcessNoThreadedReading();
@@ -524,61 +508,44 @@ int graphics_LoadTextureInstantly(const char* texture) {
 }
 
 void graphics_UnloadTexture(const char* texname) {
-    struct graphicstexture* gt = graphics_GetTextureByName(texname);
+    struct graphicstexture* gt = graphicstexturelist_GetTextureByName(texname);
     if (gt && !gt->threadingptr) {
-        struct graphicstexture* gtprev = graphics_GetPreviousTexture(gt);
+        struct graphicstexture* gtprev = graphicstexturelist_GetPreviousTexture(gt);
         graphics_FreeTexture(gt, gtprev);
     }
 }
 
-int graphics_FreeAllTextures() {
-    int fullycleaned = 1;
-    struct graphicstexture* gt = texlist;
-    struct graphicstexture* gtprev = NULL;
-    while (gt) {
-        if (!graphics_FreeTexture(gt, gtprev)) {
-            fullycleaned = 0;
+static int graphics_CheckTextureLoadingCallback(struct graphicstexture* gt, struct graphicstexture* gtprev) {
+    if (gt->threadingptr) {
+        //texture which is currently being loaded
+        if (img_CheckSuccess(gt->threadingptr)) {
+            if (!graphics_FinishImageLoading(gt,gtprev,callback)) {
+                //keep old valid gtprev, this entry is deleted now
+                return 0;
+            }
         }
-        gtprev = gt;
-        gt = gt->next;
+    }else{
+        if (!gt->name) {
+            //delete abandoned textures
+            graphics_FreeTexture(gt, gtprev);
+
+            //keep old valid gtprev
+            return 0;
+        }
     }
-    return fullycleaned;
+    return 1;   
 }
 
 void graphics_CheckTextureLoading(void (*callback)(int success, const char* texture)) {
-    struct graphicstexture* gt = texlist;
-    struct graphicstexture* gtprev = NULL;
-    while (gt) {
-        struct graphicstexture* gtnext = gt->next;
-        if (gt->threadingptr) {
-            //texture which is currently being loaded
-            if (img_CheckSuccess(gt->threadingptr)) {
-                if (!graphics_FinishImageLoading(gt,gtprev,callback)) {
-                    //keep old valid gtprev, this entry is deleted now
-                    gt = gtnext;
-                    continue;
-                }
-            }
-        }else{
-            if (!gt->name) {
-                //delete abandoned textures
-                graphics_FreeTexture(gt, gtprev);
-
-                //keep old valid gtprev
-                gt = gtnext;
-                continue;
-            }
-        }
-        gtprev = gt;
-        gt = gtnext;
-    }
+    graphicstexturelist_DoForAllTextures(&graphics_CheckTextureLoadingCallback);
 }
 
 void graphics_Close(int preservetextures) {
     graphicsvisible = 0;
+#ifdef USE_SDL_GRAPHICS
     if (mainrenderer) {
         if (preservetextures) {
-            graphics_TransferTexturesFromSDL();
+            graphicstexturelist_TransferTexturesFromHW();
         }
         SDL_DestroyRenderer(mainrenderer);
         mainrenderer = NULL;
@@ -587,12 +554,21 @@ void graphics_Close(int preservetextures) {
         SDL_DestroyWindow(mainwindow);
         mainwindow = NULL;
     }
+#else
+    nullrendererwidth = 0;
+    nullrendererheight = 0;
+    if (nullrenderertitle) {
+        free(nullrenderertitle);
+        nullrenderertitle = NULL;
+    }
+#endif
 }
 
 #ifdef ANDROID
 void graphics_ReopenForAndroid() {
+#ifdef USE_SDL_GRAPHICS
     //throw away hardware textures:
-    graphics_InvalidateSDLTextures();
+    graphicstexturelist_InvalidateSDLTextures();
     
     //preserve old window size:
     int w,h;
@@ -623,24 +599,33 @@ void graphics_ReopenForAndroid() {
     graphics_SetMode(w, h, 1, 0, title, renderer, &e);
 
     //transfer textures back to hardware:
-    graphics_TransferTexturesToSDL();
+    graphicstexturelist_TransferTexturesToHW();
+#endif //ifdef USE_SDL_GRAPHICS
 }
 #endif
 
 const char* graphics_GetWindowTitle() {
+#ifdef USE_SDL_GRAPHICS
     if (!mainrenderer || !mainwindow) {return NULL;}
-    return SDL_GetWindowTitle(mainwindow); 
+    return SDL_GetWindowTitle(mainwindow);
+#else
+    if (!nullrendererwidth && !nullrendererheight) {return NULL;}
+    return nullrenderertitle;
+#endif
 }
 
 void graphics_Quit() {
     graphics_Close(0);
+#ifdef USE_SDL_GRAPHICS
     if (sdlvideoinit) {
         SDL_VideoQuit();
         sdlvideoinit = 0;
     }
     SDL_Quit();
+#endif
 }
 
+#ifdef USE_SDL_GRAPHICS
 SDL_RendererInfo info;
 #if defined(ANDROID)
 static char openglstaticname[] = "opengl";
@@ -658,7 +643,12 @@ const char* graphics_GetCurrentRendererName() {
 #endif
     return info.name;
 }
+#else //ifdef USE_SDL_GRAPHICS
+static char nullstaticname[] = "nulldevice";
+const char* graphics_GetCurrentRendererName() {return nullstaticname;}
+#endif //ifdef USE_SDL_GRAPHICS
 
+#ifdef USE_SDL_GRAPHICS
 int* videomodesx = NULL;
 int* videomodesy = NULL;
 
@@ -715,8 +705,10 @@ static void graphics_ReadVideoModes() {
         i++;
     }
 }
+#endif //ifdef USE_SDL_GRAPHICS
 
 int graphics_GetNumberOfVideoModes() {
+#ifdef USE_SDL_GRAPHICS
     char* error;
     if (!graphics_InitVideoSubsystem(&error)) {
         printwarning("Failed to initialise video subsystem: %s", error);
@@ -728,16 +720,25 @@ int graphics_GetNumberOfVideoModes() {
     while (videomodesx && videomodesx[i] > 0 && videomodesy && videomodesy[i] > 0) {
         i++;
     }
-    return i; 
+    return i;
+#else //ifdef USE_SDL_GRAPHICS
+    return GRAPHICS_NULL_VIDEOMODES_COUNT;
+#endif
 }
 
 void graphics_GetVideoMode(int index, int* x, int* y) {
+#ifdef USE_SDL_GRAPHICS
     graphics_ReadVideoModes();
     *x = videomodesx[index];
     *y = videomodesy[index];
+#else
+    *x = GRAPHICS_NULL_VIDEOMODES_X[index];
+    *y = GRAPHICS_NULL_VIDEOMODES_Y[index];
+#endif
 }
 
 void graphics_GetDesktopVideoMode(int* x, int* y) {
+#ifdef USE_SDL_GRAPHICS
     char* error;
     *x = 0;
     *y = 0;
@@ -753,21 +754,39 @@ void graphics_GetDesktopVideoMode(int* x, int* y) {
     }else{
         printwarning("Unable to determine desktop video mode: %s", SDL_GetError());
     }
+#else //ifdef USE_SDL_GRAPHICS
+    if (nulldevicefullscreen && nulldevicewidth) {
+        *x = nulldevicewidth;
+        *y = nulldeviceheight;
+    }else{
+        *x = GRAPHICS_NULL_DESKTOPWIDTH;
+        *y = GRAPHICS_NULL_DESKTOPHEIGHT;
+    }
+#endif
 }
 
 void graphics_MinimizeWindow() {
+#ifdef USE_SDL_GRAPHICS
     if (!mainwindow) {return;}
     SDL_MinimizeWindow(mainwindow);
+#endif
 }
 
 int graphics_IsFullscreen() {
+#ifdef USE_SDL_GRAPHICS
     if (mainwindow) {
         return mainwindowfullscreen;
     }
+#else
+    if (nullrendererwidth) {
+        return nullrendererfullscreen;
+    }
+#endif
     return 0;
 }
 
 void graphics_ToggleFullscreen() {
+#ifdef USE_SDL_GRAPHICS
     if (!mainwindow) {return;}
     SDL_bool wantfull = SDL_TRUE;
     if (mainwindowfullscreen) {
@@ -780,10 +799,19 @@ void graphics_ToggleFullscreen() {
             mainwindowfullscreen = 0;
         }
     }
+#else //ifdef USE_SDL_GRAPHICS
+    if (!nullrendererwidth) {return;}
+    if (nullrendererfullscreen) {
+        nullrendererfullscreen = 0;
+    }else{
+        nullrendererfullscreen = 1;
+    }
+#endif
 }
 
 #ifdef WINDOWS
 HWND graphics_GetWindowHWND() {
+#ifdef USE_SDL_GRAPHICS
     if (!mainwindow) {return NULL;}
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
@@ -792,12 +820,12 @@ HWND graphics_GetWindowHWND() {
             return info.info.win.window;
         }
     }
+#endif //ifdef USE_SDL_GRAPHICS
     return NULL;
 }
 #endif
 
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error) {
-    char errormsg[512];
 
 #if defined(ANDROID)
     if (!fullscreen) {
@@ -806,6 +834,10 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         return 0;
     }
 #endif
+
+
+#ifdef USE_SDL_GRAPHICS
+    char errormsg[512];
 
     //initialize SDL video if not done yet
     if (!graphics_InitVideoSubsystem(error)) {
@@ -979,7 +1011,25 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         return 0;
     }
     graphicsvisible = 1;
+#else //ifdef USE_SDL_GRAPHICS
+    if (width < 1 || height < 1) {return NULL;}
+    if (fullscreen) {
+        nullrendererfullscreen = 1;
+    }else{
+        nullrendererfullscreen = 0;
+    }
+    nullrendererwidth = width;
+    nullrendererheight = height;
+    if (nullrenderertitle) {
+        free(nullrenderertitle);
+        nullrenderertitle();
+    }
+    nullrenderertitle = strdup(title);    
+    if (nullrenderertitle) {
+        nullrenderertitle = strdup("");
+    }
     return 1;
+#endif
 }
 
 int graphics_IsTextureLoaded(const char* name) {
@@ -997,18 +1047,23 @@ int graphics_IsTextureLoaded(const char* name) {
 }
 
 void graphics_StartFrame() {
+#ifdef USE_SDL_GRAPHICS
     SDL_SetRenderDrawColor(mainrenderer, 0, 0, 0, 1);
     SDL_RenderClear(mainrenderer);
+#endif
 }
 
 void graphics_CompleteFrame() {
+#ifdef USE_SDL_GRAPHICS
     SDL_RenderPresent(mainrenderer);
+#endif
 }
 
 int lastfingerdownx,lastfingerdowny;
 
 int inbackground = 0;
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background)) {
+#ifdef USE_SDL_GRAPHICS
     SDL_Event e;
     while (SDL_PollEvent(&e) == 1) {
         if (e.type == SDL_QUIT) {
@@ -1120,6 +1175,7 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
             }
         }
     }
+#endif //ifdef USE_SDL_GRAPHICS
 }
 
 #endif //ifdef USE_GRAPHICS

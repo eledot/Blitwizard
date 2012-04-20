@@ -543,12 +543,13 @@ AS_IF([test "x$PHYSICS_FEATURE_ENABLED" = xyes],[
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSICS"
 ])
 
-
-# Os dependent stuff:
-
+# Get the scripts/ dir (absolute path):
 cd scripts/
 scriptsdir="`pwd`"
 cd ..
+
+
+# OS dependant things:
 AS_IF([test -z "$maybeos"],[
     AC_MSG_NOTICE([Trying to compile for a Unix target.]) 
     # >> Unix
@@ -556,10 +557,10 @@ AS_IF([test -z "$maybeos"],[
     MACTEST=`uname -a | grep Darwin`
     AS_IF([test -z "$MACTEST"],[
         LIBS="-pthread -ldl -lm"
-        WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=no"
+        WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no"
     ],[
         LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
-        WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nMACBUILD=yes"
+        WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes"
     ])
 
     echo -e "$WRITELINE" > scripts/.buildinfo
@@ -596,7 +597,7 @@ AS_IF([test -z "$maybeos"],[
     TGHOST="$host_alias"
     AC_SUBST(TGHOST)
     
-    WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no"
+    WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no"
     echo -e "$WRITELINE" > scripts/.buildinfo
 
     CFLAGS="$CFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd $scriptsdir && sh ./checksse.sh`"
