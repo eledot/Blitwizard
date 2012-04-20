@@ -115,19 +115,31 @@ const char* graphics_GetWindowTitle();
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background));
 //Check for events and return info about them through the provided callbacks
 
-void graphics_TransferTexturesFromSDL();
+void graphics_TransferTexturesFromHW();
 //Transfer textures from SDL, e.g. if app is in background
 
-int graphics_TransferTexturesToSDL();
+int graphics_TransferTexturesToHW();
 //Transfer textures back to SDL
-
-void graphics_InvalidateSDLTextures();
-//Invalidate all textures possessed by SDL
 
 #ifdef ANDROID
 void graphics_ReopenForAndroid();
 //Reopen graphics and reupload textures. Required when coming back into foreground
 #endif
+
+void graphics_TextureFromHW(struct graphicstexture* gt);
+//Push texture onto 3d accelerated hardware
+
+int graphics_TextureToHW(struct graphicstexture* gt);
+//Pull texture from 3d accelerated hardware
+
+void graphics_DestroyHWTexture(struct graphicstexture* gt);
+//Destroy the 3d texture (e.g. in preparation for free'ing the texture)
+
+int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* prev);
+//Free a texture
+
+int graphics_HaveValidWindow();
+//Returns 1 if a window is open, otherwise 0
 
 #else //ifdef USE_GRAPHICS
 

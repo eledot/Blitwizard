@@ -43,6 +43,7 @@ extern int drawingallowed; //stored in luafuncs.c
 
 #include "luastate.h"
 #include "file.h"
+#include "graphicstexture.h"
 #include "graphics.h"
 #include "timefuncs.h"
 #include "audio.h"
@@ -718,7 +719,7 @@ int main(int argc, char** argv) {
             //call the step function and advance physics
             int iterations = 0;
             while ((logictimestamp < time || physicstimestamp < time) && iterations < MAXLOGICITERATIONS) {
-                if (logictimestamp < time && logictimestamp < physicstimestamp) {
+                if (logictimestamp < time && logictimestamp <= physicstimestamp) {
                     int onstepdoesntexist = 0;
                     if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error, &onstepdoesntexist)) {
                         printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
@@ -730,7 +731,7 @@ int main(int argc, char** argv) {
                     }
                     logictimestamp += TIMESTEP;
                 }
-                if (physicstimestamp < time && physicstimestamp < logictimestamp) {
+                if (physicstimestamp < time && physicstimestamp <= logictimestamp) {
                     physics_Step(physicsdefaultworld);
                     physicstimestamp += physics_GetStepSize(physicsdefaultworld);
                 }

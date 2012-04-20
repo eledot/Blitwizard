@@ -370,7 +370,7 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
   liblua: shared"
     ],[
         #nothing there
-        AC_MSG_ERROR([Lua is required for blitwizard.])
+        AC_MSG_ERROR([Lua is required for blitwizard. Check README-deps.txt for help on how to add it.])
     ])
 ],[
     AC_MSG_RESULT([yes])
@@ -556,10 +556,10 @@ AS_IF([test -z "$maybeos"],[
 
     MACTEST=`uname -a | grep Darwin`
     AS_IF([test -z "$MACTEST"],[
-        LIBS="-pthread -ldl -lm"
+        LIBS="-pthread -ldl -lm -lrt"
         WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no"
     ],[
-        LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
+        LIBS="$LIBS -lm -liconv -lrt -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
         WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes"
     ])
 
@@ -600,8 +600,8 @@ AS_IF([test -z "$maybeos"],[
     WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no"
     echo -e "$WRITELINE" > scripts/.buildinfo
 
-    CFLAGS="$CFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd $scriptsdir && sh ./checksse.sh`"
-    CXXFLAGS="$CXXFLAGS -static-libgcc -static-libstdc++ -mwindows -mthread -mthreads -L../ -I../ `cd $scriptsdir && sh ./checksse.sh`"
+    CFLAGS="$CFLAGS -static-libgcc -mwindows -mthreads -L../ -I../ `cd $scriptsdir && sh ./checksse.sh`"
+    CXXFLAGS="$CXXFLAGS -static-libgcc -static-libstdc++ -mwindows -mthreads -L../ -I../ `cd $scriptsdir && sh ./checksse.sh`"
     LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lole32 -lwinmm -luuid -lversion"
 
     AC_CHECK_HEADERS([windows.h string.h stdio.h unistd.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))

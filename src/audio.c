@@ -23,10 +23,12 @@
 
 #include "os.h"
 #include <stdint.h>
-#include "SDL.h"
+#include <stdlib.h>
 
 #ifdef USE_AUDIO
 #ifdef USE_SDL_AUDIO
+
+#include "SDL.h"
 
 #ifndef NOTHREADEDSDLRW
 #define DEFAULTSOUNDBUFFERSIZE 2048
@@ -156,6 +158,11 @@ void audio_UnlockAudioThread() {
     SDL_UnlockAudio();
 }
 
+#else //USE_SDL_AUDIO
+
+const char* audio_GetCurrentBackendName() {
+    return NULL;
+}
 
 #endif //USE_SDL_AUDIO
 #endif //USE_AUDIO

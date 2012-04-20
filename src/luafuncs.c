@@ -31,6 +31,7 @@
 
 #include "os.h"
 #include "luafuncs.h"
+#include "graphicstexture.h"
 #include "graphics.h"
 #include "timefuncs.h"
 #include "luastate.h"

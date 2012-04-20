@@ -80,4 +80,10 @@
 #define UNIX
 #endif
 
+//See if we have SDL:
+#if (defined(USE_SDL_AUDIO) || defined(USE_SDL_GRAPHICS))
+#define HAVE_SDL
 #endif
+
+#endif //ifndef _BLITWIZARD_OS_H
+

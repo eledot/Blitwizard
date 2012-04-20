@@ -41,6 +41,11 @@
 #include "audiosourceprereadcache.h"
 #include "mathhelpers.h"
 
+#ifndef USE_SDL_AUDIO
+#define audio_UnlockAudioThread(); 
+#define audio_LockAudioThread(); 
+#endif
+
 #ifndef ANDROID
 #define MAXCHANNELS 32
 #else

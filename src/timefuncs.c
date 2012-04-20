@@ -21,13 +21,31 @@
 
 */
 
+#include "os.h"
 #include <stdint.h>
+#ifdef HAVE_SDL
 #include "SDL.h"
+#else
+#ifdef WINDOWS
+
+#else
+#include <time.h>
+#include <unistd.h>
+#include <string.h>
+#endif
+#endif
 #include "timefuncs.h"
+
+#if (!defined(HAVE_SDL) && defined(UNIX))
+static struct timespec lastunixtime;
+uint64_t oldtimestamp = 0;
+int startinitialised = 0;
+#endif
 
 uint64_t oldtime = 0;
 uint64_t timeoffset = 0;
 uint64_t time_GetMilliSeconds() {
+#ifdef HAVE_SDL
     uint64_t i = SDL_GetTicks();
     i += timeoffset; //add an offset we might have set
     if (i > oldtime) {
@@ -38,10 +56,43 @@ uint64_t time_GetMilliSeconds() {
         timeoffset = (oldtime-i)+1;
         i += timeoffset;    
     }
+#else //ifdef HAVE_SDL
+#ifdef WINDOWS
+    
+
+#else //ifdef WINDOWS
+    if (!startinitialised) {
+        clock_gettime(CLOCK_MONOTONIC, &lastunixtime);
+        startinitialised = 1;
+        oldtimestamp = 0;
+        return 0;
+    }
+    struct timespec current;
+    clock_gettime(CLOCK_MONOTONIC, &current);
+    int64_t seconds = current.tv_sec - lastunixtime.tv_sec;
+    int64_t nseconds = current.tv_nsec - lastunixtime.tv_nsec;
+    uint64_t i = (uint64_t)((double)((seconds) * 1000 + nseconds/(1000000.0)) + 0.5);
+    if (i > 1000) {
+        i += oldtimestamp;
+        oldtimestamp = i;
+        memcpy(&lastunixtime, &current, sizeof(struct timespec));
+    }else{
+        i += oldtimestamp;
+    }
+#endif //ifdef WINDOWS
+#endif //ifdef HAVE_SDL
     return i;
 }
 
 void time_Sleep(uint32_t milliseconds) {
+#ifdef HAVE_SDL
     SDL_Delay(milliseconds);
+#else
+#ifdef WINDOWS
+    Sleep(milliseconds);
+#else
+    usleep(milliseconds * 1000);
+#endif
+#endif
 }
 

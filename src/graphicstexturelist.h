@@ -23,7 +23,7 @@
 
 #ifdef USE_GRAPHICS
 
-struct graphicstexture* graphics_GetTextureByName(const char* name);
+struct graphicstexture* graphicstexturelist_GetTextureByName(const char* name);
 
 void graphicstexturelist_AddTextureToHashmap(struct graphicstexture* gt);
 
@@ -37,9 +37,13 @@ int graphicstexturelist_TransferTexturesToHW();
 
 struct graphicstexture* graphicstexturelist_GetPreviousTexture(struct graphicstexture* gt);
 
+void graphicstexturelist_AddTextureToList(struct graphicstexture* gt);
+
+void graphicstexturelist_RemoveTextureFromList(struct graphicstexture* gt, struct graphicstexture* prev);
+
 int graphicstexturelist_FreeAllTextures();
 
-void graphicstexturelist_DoForAllTextures(int (*callback)(struct graphicstexture* texture, struct graphicstexture* previoustexture));
+void graphicstexturelist_DoForAllTextures(int (*callback)(struct graphicstexture* texture, struct graphicstexture* previoustexture, void* userdata), void* userdata);
 
 #endif //ifdef USE_GRAPHICS
 

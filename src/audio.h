@@ -22,6 +22,10 @@
 */
 
 #ifdef USE_AUDIO
+
+const char* audio_GetCurrentBackendName();
+//Get the name of the currently active audio backend, or NULL for none.
+
 #ifdef USE_SDL_AUDIO
 
 int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersize, const char* backend, int s16, char** error);
@@ -35,9 +39,6 @@ int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersi
 //      if 0, you need to feed 32bit float audio.
 //The raw audio data will be requested through the callback.
 //The amount of requested bytes is not guaranteed to be fitting to the samples.
-
-const char* audio_GetCurrentBackendName();
-//Get the name of the currently active audio backend, or NULL for none.
 
 void audio_LockAudioThread();
 //Call this to make sure the audio callback you supply in audio_Init() isn't currently running.

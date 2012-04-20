@@ -25,7 +25,7 @@
 
 #define FFMPEGDEBUG
 
-#ifdef USE_FFMPEG
+#ifdef USE_FFMPEG_AUDIO
 #include "libavcodec/avcodec.h"
 #include "libavformat/avformat.h"
 #endif
@@ -42,7 +42,7 @@
 #include "filelist.h"
 #include "file.h"
 
-#ifndef USE_FFMPEG
+#ifndef USE_FFMPEG_AUDIO
 
 // No FFmpeg support!
 
@@ -59,7 +59,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
     return 0; //return failure
 }
 
-#else //ifdef USE_FFMPEG
+#else //ifdef USE_FFMPEG_AUDIO
 
 #define AVIOBUFSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
 
@@ -651,6 +651,6 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     return a;
 }
 
-#endif //ifdef USE_FFMPEG
+#endif //ifdef USE_FFMPEG_AUDIO
 
 #endif //ifdef USE_AUDIO
