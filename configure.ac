@@ -36,6 +36,19 @@ AC_ARG_ENABLE([sdl-audio],
  esac],
 [enable_sdlaudio=yes])
 
+AC_ARG_ENABLE([sdl],
+    [AS_HELP_STRING([--disable-sdl],[disable SDL completely. This is the same as --disable-sdl-audio, --disable-sdl-graphics combined])],
+[case "${enableval}" in
+     yes | no ) enable_sdl="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-sdl) ;;
+ esac],
+[enable_sdl=yes])
+
+AC_IF([test "x$enable_sdl" = xno], [
+    enable_sdlaudio="no"
+    enable_sdlgraphics="no"
+])
+
 AC_ARG_ENABLE([graphics],
     [AS_HELP_STRING([--disable-graphics],[disable graphics support completely, including the null graphics device (default is enabled)])],
 [case "${enableval}" in
