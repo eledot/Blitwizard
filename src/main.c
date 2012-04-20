@@ -43,8 +43,6 @@ extern int drawingallowed; //stored in luafuncs.c
 
 #include "luastate.h"
 #include "file.h"
-#include "graphicstexture.h"
-#include "graphics.h"
 #include "timefuncs.h"
 #include "audio.h"
 #include "main.h"
@@ -57,6 +55,11 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "SDL.h"
 #include "threading.h"
 #endif
+#ifdef USE_SDL_GRAPHICS
+#include "SDL.h"
+#endif
+#include "graphicstexture.h"
+#include "graphics.h"
 
 #define TIMESTEP 16
 

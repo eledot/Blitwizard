@@ -31,6 +31,9 @@
 
 #include "os.h"
 #include "luafuncs.h"
+#ifdef USE_SDL_GRAPHICS
+#include "SDL.h"
+#endif
 #include "graphicstexture.h"
 #include "graphics.h"
 #include "timefuncs.h"

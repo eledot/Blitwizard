@@ -43,6 +43,10 @@
 #include "main.h"
 #endif
 
+#ifdef USE_SDL_GRAPHICS
+#include "SDL.h"
+#endif
+
 #include "graphicstexture.h"
 #include "graphics.h"
 #include "graphicstexturelist.h"

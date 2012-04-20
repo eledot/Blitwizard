@@ -89,13 +89,6 @@ int graphics_Init(char** error) {
     
     //set scaling settings
     SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_NORMAL);
-        
-    //initialize name string -> texture slot hashmap
-    texhashmap = hashmap_New(2048);
-    if (!texhashmap) {
-        *error = strdup("Failed to allocate texture hash map");
-        return 0;
-    }
     
     //initialize SDL
     if (SDL_Init(SDL_INIT_TIMER) < 0) {
@@ -155,7 +148,7 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
             //wipe this texture
             SDL_DestroyTexture(gt->tex);
             gt->tex = NULL;
-            graphics_RemoveTextureFromHashmap(gt);
+            graphicstexturelist_RemoveTextureFromHashmap(gt);
             free(gt->name);
             gt->name = NULL;
             return;
@@ -609,7 +602,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
     }
     
     //preserve textures by managing them on our own for now
-    graphics_TransferTexturesFromSDL();
+    graphicstexturelist_TransferTexturesFromHW();
     
     //destroy old window/renderer if we got one
     graphics_Close(1);
@@ -661,7 +654,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
     }
     
     //Transfer textures back to SDL
-    if (!graphics_TransferTexturesToSDL()) {
+    if (!graphicstexturelist_TransferTexturesToHW()) {
         SDL_RendererInfo info;
         SDL_GetRendererInfo(mainrenderer, &info);
         snprintf(errormsg,sizeof(errormsg),"Failed to create SDL renderer (backend %s): Cannot recreate textures", info.name);
