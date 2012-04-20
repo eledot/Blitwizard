@@ -94,6 +94,7 @@ FLAC_FEATURE_ENABLED="yes"
 SPEEX_RESAMPLING_FEATURE_ENABLED="yes"
 FFMPEG_FEATURE_ENABLED="yes"
 PHYSICS_FEATURE_ENABLED="yes"
+FAST_FLOAT2INT_FEATURE_ENABLED="yes"
 
 
 # Lib deps info text for later output:
@@ -372,6 +373,7 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
                 LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
                 HAVE_LUA_SHARED="yes"
+                FAST_FLOAT2INT_FEATURE_ENABLED="no, need static liblua"
             ])
         ])
     ])
@@ -452,6 +454,7 @@ This results in the following feature set:
   Speex-based resampling: ${SPEEX_RESAMPLING_FEATURE_ENABLED}
   Runtime FFmpeg support: ${FFMPEG_FEATURE_ENABLED}
   Physics simulation support: ${PHYSICS_FEATURE_ENABLED}
+  Fast float-to-int conversion: ${FAST_FLOAT2INT_FEATURE_ENABLED}
 "
 
 
@@ -462,7 +465,7 @@ FINAL_INCLUDE_FLAGS=""
 FINAL_USE_LIB_FLAGS=""
 
 SDLADDED=no
-statictest=`echo $STATIC_LIBS_USE | grep SDL2`
+statictest=`echo $STATIC_LIBS_USE | grep lua`
 AS_IF([test -z "$statictest"], [
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DNOLLIMITS"
 ])
