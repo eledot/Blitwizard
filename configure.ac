@@ -370,7 +370,6 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
-            FINAL_USE_LIB_FLAGS="${FINAL_USE_LIB_FLAGS} -DNOLLIMITS"
             HAVE_LUA_SHARED="yes"
         ])
     ])
@@ -461,6 +460,10 @@ FINAL_INCLUDE_FLAGS=""
 FINAL_USE_LIB_FLAGS=""
 
 SDLADDED=no
+statictest=`echo $STATIC_LIBS_USE | grep SDL2`
+AS_IF([test -z "$statictest"], [
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DNOLLIMITS"
+])
 AS_IF([test "x$GRAPHICS_FEATURE_ENABLED" = xyes],[
     statictest=`echo $STATIC_LIBS_USE | grep SDL2`
     SDLADDED=yes
