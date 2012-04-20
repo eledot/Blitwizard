@@ -62,8 +62,21 @@ void audio_Quit() {
     }
 }
 
-
+#ifndef USE_SDL_GRAPHICS
+static int sdlvideoinit = 1;
+#endif
 int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
+#ifndef USE_SDL_GRAPHICS
+    if (!sdlvideoinit) {
+        if (SDL_VideoInit(NULL) < 0) {
+            snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL video: %s", SDL_GetError());
+            errormsg[sizeof(errormsg)-1] = 0;
+            *error = strdup(errormsg);
+            return 0;
+        }
+        sdlvideoinit = 1;
+    }
+#endif
     if (soundenabled) {
         //quit old sound first
         SDL_PauseAudio(1);
