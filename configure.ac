@@ -364,12 +364,17 @@ AS_IF([test ! -f "src/speex/src/speexdec.c"],[
 AC_MSG_CHECKING([for static lua library])
 AS_IF([test ! -f "src/lua/src/lua.h"],[
     AC_MSG_RESULT([no])
+    HAVE_LUA_SHARED="no"
     AC_CHECK_LIB([lua], [lua_close],[
-        #shared lib is there!
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+        AC_CHECK_HEADER([lua.h], [
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
-        FINAL_USE_LIB_FLAGS="${FINAL_USE_LIB_FLAGS} -DNOLLIMITS" 
-    ],[
+            FINAL_USE_LIB_FLAGS="${FINAL_USE_LIB_FLAGS} -DNOLLIMITS"
+            HAVE_LUA_SHARED="yes"
+        ])
+    ])
+    AS_IF([test "x$HAVE_LUA_SHARED" = xno],[
         #nothing there
         AC_MSG_ERROR([Lua is required for blitwizard. Check README-deps.txt for help on how to add it.])
     ])
