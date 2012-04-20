@@ -379,13 +379,40 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
   liblua: static"
 ])
 
+# Check whether we can access cmake
+
+HAVE_WORKING_CMAKE="no"
+AC_MSG_CHECKING([for cmake build system])
+sh scripts/checkforcmake.sh
+AS_IF([test "x$?" != x0],[
+    AC_MSG_RESULT([no])
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  cmake build system: no"
+],[
+    AC_MSG_RESULT([yes])
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  cmake build system: yes"
+    HAVE_WORKING_CMAKE="yes"
+])
 
 # Check for libbox2d availability:
 
 AS_IF([test "x$enable_physics" = xyes],[
     AC_MSG_CHECKING([for static Box2D library])
+    HAVE_STATIC_BOX2D="yes"
     AS_IF([test ! -f "src/box2d/Box2D/Box2D.h"],[
         AC_MSG_RESULT([no])
+        HAVE_STATIC_BOX2D="no"
+    ], [
+        AS_IF([test "x$HAVE_WORKING_CMAKE" = xno], [
+            AC_MSG_RESULT([no, need cmake!])
+            HAVE_STATIC_BOX2D="no"
+        ], [
+            AC_MSG_RESULT([yes])
+        ])
+    ])
+    AS_IF([test "x$HAVE_STATIC_BOX2D" = xno], [
+        #check for shared lib
         AC_CHECK_LIB([box2d], [b2Alloc],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
@@ -397,7 +424,7 @@ AS_IF([test "x$enable_physics" = xyes],[
             PHYSICS_FEATURE_ENABLED="no, need libbox2d"
         ])
     ],[
-        AC_MSG_RESULT([yes])
+        #static lib is here
         STATIC_LIBS_USE="${STATIC_LIBS_USE} box2d"
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libbox2d: static"
@@ -606,17 +633,6 @@ AS_IF([test -z "$maybeos"],[
 
     AC_CHECK_HEADERS([windows.h string.h stdio.h unistd.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
 
-])
-
-# Check whether we can access cmake
-AC_MSG_CHECKING([for cmake build system])
-sh scripts/checkforcmake.sh
-AS_IF([test "x$?" != x0],[
-    AC_MSG_RESULT([no])
-    AC_MSG_ERROR([cmake was not found on your machine.])
-    exit 1;
-],[
-    AC_MSG_RESULT([yes])
 ])
 
 
