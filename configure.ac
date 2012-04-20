@@ -44,7 +44,7 @@ AC_ARG_ENABLE([sdl],
  esac],
 [enable_sdl=yes])
 
-AC_IF([test "x$enable_sdl" = xno], [
+AS_IF([test "x$enable_sdl" = xno], [
     enable_sdlaudio="no"
     enable_sdlgraphics="no"
 ])
