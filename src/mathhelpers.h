@@ -32,7 +32,9 @@ void rotatevec(double x, double y, double rotation, double* x2, double* y2);
 double normalizeangle(double angle);
 void ovalpoint(double angle, double width, double height, double* x, double* y);
 
+#ifndef NOLLIMITS
 #define FASTMATH
+#endif
 
 #ifdef FASTMATH
 

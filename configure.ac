@@ -368,6 +368,7 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
         #shared lib is there!
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
+        FINAL_USE_LIB_FLAGS="${FINAL_USE_LIB_FLAGS} -DNOLLIMITS" 
     ],[
         #nothing there
         AC_MSG_ERROR([Lua is required for blitwizard. Check README-deps.txt for help on how to add it.])
