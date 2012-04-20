@@ -8,9 +8,6 @@ autom4te.cache
 *.o
 *.exe
 *.dll
-scripts/.includeflags
-scripts/.ldflags
-scripts/.uselibflags
 scripts/blitwizard*
 scripts/tarball/
 scripts/ssetest
@@ -19,7 +16,8 @@ src/blitwizard
 .deps
 ltmain.sh
 scripts/.buildinfo
-scripts/.depsarebuilt
+scripts/.depsarebuilt_flags
+scripts/.depsarebuilt_luatarget
 libtool
 m4
 deps

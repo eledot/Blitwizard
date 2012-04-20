@@ -69,6 +69,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 #ifndef USE_SDL_GRAPHICS
     if (!sdlvideoinit) {
         if (SDL_VideoInit(NULL) < 0) {
+            char errormsg[512];
             snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL video: %s", SDL_GetError());
             errormsg[sizeof(errormsg)-1] = 0;
             *error = strdup(errormsg);

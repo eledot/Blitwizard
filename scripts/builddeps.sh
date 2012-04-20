@@ -4,13 +4,14 @@ cd ..
 
 luatarget=`cat scripts/.buildinfo | grep luatarget | sed -e 's/^luatarget\=//'`
 static_libs_use=`cat scripts/.buildinfo | grep STATIC_LIBS_USE | sed -e 's/^.*\=//'`
+use_lib_flags=`cat scripts/.buildinfo | grep USE_LIB_FLAGS | sed -e 's/^.*\=//'`
 
 changedhost=""
 
 # Check if our previous build target was a different platform:
 REBUILDALL="no"
-if [ -f scripts/.depsarebuilt ]; then
-    depsluatarget=`cat scripts/.depsarebuilt`
+if [ -f scripts/.depsarebuilt_luatarget ]; then
+    depsluatarget=`cat scripts/.depsarebuilt_luatarget`
     if [ "$luatarget" != "$depsluatarget" ]; then
         # target has changed
         REBUILDALL="yes"
@@ -19,11 +20,30 @@ else
     # we had no previous known target at all, so obviously yes!
     REBUILDALL="yes"
 fi
+
+# Check if our previous build flags were different:
+REBUILDCORE="no"
+if [ -f scripts/.depsarebuilt_flags ]; then
+    depsuselibflags=`cat scripts/.depsarebuilt_flags`
+    if [ "$use_lib_flags" != "$depsuselibflags" ]; then
+        # flags have changed
+        REBUILDCORE="yes"
+    fi
+else
+    # we had no previous known flags at all, so obviously yes!
+    REBUILDCORE="yes"
+fi
+
 if [ "$REBUILDALL" = "yes" ]; then
+    REBUILDCORE="yes"
     echo "Deps will be rebuilt to match new different target.";
     changedhost="yes";
-    rm libs/libblitwizard*.a
-    rm libs/libimglib.a
+    rm libs/libblitwizard*.a > /dev/null 2>&1
+    rm libs/libimglib.a > /dev/null 2>&1
+fi
+if [ "$REBUILDCORE" = "yes" ]; then
+    echo "Core will be rebuilt to match different build flags or target.";
+    rm src/*.o > /dev/null 2>&1
 fi
 
 CC=`cat scripts/.buildinfo | grep CC | sed -e 's/^.*\=//'`
@@ -272,5 +292,6 @@ if [ ! -e libs/libblitwizardbox2d.a ]; then
 fi
 
 # Remember for which target we built
-echo "$luatarget" > scripts/.depsarebuilt
+echo "$luatarget" > scripts/.depsarebuilt_luatarget
+echo "$use_lib_flags" > scripts/.depsarebuilt_flags
 
