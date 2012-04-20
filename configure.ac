@@ -207,8 +207,8 @@ AS_IF([test ! -f "src/imgloader/zlib/gzlib.c"],[
         #nothing there
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   zlib: no"
-        GRAPHICS_FEATURE_ENABLED="no, need libpng"
-        NULL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
+        GRAPHICS_FEATURE_ENABLED="no, need zlib"
+        NULL_GRAPHICS_FEATURE_ENABLED="no, need zlib"
     ])
 ],[
     AC_MSG_RESULT([yes])
