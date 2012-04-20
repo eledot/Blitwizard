@@ -209,16 +209,18 @@ if [ ! -e libs/libblitwizardSDL.a ]; then
 fi
 
 if [ ! -e libs/libblitwizardlua.a ]; then
-    # Avoid the overly stupid Lua build script which doesn't even adhere to $CC
-    cd src/lua/ && rm -f src/liblua.a && rm -rf build/ || { echo "Failed to compile Lua 5"; exit 1; }
-    cd $dir
-    cd src/lua/ && mkdir -p build/ && cp src/*.c build/ && cp src/*.h build/ || { echo "Failed to compile Lua 5"; exit 1; }
-    cd $dir
-    if [ -z "$AR" ]; then
-        AR="ar"
+    if [ -n "`echo $static_libs_use | grep lua`" ]; then
+        # Avoid the overly stupid Lua build script which doesn't even adhere to $CC
+        cd src/lua/ && rm -f src/liblua.a && rm -rf build/ || { echo "Failed to compile Lua 5"; exit 1; }
+        cd $dir
+        cd src/lua/ && mkdir -p build/ && cp src/*.c build/ && cp src/*.h build/ || { echo "Failed to compile Lua 5"; exit 1; }
+        cd $dir
+        if [ -z "$AR" ]; then
+            AR="ar"
+        fi
+        cd src/lua/build && rm lua.c && rm luac.c && $CC -c -O2 *.c && $AR rcs ../src/liblua.a *.o || { echo "Failed to compile Lua 5"; exit 1; }
+        cd $dir
     fi
-    cd src/lua/build && rm lua.c && rm luac.c && $CC -c -O2 *.c && $AR rcs ../src/liblua.a *.o || { echo "Failed to compile Lua 5"; exit 1; }
-    cd $dir
 fi
 
 # Wipe out the object files of blitwizard if we need to
