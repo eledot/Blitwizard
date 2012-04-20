@@ -366,16 +366,18 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
     AC_MSG_RESULT([no])
     HAVE_LUA_SHARED="no"
     AC_CHECK_LIB([lua], [lua_close],[
-        AC_CHECK_HEADER([lua.h], [
-            #shared lib is there!
-            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+        AC_CHECK_LIB([lua], [lua_rawlen],[
+            AC_CHECK_HEADER([lua.h], [
+                #shared lib is there!
+                LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
-            HAVE_LUA_SHARED="yes"
+                HAVE_LUA_SHARED="yes"
+            ])
         ])
     ])
     AS_IF([test "x$HAVE_LUA_SHARED" = xno],[
         #nothing there
-        AC_MSG_ERROR([Lua is required for blitwizard. Check README-deps.txt for help on how to add it.])
+        AC_MSG_ERROR([Lua 5.2 is required for blitwizard. Check README-deps.txt for help on how to add it.])
     ])
 ],[
     AC_MSG_RESULT([yes])
