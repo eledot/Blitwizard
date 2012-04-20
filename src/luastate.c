@@ -280,8 +280,46 @@ int luastate_GetWantFFmpeg() {
     return 1;
 }
 
+static void luatypetoname(int type, char* buf, size_t bufsize) {
+    switch (type) {
+        case LUA_TNIL:
+            strncpy(buf, "nil", bufsize);
+            break;
+        case LUA_TFUNCTION:
+            strncpy(buf, "function", bufsize);
+            break;
+        case LUA_TSTRING:
+            strncpy(buf, "string", bufsize);
+            break;
+        case LUA_TNUMBER:
+            strncpy(buf, "number", bufsize);
+            break;
+        case LUA_TBOOLEAN:
+            strncpy(buf, "boolean", bufsize);
+            break;
+        case LUA_TTABLE:
+            strncpy(buf, "table", bufsize);
+            break;
+        case LUA_TLIGHTUSERDATA:
+            strncpy(buf, "lightuserdata",bufsize);
+            break;
+        case LUA_TUSERDATA:
+            strncpy(buf, "userdata", bufsize);
+            break;
+        case LUA_TTHREAD:
+            strncpy(buf, "thread", bufsize);
+            break;
+        case LUA_NUMTAGS:
+            strncpy(buf, "numtag", bufsize);
+            break;
+    }
+    buf[bufsize-1] = 0;
+}
+
 static int gettraceback(lua_State* l) {
     char errormsg[2048] = "";
+
+    //obtain the error first:
     const char* p = lua_tostring(l, -1);
     if (p) {
         unsigned int i = strlen(p);
@@ -291,21 +329,51 @@ static int gettraceback(lua_State* l) {
     }
     lua_pop(l, 1);
 
+    //add a line break if we can
     if (strlen(errormsg) + strlen("\n") < sizeof(errormsg)) {
         strcat(errormsg,"\n");
     }
 
+    //call the original debug.traceback
     lua_pushstring(l, "debug_traceback_preserved");
     lua_gettable(l, LUA_REGISTRYINDEX);
+    if (lua_type(l, -1) != LUA_TFUNCTION) { //make sure it is valid
+        //oops.
+        char invaliddebugtraceback[] = "OOPS: The debug traceback couldn't be generated:\n  Traceback function is not present or invalid (lua type is '";
+        if (strlen(errormsg) + strlen(invaliddebugtraceback) < sizeof(errormsg)) {
+            strcat(errormsg, invaliddebugtraceback);
+        }
+
+        //clarify on the invalid type of the function (which is not a func):
+        char typebuf[64] = "";
+        luatypetoname(lua_type(l, -1), typebuf, 16);
+        strcat(typebuf, "')");
+        if (strlen(errormsg) + strlen(typebuf) < sizeof(errormsg)) {
+            strcat(errormsg, typebuf);
+        }
+
+        //push error:
+        lua_pushstring(l, errormsg);
+        return 1;
+    }
     lua_call(l, 0, 1);
 
+    //add the traceback as much as we can
     p = lua_tostring(l, -1);
     if (p) {
-        if (strlen(errormsg) + strlen(p) < sizeof(errormsg)) {
-            strcat(errormsg, p);
+        int len = strlen(p);
+        if (strlen(errormsg) + len >= sizeof(errormsg)) {
+            len = sizeof(errormsg) - strlen(errormsg) - 1;
+        }
+        if (len > 0) {
+            int offset = strlen(errormsg);
+            memcpy(errormsg + offset, p, len);
+            errormsg[offset + len] = 0;
         }
     }
+    lua_pop(l, 1); //pop traceback
 
+    //push the whole result
     lua_pushstring(l, errormsg);
     return 1;
 }
@@ -314,20 +382,17 @@ void* internaltracebackfunc() {
     return &gettraceback;
 }
 
-static int debug_traceback(lua_State* l) {
-    lua_pushstring(l, "rememberedtraceback");
-    lua_gettable(l, LUA_REGISTRYINDEX);
-    lua_call(l, 0, 1);
-    return 1;
-}
-
 void luastate_RememberTracebackFunc(lua_State* l) {
-    lua_pushstring(l, "rememberedtraceback"); //push table index
+    lua_pushstring(l, "debug_traceback_preserved"); //push table index
 
     //obtain debug.traceback
     lua_getglobal(l, "debug");
     lua_pushstring(l, "traceback");
     lua_gettable(l, -2);
+
+    //get rid of the table on the stack (position -2)
+    lua_insert(l, -2);
+    lua_pop(l, 1);
 
     //set it to the registry table
     lua_settable(l, LUA_REGISTRYINDEX);
@@ -360,11 +425,6 @@ static lua_State* luastate_New() {
     luastate_RememberTracebackFunc(l);
     luastate_VoidDebug(l);
     luastate_AddBlitwizFuncs(l);
-
-    //preserve debug.traceback in the registry for our own use
-    lua_pushstring(l, "debug_traceback_preserved");
-    lua_pushcfunction(l, &debug_traceback);
-    lua_settable(l, LUA_REGISTRYINDEX);
     
     //own dofile/loadfile/print
     lua_pushcfunction(l, &luafuncs_loadfile);
