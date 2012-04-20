@@ -276,7 +276,9 @@ if [ ! -e libs/libblitwizardzlib.a ]; then
     fi
 fi
 if [ ! -e libs/libblitwizardlua.a ]; then
-    cp src/lua/src/liblua.a libs/libblitwizardlua.a
+    if [ -n "`echo $static_libs_use | grep lua`" ]; then
+        cp src/lua/src/liblua.a libs/libblitwizardlua.a
+    fi
 fi
 if [ ! -e libs/libblitwizardbox2d.a ]; then
     if [ -n "`echo $static_libs_use | grep box2d`" ]; then
