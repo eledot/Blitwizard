@@ -59,7 +59,7 @@ ul {
 <li><a href="#blitwiz.time">8. <i>blitwiz.time</i> namespace</a></li>
 <li><a href="#9blitwiz.on_*">9. Event callbacks</a></li>
 <li><a href="#10os">10. <i>os</i> standard namespace extension</a></li>
-<li><a href="#11string">11. <i>string</i> standard namespace extension</a></li>
+<li><a href="#string">11. <i>string</i> standard namespace extension</a></li>
 </ul>
 <a name="1introduction"><h1>1. Introduction</h1></a>
 <p>This document describes the blitwizard Lua api with all provided functions.
@@ -78,7 +78,7 @@ here but nevertheless important for using Lua, so
 if you aren't familiar with them.</p>
 <p>The blitwizard extensions to the standard library however, consisting of additional
 functions added to the Lua 5 standard namespaces,
-e.g. <a href="#11string">additional string functions</a>, are described in this document.</p>
+e.g. <a href="#string">additional string functions</a>, are described in this document.</p>
 <p>All functions listed in this document are listed with their names, parameters and return value,
 whereas a parameter type and return value type
 is specified.
@@ -1523,11 +1523,70 @@ Return value: <i>(string)</i> the system version.
 </li>
 
 </ul>
-<a name="11string"><h1>11. <i>string</i> standard namespace extension</h1></a>
+<a name="string"><h1>11. <i>string</i> standard namespace extension</h1></a>
 <p>This describes the blitwizard extensions to the Lua standard <b>string</b> library. Check the manual on <a href="http://www.lua.org/">www.lua.org</a> for the standard functions of the string lib already provided by Lua.</p>
 <ul>
 
+<li><h2><a name="string.ends">string.ends</a>(str1 <i>(string)</i>, str2 <i>(string)</i>)</h2>
+<p>
+Check if str1 ends with str2 (so str1 has at least the length of str2, and cropping it from the beginning to the length of str2 would make them equal). Returns true if that is the case, otherwise false.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>str1 <i>(string)</i> &mdash; the string which should be tested for str2</li>
+<li>str2 <i>(string)</i> &mdash; the string with which str2 possibly ends</li>
+</ul>
+</p>
+<p>
+Return value: <i>(boolean)</i> result of the check
+</p>
+</li>
 
+<li><h2><a name="string.split">string.split</a>(expression <i>(string)</i>, delimeter <i>(string)</i>, limit <i>(number)</i>)</h2>
+<p>
+Search occurances of the delimeter in the given expression, and split it up around each delimeter that is found and return the separated results (check the example code below).</p>
+<p>The limit allows to specify a limit after which splitting will be stopped even if more delimeter occurances could be found.</p>
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>str1 <i>(string)</i> &mdash; the string which should be tested for str2</li>
+<li>str2 <i>(string)</i> &mdash; the string with which str2 possibly begins</li>
+</ul>
+</p>
+<p>
+Return value: <i>(string, multiple)</i> all the resulting strings of the split
+</p>
+<p>Examples:
+<div class="code">local a,b = string.split("a|b", "|")
+print(a .. ", " .. b)  -- outputs: a, b
+
+local count = #{string.split("this, is, a, list, of, things", ",")}
+print(count)  -- outputs: 6
+
+local a,b,c = string.split("c|d|e", "|", 1)
+print(a)  -- outputs: c
+print(b)  -- outputs: d|e
+print(c)  -- outputs: no value (nil)</div>
+</p>
+</li>
+
+<li><h2><a name="string.starts">string.starts</a>(str1 <i>(string)</i>, str2 <i>(string)</i>)</h2>
+<p>
+Check if str1 begins with str2 (so str1 has at least the length of str2, and cropping it from the end to the length of str2 would make them equal). Returns true if that is the case, otherwise false.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>str1 <i>(string)</i> &mdash; the string which should be tested for str2</li>
+<li>str2 <i>(string)</i> &mdash; the string with which str2 possibly begins</li>
+</ul>
+</p>
+<p>
+Return value: <i>(boolean)</i> result of the check
+</p>
+</li>
 
 </ul>
 </body>
