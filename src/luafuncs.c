@@ -150,7 +150,7 @@ static int luafuncs_printline() {
         return 0;
     }
     printlinebuf[i] = 0;
-    printinfo(printlinebuf);
+    printinfo("%s", printlinebuf);
     memmove(printlinebuf, printlinebuf+(i+1), sizeof(printlinebuf)-(i+1));
     return 1;
 }
