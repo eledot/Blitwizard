@@ -565,8 +565,9 @@ void connections_Send(struct connection* c, const char* data, int datalength) {
     //put bytes into send buffer:
     memcpy(c->outbuf + c->outbufoffset + c->outbufbytes, data, r);
     c->outbufbytes += r;
+    so_SelectWantWrite(c->socket, 1);
 }
-
+    
 //Close the given connection struct
 void connections_Close(struct connection* c) {
     if (justreadingfromconnection == c) {
