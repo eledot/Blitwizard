@@ -23,11 +23,8 @@
 
 #ifdef USE_AUDIO
 
-#define FFMPEGDEBUG
-
-#ifdef USE_FFMPEG_AUDIO
-#include "libavcodec/avcodec.h"
-#include "libavformat/avformat.h"
+#ifdef USE_FLAC_AUDIO
+#include "FLAC/all.h"
 #endif
 #include <string.h>
 #include <stdio.h>
@@ -37,37 +34,22 @@
 #include "os.h"
 #include "logging.h"
 #include "audiosource.h"
-#include "audiosourceffmpeg.h"
+#include "audiosourceflac.h"
 #include "library.h"
 #include "filelist.h"
 #include "file.h"
 
-#ifndef USE_FFMPEG_AUDIO
+#ifndef USE_FLAC_AUDIO
 
 // No FFmpeg support!
 
-struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
+struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     if (source) {source->close(source);}
     return NULL;
 }
 
-void audiosourceffmpeg_DisableFFmpeg() {
-    //does nothing in this case, obviously
-    return;
-}
+#else //ifdef USE_FLAC_AUDIO
 
-int audiosourceffmpeg_LoadFFmpeg() {
-    return 0; //return failure
-}
-
-#else //ifdef USE_FFMPEG_AUDIO
-
-#define AVIOBUFSIZE (AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
-
-#define DECODEBUFUSESIZE (4096*2)
-#define DECODEBUFSIZE (DECODEBUFUSESIZE + FF_INPUT_BUFFER_PADDING_SIZE)
-#define DECODEBUFMEMMOVETHRESHOLD (4096)
-#define DECODEDBUFSIZE 4096
 
 struct audiosourceffmpeg_internaldata {
     struct audiosource* source;

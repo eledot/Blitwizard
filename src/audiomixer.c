@@ -35,6 +35,7 @@
 #include "audiosourcefadepanvol.h"
 #include "audiosourceresample.h"
 #include "audiosourceogg.h"
+#include "audiosourceflac.h"
 #include "audiosourcefile.h"
 #include "audiosourceloop.h"
 #include "audiosourceffmpeg.h"
@@ -200,14 +201,20 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
         return id;
     }
 
-    //check audio format first
+    //try ogg format:
     struct audiosource* decodesource = audiosourceogg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
     if (!decodesource) {
-        decodesource = audiosourceffmpeg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
+        //try flac format:
+        decodesource = audiosourceflac_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
+
         if (!decodesource) {
-            //unsupported audio format
-            audio_UnlockAudioThread();
-            return -1;
+            //try FFmpeg:
+            decodesource = audiosourceffmpeg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
+            if (!decodesource) {
+                //unsupported audio format
+                audio_UnlockAudioThread();
+                return -1;
+            }
         }
     }
     

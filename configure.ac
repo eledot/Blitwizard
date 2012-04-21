@@ -73,6 +73,14 @@ AC_ARG_ENABLE([physics],
  esac],
 [enable_physics=yes])
 
+AC_ARG_ENABLE([flac],
+    [AS_HELP_STRING([--disable-flac],[disable optional FLAC audio support.])],
+[case "${enableval}" in
+     yes | no ) enable_flac="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-flac) ;;
+ esac],
+[enable_flac=yes])
+
 
 # Evaluate target os:
 
@@ -292,31 +300,35 @@ AS_IF([test ! -f "src/ogg/src/framing.c"],[
 
 # Check for libFLAC availability:
 
-AC_MSG_CHECKING([for static libFLAC library])
-AS_IF([test ! -f "src/flac/src/libFLAC/lpc.c"],[
-    AC_MSG_RESULT([no])
+AS_IF([test "x$enable_flac" = xyes],[
+    AC_MSG_CHECKING([for static libFLAC library])
+    AS_IF([test ! -f "src/flac/src/libFLAC/lpc.c"],[
+        AC_MSG_RESULT([no])
 
-    # Check for shared FLAC lib:
-    HAVESHAREDFLAC="no"
-    AC_CHECK_LIB([FLAC], [FLAC__stream_decoder_new],[
-        AC_CHECK_HEADER([FLAC/format.h], [
-            HAVESHAREDFLAC="yes"
-            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+        # Check for shared FLAC lib:
+        HAVESHAREDFLAC="no"
+        AC_CHECK_LIB([FLAC], [FLAC__stream_decoder_new],[
+            AC_CHECK_HEADER([FLAC/format.h], [
+                HAVESHAREDFLAC="yes"
+                LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libFLAC: shared"
+            ])
         ])
-    ])
 
-    AS_IF([test "x$HAVESHAREDFLAC" = xno],[
-        #nothing there
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+        AS_IF([test "x$HAVESHAREDFLAC" = xno],[
+            #nothing there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libFLAC: no"
-        FLAC_FEATURE_ENABLED="no, need libFLAC"
-    ])
-],[
-    AC_MSG_RESULT([yes])
-    STATIC_LIBS_USE="${STATIC_LIBS_USE} FLAC"
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+            FLAC_FEATURE_ENABLED="no, need libFLAC"
+        ])
+    ],[
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} FLAC"
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libFLAC: static"
+    ])
+], [
+    FLAC_FEATURE_ENABLED="no, disabled"
 ])
 
 
