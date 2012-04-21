@@ -98,6 +98,9 @@ static int connections_TryConnect(struct connection* c, const char* target) {
 #endif
         return 0;
     }else{
+#ifdef CONNECTIONSDEBUG
+        printinfo("[connections] TryConnect to %s in progress", target);
+#endif
         //when the connection is complete, the socket will be writable:
         so_SelectWantWrite(c->socket, 1);
         //that is why we want to check for write state.
@@ -302,7 +305,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                     if (ipv4) {
                         //Attempt an IPv4 connection:
                         result = connections_TryConnect(c, ipv4);
-                        if (!result) {
+                        if (result) {
                             free(ipv4);
                             c = cnext;
                             continue;

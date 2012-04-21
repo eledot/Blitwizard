@@ -132,7 +132,7 @@ int luafuncs_loadfile(lua_State* l) {
 #endif
 }
 
-static char printlinebuf[2048] = "";
+static char printlinebuf[1024 * 50] = "";
 static int luafuncs_printline() {
     //print a line from the printlinebuf
     unsigned int len = strlen(printlinebuf);

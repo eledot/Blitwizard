@@ -132,6 +132,8 @@ blitwiz.net.http.get = function(url, callback, headers)
     function(stream, errormsg)
         if streamdata["data"] ~= nil then
             if #streamdata["data"] > 0 then
+                local data = {}
+                data["response_code"] = 200
                 --parse response code:
                 local datastr = streamdata["data"]
                 datastr = string.gsub(datastr, "\r\n", "\n")
@@ -140,15 +142,15 @@ blitwiz.net.http.get = function(url, callback, headers)
                     if tostring(tonumber(response_code)) == response_code then
                         if tonumber(response_code) ~= 200 then
                             -- error response
-                            callback(tonumber(response_code))
-                            return
+                            data["response_code"] = tonumber(response_code)
                         end
                     end
                 end
 
                 -- it worked apparently! get us the data:
                 local header,body = string.split(datastr, "\n\n",1)
-                callback(datastr)
+                data["content"] = body
+                callback(data)
                 return
             end
         end
