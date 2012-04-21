@@ -100,5 +100,31 @@ function blitwiz.font.draw(name, text, posx, posy, r, g, b, a, clipx, clipy, cli
 	end
 end
 
+function blitwiz.font.addToString_inner(str, line, maxlinelength, maxlinecount)
+    -- Split line when horizontally too long
+    while #line > maxlinelen do
+        str = str .. string.sub(line, 1, maxlinelen) .. "\n"
+        line = "  " .. string.sub(line, maxlinelen + 1)
+    end
+    str = str .. line .. "\n"
+
+    -- Scroll text when too many vertical lines
+    local linecount = #{string.split(str, "\n")}
+    while linecount > maxlines do
+        local throwaway = ""
+        throwaway,str = string.split(str, "\n", 1)
+        linecount = linecount - 1
+    end
+    return str
+end
+
+function blitwiz.font.addToString(str, line, maxlinelength, maxlinecount)
+    local lines = {string.split(line, "\n")}
+    for key,value in ipairs(lines) do
+        str = blitwiz.font.addToString_inner(str, value, maxlinelength, maxlinecount)
+    end
+    return str
+end
+
 blitwiz.font.register("templates/font/default.png", "default", 7, 14, 32, "iso-8859-15")
 
