@@ -507,12 +507,9 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
             return 0;
         #endif
         }else{
-            printf("Setting address with inet_pton\n");
-            if (inet_pton(AF_INET, addr, &(addressstruct4->sin_addr.s_addr)) != 1) {
-                printf("Not Set\n");
+            if (inet_pton(AF_INET, addr, &(addressstruct4->sin_addr)) != 1) {
                 return 0;
             }
-            printf("Set!\n");
         }
 #endif
         /* WINDOWS */
@@ -603,7 +600,6 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
 #endif
     }else{
         addressstruct4.sin_port = htons(port);
-        printf("Setting port\n");
     }
 
     // ( 3b ) -- initialize SSL
@@ -628,19 +624,19 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
     if (iptype == IPTYPE_IPV6) {
         errno = 0;
         #ifdef IPV6
-        r = connect(socket, (struct sockaddr*)&addressstruct6, sizeof(addressstruct6));
+        r = connect(socket, (struct sockaddr*)&addressstruct6, sizeof(struct sockaddr_in6));
         #endif
     }else{
         errno = 0;
-        r = connect(socket, (struct sockaddr*)&addressstruct4, sizeof(addressstruct4));
+        char buf[512];
+        r = connect(socket, (struct sockaddr*)&addressstruct4, sizeof(struct sockaddr_in));
     }
     if (r == 0) {return 1;}
-    printf("errno: %d, iptype: %d\n",errno, iptype);
 
     //check for async error code
     #ifdef WINDOWS
     int err = WSAGetLastError();
-    if (err == WSAEWOULDBLOCK || errno == WSAEINPROGRESS) {return 1;}
+    if (err == WSAEWOULDBLOCK || err == WSAEINPROGRESS) {return 1;}
     #else
     if (errno == EWOULDBLOCK || errno == EINPROGRESS) {return 1;}
     #endif

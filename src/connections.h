@@ -28,7 +28,7 @@
 #define CONNECTIONINBUFSIZE (1024*10)
 #define CONNECTIONOUTBUFSIZE (1024*50)
 
-#define CONNECTIONSDEBUG
+//#define CONNECTIONSDEBUG
 
 struct connection {
     int socket;
@@ -46,10 +46,18 @@ struct connection {
     int outbufbytes;
     int outbufoffset;
 
+    uint64_t lastreadtime; //timestamp of the point where bytes were read the last time
+    int wantautoclose; //auto close when nothing read for 30s -> owning lua obj is gone
+    int canautoclose; //usually enabled when having a readcallback (otherwise instant)
+    void (*autoclosecallback)(struct connection* c);
+
+    void* userdata;
+
     int targetport;
     char* retryv4ip;
     int connected;
     int linebuffered;
+    int lowdelay;
     int throwawaynextline;
     int error;
     int errorreported;
@@ -64,18 +72,19 @@ extern struct connection* connectionlist;
 #define CONNECTIONERROR_NOSUCHHOST 1
 #define CONNECTIONERROR_CONNECTIONFAILED 2
 #define CONNECTIONERROR_CONNECTIONCLOSED 3
+#define CONNECTIONERROR_CONNECTIONAUTOCLOSE 4
 
 //Check all connections for events, updates etc
-int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, unsigned int datalength), int (*connectedcallback)(struct connection* c), int (*errorcallback)(struct connection* c, int error));
+int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*readcallback)(struct connection* c, char* data, unsigned int datalength), int (*errorcallback)(struct connection* c, int error));
 
 //Sleep until an event happens (process it with CheckAll) or the timeout expires
 void connections_SleepWait(int timeoutms);
 
 //Initialise the given connection struct and open the connection
-void connections_Init(struct connection* c, const char* target, int port, int linebuffered, int lowdelay);
+void connections_Init(struct connection* c, const char* target, int port, int linebuffered, int lowdelay, int havereadcallback, void (*autoclosecallback)(struct connection* c), void* userdata);
 
 //Send on a connection. Do not use if ->connected is not 1 yet!
-void connections_Send(struct connection* c, char* data, int datalength);
+void connections_Send(struct connection* c, const char* data, int datalength);
 
 //Close the given connection struct
 void connections_Close(struct connection* c);

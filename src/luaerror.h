@@ -21,8 +21,10 @@
 
 */
 
-int luafuncs_netopen(lua_State* l);
-int luafuncs_netsend(lua_State* l);
-int luafuncs_netclose(lua_State* l);
-int luafuncs_ProcessNetEvents();
+extern char badargument1[]; //Bad argument #%d to `%s` (%s expected, got %s)
+extern char badargument2[]; //Bad argument #%d to `%s`: %s
+
+int haveluaerror(lua_State* l, const char* fmt, ...);
+void luatypetoname(int type, char* buf, size_t bufsize);
+const char* lua_strtype(lua_State* l, int stack);
 

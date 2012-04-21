@@ -44,7 +44,7 @@ int startinitialised = 0;
 
 uint64_t oldtime = 0;
 uint64_t timeoffset = 0;
-uint64_t time_GetMilliSeconds() {
+uint64_t time_GetMilliseconds() {
 #ifdef HAVE_SDL
     uint64_t i = SDL_GetTicks();
     i += timeoffset; //add an offset we might have set
@@ -59,7 +59,7 @@ uint64_t time_GetMilliSeconds() {
 #else //ifdef HAVE_SDL
 #ifdef WINDOWS
     
-
+#error "This code path is not implemented"
 #else //ifdef WINDOWS
     if (!startinitialised) {
         clock_gettime(CLOCK_MONOTONIC, &lastunixtime);

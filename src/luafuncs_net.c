@@ -32,6 +32,8 @@
 #include "luafuncs_net.h"
 #include "luastate.h"
 #include "logging.h" 
+#include "timefuncs.h"
+#include "sockets.h"
 
 struct luanetstream {
     struct connection* c;
@@ -59,6 +61,43 @@ static struct luanetstream* toluanetstream(lua_State* l, int index) {
     return obj;
 }
 
+static void clearconnectioncallbacks(struct connection* c) {
+    void* p = c;
+    uint64_t cval = (uint64_t)((void*)p);
+    lua_State* l = (lua_State*)c->userdata;
+    //close all the stored callback functions
+    char regname[500];
+#ifdef WINDOWS
+    snprintf(regname, sizeof(regname), "opencallback%I64u", cval);
+#else
+    snprintf(regname, sizeof(regname), "opencallback%llu", cval);
+#endif
+    regname[sizeof(regname)-1] = 0;
+    lua_pushstring(l, regname);
+    lua_pushnil(l);
+    lua_settable(l, LUA_REGISTRYINDEX);
+
+#ifdef WINDOWS
+    snprintf(regname, sizeof(regname), "readcallback%I64u", cval);
+#else
+    snprintf(regname, sizeof(regname), "readcallback%llu", cval);
+#endif
+    regname[sizeof(regname)-1] = 0;
+    lua_pushstring(l, regname);
+    lua_pushnil(l);
+    lua_settable(l, LUA_REGISTRYINDEX);
+
+#ifdef WINDOWS
+    snprintf(regname, sizeof(regname), "errorcallback%I64u", cval);
+#else
+    snprintf(regname, sizeof(regname), "errorcallback%llu", cval);
+#endif
+    regname[sizeof(regname)-1] = 0;
+    lua_pushstring(l, regname);
+    lua_pushnil(l);
+    lua_settable(l, LUA_REGISTRYINDEX);
+}
+
 static int garbagecollect_netstream(lua_State* l) {
     //Garbage collect a netstream object:
     struct luanetstream* stream = toluanetstream(l, -1);
@@ -71,17 +110,29 @@ static int garbagecollect_netstream(lua_State* l) {
     if (stream->c) {
         stream->c->luarefcount--;
         if (stream->c->luarefcount <= 0) {
+            //maybe we would want to keep the connection open
+            if (stream->c->error < 0) {
+                if (stream->c->canautoclose && stream->c->lastreadtime + 20000 > time_GetMilliseconds()) {
+#ifdef CONNECTIONSDEBUG
+                    printinfo("[connections] keeping %d around for autoclose", stream->c->socket);
+#endif
+                    stream->c->wantautoclose = 1;
+                    return 0;
+                }
+            }
+
             //close connection
             void* p = stream->c;
+            uint64_t cval = (uint64_t)((void*)p);
             connections_Close(stream->c);
             free(stream->c);
 
             //close all the stored callback functions
             char regname[500];
 #ifdef WINDOWS
-            snprintf(regname, sizeof(regname), "connectcallback%I64u", (uint64_t)p);
+            snprintf(regname, sizeof(regname), "opencallback%I64u", cval);
 #else
-            snprintf(regname, sizeof(regname), "connectcallback%llu", (uint64_t)p);
+            snprintf(regname, sizeof(regname), "opencallback%llu", cval);
 #endif
             regname[sizeof(regname)-1] = 0;
             lua_pushstring(l, regname);
@@ -89,9 +140,9 @@ static int garbagecollect_netstream(lua_State* l) {
             lua_settable(l, LUA_REGISTRYINDEX);
 
 #ifdef WINDOWS
-            snprintf(regname, sizeof(regname), "readcallback%I64u", (uint64_t)p);
+            snprintf(regname, sizeof(regname), "readcallback%I64u", cval);
 #else
-            snprintf(regname, sizeof(regname), "readcallback%llu", (uint64_t)p);
+            snprintf(regname, sizeof(regname), "readcallback%llu", cval);
 #endif
             regname[sizeof(regname)-1] = 0;
             lua_pushstring(l, regname);
@@ -99,9 +150,9 @@ static int garbagecollect_netstream(lua_State* l) {
             lua_settable(l, LUA_REGISTRYINDEX);
 
 #ifdef WINDOWS
-            snprintf(regname, sizeof(regname), "errorcallback%I64u", (uint64_t)p);
+            snprintf(regname, sizeof(regname), "errorcallback%I64u", cval);
 #else
-            snprintf(regname, sizeof(regname), "errorcallback%llu", (uint64_t)p);
+            snprintf(regname, sizeof(regname), "errorcallback%llu", cval);
 #endif
             regname[sizeof(regname)-1] = 0;
             lua_pushstring(l, regname);
@@ -148,6 +199,7 @@ static struct luaidref* createnetstreamobj(lua_State* l, struct connection* use_
         //use the given connection
         obj->c = use_connection;
         obj->c->luarefcount++;
+        obj->c->wantautoclose = 0; //we got a lua reference now, don't autoclose
     }
 
     //make sure it gets garbage collected lateron:
@@ -255,11 +307,12 @@ int luafuncs_netopen(lua_State* l) {
 
     //set the callbacks onto the metatable of our connection object:
     void* cptr = ((struct luanetstream*)idref->ref.ptr)->c;
+    uint64_t cval = (uint64_t)((void*)cptr);
     char regname[500];
 #ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "connectcallback%I64u", (uint64_t)cptr);
+    snprintf(regname, sizeof(regname), "opencallback%I64u", cval);
 #else
-    snprintf(regname, sizeof(regname), "connectcallback%llu", (uint64_t)cptr);
+    snprintf(regname, sizeof(regname), "opencallback%llu", cval);
 #endif
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
@@ -267,9 +320,9 @@ int luafuncs_netopen(lua_State* l) {
     lua_settable(l, LUA_REGISTRYINDEX);
     if (haveread) {
 #ifdef WINDOWS
-        snprintf(regname, sizeof(regname), "readcallback%I64u", (uint64_t)cptr);
+        snprintf(regname, sizeof(regname), "readcallback%I64u", cval);
 #else
-        snprintf(regname, sizeof(regname), "readcallback%llu", (uint64_t)cptr);
+        snprintf(regname, sizeof(regname), "readcallback%llu", cval);
 #endif
         regname[sizeof(regname)-1] = 0;
         lua_pushstring(l, regname);
@@ -278,9 +331,9 @@ int luafuncs_netopen(lua_State* l) {
     }
     if (haveerror) {
 #ifdef WINDOWS
-        snprintf(regname, sizeof(regname), "errorcallback%I64u", (uint64_t)cptr);
+        snprintf(regname, sizeof(regname), "errorcallback%I64u", cval);
 #else
-        snprintf(regname, sizeof(regname), "errorcallback%llu", (uint64_t)cptr);
+        snprintf(regname, sizeof(regname), "errorcallback%llu", cval);
 #endif
         regname[sizeof(regname)-1] = 0;
         lua_pushstring(l, regname);
@@ -289,9 +342,35 @@ int luafuncs_netopen(lua_State* l) {
     }
     
     //attempt to connect:
-    connections_Init(((struct luanetstream*)idref->ref.ptr)->c, server, port, linebuffered, lowdelay); 
+    connections_Init(((struct luanetstream*)idref->ref.ptr)->c, server, port, linebuffered, lowdelay, haveread, clearconnectioncallbacks, (void*)l);
     free(server);
     return 1; //return the netstream object
+}
+
+int luafuncs_netsend(lua_State* l) {
+    struct luanetstream* netstream = toluanetstream(l, 1);
+    if (netstream->c->error >= 0 || !netstream->c->connected) {
+        lua_pushstring(l, "Cannot send to a closed stream");
+        return lua_error(l);
+    }
+    size_t sendsize;
+    const char *send = luaL_checklstring(l, 2, &sendsize);
+    if (sendsize > 0) {
+        connections_Send(netstream->c, send, sendsize);
+    }
+    return 0;
+}
+
+int luafuncs_netclose(lua_State* l) {
+    struct luanetstream* netstream = toluanetstream(l, 1);
+    if (netstream->c->error >= 0 || !netstream->c->connected) {
+        lua_pushstring(l, "Cannot close a stream which is already closed");
+        return lua_error(l);
+    }
+    so_CloseSSLSocket(netstream->c->socket, &netstream->c->sslptr);
+    netstream->c->socket = -1;
+    netstream->c->error = CONNECTIONERROR_CONNECTIONCLOSED;
+    return 0;
 }
 
 static int connectedevents(struct connection* c) {
@@ -303,9 +382,9 @@ static int connectedevents(struct connection* c) {
     //push connect callback function
     char regname[500];
 #ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "connectcallback%I64u", (uint64_t)c);
+    snprintf(regname, sizeof(regname), "opencallback%I64u", (uint64_t)c);
 #else
-    snprintf(regname, sizeof(regname), "connectcallback%llu", (uint64_t)c);
+    snprintf(regname, sizeof(regname), "opencallback%llu", (uint64_t)c);
 #endif
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
@@ -315,12 +394,13 @@ static int connectedevents(struct connection* c) {
     createnetstreamobj(l, c);
 
     //prompt callback:
-    int result = lua_pcall(l, 1, 0, -4);
-    lua_pop(l, 1); //pop error handling function again
+    int result = lua_pcall(l, 1, 0, -3);
     if (result != 0) {
-        printerror("Error: An error occured when calling blitwiz.net.open() connect callback: %s", lua_tostring(l, -1));
+        printerror("Error: An error occured when calling blitwiz.net.open() open callback: %s", lua_tostring(l, -1));
+        lua_pop(l, 2); //pop error message, error handler
         return 0;
     }
+    lua_pop(l, 1); //pop error handler
     return 1;
 }
 
@@ -358,16 +438,17 @@ static int readevents(struct connection* c, char* data, unsigned int datalength)
     
     //prompt callback:
     int result = lua_pcall(l, 2, 0, -4);
-    lua_pop(l, 1); //pop error handling function again
     if (result != 0) {
         printerror("Error: An error occured when calling blitwiz.net.open() read callback: %s", lua_tostring(l, -1));
+        lua_pop(l, 1); //pop error message, error handler
         return 0;
     }
+    lua_pop(l, 1); //pop error handler
     return 1;
 }
 
 static int errorevents(struct connection* c, int error) {
-    lua_State* l = luastate_GetStatePtr();
+    lua_State* l = (lua_State*)c->userdata;
 
     //push error handling function
     lua_pushcfunction(l, internaltracebackfunc());
@@ -394,6 +475,21 @@ static int errorevents(struct connection* c, int error) {
 
     //push error message:
     switch (error) {
+        case CONNECTIONERROR_INITIALISATIONFAILED:
+            lua_pushstring(l, "Initialisation of stream failed");
+            break;
+        case CONNECTIONERROR_NOSUCHHOST:
+            lua_pushstring(l, "No such host");
+            break;
+        case CONNECTIONERROR_CONNECTIONFAILED:
+            lua_pushstring(l, "Failed to connect");
+            break;
+        case CONNECTIONERROR_CONNECTIONCLOSED:
+            lua_pushstring(l, "Connection closed");
+            break;
+        case CONNECTIONERROR_CONNECTIONAUTOCLOSE:
+            lua_pushstring(l, "Connection was auto-closed due to lack of activity and missing Lua references");
+            break;
         default:
             lua_pushstring(l, "Unknown connection error");
             break;
@@ -401,15 +497,16 @@ static int errorevents(struct connection* c, int error) {
 
     //prompt callback:
     int result = lua_pcall(l, 2, 0, -4);
-    lua_pop(l, 1); //pop error handling function again
     if (result != 0) {
         printerror("Error: An error occured when calling blitwiz.net.open() error callback: %s", lua_tostring(l, -1));
+        lua_pop(l, 1); //pop error message, error handler
         return 0;
     }
+    lua_pop(l, 1); //pop error message
     return 1;
 }
 
 int luafuncs_ProcessNetEvents() {
-    return connections_CheckAll(&readevents, &connectedevents, &errorevents);
+    return connections_CheckAll(&connectedevents, &readevents, &errorevents);
 }
 

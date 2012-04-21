@@ -22,7 +22,7 @@
 */
 
 
-uint64_t time_GetMilliSeconds();
+uint64_t time_GetMilliseconds();
 //Timestamp derived from SDL_GetTicks(),
 //but deals with wraps (SDL_GetTicks() is originally
 //an uint32_t).

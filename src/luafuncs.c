@@ -30,6 +30,7 @@
 #include "lauxlib.h"
 
 #include "os.h"
+#include "luaerror.h"
 #include "luafuncs.h"
 #ifdef USE_SDL_GRAPHICS
 #include "SDL.h"
@@ -76,8 +77,7 @@ static const char* luastringchunkreader(lua_State *l, void *data, size_t *size) 
 int luafuncs_loadfile(lua_State* l) {
     const char* p = lua_tostring(l,1);
     if (!p) {
-        lua_pushstring(l, "First argument is not a file name string");
-        return lua_error(l);
+        return haveluaerror(l, badargument1, 1, "loadfile", "string", lua_strtype(l, 1));
     }
 #if defined(ANDROID) || defined(__ANDROID__)
     //special Android file loading
@@ -236,8 +236,7 @@ int luafuncs_dofile(lua_State* l) {
     //obtain function name argument
     const char* p = lua_tostring(l,1);
     if (!p) {
-        lua_pushstring(l,"First argument is not a file name string");
-        return lua_error(l);
+        return haveluaerror(l, badargument1, 1, "loadfile", "string", lua_strtype(l, 1));
     }
 
     //pop all additional arguments we might have received
@@ -261,8 +260,7 @@ int luafuncs_dofile(lua_State* l) {
 int luafuncs_exists(lua_State* l) {
     const char* p = lua_tostring(l, 1);
     if (!p) {
-        lua_pushstring(l, "First argument is not a valid path string");
-        return lua_error(l);
+        return haveluaerror(l, badargument1, 1, "loadfile", "string", lua_strtype(l, 1));
     }
     if (file_DoesFileExist(p)) {
         lua_pushboolean(l, 1);
@@ -458,8 +456,92 @@ int luafuncs_loadImageAsync(lua_State* l) {
 #endif
 }
 
+int luafuncs_split(lua_State* l) {
+    size_t len1,len2;
+    const char* src1 = luaL_checklstring(l, 1, &len1);
+    const char* src2 = luaL_checklstring(l, 2, &len2);
+    int maxsplits = -1;
+    if (lua_type(l, 3) != LUA_TNIL && lua_gettop(l) >= 3) {
+        maxsplits = luaL_checkint(l, 3);
+        if (maxsplits < 0) {maxsplits = 0;}
+        if (maxsplits == 0) {
+            lua_pushlstring(l, src1, len1);
+            return 1;
+        }
+    }
+    if (len2 <= 0) {
+        lua_pushlstring(l, src1, len1);
+        return 1;
+    }
+    unsigned int returncount = 0;
+    //split off as often as we can:
+    while ((maxsplits > 0 || maxsplits < 0) && len1 >= len2) {
+        unsigned int i = 0;
+        int match = 0;
+        while (i <= len1 - len2) {
+            if (memcmp(src1 + i, src2, len2) == 0) {
+                //found a delimeter match!
+                lua_pushlstring(l, src1, i);
+                src1 += i + len2;
+                len1 -= i + len2;
+                returncount++;
+                match = 1;
+                if (!lua_checkstack(l, 10)) {
+                    lua_pop(l, returncount);
+                    return haveluaerror(l, "Exceeded stack space - cannot grow stack further");
+                }
+                break;
+            }
+            i++;
+        }
+        if (match) {
+            if (maxsplits > 0) {
+                maxsplits--;
+            }
+        }else{
+            break;
+        }
+    }
+    //return remaining string:
+    lua_pushlstring(l, src1, len1);
+    return returncount + 1;
+}
+
+int luafuncs_startswith(lua_State* l) {
+    size_t len1,len2;
+    const char* src1 = lua_tolstring(l, 1, &len1);
+    const char* src2 = lua_tolstring(l, 2, &len2);
+    if (!src1 || !src2 || len2 > len1) {
+        lua_pushboolean(l, 0);
+        return 1;
+    }
+    if (memcmp(src1, src2, len2) == 0) {
+        lua_pushboolean(l, 1);
+        return 1;
+    }
+    lua_pushboolean(l, 0);
+    return 1;
+}
+
+int luafuncs_endswith(lua_State* l) {
+    size_t len1,len2;
+    const char* src1 = lua_tolstring(l, 1, &len1);
+    const char* src2 = lua_tolstring(l, 2, &len2);
+    if (!src1 || !src2 || len2 > len1) {
+        lua_pushboolean(l, 0);
+        return 1;
+    }
+    if (memcmp(src1+(len1-len2), src2, len2) == 0) {
+        lua_pushboolean(l, 1);
+        return 1;
+    }
+    lua_pushboolean(l, 0);
+    return 1;
+}
+
+
 int luafuncs_getTime(lua_State* l) {
-    lua_pushnumber(l, time_GetMilliSeconds());
+    lua_pushnumber(l, time_GetMilliseconds());
     return 1;
 }
 

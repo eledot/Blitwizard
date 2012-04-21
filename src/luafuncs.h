@@ -61,3 +61,8 @@ int luafuncs_playing(lua_State* l);
 int luafuncs_stop(lua_State* l);
 int luafuncs_adjust(lua_State* l);
 
+//string:
+int luafuncs_startswith(lua_State* l);
+int luafuncs_endswith(lua_State* l);
+int luafuncs_split(lua_State* l);
+

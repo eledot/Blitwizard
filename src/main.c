@@ -672,27 +672,27 @@ int main(int argc, char** argv) {
         //If we failed to initialise audio, we want to simulate it
         uint64_t simulateaudiotime = 0;
         if (simulateaudio) {
-            simulateaudiotime = time_GetMilliSeconds();
+            simulateaudiotime = time_GetMilliseconds();
         }
     
-        uint64_t logictimestamp = time_GetMilliSeconds();
+        uint64_t logictimestamp = time_GetMilliseconds();
         uint64_t lastdrawingtime = 0;
-        uint64_t physicstimestamp = time_GetMilliSeconds();
+        uint64_t physicstimestamp = time_GetMilliseconds();
         while (!wantquit) {
             blitwizonstepworked = 0;
             blitwizondrawworked = 0;
-            uint64_t time = time_GetMilliSeconds();
+            uint64_t time = time_GetMilliseconds();
 
             //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
 #ifdef NOTHREADEDSDLRW
-            uint64_t start = time_GetMilliSeconds();
-            while (main_ProcessNoThreadedReading() && start + 20 > time_GetMilliSeconds()) { }
+            uint64_t start = time_GetMilliseconds();
+            while (main_ProcessNoThreadedReading() && start + 20 > time_GetMilliseconds()) { }
 #endif      
     
 #ifdef USE_AUDIO
             //simulate audio
             if (simulateaudio) {
-                while (simulateaudiotime < time_GetMilliSeconds()) {
+                while (simulateaudiotime < time_GetMilliseconds()) {
                     audiomixer_GetBuffer(48 * 4 * 2);
                     simulateaudiotime += 1; // 48 * 1000 times * 4 bytes * 2 channels per second = simulated 48kHz 32bit stereo audio
                 }
@@ -700,7 +700,7 @@ int main(int argc, char** argv) {
 #endif //ifdef USE_AUDIO
 
             //limit to roughly 60 FPS
-            uint64_t delta = time_GetMilliSeconds()-lastdrawingtime;
+            uint64_t delta = time_GetMilliseconds()-lastdrawingtime;
             if (delta < 15) {
                 if (connections_NoConnectionsOpen()) {
                     time_Sleep(16-delta);
@@ -708,6 +708,8 @@ int main(int argc, char** argv) {
                 }else{
                     connections_SleepWait(16-delta);
                 }
+            }else{
+                connections_SleepWait(0);
             }
             if (!luafuncs_ProcessNetEvents()) {
                 //there was an error processing the events
@@ -741,8 +743,8 @@ int main(int argc, char** argv) {
                 iterations++;
             }
             if (iterations >= MAXLOGICITERATIONS) {
-                physicstimestamp = time_GetMilliSeconds();
-                logictimestamp = time_GetMilliSeconds();
+                physicstimestamp = time_GetMilliseconds();
+                logictimestamp = time_GetMilliseconds();
                 printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
             }
 

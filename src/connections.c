@@ -40,11 +40,47 @@
 #include "sockets.h"
 #include "connections.h"
 #include "hostresolver.h"
+#include "timefuncs.h"
 
 struct connection* connectionlist;
 
+//Set a new socket to the given connection
+static int connections_SetSocket(struct connection* c, int iptype) {
+    //close old socket
+    if (c->socket >= 0) {
+        so_CloseSSLSocket(c->socket, &c->sslptr);
+    }
+    //create socket
+    if (iptype == IPTYPE_IPV4) { 
+        c->socket = so_CreateSocket(1, IPTYPE_IPV4);
+        c->iptype = IPTYPE_IPV4;
+    }else{ 
+        c->socket = so_CreateSocket(1, IPTYPE_IPV6);
+        c->iptype = IPTYPE_IPV6;
+    }
+    //check if socket is there
+    if (c->socket < 0) {
+        return 0;
+    }
+    //set a low delay option if desired
+    if (c->lowdelay) {
+        int flag = 1;
+        setsockopt(c->socket, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
+    }
+    return 1;
+}
+
 //Attempt connect:
 static int connections_TryConnect(struct connection* c, const char* target) {
+    //first, in case of ipv4, ensure we have an ipv4 socket:
+    if (c->iptype == IPTYPE_IPV6 && isipv4ip(target)) {
+        if (!connections_SetSocket(c, IPTYPE_IPV4)) {
+#ifdef CONNECTIONSDEBUG
+            printinfo("[connections] TryConnect: failed to get IPv4 socket");
+#endif
+            return 0;
+        }
+    }
     //connect:
     int result;
 #ifdef CONNECTIONSDEBUG
@@ -81,10 +117,81 @@ static int connections_E(struct connection* c, int (*errorcallback)(struct conne
     return 1;
 }
 
+static struct connection* justreadingfromconnection = NULL;
+static int readconnectionclosed = 0;
+static int connections_ProcessReceivedData(struct connection* c, int (*readcallback)(struct connection* c, char* data, unsigned int datalength), int* closed) {
+    if (c->error >= 0) {return 1;}
+    *closed = 0;
+    if (!readcallback) {
+        c->inbufbytes = 0;
+        return 1;
+    }
+    if (c->linebuffered) {
+        //only read complete lines:
+        while (1) {
+            int lineprocessed = 0;
+            int j = 0;
+            while (j < c->inbufbytes) {
+                if (c->inbuf[j] == '\n') {
+                    //we found a line ending!
+                    int readlen = j;
+
+                    //don't process the \r from \r\n:
+                    if (j > 0 && c->inbuf[j-1] == '\r') {readlen--;}
+
+                    if (readlen > 0) {
+                        justreadingfromconnection = c;
+                        readconnectionclosed = 0;
+                        if (!readcallback(c, c->inbuf, readlen)) {
+                            return 0;
+                        }
+                        if (readconnectionclosed) { //connection was closed by callback
+                            *closed = 1;
+                            return 1;
+                        }
+                        if (c->error >= 0) { //connection was probably closed by lua
+                            return 1;
+                        }
+                    }
+
+                    //cut off the processed line
+                    memmove(c->inbuf, c->inbuf + (j + 1), c->inbufbytes - (j+1));
+                    c->inbufbytes -= j+1;
+
+                    lineprocessed = 1;
+                    break;
+                }
+                j++;
+            }
+            //if we changed to not-buffered mode, do the remainings in normal mode:
+            if (!c->linebuffered) {
+                break;
+            }
+            //if no line to process was found, stop:
+            if (!lineprocessed) {
+                break;
+            }
+        }
+    }
+    //if not line buffered, or no longer line buffered:
+    if (!c->linebuffered) {
+        //simply read everything we have:
+        justreadingfromconnection = c;
+        readconnectionclosed = 0;
+        if (!readcallback(c, c->inbuf, c->inbufbytes)) {
+            return 0;
+        }
+        c->inbufbytes = 0;
+        if (readconnectionclosed) { //connection was closed by callback
+            *closed = 1;
+            return 1;
+        } 
+    }
+    return 1;
+}
+
 //Check all connections for events, updates etc
-struct connection* justreadingfromconnection = NULL;
-int readconnectionclosed = 0;
-int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, unsigned int datalength), int (*connectedcallback)(struct connection* c), int (*errorcallback)(struct connection* c, int error)) {
+int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*readcallback)(struct connection* c, char* data, unsigned int datalength), int (*errorcallback)(struct connection* c, int error)) {
     //initialise socket system (just in case it's not done yet):
     if (!so_Startup()) {
         return 1;
@@ -104,8 +211,25 @@ int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, u
             c = cnext;
             continue;
         }
+        //check for auto close:
+        if (c->canautoclose && c->wantautoclose && (c->error >= 0 || c->lastreadtime + 30000 < time_GetMilliseconds())) {
+            if (c->error >= 0) { //connection already error'd, we can get rid of it:
+#ifdef CONNECTIONSDEBUG
+                printinfo("[connections] autoclosing connection %d", c->socket);
+#endif
+                c->autoclosecallback(c);
+                connections_Close(c);
+                c = cnext;
+            }else{
+                //make connection error: 
+                if (!connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONAUTOCLOSE)) {
+                    return 0;
+                }
+            }
+            continue;
+        }
         //check host resolve requests first:
-        if (c->hostresolveptr || c->hostresolveptrv6) {
+        if (c->error < 0 && (c->hostresolveptr || c->hostresolveptrv6)) {
             int rqstate1 = RESOLVESTATUS_SUCCESS;
             if (c->hostresolveptr) {
                 hostresolv_GetRequestStatus(c->hostresolveptr);
@@ -155,6 +279,7 @@ int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, u
                     free(ipv6);
                     if (!result) {
                         if (ipv4) {
+                            c->error = -1;
                             //Try an IPv4 connection:
                             result = connections_TryConnect(c, ipv4);
                             free(ipv4);
@@ -198,9 +323,8 @@ int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, u
                 }
             }
         }
-
         //if the connection is attempting to connect, check if it succeeded:
-        if (!c->connected && c->socket) {
+        if (c->error < 0 && !c->connected && c->socket) {
             if (so_SelectSaysWrite(c->socket, &c->sslptr)) {
                 if (c->outbufbytes <= 0) {
                     so_SelectWantWrite(c->socket, 0);
@@ -209,6 +333,8 @@ int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, u
 #ifdef CONNECTIONSDEBUG
                     printinfo("[connections] now connected");
 #endif
+
+                    c->connected = 1;
                     if (connectedcallback) {
                         if (!connectedcallback(c)) {return 0;}
                     }
@@ -218,6 +344,7 @@ int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, u
 #ifdef CONNECTIONSDEBUG
                         printinfo("[connections] retrying v4 after v6 fail...");
 #endif
+                        //attempt to connect:
                         int result = connections_TryConnect(c, c->retryv4ip);
                         free(c->retryv4ip);
                         c->retryv4ip = NULL;
@@ -240,33 +367,37 @@ int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, u
                 }
             }
         }
-
         //read things if we can:
-        if (c->connected && so_SelectSaysRead(c->socket, &c->sslptr)) {
+        if (c->error < 0 && c->connected && so_SelectSaysRead(c->socket, &c->sslptr)) {
             if (c->inbufbytes >= c->inbufsize && c->linebuffered == 1) {
                 //we will break this mega line into two:
-                justreadingfromconnection = c;
-                readconnectionclosed = 0;
-                if (readcallback) {
-                    if (!readcallback(c, c->inbuf, c->inbufbytes)) {return 0;}
+                //first, send without line processing:
+                c->linebuffered = 0;
+                int closed = 0;
+                if (!connections_ProcessReceivedData(c, readcallback, &closed)) {
+                    return 0;
                 }
-                if (readconnectionclosed) {
+                if (closed) { //connection was closed by callback
                     c = cnext;
                     continue;
                 }
-                c->inbufbytes = 0; //clear buffer
+                if (c->error >= 0) { //lua closed this connection
+                    c = c->next;
+                    continue;
+                }
+                //then, turn it back on:
+                c->linebuffered = 1;
             }
             //read new bytes into the buffer:
             int r = so_ReceiveSSLData(c->socket, c->inbuf + c->inbufbytes, c->inbufsize - c->inbufbytes, &c->sslptr);
             if (r == 0)  {
                 //connection closed. send out all data we still have:
                 if (c->inbufbytes > 0) {
-                    justreadingfromconnection = c;
-                    readconnectionclosed = 0;
-                    if (readcallback) {
-                        if (!readcallback(c, c->inbuf, c->inbufbytes)) {return 0;}
+                    int closed = 0;
+                    if (!connections_ProcessReceivedData(c, readcallback, &closed)) {
+                        return 0;
                     }
-                    if (readconnectionclosed) {
+                    if (closed) { //connection was closed by callback
                         c = cnext;
                         continue;
                     }
@@ -283,11 +414,19 @@ int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, u
             }
             if (r > 0) { //we successfully received new bytes
                 c->inbufbytes += r;
+                c->lastreadtime = time_GetMilliseconds();
+                int closed = 0;
+                if (!connections_ProcessReceivedData(c, readcallback, &closed)) {
+                    return 0;
+                }
+                if (closed) { //connection was closed by callback
+                    c = cnext;
+                    continue;
+                }
             }
         }
-
         //write things if we can:
-        if (c->connected && c->outbufbytes > 0 && so_SelectSaysWrite(c->socket, &c->sslptr)) {
+        if (c->error < 0 && c->connected && c->outbufbytes > 0 && so_SelectSaysWrite(c->socket, &c->sslptr)) {
             int r = so_SendSSLData(c->socket, c->outbuf + c->outbufoffset, c->outbufbytes, &c->sslptr);
             if (r == 0) {
                 //connection closed:
@@ -316,7 +455,6 @@ int connections_CheckAll(int (*readcallback)(struct connection* c, char* data, u
                 }
             }
         }
-
         c = cnext;
     }
     return 1;
@@ -338,14 +476,19 @@ void connections_SetLineBuffered(struct connection* c, int linebuffered) {
 }
 
 //Initialise the given connection struct and open the connection
-void connections_Init(struct connection* c, const char* target, int port, int linebuffered, int lowdelay) {
+void connections_Init(struct connection* c, const char* target, int port, int linebuffered, int lowdelay, int canautoclose, void (*autoclosecallback)(struct connection* c), void* userdata) {
     int oldluaref = c->luarefcount;
     memset(c, 0, sizeof(*c));
     c->luarefcount = oldluaref;
     c->socket = -1;
     c->error = -1;
+    c->canautoclose = canautoclose;
+    c->autoclosecallback = autoclosecallback;
+    c->userdata = userdata;
+    c->lowdelay = lowdelay;
     c->targetport = port;
     c->linebuffered = linebuffered;
+    c->lastreadtime = time_GetMilliseconds();
     if (connectionlist) {
         c->next = connectionlist;
     }else{
@@ -367,28 +510,24 @@ void connections_Init(struct connection* c, const char* target, int port, int li
         c->error = CONNECTIONERROR_INITIALISATIONFAILED;
         return;
     }
+    c->inbufsize = CONNECTIONINBUFSIZE;
     c->outbuf = malloc(CONNECTIONOUTBUFSIZE);
     if (!c->outbuf) {
         c->error = CONNECTIONERROR_INITIALISATIONFAILED;
         return;
     }
+    c->outbufsize = CONNECTIONOUTBUFSIZE;
     //get a socket
     if (isipv4ip(target)) { //only take ipv4 when it's obvious
-        c->socket = so_CreateSocket(1, IPTYPE_IPV4);
-        c->iptype = IPTYPE_IPV4;
+        if (!connections_SetSocket(c, IPTYPE_IPV4)) {
+            c->error = CONNECTIONERROR_INITIALISATIONFAILED;
+            return;
+        }
     }else{ //otherwise, try ipv6 first
-        c->socket = so_CreateSocket(1, IPTYPE_IPV6);
-        c->iptype = IPTYPE_IPV6;
-    }
-    //set a low delay option if desired
-    if (lowdelay) {
-        int flag = 1;
-        setsockopt(c->socket, IPPROTO_TCP, TCP_NODELAY, (char*)&flag, sizeof(int));
-    }
-    //without a socket, we cannot continue:
-    if (c->socket < 0) {
-        c->error = CONNECTIONERROR_INITIALISATIONFAILED;
-        return;
+        if (!connections_SetSocket(c, IPTYPE_IPV6)) {
+            c->error = CONNECTIONERROR_INITIALISATIONFAILED;
+            return;
+        }
     }
     //we probably need to resolve the host first:
     if (!isipv4ip(target) && !isipv6ip(target)) {
@@ -416,7 +555,7 @@ void connections_Init(struct connection* c, const char* target, int port, int li
 }
 
 //Send on a connection. Do not use if ->connected is not 1 yet!
-void connections_Send(struct connection* c, char* data, int datalength) {
+void connections_Send(struct connection* c, const char* data, int datalength) {
     int r = datalength;
     //sadly, we cannot send an infinite size of bytes:
     if (r > c->outbufsize - (c->outbufbytes + c->outbufoffset)) {

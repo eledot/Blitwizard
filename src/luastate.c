@@ -28,6 +28,7 @@
 #include "luafuncs.h"
 #include "luafuncs_physics.h"
 #include "luafuncs_net.h"
+#include "luaerror.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -176,6 +177,12 @@ static void luastate_CreateNetTable(lua_State* l) {
     lua_pushstring(l, "open");
     lua_pushcfunction(l, &luafuncs_netopen);
     lua_settable(l, -3);
+    lua_pushstring(l, "send");
+    lua_pushcfunction(l, &luafuncs_netsend);
+    lua_settable(l, -3);
+    lua_pushstring(l, "close");
+    lua_pushcfunction(l, &luafuncs_netclose);
+    lua_settable(l, -3);
 }
 
 static void luastate_CreateGraphicsTable(lua_State* l) {
@@ -278,42 +285,6 @@ int luastate_GetWantFFmpeg() {
         return 0;
     }
     return 1;
-}
-
-static void luatypetoname(int type, char* buf, size_t bufsize) {
-    switch (type) {
-        case LUA_TNIL:
-            strncpy(buf, "nil", bufsize);
-            break;
-        case LUA_TFUNCTION:
-            strncpy(buf, "function", bufsize);
-            break;
-        case LUA_TSTRING:
-            strncpy(buf, "string", bufsize);
-            break;
-        case LUA_TNUMBER:
-            strncpy(buf, "number", bufsize);
-            break;
-        case LUA_TBOOLEAN:
-            strncpy(buf, "boolean", bufsize);
-            break;
-        case LUA_TTABLE:
-            strncpy(buf, "table", bufsize);
-            break;
-        case LUA_TLIGHTUSERDATA:
-            strncpy(buf, "lightuserdata",bufsize);
-            break;
-        case LUA_TUSERDATA:
-            strncpy(buf, "userdata", bufsize);
-            break;
-        case LUA_TTHREAD:
-            strncpy(buf, "thread", bufsize);
-            break;
-        case LUA_NUMTAGS:
-            strncpy(buf, "numtag", bufsize);
-            break;
-    }
-    buf[bufsize-1] = 0;
 }
 
 static int gettraceback(lua_State* l) {
@@ -501,6 +472,23 @@ static lua_State* luastate_New() {
     lua_settable(l, -3);
 
     //throw table "os" off the stack
+    lua_pop(l, 1);
+
+    //get "string" table for custom string functions
+    lua_getglobal(l, "string");
+
+    //set custom string functions
+    lua_pushstring(l, "starts");
+    lua_pushcfunction(l, &luafuncs_startswith);
+    lua_settable(l, -3);
+    lua_pushstring(l, "ends");
+    lua_pushcfunction(l, &luafuncs_endswith);
+    lua_settable(l, -3);
+    lua_pushstring(l, "split");
+    lua_pushcfunction(l, &luafuncs_split);
+    lua_settable(l, -3);
+
+    //throw table "string" off the stack
     lua_pop(l, 1);
 
     char vstr[512];
