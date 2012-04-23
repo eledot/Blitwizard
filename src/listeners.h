@@ -21,7 +21,7 @@
 
 */
 
-int listener_Create(int port, int ssl, void* userdata);
+int listeners_Create(int port, int ssl, void* userdata);
 int listeners_CheckForConnections(int (*newconnection)(int port, int socket, const char* ip, void* sslptr, void* userdata));
 int listeners_CloseByPort(int port);
 

@@ -26,8 +26,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "luaerror.h"
 #include "lua.h"
+#include "luaerror.h"
 #include "lauxlib.h"
 #include "connections.h"
 #include "luafuncs_net.h"
@@ -35,6 +35,7 @@
 #include "logging.h" 
 #include "timefuncs.h"
 #include "sockets.h"
+#include "listeners.h"
 
 struct luanetstream {
     struct connection* c;
@@ -215,7 +216,7 @@ static void luafuncs_checkcallbackparameters(lua_State* l, int* haveconnect, int
     //check for a proper 'connected' callback:
     if (lua_gettop(l) >= 2 && lua_type(l, 3) != LUA_TNIL) {
         if (lua_type(l, 2) != LUA_TFUNCTION) {
-            return haveluaerror(l, badargument1, 2, "blitwiz.net.open", "function", lua_strtype(l, 2));
+            haveluaerror(l, badargument1, 2, "blitwiz.net.open", "function", lua_strtype(l, 2));
         }
         *haveconnect = 1;
     }
@@ -223,7 +224,7 @@ static void luafuncs_checkcallbackparameters(lua_State* l, int* haveconnect, int
     //check if we have a 'read' callback:
     if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
         if (lua_type(l, 3) != LUA_TFUNCTION) {
-            return haveluaerror(l, badargument1, 3, "blitwiz.net.open", "function", lua_strtype(l, 3));
+            haveluaerror(l, badargument1, 3, "blitwiz.net.open", "function", lua_strtype(l, 3));
         }
         *haveread = 1;
     }
@@ -231,16 +232,15 @@ static void luafuncs_checkcallbackparameters(lua_State* l, int* haveconnect, int
     //check for the 'close' callback:
     if (lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL) {
         if (lua_type(l, 4) != LUA_TFUNCTION) {
-            lua_pushstring(l, "Fourth argument not a function, error callback or nil expected");
-            return lua_error(l);
+            haveluaerror(l, badargument1, 4, "blitwiz.net.open", "function", lua_strtype(l, 4));
+            lua_error(l);
         }
-        haveerror = 1;
+        *haveerror = 1;
     }
 }
 
-static void luafuncs_setcallbacks(lua_State* l, int haveconnect, haveread, haveerror) {
+static void luafuncs_setcallbacks(lua_State* l, void* cptr, int haveconnect, int haveread, int haveerror) {
     //set the callbacks onto the metatable of our connection object:
-    void* cptr = ((struct luanetstream*)idref->ref.ptr)->c;
     uint64_t cval = (uint64_t)((void*)cptr);
     char regname[500];
     if (haveconnect) {
@@ -356,7 +356,7 @@ int luafuncs_netopen(lua_State* l) {
         return lua_error(l);
     }
 
-    luafuncs_setcallbacks(l, haveconnect, haveread, haveerror);
+    luafuncs_setcallbacks(l, ((struct luanetstream*)idref->ref.ptr)->c, haveconnect, haveread, haveerror);
     
     //attempt to connect:
     connections_Init(((struct luanetstream*)idref->ref.ptr)->c, server, port, linebuffered, lowdelay, haveread, clearconnectioncallbacks, (void*)l);
@@ -414,7 +414,7 @@ int luafuncs_netset(lua_State* l) {
     //check/retrieve and set callbacks;
     int haveconnect,haveread,haveerror;
     luafuncs_checkcallbackparameters(l, &haveconnect, &haveread, &haveerror);
-    luafuncs_setcallbacks(l, haveconnect, haveread, haveerror);
+    luafuncs_setcallbacks(l, netstream->c, haveconnect, haveread, haveerror);
     return 0;
 }
 
@@ -500,13 +500,14 @@ static int readevents(struct connection* c, char* data, unsigned int datalength)
 
 int luafuncs_netserver(lua_State* l) {
     //get parameters:
-    if (lua_gettop(l) < 1 || lua_gettype(l, 1) != LUA_TNUMBER) {
+    if (lua_gettop(l) < 1 || lua_type(l, 1) != LUA_TNUMBER) {
         return haveluaerror(l, badargument1, 1, "blitwiz.net.server", "number", lua_strtype(l, 1));
     }
     int port = lua_tointeger(l, 1);
     if (port < 1 || port > 65535) {
         return haveluaerror(l, badargument2, 1, "blitwiz.net.server", "port not in valid range");
-    if (lua_gettop(l) < 2 || lua_gettype(l, 2) != LUA_TFUNCTION) {
+    }
+    if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TFUNCTION) {
         return haveluaerror(l, badargument1, 2, "blitwiz.net.server", "function", lua_strtype(l, 2));
     }
 
@@ -516,8 +517,8 @@ int luafuncs_netserver(lua_State* l) {
     }
 
     //create server listener:
-    struct listener* listenerptr = listener_Create(port, 0, l);
-    if (!listenerptr) {
+    int result = listeners_Create(port, 0, l);
+    if (!result) {
         return haveluaerror(l, "Cannot start server at %d - is that port already in use?", port);
     }
     char msg[512];
@@ -534,18 +535,53 @@ int luafuncs_netserver(lua_State* l) {
 int connectionevents(int port, int socket, const char* ip, void* sslptr, void* userdata) {
     lua_State* l = (lua_State*)userdata;
 
+    //push the error handler:
+    lua_pushcfunction(l, internaltracebackfunc());
+
+    //get the callback:
     char p[512];
     snprintf(p, sizeof(p), "serverlistenercallback%d", port);
     lua_pushstring(l, p);
     lua_gettable(l, LUA_REGISTRYINDEX);
 
     //without a valid callback, there is nothing we could do:
-    if (lua_gettype(l, -1) != LUA_TFUNTION) {
+    if (lua_type(l, -1) != LUA_TFUNCTION) {
         so_CloseSSLSocket(socket, &sslptr);
         return 1;
     }
 
+    //push server port:
+    lua_pushnumber(l, port);
+
     //create a new connection which we can pass on to the callback:
+    struct luaidref* iptr = createnetstreamobj(l, NULL); //FIXME: this should be pcall'ed probably
+
+    struct connection* c = ((struct luanetstream*)iptr->ref.ptr)->c;
+    memset(c, 0, sizeof(*c));
+    c->socket = socket;
+    c->targetport = port;
+    c->iptype = IPTYPE_IPV6;
+    c->inbuf = malloc(CONNECTIONINBUFSIZE);
+    c->outbuf = malloc(CONNECTIONOUTBUFSIZE);
+    if (!c->inbuf || !c->outbuf) {
+        if (c->inbuf) {free(c->inbuf);}
+        if (c->outbuf) {free(c->outbuf);}
+        free(c);
+        free(iptr->ref.ptr);
+        lua_pop(l, 4); //error handler, callback, port, luaidref
+        printwarning("Failed to allocate connection");
+        return 0;
+    }
+    
+    //prompt callback:
+    int result = lua_pcall(l, 2, 0, -4);
+    if (result != 0) {
+        printerror("Error: An error occured when calling blitwiz.net.server() callback: %s", lua_tostring(l, -1));
+        lua_pop(l, 1); //pop error message, error handler
+        return 0;
+    }
+    lua_pop(l, 1); //pop error handler
+    return 1;
 }
 
 static int errorevents(struct connection* c, int error) {

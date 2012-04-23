@@ -21,10 +21,14 @@
 
 */
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "sockets.h"
 #include "listeners.h"
 
 struct listener {
+    void* userdata;
     int socket;
     int port;
     int ssl;
@@ -56,11 +60,12 @@ int listeners_Create(int port, int ssl, void* userdata) {
     memset(l, 0, sizeof(*l));
     l->socket = so_CreateSocket(1, IPTYPE_IPV6);
     l->ssl = ssl;
+    l->userdata = userdata;
     if (l->socket < 0) {
         free(l);
         return 0;
     }
-    if (!so_MakeSocketListen(l->socket, port, IPTYPE_IPV6)) {
+    if (!so_MakeSocketListen(l->socket, port, IPTYPE_IPV6, "::1")) {
         so_CloseSocket(l->socket);
         free(l);
         return 0;
@@ -78,21 +83,21 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
             char ipbuf[IPMAXLEN+1];
             int sock;
             void* sptr = NULL;
-            int newconnection = 0;
+            int havenewconnection = 0;
 
             //accepting new connection:
             if (l->ssl) {
                 if (so_AcceptConnection(l->socket, IPTYPE_IPV6, ipbuf, &sock)) {
-                    newconnection = 1;
+                    havenewconnection = 1;
                 }
             }else{
                 if (so_AcceptSSLConnection(l->socket, IPTYPE_IPV6, ipbuf, &sock, &sptr)) {
-                    newconnection = 1;
+                    havenewconnection = 1;
                 }
             }
 
             //process new connection if we have one:
-            if (newconnection) {
+            if (havenewconnection) {
                 if (!newconnection(l->port, sock, ipbuf, sptr, l->userdata)) {
                     return 0;
                 }
@@ -105,7 +110,7 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
 
 int listeners_CloseByPort(int port) {
     struct listener* prev;
-    struct listener* l = listeners_GetbyPort(port, &prev);
+    struct listener* l = listeners_GetByPort(port, &prev);
     if (!l) {return 0;}
     so_CloseSocket(l->socket);
     if (prev) {

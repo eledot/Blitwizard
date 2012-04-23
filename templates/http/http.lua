@@ -55,7 +55,6 @@ blitwiz.net.http.get = function(url, callback, headers)
     -- Specify them in a string containing multiple lines
     -- separated through \n, e.g. like this:
     --   "User-agent: blubb\nX-Hello: bla"
-if
 
     if type(url) ~= "string" then
         error("bad argument #1 to `blitwiz.net.http.get` (string expected, got " .. type(url) .. ")")
@@ -107,7 +106,7 @@ if
         headers = ""
     end
 
-    local final_headers = merge_headers(
+    local final_headers = blitwiz.net.http._merge_headers(
         "GET " .. resource .. " HTTP/1.0\n" ..
         "Connection: Close\n" ..
         "Accept-Encoding: identity *;q=0\n" ..
@@ -115,8 +114,8 @@ if
     ,
     headers
     )
-    if not header_present(final_headers, "User-agent: ") then
-        final_headers = final_headers .. "User-agent: " .. default_user_agent .. "\n"
+    if not blitwiz.net.http._header_present(final_headers, "User-agent: ") then
+        final_headers = final_headers .. "User-agent: " .. blitwiz.net.http._default_user_agent .. "\n"
     end
 
     local streamdata = {}
@@ -162,8 +161,8 @@ if
 end
 
 
-local default_user_agent = "blitwiz.net.http/1.0"
-local header_present = function(headerblock, header)
+blitwiz.net.http._default_user_agent = "blitwiz.net.http/1.0"
+blitwiz.net.http._header_present = function(headerblock, header)
     while string.find(header, " :") ~= nil do
         string.gsub(header, " :", ":")
     end
@@ -180,7 +179,7 @@ local header_present = function(headerblock, header)
     return false
 end
 
-local merge_headers = function(headerblock1, headerblock2)
+blitwiz.net.http._merge_headers = function(headerblock1, headerblock2)
     -- Merge headers and remove duplicated entries
     local lines = {string.split(headerblock2, "\n")}
     for number,line in ipairs(lines) do
@@ -192,7 +191,7 @@ local merge_headers = function(headerblock1, headerblock2)
             end
         end
         if string.find(line, ":") ~= nil then
-            if not header_present(headerblock1, line) then
+            if not blitwiz.net.http._header_present(headerblock1, line) then
                 headerblock1 = headerblock1 .. line .. "\n"
             end
         end
