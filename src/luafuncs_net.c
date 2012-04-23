@@ -209,30 +209,30 @@ static struct luaidref* createnetstreamobj(lua_State* l, struct connection* use_
     return ref;
 }
 
-static void luafuncs_checkcallbackparameters(lua_State* l, int* haveconnect, int* haveread, int* haveerror) {
+static void luafuncs_checkcallbackparameters(lua_State* l, int startindex, int* haveconnect, int* haveread, int* haveerror) {
     *haveconnect = 0;
     *haveread = 0;
     *haveerror = 0;
     //check for a proper 'connected' callback:
-    if (lua_gettop(l) >= 2 && lua_type(l, 3) != LUA_TNIL) {
-        if (lua_type(l, 2) != LUA_TFUNCTION) {
-            haveluaerror(l, badargument1, 2, "blitwiz.net.open", "function", lua_strtype(l, 2));
+    if (lua_gettop(l) >= startindex && lua_type(l, startindex) != LUA_TNIL) {
+        if (lua_type(l, startindex) != LUA_TFUNCTION) {
+            haveluaerror(l, badargument1, startindex, "blitwiz.net.open", "function", lua_strtype(l, startindex));
         }
         *haveconnect = 1;
     }
 
     //check if we have a 'read' callback:
-    if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
-        if (lua_type(l, 3) != LUA_TFUNCTION) {
-            haveluaerror(l, badargument1, 3, "blitwiz.net.open", "function", lua_strtype(l, 3));
+    if (lua_gettop(l) >= startindex+1 && lua_type(l, startindex+1) != LUA_TNIL) {
+        if (lua_type(l, startindex+1) != LUA_TFUNCTION) {
+            haveluaerror(l, badargument1, startindex+1, "blitwiz.net.open", "function", lua_strtype(l, startindex+1));
         }
         *haveread = 1;
     }
 
     //check for the 'close' callback:
-    if (lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL) {
-        if (lua_type(l, 4) != LUA_TFUNCTION) {
-            haveluaerror(l, badargument1, 4, "blitwiz.net.open", "function", lua_strtype(l, 4));
+    if (lua_gettop(l) >= startindex+2 && lua_type(l, startindex+2) != LUA_TNIL) {
+        if (lua_type(l, startindex+2) != LUA_TFUNCTION) {
+            haveluaerror(l, badargument1, startindex+2, "blitwiz.net.open", "function", lua_strtype(l, startindex+2));
             lua_error(l);
         }
         *haveerror = 1;
@@ -278,6 +278,72 @@ static void luafuncs_setcallbacks(lua_State* l, void* cptr, int haveconnect, int
     }
 }
 
+static void luafuncs_parsestreamsettings(lua_State* l, int stackindex, int argnumber, const char* functionname, int erroronempty, int* port, char** servername, int* linebuffered, int* lowdelay) {
+    //see if we have a proper settings table:
+    if (lua_gettop(l) < stackindex || lua_type(l, stackindex) == LUA_TNIL) {
+        if (erroronempty) {
+            haveluaerror(l, badargument1, argnumber, functionname, "table", "nil");
+        }
+    }
+    if (lua_type(l, 1) != LUA_TTABLE) {
+        haveluaerror(l, badargument1, argnumber, functionname, "table", lua_strtyppe(l, stackindex));
+    }
+    //check for server name:
+    if (servername) {
+        lua_pushstring(l, "server");
+        lua_gettable(l, 1);
+        const char* p = lua_tostring(l, -1);
+        if (!p) {
+            haveluaerror(l, badargument2, argnumber, functionname, "the settings table doesn't contain a valid target server name");
+        }
+        *servername = strdup(p);
+        lua_pop(l, 1); //pop server name string again
+    }
+    //check for server port:
+    if (serverport) {
+        lua_pushstring(l, "port");
+        lua_gettable(l, 1);
+        if (lua_type(l, -1) != LUA_TNUMBER) {
+            free(server);
+            lua_pushstring(l, "The settings table doesn't contain a valid target port number ('port'setting)");
+            return lua_error(l);
+        }
+        *serverport = lua_tointeger(l, -1);
+        lua_pop(l, 1); //pop port number again
+        if (*serverport < 1 || *serverport > 65535) {
+            free(server);
+            lua_pushstring(l, "The port number exceeds the possible port range");
+            return lua_error(l);
+        }
+    }
+    //check if it should be line buffered:
+    *linebuffered = 0;
+    lua_pushstring(l, "linebuffered");
+    lua_gettable(l, 1);
+    if (lua_type(l, -1) == LUA_TBOOLEAN) {
+        if (lua_toboolean(l, -1)) {*linebuffered = 1;}
+    }else{
+        if (lua_type(l, -1) != LUA_TNIL) {
+            haveluaerror(l, badargument2, argnumber, functionname, "the settings table contains an invalid linebuffered setting: boolean expected");
+        }
+    }
+    lua_pop(l, 1); //pop linebuffered setting again
+
+    //check if we want a low delay connection:
+    *loowdelay = 0;
+    lua_pushstring(l, "lowdelay");
+    lua_gettable(l, 1);
+    if (lua_type(l, -1) == LUA_TBOOLEAN) {
+        if (lua_toboolean(l, -1)) {*lowdelay = 1;}
+    }else{
+        if (lua_type(l, -1) != LUA_TNIL) {
+            haveluaerror(l, badargument2, argnumber, functionname, "the settings table contains an invalid lowdelay setting: boolean expected");
+            return;
+        }
+    }
+    lua_pop(l, 1); //pop linebuffered setting again
+}
+
 int luafuncs_netopen(lua_State* l) {
     //see if we have a proper settings table:
     if (lua_gettop(l) < 1 || lua_type(l, 1) != LUA_TTABLE) {
@@ -291,62 +357,11 @@ int luafuncs_netopen(lua_State* l) {
     //check for the callback parameters (will throw lua error if faulty):
     luafuncs_checkcallbackparameters(l, &haveconnect, &haveread, &haveerror);
 
-    //check for server name:
-    lua_pushstring(l, "server");
-    lua_gettable(l, 1);
-    const char* p = lua_tostring(l, -1);
-    if (!p) {
-        lua_pushstring(l, "The settings table doesn't contain a valid target server name ('server' setting)");
-        return lua_error(l);
-    }
-    char* server = strdup(p);
-    lua_pop(l, 1); //pop server name string again
-
-    //check for server port:
-    lua_pushstring(l, "port");
-    lua_gettable(l, 1);
-    if (lua_type(l, -1) != LUA_TNUMBER) {
-        free(server);
-        lua_pushstring(l, "The settings table doesn't contain a valid target port number ('port'setting)");
-        return lua_error(l);
-    }
-    int port = lua_tointeger(l, -1);
-    lua_pop(l, 1); //pop port number again
-    if (port < 1 || port > 65535) {
-        free(server);
-        lua_pushstring(l, "The port number exceeds the possible port range");
-        return lua_error(l);
-    }
-
-    //check if it should be line buffered:
-    int linebuffered = 0;
-    lua_pushstring(l, "linebuffered");
-    lua_gettable(l, 1);
-    if (lua_type(l, -1) == LUA_TBOOLEAN) {
-        if (lua_toboolean(l, -1)) {linebuffered = 1;}
-    }else{
-        if (lua_type(l, -1) != LUA_TNIL) {
-            free(server);
-            lua_pushstring(l, "The settings table contains an invalid linebuffered setting: boolean expected");
-            return lua_error(l);
-        }
-    }
-    lua_pop(l, 1); //pop linebuffered setting again
-
-    //check if we want a low delay connection:
-    int lowdelay = 0;
-    lua_pushstring(l, "lowdelay");
-    lua_gettable(l, 1);
-    if (lua_type(l, -1) == LUA_TBOOLEAN) {
-        if (lua_toboolean(l, -1)) {linebuffered = 1;}
-    }else{
-        if (lua_type(l, -1) != LUA_TNIL) {
-            free(server);
-            lua_pushstring(l, "The settings table contains an invalid lowdelay setting: boolean expected");
-            return lua_error(l);
-        }
-    }
-    lua_pop(l, 1); //pop linebuffered setting again
+    int port;
+    char* server;
+    int linebuffered;
+    int lowdelay;
+    luafuncs_parsestreamsettings(l, 1, 1, "blitwiz.net.open", 1, &port, &servername, &linebuffered, &lowdelay);
 
     //ok, now it's time to get a connection object:
     struct luaidref* idref = createnetstreamobj(l, NULL); //FIXME: this can error! and then "server" won't be freed -> possible memory leak
