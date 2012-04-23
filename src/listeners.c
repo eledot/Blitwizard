@@ -21,9 +21,99 @@
 
 */
 
+#include "sockets.h"
 #include "listeners.h"
 
-void listener_Create(int port);
-struct listener* listener_GetByPort(int port);
-void listener_Close(struct listener* listener);
+struct listener {
+    int socket;
+    int port;
+    int ssl;
+    struct listener* next;
+};
+
+struct listener* listeners = NULL;
+
+static struct listener* listeners_GetByPort(int port, struct listener** prev) {
+    struct listener* p = NULL;
+    struct listener* l = listeners;
+    while (l) {
+        if (l->port == port) {
+            if (prev) {
+                *prev = p;
+            }
+            return l;
+        }
+        p = l;
+        l = l->next;
+    }
+    return NULL;
+}
+
+int listeners_Create(int port, int ssl, void* userdata) {
+    if (listeners_GetByPort(port, NULL)) {return 0;}
+    struct listener* l = malloc(sizeof(*l));
+    if (!l) {return 0;}
+    memset(l, 0, sizeof(*l));
+    l->socket = so_CreateSocket(1, IPTYPE_IPV6);
+    l->ssl = ssl;
+    if (l->socket < 0) {
+        free(l);
+        return 0;
+    }
+    if (!so_MakeSocketListen(l->socket, port, IPTYPE_IPV6)) {
+        so_CloseSocket(l->socket);
+        free(l);
+        return 0;
+    }
+    l->next = listeners;
+    listeners = l;
+    return 1;
+}
+
+int listeners_CheckForConnections(int (*newconnection)(int port, int socket, const char* ip, void* sslptr, void* userdata)) {
+    struct listener* l = listeners;
+    while (l) {
+        if (so_SelectSaysRead(l->socket, NULL)) {
+            //something interesting happened with this listener:
+            char ipbuf[IPMAXLEN+1];
+            int sock;
+            void* sptr = NULL;
+            int newconnection = 0;
+
+            //accepting new connection:
+            if (l->ssl) {
+                if (so_AcceptConnection(l->socket, IPTYPE_IPV6, ipbuf, &sock)) {
+                    newconnection = 1;
+                }
+            }else{
+                if (so_AcceptSSLConnection(l->socket, IPTYPE_IPV6, ipbuf, &sock, &sptr)) {
+                    newconnection = 1;
+                }
+            }
+
+            //process new connection if we have one:
+            if (newconnection) {
+                if (!newconnection(l->port, sock, ipbuf, sptr, l->userdata)) {
+                    return 0;
+                }
+            }
+        }
+        l = l->next;
+    }
+    return 1;
+}
+
+int listeners_CloseByPort(int port) {
+    struct listener* prev;
+    struct listener* l = listeners_GetbyPort(port, &prev);
+    if (!l) {return 0;}
+    so_CloseSocket(l->socket);
+    if (prev) {
+        prev->next = l->next;
+    }else{
+        listeners = l->next;
+    }
+    free(l);
+    return 1;
+}
 

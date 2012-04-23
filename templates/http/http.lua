@@ -18,44 +18,45 @@ Permission is granted to anyone to use this software for any purpose, including 
 
 blitwiz.net.http = {}
 
-local default_user_agent = "blitwiz.net.http/1.0"
-local header_present = function(headerblock, header)
-    while string.find(header, " :") ~= nil do
-        string.gsub(header, " :", ":")
-    end
-    header = string.sub(header, 1, string.find(header, ":"))
-    header = string.lower(header)
-    headerblock = string.lower(headerblock)
-    
-    if string.starts(headerblock, header) then
-        return true
-    end
-    if string.find(headerblock, header, 1, true) ~= nil then
-        return true
-    end
-    return false
-end
-local merge_headers = function(headerblock1, headerblock2)
-    -- Merge headers and remove duplicated entries
-    local lines = {string.split(headerblock2, "\n")}
-    for number,line in ipairs(lines) do
-        if string.ends(line, "\r") then
-            if #line > 1 then
-                line = string.sub(line, 1, #line - 1)
-            else
-                line = ""
-            end
-        end
-        if string.find(line, ":") ~= nil then
-            if not header_present(headerblock1, line) then
-                headerblock1 = headerblock1 .. line .. "\n"
-            end
-        end
-    end
-    return headerblock1
-end
-
 blitwiz.net.http.get = function(url, callback, headers)
+    --   *** Blitwizard HTTP interface ***
+    --
+    -- The blitwizard http interface consists of this function.
+    -- Use it as follows:
+    --     blitwiz.net.http.get("http://some/url/",
+    --         function(response)
+    --             --[[ do something here ]]
+    --         end
+    --     )
+    -- The function you provide gets a response object which is a
+    -- table with the following members:
+    --    data.returncode    - contains the HTTP return code, so 200
+    --                          when everything went ok.
+    --                         There is also 404, which indicates
+    --                          page not found,
+    --                          and 403 for access forbidden, and more.
+    --    data.content       - the page content of the response,
+    --                          containing HTML code, image data,
+    --                          or whatever you requested.
+    --    data.headers       - contains a string with all the response
+    --                          http headers.
+    -- IMPORTANT: Alternatively, the response object is simply nil
+    -- when the request failed completely (network error or similar).
+    --
+    -- As an example, print the HTML code of a website like this:
+    --     blitwiz.net.http.get("http://www.blitwizard.de/",
+    --         function(r)
+    --             print r.content
+    --         end
+    --     )
+    --
+    -- The headers parameter allows you to specify additional headers
+    -- like another user agent, cache control or similar things.
+    -- Specify them in a string containing multiple lines
+    -- separated through \n, e.g. like this:
+    --   "User-agent: blubb\nX-Hello: bla"
+if
+
     if type(url) ~= "string" then
         error("bad argument #1 to `blitwiz.net.http.get` (string expected, got " .. type(url) .. ")")
     end
@@ -149,7 +150,8 @@ blitwiz.net.http.get = function(url, callback, headers)
 
                 -- it worked apparently! get us the data:
                 local header,body = string.split(datastr, "\n\n",1)
-                data["content"] = body
+                data.content = body
+                data.headers = header
                 callback(data)
                 return
             end
@@ -158,5 +160,47 @@ blitwiz.net.http.get = function(url, callback, headers)
     end
 ) 
 end
+
+
+local default_user_agent = "blitwiz.net.http/1.0"
+local header_present = function(headerblock, header)
+    while string.find(header, " :") ~= nil do
+        string.gsub(header, " :", ":")
+    end
+    header = string.sub(header, 1, string.find(header, ":"))
+    header = string.lower(header)
+    headerblock = string.lower(headerblock)
+
+    if string.starts(headerblock, header) then
+        return true
+    end
+    if string.find(headerblock, header, 1, true) ~= nil then
+        return true
+    end
+    return false
+end
+
+local merge_headers = function(headerblock1, headerblock2)
+    -- Merge headers and remove duplicated entries
+    local lines = {string.split(headerblock2, "\n")}
+    for number,line in ipairs(lines) do
+        if string.ends(line, "\r") then
+            if #line > 1 then
+                line = string.sub(line, 1, #line - 1)
+            else
+                line = ""
+            end
+        end
+        if string.find(line, ":") ~= nil then
+            if not header_present(headerblock1, line) then
+                headerblock1 = headerblock1 .. line .. "\n"
+            end
+        end
+    end
+    return headerblock1
+end
+
+
+
 
 
