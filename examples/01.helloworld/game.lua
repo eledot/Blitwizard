@@ -77,7 +77,7 @@ function blitwiz.on_draw()
 	local mw,mh = blitwiz.graphics.getWindowSize()
 
 	-- Actual drawing happens here
-	blitwiz.graphics.drawImage("hello_world.png", mw/2 - w/2, mh/2 - h/2)
+	blitwiz.graphics.drawImage("hello_world.png", {x=mw/2 - w/2, y=mh/2 - h/2})
 	blitwiz.font.draw("default", _VERSION .. ",\n   running on: "  .. os.sysname() .. " (" .. os.sysversion() .. ")", 10, 10)
 
 	-- Done!

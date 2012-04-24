@@ -31,7 +31,7 @@ function blitwiz.on_draw()
 	local mw,mh = blitwiz.graphics.getWindowSize()
 
 	-- Actual drawing happens here
-	blitwiz.graphics.drawImage("hello_world.png", mw/2 - w/2, mh/2 - h/2, 1, nil, nil, nil, nil, scalefactor, scalefactor, rotation)
+	blitwiz.graphics.drawImage("hello_world.png", {x=mw/2 - w/2, y=mh/2 - h/2, scalex=scalefactor, scaley=scalefactor, rotationangle=rotation})
 end
 
 function blitwiz.on_close()

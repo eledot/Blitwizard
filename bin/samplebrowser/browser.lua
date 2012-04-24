@@ -62,7 +62,7 @@ function blitwiz.on_draw()
 	blitwiz.graphics.drawRectangle(0, 0, w, h, 1, 1, 1)
 
 	local imgw,imgh = blitwiz.graphics.getImageSize("title.png")
-	blitwiz.graphics.drawImage("title.png", w/2 - imgw/2, 0)
+	blitwiz.graphics.drawImage("title.png", {x=w/2 - imgw/2, y=0})
 
 	local i = 1
 	while i <= #examples do
@@ -71,7 +71,7 @@ function blitwiz.on_draw()
 		if menufocus == i then
 			blitwiz.graphics.drawRectangle(x-2, y-2, imgw+4, imgh+4, 0,0.4,0.8)
 		end
-		blitwiz.graphics.drawImage("menu" .. i .. ".png", x, y)
+		blitwiz.graphics.drawImage("menu" .. i .. ".png", {x=x, y=y})
 		i = i + 1
 	end
 end

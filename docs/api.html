@@ -118,7 +118,7 @@ functions.</p>
 <a name="4blitwiz.graphics"><h1>4. <i>blitwiz.graphics</i> namespace</h1></a>
 <ul>
 
-<li><h2><a name="blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>(filename <i>(string)</i>, x position <i>(number)</i>, y position <i>(number)</i>, alpha/opacity <i>(number)</i>, x cut <i>(number)</i>, y cut <i>(number)</i>, width cut <i>(number)</i>, height cut <i>(number)</i>, x scale <i>(number)</i>, y scale <i>(number)</i>, rotation angle <i>(number)</i>, rotation center x position <i>(number)</i>, rotation center y position <i>(number)</i>, horizontal flip <i>(boolean)</i>, red tint <i>(number)</i>, green tint <i>(number)</i>, blue tint <i>(number)</i>)</h2>
+<li><h2><a name="blitwiz.graphics.drawImage">blitwiz.graphics.drawImage</a>(filename <i>(string)</i>, settings <i>(table)</i>)</h2>
 <p>
 Draw a fully loaded image (see <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a> and <a href="#blitwiz.on_image">on_image</a>).
 Throws an error if the image isn't fully loaded.
@@ -128,22 +128,96 @@ Don't use this call anywhere else than from inside <a href="#blitwiz.on_draw">on
 Parameters:
 <ul class="parameters">
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the loaded image</li>
-<li>x position <i>(number)</i> &mdash; horizontal position in pixels (0 is left, positive goes right) on the screen, negative coordinates are also allowed (image will be blitted partly or fully moved out of the screen)</li>
-<li>y position <i>(number)</i> &mdash; vertical position in pixels (0 is top, positive goes downwards) on the screen, negative coordinates possible (see above)</li>
-<li>alpha/opacity <i>(number, optional)</i> &mdash; alpha opacity in the range 0..1, with 0 being completely invisible and 1 fully opaque, and e.g. 0.5 half-transparent. Default is 1</li>
-<li>x cut <i>(number, optional)</i> &mdash; cut off the given amount of pixels from the left border of the image before drawing it. Use this to draw only a smaller part of an image. Default is 0 (no cutoff)</li>
-<li>y cut <i>(number, optional)</i> &mdash; cut off the given amount of pixels from the top border of the image before drawing it. Default is 0 (no cutoff)</li>
-<li>width cut <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum width before drawing it. Default is infinite (no cutoff)</li>
-<li>height cut <i>(number, optional)</i> &mdash; cut the image (after applying cutx and cuty) to the given maximum height before drawing it. Default is infinite (no cutoff)</li>
-<li>x scale <i>(number, optional)</i> &mdash; scale the final resulting image or image part (after cut was applied) horizontally by the given factor. Default is 1 (normal horizontal size)</li>
-<li>y scale <i>(number, optional)</i> &mdash; scale the final resulting image or image part vertically by the given factor. Default is 1 (normal vertical size)</li>
-<li>rotation angle <i>(number, optional)</i> &mdash; rotate the image (after applying cutting) around the given rotation angle in degree. 0 means not rotated, 90 means rotated 90&deg; clockwise around the center, -90 counter-clockwise around the center, etc. Default is 0 (no rotation)</li>
-<li>rotation center x position <i>(number, optional)</i> &mdash; the center point around which the image should be rotated. 0 is the left border of the image, positive values go to the right. Scaling is ignored for this (the image is rotated first, then scaled up). Default is image center (image width / 2)</li>
-<li>rotation center y position <i>(number, optional)</i> &mdash; the center point around which the image should be rotated. 0 is the top border of the image, positive values go down. Default is image center (image height / 2)</li>
-<li>horizontal flip <i>(boolean, optional)</i> &mdash; flip the image horizontally. This is applied before rotation and scaling and clipping is processed</li>
-<li>red tint <i>(number, optional)</i> &mdash; how much red the image should have when drawn. If you supply 0 here, all red will be eliminated (like a color filter). 1 will use the original red value of the image. If you set e.g. blue, green both to 0 and red to 1, the image will be tinted in red</li>
-<li>green tint <i>(number, optional)</i> &mdash; green tint, see red tint explanation</li>
-<li>blue tint <i>(number, optional)</i> &mdash; blue tint, see red tint explanation</li>
+<li>settings <i>(table)</i> &mdash; a table with key-&gt;value pairs with the settings, with the settings being those (all settings are optional):
+<table style="border:1px solid black">
+    <tr>
+        <td><u>Settings name</u></td><td><u>Value type</u></td><td><u>Explanation</u></td>
+    </tr>
+    <tr>
+        <td>
+        "x"
+        </td>
+        <td>number</td>
+        <td>horizontal position in pixels (0 is left, positive goes right) on the screen, negative coordinates are also allowed (image will be blitted partly or fully moved out of the screen)</tr>
+    </tr>
+    <tr>
+        <td>
+        "y"
+        </td>
+        <td>number</td>
+        <td>vertical position in pixels (0 is top, positive goes downwards) on the screen, negative coordinates possible (see above)</td>
+    </tr>
+    <tr>
+        <td>"alpha"</td>
+        <td>number</td>
+        <td>alpha opacity in the range 0..1, with 0 being completely invisible and 1 fully opaque, and e.g. 0.5 half-transparent. Default is 1</td>
+    </tr>
+    <tr>
+        <td>"cutx"</td>
+        <td>number</td>
+        <td>cut off the given amount of pixels from the left border of the image before drawing it. Use this to draw only a smaller part of an image. Default is 0 (no cutoff)</td>
+    </tr>
+    <tr>
+        <td>"cuty"</td>
+        <td>number</td>
+        <td>cut off the given amount of pixels from the top border of the image before drawing it. Default is 0 (no cutoff)</td>
+    </tr>
+    <tr>
+        <td>"cutwidth"</td>
+        <td>number</td>
+        <td>cut the image (after applying cutx and cuty) to the given maximum width before drawing it. Default is infinite (no cutoff)</td>
+    </tr>
+    <tr>
+        <td>"cutheight"</td>
+        <td>number</td>
+        <td>cut the image (after applying cutx and cuty) to the given maximum height before drawing it. Default is infinite (no cutoff)</td>
+    </tr>
+    <tr>
+        <td>"scalex"</td>
+        <td>number</td>
+        <td>scale the final resulting image or image part (after cut was applied) horizontally by the given factor. Default is 1 (normal horizontal size)</td>
+    </tr>
+    <tr>
+        <td>"scaley"</td>
+        <td>number</td>
+        <td>scale the final resulting image or image part vertically by the given factor. Default is 1 (normal vertical size)</td>
+    </tr>
+    <tr>
+        <td>"rotationangle"</td>
+        <td>number</td>
+        <td>rotate the image (after applying cutting) around the given rotation angle in degree. 0 means not rotated, 90 means rotated 90&deg; clockwise around the center, -90 counter-clockwise around the center, etc. Default is 0 (no rotation)</td>
+    </tr>
+    <tr>
+        <td>"rotationcenterx"</td>
+        <td>number</td>
+        <td>the center point around which the image should be rotated. 0 is the left border of the image, positive values go to the right. Scaling is ignored for this (the image is rotated first, then scaled up). Default is image center (image width / 2)</td>
+    </tr>
+    <tr>
+        <td>"rotationcentery"</td>
+        <td>number</td>
+        <td>the center point around which the image should be rotated. 0 is the top border of the image, positive values go down. Default is image center (image height / 2)</td>
+    </tr>
+    <tr>    
+        <td>"flipped"</td>
+        <td>boolean</td>
+        <td>flip the image horizontally. This is applied before rotation and scaling and clipping is processed</td>
+    </tr>
+    <tr>
+        <td>"red"</td>
+        <td>number</td>
+        <td>how much red the image should have when drawn. If you supply 0 here, all red will be eliminated (like a color filter). 1 will use the original red value of the image. If you set e.g. blue, green both to 0 and red to 1, the image will be tinted in red</td>
+    </tr>
+    <tr>
+        <td>"green"</td>
+        <td>number</td>
+        <td>green tint, see red tint explanation</td>
+    </tr>
+    <tr>
+        <td>"blue"</td>
+        <td>number</td>
+        <td>blue tint, see red tint explanation</td>
+    </tr>
+</table>
 </ul>
 </p>
 <p>
@@ -152,14 +226,13 @@ Return value: <i>nil</i> &mdash; none
 <p>
 Examples:
 <div class="code">-- Draw an image at position 5,5 into the currently opened output window
-blitwiz.graphics.drawImage("mypicture.png", 5, 5)
+blitwiz.graphics.drawImage("mypicture.png", {x=5, y=5})
 
 -- Draw the image again moved to the right with only 75% visibility (slightly transparent):
-blitwiz.graphics.drawImage("mypicture.png", 150, 5, 0.75)
+blitwiz.graphics.drawImage("mypicture.png", {x=150, y=5, alpha=0.75})
 
 -- Draw the image again, now rotated 45&deg; clockwise around its center
-blitwiz.graphics.drawImage("mypicture.png", 150, 5, 0.75, nil, nil, nil, nil, 1, 1, 45)
--- As you can see, skipping parameters (and taking the default) is possible by passing nil for them.
+blitwiz.graphics.drawImage("mypicture.png", {x=150, y=5, alpha=0.75, rotationangle=45)
 
 </div>
 <p>

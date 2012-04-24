@@ -757,19 +757,19 @@ int luafuncs_drawImage(lua_State* l) {
     int cutwidth = -1;
     int cutheight = -1;
     if (gettablesetting(l, "cutx", LUA_TNUMBER)) { 
-        cutx = (int)((float)lua_tonumber(l, 5)+0.5f);
+        cutx = (int)((float)lua_tonumber(l, -1)+0.5f);
     }
     lua_pop(l, 1);
     if (gettablesetting(l, "cuty", LUA_TNUMBER)) {
-        cuty = (int)((float)lua_tonumber(l, 5)+0.5);
+        cuty = (int)((float)lua_tonumber(l, -1)+0.5);
     }
     lua_pop(l, 1);
     if (gettablesetting(l, "cutwidth", LUA_TNUMBER)) {
-        cutwidth = (int)((float)lua_tonumber(l, 5)+0.5f);
+        cutwidth = (int)((float)lua_tonumber(l, -1)+0.5f);
     }
     lua_pop(l, 1);
     if (gettablesetting(l, "cutheight", LUA_TNUMBER)) {
-        cutheight = (int)((float)lua_tonumber(l, 5)+0.5);
+        cutheight = (int)((float)lua_tonumber(l, -1)+0.5);
     }
     lua_pop(l, 1);
     
@@ -777,12 +777,12 @@ int luafuncs_drawImage(lua_State* l) {
     float scalex = 1;
     float scaley = 1;
     if (gettablesetting(l, "scalex", LUA_TNUMBER)) {
-        scalex = (int)((float)lua_tonumber(l, 5)+0.5f);
+        scalex = (float)lua_tonumber(l, -1);
         if (scalex <= 0) {scalex = 0;}
     }
     lua_pop(l, 1);
     if (gettablesetting(l, "scaley", LUA_TNUMBER)) {
-        scaley = (int)((float)lua_tonumber(l, 5)+0.5);
+        scaley = (float)lua_tonumber(l, -1);
         if (scaley <= 0) {scaley = 0;}
     }
     lua_pop(l, 1);

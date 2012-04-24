@@ -79,7 +79,7 @@ local function drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, cl
 	if cuth + cuty > font[3] then
 		cuth = font[3] - cuty
 	end
-	blitwiz.graphics.drawImage(font[1], posx, posy, a, cutx + (slot-1) * font[2], cuty + (row-1) * font[3], cutw, cuth, 1, 1, nil, nil, nil, nil, r, g, b)
+	blitwiz.graphics.drawImage(font[1], {x=posx, y=posy, alpha=a, cutx=cutx + (slot-1) * font[2], cuty=cuty + (row-1) * font[3], cutwidth=cutw, cutheight=cuth, red=r, green=g, blue=b})
 end
 
 function blitwiz.font.draw(name, text, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)

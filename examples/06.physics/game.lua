@@ -82,14 +82,14 @@ end
 function blitwiz.on_draw()
 	-- Draw the background image centered:
 	local x,y = bgimagepos()
-	blitwiz.graphics.drawImage("bg.png", x, y)
+	blitwiz.graphics.drawImage("bg.png", {x=x, y=y})
 
 	-- Draw all crates:
 	local imgw,imgh = blitwiz.graphics.getImageSize("crate.png")
 	for index,crate in ipairs(crates) do
 		local x,y = blitwiz.physics.getPosition(crate)
 		local rotation = blitwiz.physics.getRotation(crate)
-		blitwiz.graphics.drawImage("crate.png", x*pixelspermeter - imgw/2, y*pixelspermeter - imgh/2, 1, nil, nil, nil, nil, 1, 1, rotation)
+		blitwiz.graphics.drawImage("crate.png", {x=x*pixelspermeter - imgw/2, y=y*pixelspermeter - imgh/2, rotationangle=rotation})
 	end
 
 	-- Draw all balls
@@ -97,12 +97,12 @@ function blitwiz.on_draw()
     for index,ball in ipairs(balls) do
         local x,y = blitwiz.physics.getPosition(ball)
         local rotation = blitwiz.physics.getRotation(ball)
-        blitwiz.graphics.drawImage("ball.png", x*pixelspermeter - imgw/2, y*pixelspermeter - imgh/2, 1, nil, nil, nil, nil, 1, 1, rotation)
+        blitwiz.graphics.drawImage("ball.png", {x=x*pixelspermeter - imgw/2, y=y*pixelspermeter - imgh/2, rotationangle=rotation})
     end
 
 	-- Draw overall shadows:
 	local x,y = bgimagepos()
-	blitwiz.graphics.drawImage("shadows.png", x, y)
+	blitwiz.graphics.drawImage("shadows.png", {x=x, y=y})
 
 	-- Draw stats
 	blitwiz.font.draw("default", "Object stats:\nCrates: " .. tostring(#crates) .. ", balls: " .. tostring(#balls), 10, 10)

@@ -43,7 +43,7 @@ function blitwiz.on_draw()
 	local mw,mh = blitwiz.graphics.getWindowSize()
 
 	-- Actual drawing happens here
-	blitwiz.graphics.drawImage("background.png", mw/2 - w/2, mh/2 - h/2)
+	blitwiz.graphics.drawImage("background.png", {x=mw/2 - w/2, y=mh/2 - h/2})
 
 	-- Done!
 end

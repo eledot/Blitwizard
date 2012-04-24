@@ -46,15 +46,15 @@ function blitwiz.on_draw()
 		local mw,mh = blitwiz.graphics.getWindowSize()
 
 		-- Draw background
-		blitwiz.graphics.drawImage("background.png", mw/2 - w/2, mh/2 - h/2)
+		blitwiz.graphics.drawImage("background.png", {x=mw/2 - w/2, y=mh/2 - h/2})
 
 		-- Draw car
 		local carwidth,carheight = blitwiz.graphics.getImageSize("car.png");
 		-- We want to draw it at the car x position, and directly on the ground of the window
-		blitwiz.graphics.drawImage("car.png", carx, mh - carheight); 
+		blitwiz.graphics.drawImage("car.png", {x=carx, y=mh - carheight}); 
 
 		-- Draw night mask
-		blitwiz.graphics.drawImage("nightmask.png", mw/2 - w/2, mh/2 - h/2)
+		blitwiz.graphics.drawImage("nightmask.png", {x=mw/2 - w/2, y=mh/2 - h/2})
 	end
 
 	-- Done!
