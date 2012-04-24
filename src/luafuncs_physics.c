@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include "lua.h"
 
+#include "luaerror.h"
 #include "luastate.h"
 #include "luafuncs_physics.h"
 #include "physics.h"
@@ -102,10 +103,6 @@ static struct luaidref* createphysicsobj(lua_State* l) {
     return ref;
 }
 
-
-int physicserror() {
-    return haveluaerror(l, "Physics support is not enabled");
-}
 
 int luafuncs_createMovableObject(lua_State* l) {
     struct luaidref* ref = createphysicsobj(l);

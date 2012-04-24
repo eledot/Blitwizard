@@ -682,97 +682,110 @@ void luafuncs_pushnosuchtex(lua_State* l, const char* tex) {
 }
 #endif
 
+//Helper function to obtain a setting on a settings table at stack pos -1
+//and to check the setting for the proper lua type.
+static int gettablesetting(lua_State* l, const char* name, int type) {
+    //obtain a setting from a settings table at stack -1 and check its type
+    lua_pushstring(l, name);
+    lua_gettable(l, -2);
+
+    //get the string name of the desired type of the setting:
+    char buf[64];
+    luatypetoname(type, buf, sizeof(buf));
+    
+    if (lua_type(l, -1) != LUA_TNIL) {
+        //the setting is either not nil, or nil is not allowed
+        //compare with desired type:
+        if (lua_type(l, -1) != type) {
+            //setting has a wrong type, compose and emit error:
+            char msg[512];
+            snprintf(msg, sizeof(msg), "setting '%s' is of type '%s', but expected '%s'", name, lua_strtype(l, -1), buf);
+            msg[sizeof(msg)-1] = 0;
+            return haveluaerror(l, badargument2, 2, "blitwiz.graphics.drawImage", msg);
+        }
+        return 1;
+    }
+    return 0;
+}
+
+
 int luafuncs_drawImage(lua_State* l) {
 #ifdef USE_GRAPHICS
     const char* p = lua_tostring(l,1);
     if (!p) {
-        lua_pushstring(l, "First parameter is not a valid image name string");
-        return lua_error(l);
+        return haveluaerror(l, badargument1, 1, "blitwiz.graphics.drawImage", "string", lua_strtype(l, 1));
     }
 
     if (!drawingallowed) {
         lua_pushstring(l, "You cannot draw now");
         return lua_error(l);
     }
+
+    int type = LUA_TNIL;
+    if (lua_gettop(l) >= 2) {type = lua_type(l, 2);}
+    if (type != LUA_TTABLE) {
+        return haveluaerror(l, badargument1, 2, "blitwiz.graphics.drawImage", "table", lua_strtype(l, 2));
+    }
+
+    //drop other unrequired parameters:
+    if (lua_gettop(l) > 2) {lua_pop(l, lua_gettop(l)-2);}
     
     //get position parameters
-    int x,y;
-    float alpha = 1;
-    if (lua_type(l, 2) != LUA_TNUMBER) {
-        lua_pushstring(l, "Second parameter is not a valid x position number");
-        return lua_error(l);
+    int x = 0;
+    int y = 0;
+    if (gettablesetting(l, "x", LUA_TNUMBER)) {
+        x = (int)((float)lua_tonumber(l, -1)+0.5f);
     }
-    if (lua_type(l, 3) != LUA_TNUMBER) {
-        lua_pushstring(l, "Third parameter is not a valid y position number");
-        return lua_error(l);
+    lua_pop(l, 1);
+    if (gettablesetting(l, "y", LUA_TNUMBER)) {
+        y = (int)((float)lua_tonumber(l, -1)+0.5);
     }
-    x = (int)((float)lua_tonumber(l,2)+0.5f);
-    y = (int)((float)lua_tonumber(l,3)+0.5f);
+    lua_pop(l, 1);
 
-    //get alpha parameter
-    if (lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL) {
-        if (lua_type(l, 4) != LUA_TNUMBER) {
-            lua_pushstring(l,"Fourth parameter is not a valid alpha number");
-            return lua_error(l);
-        }
-        alpha = lua_tonumber(l,4);
+    //read alpha value
+    float alpha = 1;
+    if (gettablesetting(l, "alpha", LUA_TNUMBER)) {
+        alpha = lua_tonumber(l, -1);
         if (alpha < 0) {alpha = 0;}
         if (alpha > 1) {alpha = 1;}
     }
+    lua_pop(l, 1);
     
     //read cut rectangle parameters
     int cutx = 0;
     int cuty = 0;
     int cutwidth = -1;
     int cutheight = -1;
-    if (lua_gettop(l) >= 5 && lua_type(l, 5) != LUA_TNIL) {
-        if (lua_type(l, 5) != LUA_TNUMBER) {
-            lua_pushstring(l, "Fifth parameter is not a valid cutx number");
-            return lua_error(l);
-        }
+    if (gettablesetting(l, "cutx", LUA_TNUMBER)) { 
         cutx = (int)((float)lua_tonumber(l, 5)+0.5f);
     }
-    if (lua_gettop(l) >= 6 && lua_type(l, 6) != LUA_TNIL) {
-        if (lua_type(l, 6) != LUA_TNUMBER) {
-            lua_pushstring(l, "Sixth parameter is not a valid cutx number");
-            return lua_error(l);
-        }
-        cuty = (int)((float)lua_tonumber(l, 6)+0.5f);
+    lua_pop(l, 1);
+    if (gettablesetting(l, "cuty", LUA_TNUMBER)) {
+        cuty = (int)((float)lua_tonumber(l, 5)+0.5);
     }
-    if (lua_gettop(l) >= 7 && lua_type(l, 7) != LUA_TNIL) {
-        if (lua_type(l, 7) != LUA_TNUMBER) {
-            lua_pushstring(l, "Seventh parameter is not a valid cutwidth number");
-            return lua_error(l);
-        }
-        cutwidth = (int)((float)lua_tonumber(l, 7)+0.5f);
-        if (cutwidth < 0) {cutwidth = 0;}
+    lua_pop(l, 1);
+    if (gettablesetting(l, "cutwidth", LUA_TNUMBER)) {
+        cutwidth = (int)((float)lua_tonumber(l, 5)+0.5f);
     }
-    if (lua_gettop(l) >= 8 && lua_type(l, 8) != LUA_TNIL) {
-        if (lua_type(l, 8) != LUA_TNUMBER) {
-            lua_pushstring(l, "Eighth parameter is not a valid cutheight number");
-            return lua_error(l);
-        }
-        cutheight = (int)((float)lua_tonumber(l, 8)+0.5f);
-        if (cutheight < 0) {cutheight = 0;}
+    lua_pop(l, 1);
+    if (gettablesetting(l, "cutheight", LUA_TNUMBER)) {
+        cutheight = (int)((float)lua_tonumber(l, 5)+0.5);
     }
+    lua_pop(l, 1);
     
     //obtain scale parameters
     float scalex = 1;
     float scaley = 1;
-    if (lua_gettop(l) >= 9 && lua_type(l, 9) != LUA_TNIL) {
-        if (lua_type(l, 9) != LUA_TNUMBER) {
-            lua_pushstring(l, "Ninth parameter is not a valid x scale number");
-            return lua_error(l);
-        }
-        scalex = lua_tonumber(l, 9);
+    if (gettablesetting(l, "scalex", LUA_TNUMBER)) {
+        scalex = (int)((float)lua_tonumber(l, 5)+0.5f);
+        if (scalex <= 0) {scalex = 0;}
     }
-    if (lua_gettop(l) >= 10 && lua_type(l, 10) != LUA_TNIL) {
-        if (lua_type(l, 10) != LUA_TNUMBER) {
-            lua_pushstring(l, "Tenth parameter is not a valid y scale number");
-            return lua_error(l);
-        }
-        scaley = lua_tonumber(l, 10);
+    lua_pop(l, 1);
+    if (gettablesetting(l, "scaley", LUA_TNUMBER)) {
+        scaley = (int)((float)lua_tonumber(l, 5)+0.5);
+        if (scaley <= 0) {scaley = 0;}
     }
+    lua_pop(l, 1);
 
     //obtain rotation parameters
     double rotationangle = 0;
@@ -785,63 +798,42 @@ int luafuncs_drawImage(lua_State* l) {
         rotationcentery = imgh/2;
     }
     //get supplied rotation info
-    if (lua_gettop(l) >= 11 && lua_type(l, 11) != LUA_TNIL) {
-        if (lua_type(l, 11) != LUA_TNUMBER) {
-            lua_pushstring(l, "Eleventh parameter is not a valid rotation angle number");
-            return lua_error(l);
-        }
-        rotationangle = lua_tonumber(l, 11);
+    if (gettablesetting(l, "rotationangle", LUA_TNUMBER)) {
+        rotationangle = lua_tonumber(l, -1);
     }
-    if (lua_gettop(l) >= 12 && lua_type(l, 12) != LUA_TNIL) {
-        if (lua_type(l, 12) != LUA_TNUMBER) {
-            lua_pushstring(l, "Twelfth parameter is not a valid rotation center x position number");
-            return lua_error(l);
-        }
-        rotationcenterx = (int)(lua_tonumber(l, 12) + 0.5f);
+    lua_pop(l, 1);
+    if (gettablesetting(l, "rotationcenterx", LUA_TNUMBER)) {
+        rotationcenterx = (int)(lua_tonumber(l, -1) + 0.5f);
     }
-    if (lua_gettop(l) >= 13 && lua_type(l, 13) != LUA_TNIL) {
-        if (lua_type(l, 13) != LUA_TNUMBER) {
-            lua_pushstring(l, "Thirteenth parameter is not a valid rotation center y position number");
-            return lua_error(l);
-        }
-        rotationcentery = (int)(lua_tonumber(l, 13) + 0.5f);
+    lua_pop(l, 1);
+    if (gettablesetting(l, "rotationcentery", LUA_TNUMBER)) {
+        rotationcentery = (int)(lua_tonumber(l, -1) + 0.5f);
     }
+    lua_pop(l, 1);
 
     //get flipping info
     int horiflipped = 0;
-    if (lua_gettop(l) >= 14 && lua_type(l, 14) != LUA_TNIL) {
-        if (lua_type(l, 14) != LUA_TBOOLEAN) {
-            lua_pushstring(l, "Fourteenth parameter is not a valid horizontal flip boolean");
-            return lua_error(l);
-        }
-        horiflipped = lua_toboolean(l, 14);
+    if (gettablesetting(l, "flipped", LUA_TBOOLEAN)) {
+        horiflipped = lua_toboolean(l, -1);
     }
+    lua_pop(l, 1);
 
     //get color info
     double red = 1;
     double green = 1;
     double blue = 1;
-    if (lua_gettop(l) >= 15 && lua_type(l, 15) != LUA_TNIL) {
-        if (lua_type(l, 15) != LUA_TNUMBER) {
-            lua_pushstring(l, "Fifteenth parameter is not a valid red tint number");
-            return lua_error(l);
-        }
-        red = lua_tonumber(l, 15);
+    if (gettablesetting(l, "red", LUA_TNUMBER)) {
+        red = lua_tonumber(l, -1);
     }
-    if (lua_gettop(l) >= 16 && lua_type(l, 16) != LUA_TNIL) {
-        if (lua_type(l, 16) != LUA_TNUMBER) {
-            lua_pushstring(l, "Sixteenth parameter is not a valid green tint number");
-            return lua_error(l);
-        }
+    lua_pop(l, 1);
+    if (gettablesetting(l, "green", LUA_TNUMBER)) {
         green = lua_tonumber(l, 16);
     }
-    if (lua_gettop(l) >= 17 && lua_type(l, 17) != LUA_TNIL) {
-        if (lua_type(l, 17) != LUA_TNUMBER) {
-            lua_pushstring(l, "Seventeenth parameter is not a valid blue tint number");
-            return lua_error(l);
-        }
+    lua_pop(l, 1);
+    if (gettablesetting(l, "blue", LUA_TNUMBER)) {
         blue = lua_tonumber(l, 17);
     }
+    lua_pop(l, 1);
 
     //process negative cut positions and adjust output position accordingly
     if (cutx < 0) {
