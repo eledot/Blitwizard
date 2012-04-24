@@ -461,6 +461,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
             if (r > 0) {
                 c->outbufbytes -= r;
                 c->outbufoffset += r;
+                so_SelectWantWrite(c->socket, 1);
                 if (c->outbufbytes <= 0) {
                     c->outbufoffset = 0;
                     so_SelectWantWrite(c->socket, 0);
@@ -473,6 +474,23 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                 }
             }
         }
+        
+        //check for close after send:
+        if (c->outbufbytes <= 0 && c->closewhensent) {
+            if (c->luarefcount <= 0) {
+#ifdef CONNECTIONSDEBUG
+                printinfo("[connections] closing connection %d since data is sent", c->socket);
+#endif
+                connections_Close(c);
+            }else{
+                //lua still has a reference, but close at least the socket:
+                so_CloseSSLSocket(c->socket, &c->sslptr);
+                c->socket = -1;
+            }
+            c = cnext;
+            continue;
+        }
+
         c = cnext;
     }
     return 1;

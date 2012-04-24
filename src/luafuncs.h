@@ -32,6 +32,9 @@ int luafuncs_exit(lua_State* l);
 int luafuncs_sysname(lua_State* l);
 int luafuncs_sysversion(lua_State* l); 
 
+//blitwiz.*:
+int luafuncs_setstep(lua_State* l);
+
 //base:
 int luafuncs_loadfile(lua_State* l);
 int luafuncs_dofile(lua_State* l);

@@ -1195,6 +1195,21 @@ int luafuncs_getDisplayModes(lua_State* l) {
 #endif
 }
 
+int luafuncs_setstep(lua_State* l) {
+    int newtimestep = 16;
+    int type = LUA_TNIL;
+    if (lua_gettop(l) >= 1) {type = lua_type(l, 1);}
+    if (type != LUA_TNUMBER) {
+        return haveluaerror(l, badargument1, 1, "blitwiz.setStep", "number", lua_strtype(l, 1));
+    }
+    newtimestep = lua_tointeger(l, 1);
+    if (newtimestep < 16) {
+        return haveluaerror(l, badargument2, 1, "blitwiz.setStep", "time step cannot be smaller than 16");
+    }
+    main_SetTimestep(newtimestep);
+    return 0;
+}
+
 int luafuncs_exit(lua_State* l) {
     int exitcode = lua_tonumber(l,1);
     main_Quit(exitcode);

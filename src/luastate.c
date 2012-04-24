@@ -414,6 +414,11 @@ static lua_State* luastate_New() {
     //obtain the blitwiz lib
     lua_getglobal(l, "blitwiz");
 
+    //blitwiz.setStep:
+    lua_pushstring(l, "setStep");
+    lua_pushcfunction(l, &luafuncs_setstep);
+    lua_settable(l, -3);
+
     //blitwiz namespaces
     lua_pushstring(l, "graphics");
     luastate_CreateGraphicsTable(l);

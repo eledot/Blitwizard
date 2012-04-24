@@ -62,7 +62,17 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "graphicstexture.h"
 #include "graphics.h"
 
-#define TIMESTEP 16
+int TIMESTEP = 16;
+int MAXLOGICITERATIONS = 50; // 50 * 16 = 800ms
+
+void main_SetTimestep(int timestep) {
+    if (timestep < 16) {timestep = 16;}
+    TIMESTEP = timestep;
+    MAXLOGICITERATIONS = 800 / timestep; //never do logic for longer than 800ms
+    if (MAXLOGICITERATIONS < 2) {
+        MAXLOGICITERATIONS = 2;
+    }
+}
 
 struct physicsworld* physicsdefaultworld = NULL;
 void* main_DefaultPhysicsPtr() {
@@ -462,9 +472,6 @@ int main_ProcessNoThreadedReading() {
 }
 #endif
 
-//with a maximum of 50 iterations, we render at least every 50 * TIMESTEP = 50 * 16 = 800 milliseconds
-#define MAXLOGICITERATIONS 40
-
 int luafuncs_ProcessNetEvents();
 
 #if (defined(__ANDROID__) || defined(ANDROID))
@@ -701,22 +708,37 @@ int main(int argc, char** argv) {
             }
 #endif //ifdef USE_AUDIO
 
-            //limit to roughly 60 FPS
+            //slow sleep: check if we can safe some cpu by waiting longer
+            unsigned int deltaspan = 16;
+#ifndef USE_GRAPHICS
+            int nodraw = 1;
+#else
+            int nodraw = 1;
+            if (graphics_AreGraphicsRunning()) {nodraw = 0;}
+#endif
             uint64_t delta = time_GetMilliseconds()-lastdrawingtime;
-            if (delta < 15) {
-                if (connections_NoConnectionsOpen()) {
-                    time_Sleep(16-delta);
+            if (nodraw) {
+                //we can sleep as long as our timeste allows us to
+                deltaspan = ((double)TIMESTEP)/2.1f;
+            }
+
+            //sleep/limit FPS as much as we can
+            if (delta < deltaspan) {
+                if (connections_NoConnectionsOpen() && !listeners_HaveActiveListeners()) {
+                    time_Sleep(deltaspan-delta);
                     connections_SleepWait(0);
                 }else{
-                    connections_SleepWait(16-delta);
+                    connections_SleepWait(deltaspan-delta);
                 }
             }else{
                 connections_SleepWait(0);
             }
+
+            //Remember drawing time and process net events
             lastdrawingtime = time_GetMilliseconds();
             if (!luafuncs_ProcessNetEvents()) {
                 //there was an error processing the events
-                exit(1);
+                main_Quit(1);
             }
 
 #ifdef USE_GRAPHICS
@@ -739,16 +761,39 @@ int main(int argc, char** argv) {
                     }
                     logictimestamp += TIMESTEP;
                 }
+#ifdef USE_PHYSICS
                 if (physicstimestamp < time && physicstimestamp <= logictimestamp) {
-                    physics_Step(physicsdefaultworld);
-                    physicstimestamp += physics_GetStepSize(physicsdefaultworld);
+                    int psteps = ((float)TIMESTEP/(float)physics_GetStepSize(physicsdefaultworld));
+                    if (psteps < 1) {psteps = 1;}
+                    while (psteps > 0) {
+                        physics_Step(physicsdefaultworld);
+                        physicstimestamp += physics_GetStepSize(physicsdefaultworld);
+                        psteps--;
+                    }
                 }
+#endif
                 iterations++;
             }
+
+            //check if we ran out of iterations:
             if (iterations >= MAXLOGICITERATIONS) {
-                physicstimestamp = time_GetMilliseconds();
-                logictimestamp = time_GetMilliseconds();
-                printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
+                if (
+#ifdef USE_PHYSICS
+                        physicstimestamp < time || 
+#endif
+                     logictimestamp < time) {
+                    //we got a problem: we aren't finished,
+                    //but we hit the iteration limit
+                    printf("physicstime: %llu, %llu\n",physicstimestamp,time);
+                    printf("logictime: %llu, %llu\n", logictimestamp, time);
+                    if (physicstimestamp < time || logictimestamp < time) {
+                        physicstimestamp = time_GetMilliseconds();
+                        logictimestamp = time_GetMilliseconds();
+                        printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
+                    }
+                }else{
+                    //we don't need to iterate anymore -> everything is fine
+                }
             }
 
 #ifdef USE_GRAPHICS
