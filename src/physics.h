@@ -21,6 +21,8 @@
 
 */
 
+#ifdef USE_PHYSICS
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,4 +73,5 @@ int physics_Ray(struct physicsworld* world, double startx, double starty, double
 }
 #endif
 
+#endif
 

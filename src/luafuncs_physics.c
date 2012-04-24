@@ -31,6 +31,8 @@
 #include "physics.h"
 #include "main.h"
 
+#ifdef USE_PHYSICS
+
 struct luaphysicsobj {
     int movable;
     struct physicsobject* object;
@@ -99,17 +101,34 @@ static struct luaidref* createphysicsobj(lua_State* l) {
     return ref;
 }
 
+#endif
+
+#ifdef USE_PHYSICS
+int physicserror() {
+    return haveluaerror(l, "Physics support is not enabled");
+}
+#endif
+
 int luafuncs_createMovableObject(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaidref* ref = createphysicsobj(l);
     ((struct luaphysicsobj*)ref->ref.ptr)->movable = 1;
     return 1;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_createStaticObject(lua_State* l) {
+#ifdef USE_PHYSICS
     createphysicsobj(l);
     return 1;
+#else
+    return physicserror();
+#endif
 }
 
+#ifdef USE_PHYSICS
 static void applyobjectsettings(struct luaphysicsobj* obj) {
     if (!obj->object) {return;}
     physics_SetRotationRestriction(obj->object, obj->rotationrestriction);
@@ -118,8 +137,10 @@ static void applyobjectsettings(struct luaphysicsobj* obj) {
     physics_SetAngularDamping(obj->object, obj->angulardamping);
     physics_SetLinearDamping(obj->object, obj->lineardamping);
 }
+#endif
 
 int luafuncs_impulse(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (!obj->movable) {
         lua_pushstring(l, "Impulse can be only applied to movable objects");
@@ -151,9 +172,13 @@ int luafuncs_impulse(lua_State* l) {
     double forcey = lua_tonumber(l, 5);
     physics_ApplyImpulse(obj->object, forcex, forcey, sourcex, sourcey);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_ray(lua_State* l) {
+#ifdef USE_PHYSICS
     if (lua_type(l, 1) != LUA_TNUMBER) {
         lua_pushstring(l, "First parameter is not a valid start x position");
         return lua_error(l);
@@ -192,9 +217,13 @@ int luafuncs_ray(lua_State* l) {
     }
     lua_pushnil(l);
     return 1;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_restrictRotation(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_type(l, 2) != LUA_TBOOLEAN) {
         lua_pushstring(l, "Second parameter is not a valid rotation restriction boolean");
@@ -207,9 +236,13 @@ int luafuncs_restrictRotation(lua_State* l) {
     obj->rotationrestriction = lua_toboolean(l, 2);
     applyobjectsettings(obj);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_setGravity(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (!obj->object) {
         lua_pushstring(l, "Physics object has no shape");
@@ -237,9 +270,13 @@ int luafuncs_setGravity(lua_State* l) {
         physics_UnsetGravity(obj->object);
     }
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_setMass(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (!obj->movable) {
         lua_pushstring(l, "Mass can be only set on movable objects");
@@ -273,8 +310,12 @@ int luafuncs_setMass(lua_State* l) {
     physics_SetMass(obj->object, mass);
     physics_SetMassCenterOffset(obj->object, centerx, centery);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
+#ifdef USE_PHYSICS
 void transferbodysettings(struct physicsobject* oldbody, struct physicsobject* newbody) {
     double mass = physics_GetMass(oldbody);
     double massx,massy;
@@ -282,8 +323,10 @@ void transferbodysettings(struct physicsobject* oldbody, struct physicsobject* n
     physics_SetMass(newbody, mass);
     physics_SetMassCenterOffset(newbody, massx, massy);
 }
+#endif
 
 int luafuncs_warp(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (!obj->object) {
         lua_pushstring(l, "Physics object doesn't have a shape");
@@ -315,9 +358,13 @@ int luafuncs_warp(lua_State* l) {
     }
     physics_Warp(obj->object, warpx, warpy, warpangle);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_getPosition(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (!obj->object) {
         lua_pushstring(l, "Physics object doesn't have a shape");
@@ -328,9 +375,13 @@ int luafuncs_getPosition(lua_State* l) {
     lua_pushnumber(l, x);
     lua_pushnumber(l, y);
     return 2;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_setRestitution(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter not a valid restitution number");
@@ -339,9 +390,13 @@ int luafuncs_setRestitution(lua_State* l) {
     obj->restitution = lua_tonumber(l, 2);
     applyobjectsettings(obj);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_setFriction(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter not a valid friction number");
@@ -350,9 +405,13 @@ int luafuncs_setFriction(lua_State* l) {
     obj->friction = lua_tonumber(l, 2);
     applyobjectsettings(obj);    
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_setLinearDamping(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter not a valid angular damping number");
@@ -361,9 +420,13 @@ int luafuncs_setLinearDamping(lua_State* l) {
     obj->lineardamping = lua_tonumber(l, 2);
     applyobjectsettings(obj);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_setAngularDamping(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter not a valid angular damping number");
@@ -372,9 +435,13 @@ int luafuncs_setAngularDamping(lua_State* l) {
     obj->angulardamping = lua_tonumber(l, 2);
     applyobjectsettings(obj);   
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_getRotation(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (!obj->object) {
         lua_pushstring(l, "Physics object doesn't have a shape");
@@ -384,9 +451,13 @@ int luafuncs_getRotation(lua_State* l) {
     physics_GetRotation(obj->object, &angle);
     lua_pushnumber(l, angle);
     return 1;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_setShapeEdges(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TTABLE) {
         lua_pushstring(l, "Second parameter is not a valid edge list table");
@@ -455,9 +526,13 @@ int luafuncs_setShapeEdges(lua_State* l) {
     }
     applyobjectsettings(obj);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 int luafuncs_setShapeCircle(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
         lua_pushstring(l, "Not a valid circle radius number");
@@ -477,10 +552,14 @@ int luafuncs_setShapeCircle(lua_State* l) {
     }
     applyobjectsettings(obj);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 
 int luafuncs_setShapeOval(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
         lua_pushstring(l, "Not a valid oval width number");
@@ -505,10 +584,14 @@ int luafuncs_setShapeOval(lua_State* l) {
     }
     applyobjectsettings(obj);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 
 
 int luafuncs_setShapeRectangle(lua_State* l) {
+#ifdef USE_PHYSICS
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
         lua_pushstring(l, "Not a valid rectangle width number");
@@ -533,5 +616,8 @@ int luafuncs_setShapeRectangle(lua_State* l) {
     }
     applyobjectsettings(obj);
     return 0;
+#else
+    return physicserror();
+#endif
 }
 

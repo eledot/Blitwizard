@@ -21,6 +21,8 @@
 
 */
 
+#ifdef USE_PHYSICS
+
 #include "Box2D/Box2D.h"
 #include <stdint.h>
 #define _USE_MATH_DEFINES
@@ -588,4 +590,6 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
 }
 
 } //extern "C"
+
+#endif
 
