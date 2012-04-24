@@ -116,6 +116,7 @@ void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)
 
 static void luastate_CreatePhysicsTable(lua_State* l) {
     lua_newtable(l);
+#ifdef USE_PHYSICS
     lua_pushstring(l, "setGravity");
     lua_pushcfunction(l, &luafuncs_setGravity);
     lua_settable(l, -3);
@@ -170,6 +171,7 @@ static void luastate_CreatePhysicsTable(lua_State* l) {
     lua_pushstring(l, "ray");
     lua_pushcfunction(l, &luafuncs_ray);
     lua_settable(l, -3);
+#endif
 }
 
 static void luastate_CreateNetTable(lua_State* l) {
