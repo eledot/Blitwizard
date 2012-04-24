@@ -421,7 +421,7 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
         
         if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
-            if (IN6_IS_ADDR_UNSPECIFIED(&addressstruct6.sin6_addr) && strcasecmp(bindip, "::0") != 0) {
+            if (IN6_IS_ADDR_UNSPECIFIED(&addressstruct6.sin6_addr) && strcasecmp(bindip, "::0") != 0 && strcasecmp(bindip, "::") != 0) {
                 return 0;
             }
 #else
@@ -461,6 +461,7 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
     // ( 4 ) --- the actual binding process & listening
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
+        errno = 0;
         if (bind(socket,(struct sockaddr *) &addressstruct6,sizeof(addressstruct6)) < 0) {
             return 0;
         }

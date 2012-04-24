@@ -23,15 +23,19 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
 
+#include "logging.h"
 #include "sockets.h"
 #include "listeners.h"
+#include "connections.h" //for CONNECTIONSDEBUG
 
 struct listener {
     void* userdata;
     int socket;
     int port;
     int ssl;
+    int iptype;
     struct listener* next;
 };
 
@@ -54,24 +58,54 @@ static struct listener* listeners_GetByPort(int port, struct listener** prev) {
 }
 
 int listeners_Create(int port, int ssl, void* userdata) {
-    if (listeners_GetByPort(port, NULL)) {return 0;}
+    //startup socket system
+    if (!so_Startup()) {
+        return 0;
+    }
+
+    //check if a server is already using this port:
+    if (listeners_GetByPort(port, NULL)) {
+#ifdef CONNECTIONSDEBUG
+        printinfo("[connections-server] port %d already used");
+#endif
+        return 0;
+    }
+
+    //allocate struct:
     struct listener* l = malloc(sizeof(*l));
-    if (!l) {return 0;}
+    if (!l) {
+#ifdef CONNECTIONSDEBUG
+        printinfo("[connections-server] malloc failed");
+#endif
+        return 0;
+    }
+
+    //initialise struct:
     memset(l, 0, sizeof(*l));
     l->socket = so_CreateSocket(1, IPTYPE_IPV6);
+    l->port = port;
     l->ssl = ssl;
     l->userdata = userdata;
     if (l->socket < 0) {
+#ifdef CONNECTIONSDEBUG
+        printinfo("[connections-server] so_CreateSocket() failed");
+#endif
         free(l);
         return 0;
     }
-    if (!so_MakeSocketListen(l->socket, port, IPTYPE_IPV6, "::1")) {
+    if (!so_MakeSocketListen(l->socket, port, IPTYPE_IPV6, "any")) {
+#ifdef CONNECTIONSDEBUG
+        printinfo("[connections-server] so_MakeSocketListen() failed");
+#endif
         so_CloseSocket(l->socket);
         free(l);
         return 0;
     }
     l->next = listeners;
     listeners = l;
+#ifdef CONNECTIONSDEBUG
+    printinfo("[connections-server] new server at port %d", l->port);
+#endif
     return 1;
 }
 
@@ -86,7 +120,7 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
             int havenewconnection = 0;
 
             //accepting new connection:
-            if (l->ssl) {
+            if (!l->ssl) {
                 if (so_AcceptConnection(l->socket, IPTYPE_IPV6, ipbuf, &sock)) {
                     havenewconnection = 1;
                 }
@@ -98,9 +132,16 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
 
             //process new connection if we have one:
             if (havenewconnection) {
+#ifdef CONNECTIONSDEBUG
+                printinfo("[connections-server] so_AcceptConnection() succeeded at port %d", l->port);
+#endif
                 if (!newconnection(l->port, sock, ipbuf, sptr, l->userdata)) {
                     return 0;
                 }
+            }else{
+#ifdef CONNECTIONSDEBUG
+                printinfo("[connections-server] so_AcceptConnection() failed at port %d", l->port);
+#endif
             }
         }
         l = l->next;
@@ -120,5 +161,16 @@ int listeners_CloseByPort(int port) {
     }
     free(l);
     return 1;
+}
+
+int listeners_HaveActiveListeners() {
+    if (listeners) {return 1;}
+    return 0;
+}
+
+void listeners_CloseAll() {
+    while (listeners) {
+        listeners_CloseByPort(listeners->port);
+    }
 }
 

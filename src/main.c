@@ -51,6 +51,7 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "audiosourceffmpeg.h"
 #include "physics.h"
 #include "connections.h"
+#include "listeners.h"
 #ifdef NOTHREADEDSDLRW
 #include "SDL.h"
 #include "threading.h"
@@ -69,6 +70,7 @@ void* main_DefaultPhysicsPtr() {
 }
 
 void main_Quit(int returncode) {
+    listeners_CloseAll();
     if (sdlinitialised) {
 #ifdef USE_SDL_AUDIO
         //audio_Quit(); //FIXME: workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1396 (causes an unclean shutdown)
@@ -649,15 +651,15 @@ int main(int argc, char** argv) {
     //when graphics or audio is open, run the main loop
 #ifdef USE_GRAPHICS
 #ifdef USE_SOUND
-    if (graphics_AreGraphicsRunning() || (audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen()) {
+    if (graphics_AreGraphicsRunning() || (audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen()|| listeners_HaveActiveListeners()) {
 #else
-    if (graphics_AreGraphicsRunning() || !connections_NoConnectionsOpen()) {
+    if (graphics_AreGraphicsRunning() || !connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
 #endif
 #else
 #ifdef USE_SOUND
-    if ((audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen()) {
+    if ((audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
 #else
-    if (!connections_NoConnectionsOpen()) {
+    if (!connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
 #endif
 #endif
         int blitwizonstepworked = 0;
@@ -711,6 +713,7 @@ int main(int argc, char** argv) {
             }else{
                 connections_SleepWait(0);
             }
+            lastdrawingtime = time_GetMilliseconds();
             if (!luafuncs_ProcessNetEvents()) {
                 //there was an error processing the events
                 exit(1);
@@ -784,9 +787,9 @@ int main(int argc, char** argv) {
 
             //we might want to quit if there is nothing else to do
 #ifdef USE_SOUND
-            if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && audiomixer_NoSoundsPlaying()) {
+            if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners() && audiomixer_NoSoundsPlaying()) {
 #else
-            if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen()) {
+            if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners()) {
 #endif
                 main_Quit(1);
             }

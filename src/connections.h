@@ -28,7 +28,7 @@
 #define CONNECTIONINBUFSIZE (1024*10)
 #define CONNECTIONOUTBUFSIZE (1024*50)
 
-//#define CONNECTIONSDEBUG
+#define CONNECTIONSDEBUG
 
 struct connection {
     int socket;
@@ -53,6 +53,7 @@ struct connection {
 
     void* userdata;
 
+    int closewhensent; //don't receive any more, but close when sendbuf is emptyy
     int targetport;
     char* retryv4ip;
     int connected;
@@ -91,6 +92,9 @@ void connections_Close(struct connection* c);
 
 //Returns 1 if no connections are open, otherwise 0.
 int connections_NoConnectionsOpen();
+
+//Check if a connection is properly connected to a server and ready for normal use
+int connections_CheckIfConnected(struct connection* c);
 
 #endif // _BLITWIZARD_CONNECTIONS_H
 

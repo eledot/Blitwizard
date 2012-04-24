@@ -148,7 +148,7 @@ static int connections_ProcessReceivedData(struct connection* c, int (*readcallb
                         if (!readcallback(c, c->inbuf, readlen)) {
                             return 0;
                         }
-                        if (readconnectionclosed) { //connection was closed by callback
+                        if (readconnectionclosed || c->socket < 0) { //connection was closed by callback
                             *closed = 1;
                             return 1;
                         }
@@ -185,10 +185,17 @@ static int connections_ProcessReceivedData(struct connection* c, int (*readcallb
             return 0;
         }
         c->inbufbytes = 0;
-        if (readconnectionclosed) { //connection was closed by callback
+        if (readconnectionclosed || c->socket < 0) { //connection was closed by callback
             *closed = 1;
             return 1;
         } 
+    }
+    return 1;
+}
+
+int connections_CheckIfConnected(struct connection* c) {
+    if (!c->connected || c->error >= 0 || c->closewhensent) {
+        return 0;
     }
     return 1;
 }
@@ -199,7 +206,6 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
     if (!so_Startup()) {
         return 1;
     }
-
     struct connection* c = connectionlist;
     while (c) {
         struct connection* cnext = c->next;
@@ -215,7 +221,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
             continue;
         }
         //check for auto close:
-        if (c->canautoclose && c->wantautoclose && (c->error >= 0 || c->lastreadtime + 30000 < time_GetMilliseconds())) {
+        if (c->canautoclose && c->wantautoclose && (c->error >= 0 || c->lastreadtime + 30000 < time_GetMilliseconds()) && !c->closewhensent) {
             if (c->error >= 0) { //connection already error'd, we can get rid of it:
 #ifdef CONNECTIONSDEBUG
                 printinfo("[connections] autoclosing connection %d", c->socket);
@@ -231,8 +237,21 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
             }
             continue;
         }
+        //check for close after send:
+        if (c->outbufbytes <= 0 && c->closewhensent) {
+#ifdef CONNECTIONSDEBUG
+            printinfo("[connections] closing connection %d since data is sent", c->socket);
+#endif
+            if (c->luarefcount <= 0) {
+                connections_Close(c);
+            }else{
+                //lua still has a reference, don't close
+            }
+            c = cnext;
+            continue;
+        }
         //check host resolve requests first:
-        if (c->error < 0 && (c->hostresolveptr || c->hostresolveptrv6)) {
+        if (c->error < 0 && !c->closewhensent && (c->hostresolveptr || c->hostresolveptrv6)) {
             int rqstate1 = RESOLVESTATUS_SUCCESS;
             if (c->hostresolveptr) {
                 hostresolv_GetRequestStatus(c->hostresolveptr);
@@ -327,7 +346,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
             }
         }
         //if the connection is attempting to connect, check if it succeeded:
-        if (c->error < 0 && !c->connected && c->socket) {
+        if (c->error < 0 && !c->closewhensent && !c->connected && c->socket) {
             if (so_SelectSaysWrite(c->socket, &c->sslptr)) {
                 if (c->outbufbytes <= 0) {
                     so_SelectWantWrite(c->socket, 0);
@@ -371,7 +390,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
             }
         }
         //read things if we can:
-        if (c->error < 0 && c->connected && so_SelectSaysRead(c->socket, &c->sslptr)) {
+        if (c->error < 0 && !c->closewhensent && c->connected && so_SelectSaysRead(c->socket, &c->sslptr)) {
             if (c->inbufbytes >= c->inbufsize && c->linebuffered == 1) {
                 //we will break this mega line into two:
                 //first, send without line processing:
@@ -429,7 +448,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
             }
         }
         //write things if we can:
-        if (c->error < 0 && c->connected && c->outbufbytes > 0 && so_SelectSaysWrite(c->socket, &c->sslptr)) {
+        if ((c->error < 0 || (c->socket >= 0 && c->closewhensent)) && c->connected && c->outbufbytes > 0 && so_SelectSaysWrite(c->socket, &c->sslptr)) {
             int r = so_SendSSLData(c->socket, c->outbuf + c->outbufoffset, c->outbufbytes, &c->sslptr);
             if (r == 0) {
                 //connection closed:
@@ -560,6 +579,7 @@ void connections_Init(struct connection* c, const char* target, int port, int li
 //Send on a connection. Do not use if ->connected is not 1 yet!
 void connections_Send(struct connection* c, const char* data, int datalength) {
     int r = datalength;
+    if (!connections_CheckIfConnected(c)) {return;}
     //sadly, we cannot send an infinite size of bytes:
     if (r > c->outbufsize - (c->outbufbytes + c->outbufoffset)) {
         r = c->outbufsize - (c->outbufbytes + c->outbufoffset);

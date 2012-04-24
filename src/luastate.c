@@ -177,6 +177,12 @@ static void luastate_CreateNetTable(lua_State* l) {
     lua_pushstring(l, "open");
     lua_pushcfunction(l, &luafuncs_netopen);
     lua_settable(l, -3);
+    lua_pushstring(l, "server");
+    lua_pushcfunction(l, &luafuncs_netserver);
+    lua_settable(l, -3);
+    lua_pushstring(l, "set");
+    lua_pushcfunction(l, &luafuncs_netset);
+    lua_settable(l, -3);
     lua_pushstring(l, "send");
     lua_pushcfunction(l, &luafuncs_netsend);
     lua_settable(l, -3);
