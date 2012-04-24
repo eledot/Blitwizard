@@ -28,7 +28,7 @@
 #define CONNECTIONINBUFSIZE (1024*10)
 #define CONNECTIONOUTBUFSIZE (1024*50)
 
-#define CONNECTIONSDEBUG
+//#define CONNECTIONSDEBUG
 
 struct connection {
     int socket;

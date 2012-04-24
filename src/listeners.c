@@ -104,7 +104,7 @@ int listeners_Create(int port, int ssl, void* userdata) {
     l->next = listeners;
     listeners = l;
 #ifdef CONNECTIONSDEBUG
-    printinfo("[connections-server] new server at port %d", l->port);
+    printinfo("[connections-server] new server at port %d (%d)", l->port, l->socket);
 #endif
     return 1;
 }
@@ -133,7 +133,7 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
             //process new connection if we have one:
             if (havenewconnection) {
 #ifdef CONNECTIONSDEBUG
-                printinfo("[connections-server] so_AcceptConnection() succeeded at port %d", l->port);
+                printinfo("[connections-server] so_AcceptConnection() succeeded at port %d: %d", l->port, sock);
 #endif
                 if (!newconnection(l->port, sock, ipbuf, sptr, l->userdata)) {
                     return 0;

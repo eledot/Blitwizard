@@ -142,19 +142,17 @@ static int connections_ProcessReceivedData(struct connection* c, int (*readcallb
                     //don't process the \r from \r\n:
                     if (j > 0 && c->inbuf[j-1] == '\r') {readlen--;}
 
-                    if (readlen > 0) {
-                        justreadingfromconnection = c;
-                        readconnectionclosed = 0;
-                        if (!readcallback(c, c->inbuf, readlen)) {
-                            return 0;
-                        }
-                        if (readconnectionclosed || c->socket < 0) { //connection was closed by callback
-                            *closed = 1;
-                            return 1;
-                        }
-                        if (c->error >= 0) { //connection was probably closed by lua
-                            return 1;
-                        }
+                    justreadingfromconnection = c;
+                    readconnectionclosed = 0;
+                    if (!readcallback(c, c->inbuf, readlen)) {
+                        return 0;
+                    }
+                    if (readconnectionclosed || c->socket < 0) { //connection was closed by callback
+                        *closed = 1;
+                        return 1;
+                    }
+                    if (c->error >= 0) { //connection was probably closed by lua
+                        return 1;
                     }
 
                     //cut off the processed line
@@ -217,8 +215,6 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                     if (!errorcallback(c, c->error)) {return 0;}
                 }
             }
-            c = cnext;
-            continue;
         }
         //check for auto close:
         if (c->canautoclose && c->wantautoclose && (c->error >= 0 || c->lastreadtime + 30000 < time_GetMilliseconds()) && !c->closewhensent) {
@@ -239,10 +235,10 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
         }
         //check for close after send:
         if (c->outbufbytes <= 0 && c->closewhensent) {
-#ifdef CONNECTIONSDEBUG
-            printinfo("[connections] closing connection %d since data is sent", c->socket);
-#endif
             if (c->luarefcount <= 0) {
+#ifdef CONNECTIONSDEBUG
+                printinfo("[connections] closing connection %d since data is sent", c->socket);
+#endif
                 connections_Close(c);
             }else{
                 //lua still has a reference, don't close

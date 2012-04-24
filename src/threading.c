@@ -29,7 +29,7 @@
 #ifdef WINDOWS
 #include <windows.h>
 #else //ifdef HAVE_WINDOWS
-
+#include <pthread.h>
 #endif //ifdef HAVE_WINDOWS
 #endif //ifdef HAVE_SDL
 

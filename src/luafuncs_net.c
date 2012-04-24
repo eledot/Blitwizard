@@ -65,7 +65,7 @@ static struct luanetstream* toluanetstream(lua_State* l, int index) {
 
 static void clearconnectioncallbacks(struct connection* c) {
     void* p = c;
-    uint64_t cval = (uint64_t)((void*)p);
+    uint64_t cval = (uint64_t)(intptr_t)((void*)p);
     lua_State* l = (lua_State*)c->userdata;
     //close all the stored callback functions
     char regname[500];
@@ -115,7 +115,7 @@ static int garbagecollect_netstream(lua_State* l) {
             int donotclose = 0;
 
             //maybe we would want to keep the connection open
-            if (stream->c->error < 0) {
+            if (stream->c->error < 0 || (stream->c->closewhensent && stream->c->outbufbytes > 0)) {
                 //keep open if we still intend to send data and the connection is formally already closed:
                 if (stream->c->closewhensent && stream->c->outbufbytes > 0) {
 #ifdef CONNECTIONSDEBUG
@@ -138,7 +138,7 @@ static int garbagecollect_netstream(lua_State* l) {
 
             //close connection
             void* p = stream->c;
-            uint64_t cval = (uint64_t)((void*)p);
+            uint64_t cval = (uint64_t)(intptr_t)((void*)p);
             if (!donotclose) {
                 connections_Close(stream->c);
                 free(stream->c);
@@ -255,7 +255,7 @@ static void luafuncs_checkcallbackparameters(lua_State* l, int startindex, const
 
 static void luafuncs_setcallbacks(lua_State* l, void* cptr, int stackindex, int haveconnect, int haveread, int haveerror) {
     //set the callbacks onto the metatable of our connection object:
-    uint64_t cval = (uint64_t)((void*)cptr);
+    uint64_t cval = (uint64_t)(intptr_t)((void*)cptr);
     char regname[500];
     if (haveconnect) {
 #ifdef WINDOWS
@@ -422,7 +422,6 @@ int luafuncs_netclose(lua_State* l) {
         netstream->c->socket = -1;
         netstream->c->error = CONNECTIONERROR_CONNECTIONCLOSED;
     }else{
-        printf("close when sent!\n");
         netstream->c->closewhensent = 1;
         netstream->c->error = CONNECTIONERROR_CONNECTIONCLOSED;
     }
@@ -469,9 +468,9 @@ static int connectedevents(struct connection* c) {
     //push connect callback function
     char regname[500];
 #ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "opencallback%I64u", (uint64_t)c);
+    snprintf(regname, sizeof(regname), "opencallback%I64u", (uint64_t)(intptr_t)c);
 #else
-    snprintf(regname, sizeof(regname), "opencallback%llu", (uint64_t)c);
+    snprintf(regname, sizeof(regname), "opencallback%llu", (uint64_t)(intptr_t)c);
 #endif
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
@@ -506,9 +505,9 @@ static int readevents(struct connection* c, char* data, unsigned int datalength)
     //read callback lua function
     char regname[500];
 #ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "readcallback%I64u", (uint64_t)c);
+    snprintf(regname, sizeof(regname), "readcallback%I64u", (uint64_t)(intptr_t)c);
 #else
-    snprintf(regname, sizeof(regname), "readcallback%llu", (uint64_t)c);
+    snprintf(regname, sizeof(regname), "readcallback%llu", (uint64_t)(intptr_t)c);
 #endif
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
@@ -580,7 +579,6 @@ int luafuncs_netserver(lua_State* l) {
 }
 
 int connectionevents(int port, int socket, const char* ip, void* sslptr, void* userdata) {
-    printf("new connection on port %d\n",port);
     lua_State* l = (lua_State*)userdata;
 
 
@@ -609,6 +607,7 @@ int connectionevents(int port, int socket, const char* ip, void* sslptr, void* u
     struct connection* c = ((struct luanetstream*)iptr->ref.ptr)->c;
     memset(c, 0, sizeof(*c));
     c->socket = socket;
+    c->sslptr = sslptr;
     c->targetport = port;
     c->connected = 1;
     c->luarefcount = 1; //since we pass it to the callback now.
@@ -617,7 +616,9 @@ int connectionevents(int port, int socket, const char* ip, void* sslptr, void* u
     c->userdata = l;
     c->iptype = IPTYPE_IPV6;
     c->inbuf = malloc(CONNECTIONINBUFSIZE);
+    c->inbufsize = CONNECTIONINBUFSIZE;
     c->outbuf = malloc(CONNECTIONOUTBUFSIZE);
+    c->outbufsize = CONNECTIONOUTBUFSIZE;
     if (!c->inbuf || !c->outbuf) {
         if (c->inbuf) {free(c->inbuf);}
         if (c->outbuf) {free(c->outbuf);}
@@ -652,9 +653,9 @@ static int errorevents(struct connection* c, int error) {
     //read callback lua function
     char regname[500];
 #ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "errorcallback%I64u", (uint64_t)c);
+    snprintf(regname, sizeof(regname), "errorcallback%I64u", (uint64_t)(intptr_t)c);
 #else
-    snprintf(regname, sizeof(regname), "errorcallback%llu", (uint64_t)c);
+    snprintf(regname, sizeof(regname), "errorcallback%llu", (uint64_t)(intptr_t)c);
 #endif
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
