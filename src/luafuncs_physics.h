@@ -21,6 +21,8 @@
 
 */
 
+#ifdef USE_PHYSICS
+
 int luafuncs_createMovableObject(lua_State* l);
 int luafuncs_createStaticObject(lua_State* l);
 int luafuncs_setShapeRectangle(lua_State* l);
@@ -39,4 +41,6 @@ int luafuncs_getRotation(lua_State* l);
 int luafuncs_getPosition(lua_State* l);
 int luafuncs_warp(lua_State* l);
 int luafuncs_setGravity(lua_State* l);
+
+#endif
 
