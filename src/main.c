@@ -27,6 +27,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdarg.h>
+#include <inttypes.h>
 #ifdef WINDOWS
 #include <windows.h>
 #define _WINDOWS_
@@ -786,8 +787,6 @@ int main(int argc, char** argv) {
                      logictimestamp < time) {
                     //we got a problem: we aren't finished,
                     //but we hit the iteration limit
-                    printf("physicstime: %llu, %llu\n",physicstimestamp,time);
-                    printf("logictime: %llu, %llu\n", logictimestamp, time);
                     if (physicstimestamp < time || logictimestamp < time) {
                         physicstimestamp = time_GetMilliseconds();
                         logictimestamp = time_GetMilliseconds();
