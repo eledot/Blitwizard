@@ -586,6 +586,7 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: Initialising physics...");
 #endif
 
+#ifdef USE_PHYSICS
     //initialise physics
     physicsdefaultworld = physics_CreateWorld();
     if (!physicsdefaultworld) {
@@ -593,6 +594,7 @@ int main(int argc, char** argv) {
         fatalscripterror();
         main_Quit(1);
     }
+#endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Reading templates if present...");
