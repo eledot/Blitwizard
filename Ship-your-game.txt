@@ -1,5 +1,5 @@
 
-To ship your game based on blitwizard, simply combine your game files
+To ship your game based on Blitwizard, simply combine your game files
 (your game.lua and other used scripts and the artwork you use) with the
 blitwizard binary (e.g. the windows .exe) and the templates folder.
 
@@ -13,6 +13,9 @@ So all you need to ship is:
  - game.lua from your own game and other files of your game (images etc)
 
  - README-libs.txt for licensing (see disclaimer below)
+   (Note for advanced users: if you build Blitwizard without static libs
+    and without shipping any libs as dlls along with it, this is not
+    required)
 
 Ship a game for Android (you need a *Linux* machine for this!):
 
@@ -42,5 +45,5 @@ Disclaimer:
   It is your own responsibility to make sure that you comply with the third
   party libraries' licenses and any things like patents.
 
-Read http://games.homeofjones.de/blitwizard/license#third-party_licensing
+Read http://www.blitwizard.de/license#third-party_licensing
 
