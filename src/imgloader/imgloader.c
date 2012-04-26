@@ -63,7 +63,7 @@ struct loaderthreadinfo {
 };
 
 #ifdef WIN
-void loaderthreadfunction(void* data) {
+unsigned __stdcall loaderthreadfunction(void* data) {
 #else
 void* loaderthreadfunction(void* data) {
 #endif
@@ -145,7 +145,7 @@ void* loaderthreadfunction(void* data) {
     }
     
 #ifdef WIN
-    return;
+    return 0;
 #else
     pthread_mutex_lock(&i->threadeventmutex);
     i->threadeventobject = 1;

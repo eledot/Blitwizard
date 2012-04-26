@@ -69,18 +69,18 @@ if [ ! -e libs/libimglib.a ]; then
         # static png:
         if [ -n "`echo $static_libs_use | grep png`" ]; then
             echo "Compiling libpng..."
-            cd src/imgloader && make deps-png || { echo "Failed to compile libpng"; exit 1; }
+            CC="$CC" AR="$AR" cd src/imgloader && make deps-png || { echo "Failed to compile libpng"; exit 1; }
             cd $dir
         fi
         #static zlib
         if [ -n "`echo $static_libs_use | grep zlib`" ]; then
             echo "Compiling zlib..."
-            cd src/imgloader && make deps-zlib || { echo "Failed to compile zlib"; exit 1; }
+            CC="$CC" AR="$AR" cd src/imgloader && make deps-zlib || { echo "Failed to compile zlib"; exit 1; }
             cd $dir
         fi
         echo "Compiling imgloader..."
         # Our custom threaded image loader wrapper
-        cd src/imgloader && make || { echo "Failed to compile imgloader"; exit 1; }
+        CC="$CC" AR="$AR" cd src/imgloader && make || { echo "Failed to compile imgloader"; exit 1; }
     fi
     cd $dir
 fi
