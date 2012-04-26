@@ -41,7 +41,7 @@ static int osinfo_DetectWine() {
         if (p) {
             return 1;
         }
-        FreeLibrary(ib);
+        FreeLibrary(lib);
     }
     return 0;
 }
@@ -64,7 +64,7 @@ const char* osinfo_GetSystemVersion() {
     char ntorwine[20] = "NT";
     if (osinfo_DetectWine()) {strcpy(ntorwine, "Wine");}    
 
-    snprintf(versionbuf,sizeof(versionbuf),"%s/%d.%d",ntowrine,(int)osvi.dwMajorVersion,(int)osvi.dwMinorVersion);
+    snprintf(versionbuf,sizeof(versionbuf),"%s/%d.%d",ntorwine,(int)osvi.dwMajorVersion,(int)osvi.dwMinorVersion);
     versionbuf[sizeof(versionbuf)-1] = 0;
     return versionbuf;
 }

@@ -153,7 +153,7 @@ if [ "$REDOWNLOAD" = "yes" ]; then
     cd ..
 
     # Rename to ./blitwizard/ and zip for source release
-    rm -r blitwizard/
+    rm -rf blitwizard/
     mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
     if [ "$DOSOURCERELEASE" = "yes" ]; then
         mv ./blitwizard/ffmpeg-*.tar.bz2 ./
