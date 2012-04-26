@@ -164,7 +164,7 @@ if [ "$REDOWNLOAD" = "yes" ]; then
 
     # Get dependencies
     rm deps.zip
-    wget http://games.homeofjones.de/blitwizard/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
+    wget http://www.blitwizard.de/download-files/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
     unzip deps.zip
 else
     cd blitwizard
@@ -185,10 +185,10 @@ cd ../../
 
 # Do ./configure
 if [ "$TARGETHOST" = "" ]; then
-    CC="$CC" ./configure || { echo "./configure failed."; exit 1; }
+    CC="$CC" ./configure --disable-flac || { echo "./configure failed."; exit 1; }
 else
     unset $CC
-    ./configure --host="$TARGETHOST" || { echo "./configure failed"; exit 1; }
+    ./configure --disable-flac --host="$TARGETHOST" || { echo "./configure failed"; exit 1; }
 fi
 
 # Compile
