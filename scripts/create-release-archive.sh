@@ -134,7 +134,7 @@ if [ "$REDOWNLOAD" = "yes" ]; then
     rm -r tarball/
     mkdir -p tarball
     cd tarball
-    git clone http://games.homeofjones.de/blitwizard/git-source/blitwizard.git/ . || { echo "Failed to do git checkout."; exit 1; }
+    git clone https://github.com/JonasT/Blitwizard.git . || { echo "Failed to do git checkout."; exit 1; }
     rm -rf ./.git
     if [ "$2" != "android" ]; then
         sh autogen.sh || { echo "Autoconf generation failed."; exit 1; }
