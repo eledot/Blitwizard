@@ -6,17 +6,24 @@ AC_PREREQ([2.60])
 
 AC_INIT([blitwizard], [0.3])
 
-# Checks for programs.
+# Checks for programs:
+
 AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_MAKE_SET
 AC_CANONICAL_HOST
-
-#AC_DISABLE_SHARED
-#AC_PROG_LIBTOOL
-
 AC_CONFIG_MACRO_DIR([m4])
+
+
+# Check for ar:
+
+AC_CHECK_TOOL(AR, ar)
+if [ test -z "$AR" ]; then
+    AC_MSG_ERROR([No ar available. Please install ar.])
+    exit 1
+fi
+
 
 # Enable/disable features:
 
