@@ -574,7 +574,7 @@ AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
 
     # Checking on Speex status:
     AS_IF([test "x$SPEEX_RESAMPLING_FEATURE_ENABLED" = xyes],[
-        statictest=`echo $STATIC_LIBS_USE | grep FLAC`
+        statictest=`echo $STATIC_LIBS_USE | grep speex`
         AS_IF([test -z "$statictest"],[
             FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lspeex -lspeexdsp"
         ], [
@@ -590,7 +590,7 @@ AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
         FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_FFMEG_AUDIO"
     ])
 
-])
+]) # AUDIO_FEATURE_ENABLED
 
 AS_IF([test "x$PHYSICS_FEATURE_ENABLED" = xyes],[
     statictest=`echo $STATIC_LIBS_USE | grep box2d`
