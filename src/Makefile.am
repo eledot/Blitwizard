@@ -10,7 +10,7 @@ blitwizard_LDADD =
 blitwizard_LDFLAGS = $(FINAL_LD_FLAGS)
 
 AM_CFLAGS = $(FINAL_INCLUDE_FLAGS) -fno-PIC -O2 -Wall -Wextra -g -fomit-frame-pointer -L../libs/ $(FINAL_USE_LIB_FLAGS)
-AM_CXXFLAGS = $(FINAL_INCLUDE_FLAGS) -fno-PIC -O2 -Wall -Wextra -g -fno-exceptions -fomit-frame-pointer -L ../libs/ $(FINAL_USE_LIB_FLAGS)
+AM_CXXFLAGS = $(FINAL_INCLUDE_FLAGS) $(STATICSTDCXX) -fno-PIC -O2 -Wall -Wextra -g -fno-exceptions -fomit-frame-pointer -L ../libs/ $(FINAL_USE_LIB_FLAGS)
 
 # -fno-PIC is only added for some extra speed, same as -O2.
 
