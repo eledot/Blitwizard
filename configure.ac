@@ -407,21 +407,6 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
   liblua: static"
 ])
 
-# Check whether we can access cmake
-
-HAVE_WORKING_CMAKE="no"
-AC_MSG_CHECKING([for cmake build system])
-sh scripts/checkforcmake.sh
-AS_IF([test "x$?" != x0],[
-    AC_MSG_RESULT([no])
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  cmake build system: no"
-],[
-    AC_MSG_RESULT([yes])
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  cmake build system: yes"
-    HAVE_WORKING_CMAKE="yes"
-])
 
 # Check for libbox2d availability:
 
@@ -432,12 +417,7 @@ AS_IF([test "x$enable_physics" = xyes],[
         AC_MSG_RESULT([no])
         HAVE_STATIC_BOX2D="no"
     ], [
-        AS_IF([test "x$HAVE_WORKING_CMAKE" = xno], [
-            AC_MSG_RESULT([no, need cmake!])
-            HAVE_STATIC_BOX2D="no"
-        ], [
-            AC_MSG_RESULT([yes])
-        ])
+        AC_MSG_RESULT([yes])
     ])
     AS_IF([test "x$HAVE_STATIC_BOX2D" = xno], [
         #check for shared lib
@@ -617,10 +597,10 @@ AS_IF([test -z "$maybeos"],[
     MACTEST=`uname -a | grep Darwin`
     AS_IF([test -z "$MACTEST"],[
         LIBS="-pthread -ldl -lm -lrt"
-        WRITELINE="\nluatarget=posix\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no"
+        WRITELINE="\nluatarget=posix\nCXX=$CXX\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no"
     ],[
         LIBS="$LIBS -lm -liconv -lrt -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
-        WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes"
+        WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCXX=$CXX\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes"
     ])
 
     echo -e "$WRITELINE" > scripts/.buildinfo
@@ -657,12 +637,13 @@ AS_IF([test -z "$maybeos"],[
     TGHOST="$host_alias"
     AC_SUBST(TGHOST)
     
-    WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no"
+    WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCXX=$CXX\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no"
     echo -e "$WRITELINE" > scripts/.buildinfo
 
     CFLAGS="$CFLAGS -static-libgcc -mwindows -mthreads -L../ -I../ `cd $scriptsdir && sh ./checksse.sh`"
     CXXFLAGS="$CXXFLAGS -static-libgcc -static-libstdc++ -mwindows -mthreads -L../ -I../ `cd $scriptsdir && sh ./checksse.sh`"
     LIBS="$LIBS -lshlwapi -lgdi32 -limm32 -loleaut32 -lws2_32 -lole32 -lwinmm -luuid -lversion"
+    FINAL_LD_FLAGS="-lmingw32 $FINAL_LD_FLAGS"
 
     AC_CHECK_HEADERS([windows.h string.h stdio.h unistd.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
 

@@ -36,6 +36,9 @@
 #include "SDL.h"
 #endif
 #include "graphicstexture.h"
+#ifdef WINDOWS
+#include <windows.h> //needed for HWND in graphics.h
+#endif
 #include "graphics.h"
 #include "timefuncs.h"
 #include "luastate.h"

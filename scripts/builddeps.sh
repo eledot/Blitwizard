@@ -47,6 +47,7 @@ if [ "$REBUILDCORE" = "yes" ]; then
 fi
 
 CC=`cat scripts/.buildinfo | grep CC | sed -e 's/^.*\=//'`
+CXX=`cat scripts/.buildinfo | grep CXX | sed -e 's/^.*\=//'`
 RANLIB=`cat scripts/.buildinfo | grep RANLIB | sed -e 's/^.*\=//'`
 AR=`cat scripts/.buildinfo | grep AR | sed -e 's/^.*\=//'`
 HOST=`cat scripts/.buildinfo | grep HOST | sed -e 's/^.*\=//'`
@@ -161,29 +162,19 @@ fi
 if [ ! -e libs/libblitwizardbox2d.a ]; then
     if [ -n "`echo $static_libs_use | grep box2d`" ]; then
         # Build box2d
-        box2dpremake="no"
-        cd $dir
-        export CMAKE_SYSTEM_NAME=""
-        CROSSCMAKEFLAG=""
-        if [ "$luatarget" = "mingw" ]; then
-            sed "s/AUTOTOOLS_HOST/${HOST}/g" scripts/box2dforwindows.cmake.template > scripts/box2dforwindows.cmake
-            CROSSCMAKEFLAG="-DCMAKE_TOOLCHAIN_FILE=../../scripts/box2dforwindows.cmake -Dhost_platform=${HOST} "
-        fi
-        cd src/box2d/
-        echo "Appended option: (${CROSSCMAKEFLAG})"
-        cmake ${CROSSCMAKEFLAG} -DBOX2D_INSTALL=OFF -DBOX2D_BUILD_SHARED=OFF -DBOX2D_BUILD_STATIC=ON -DBOX2D_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=Release . || {
-            cd $dir
-            cd src/box2d && premake4 gmake || { echo "Failed to configure box2d"; exit 1; }
-            box2dpremake="yes"
-        }
-        cd $dir
-        if [ "$box2dpremake" = "yes" ]; then
-            echo "Doing Box2D build (premake configured)"
-            cd src/box2d && make config="release" || { echo "Failed to build box2d"; exit 1; }
-        else
-            echo "Doing Box2D build (cmake configured)"
-            cd src/box2d && make || { echo "Failed to build box2d"; exit 1; }
-        fi
+        # cmake sucks (at least if you want to cross-compile),
+        # therefore we do this manually:
+        cd src/box2d
+        bflags="-c -O2 -I."
+        $CXX $bflags Box2D/Common/*.cpp
+        $CXX $bflags Box2D/Dynamics/*.cpp
+        $CXX $bflags Box2D/Dynamics/Contacts/*.cpp
+        $CXX $bflags Box2D/Dynamics/Joints/*.cpp
+        $CXX $bflags Box2D/Collision/*.cpp
+        $CXX $bflags Box2D/Collision/Shapes/*.cpp
+        $CXX $bflags Box2D/Rope/*.cpp
+        rm -f Box2D/libBox2D.a
+        $AR rcs Box2D/libBox2D.a *.o
         cd $dir
     fi
 fi

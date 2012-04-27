@@ -85,7 +85,7 @@ void* resolvethread(void* data) {
         }
     }
 #ifdef WINDOWS
-    return;
+    return 0;
 #else
     pthread_mutex_lock(&i->threadeventmutex);
     i->threadeventobject = 1;

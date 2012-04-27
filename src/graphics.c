@@ -21,6 +21,8 @@
 
 */
 
+#include "os.h"
+
 #ifdef USE_GRAPHICS
 
 // various standard headers
@@ -33,7 +35,6 @@
 #endif
 #include <stdarg.h>
 
-#include "os.h"
 #include "logging.h"
 #include "imgloader.h"
 #include "timefuncs.h"

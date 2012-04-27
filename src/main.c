@@ -484,7 +484,11 @@ int luafuncs_ProcessNetEvents();
 #if (defined(__ANDROID__) || defined(ANDROID))
 int SDL_main(int argc, char** argv) {
 #else
+#ifdef WINDOWS
+int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
+#else
 int main(int argc, char** argv) {
+#endif
 #endif
 
 #ifdef NOTHREADEDSDLRW
@@ -502,6 +506,14 @@ int main(int argc, char** argv) {
     int scriptargfound = 0;
     int option_changedir = 0;
     int gcframecount = 0;
+
+#ifdef WINDOWS
+    //obtain command line arguments a special way on windows:
+    int argc = 0;
+    char** argv = (char**)CommandLineToArgvW(GetCommandLine(), &argc);
+    //argv will leak if not free'd, but we don't care.
+#endif
+
     while (i < argc) {
         if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
             if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
