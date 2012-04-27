@@ -115,15 +115,21 @@ void printerror(const char* fmt, ...) {
     //we want graphical error messages for windows
     if (!suppressfurthererrors) {
         //minimize drawing window if fullscreen
+#ifdef USE_GRAPHICS
         if (graphics_AreGraphicsRunning() && graphics_IsFullscreen()) {
             graphics_MinimizeWindow();
         }
+#endif
         //show error msg
         char printerror[4096];
         snprintf(printerror, sizeof(printerror)-1,
         "The application cannot continue due to a fatal error:\n\n%s",
         printline);
+#ifdef USE_SDL_GRAPHICS
         MessageBox(graphics_GetWindowHWND(), printerror, "Fatal error", MB_OK|MB_ICONERROR);
+#else
+        MessageBox(NULL, printerror, "Fatal error", MB_OK|MB_ICONERROR);
+#endif
     }
 #endif
 }

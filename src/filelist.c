@@ -104,7 +104,7 @@ struct filelistcontext* filelist_Create(const char* path) {
     ctx->findhandle = INVALID_HANDLE_VALUE;
 
     //make sure we have no invalid wildcard chars in the path
-    int i = 0;
+    unsigned int i = 0;
     while (i < strlen(ctx->path)) {
         if (ctx->path[i] == '?' || ctx->path[i] == '*') {
             //this is invalid

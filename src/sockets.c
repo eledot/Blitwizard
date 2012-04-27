@@ -305,7 +305,7 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
 void so_ManageSocketWithSelect(int socket) {
     if (so_sysinited == 0) {return;}
     so_SetSocketNonblocking(socket);
-    FD_SET(socket,&weircdselectset_readers);
+    FD_SET(socket, &weircdselectset_readers);
     if (fdnr <= socket) {fdnr = socket+1;}
     return;
 }
@@ -1020,7 +1020,11 @@ int so_CheckIfConnected(int socket, void** sslptr) {
     }
 #endif
     int val;
+#ifdef WINDOWS
+    int len = sizeof(val);
+#else
     unsigned int len = sizeof(val);
+#endif
     int result = getsockopt(socket, SOL_SOCKET, SO_ERROR, &val, &len);
     if (result < 0) { //failed to obtain option
         return 0;

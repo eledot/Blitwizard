@@ -65,7 +65,7 @@ struct cancelledrequest {
 static struct cancelledrequest* cancellist = NULL;
 
 #ifdef WINDOWS
-void resolvethread(void* data) {
+unsigned __stdcall resolvethread(void* data) {
 #else
 void* resolvethread(void* data) {
 #endif

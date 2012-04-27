@@ -39,10 +39,8 @@ const char* graphics_GetCurrentRendererName();
 
 int graphics_Init(char** error);
 
-#ifdef WIN
-#ifdef _WINDOWS_
+#ifdef WINDOWS
 HWND graphics_GetWindowHWND(); //get win32 HWND handle for the window
-#endif
 #endif
 
 int graphics_PromptTextureLoading(const char* texture);
