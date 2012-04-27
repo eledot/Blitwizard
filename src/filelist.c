@@ -141,8 +141,28 @@ struct filelistcontext* filelist_Create(const char* path) {
     return ctx;
 }
 
+#ifdef WINDOWS
+void filelist_PrepareNextFile(struct filelistcontext* ctx) {
+    //prepare the next file we shall examine next time
+    if (FindNextFile(ctx->findhandle, &ctx->finddata) == 0) {
+        if (GetLastError() == ERROR_NO_MORE_FILES) {
+            //prepare for next time to return no files
+            FindClose(ctx->findhandle);
+            ctx->findhandle = INVALID_HANDLE_VALUE;
+        }else{
+            //this is an actual error. however, we want to report it next time
+            ctx->reporterror = 1;
+        }
+    }
+}
+#endif
+
 int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t namebufsize, int* isdirectory) {
+#ifdef WINDOWS
+    char* filename;
+#else
     const char* filename;
+#endif
     int setisdirectory = 1;
     int originalisdirectoryvalue = 0;
     if (isdirectory) {
@@ -201,27 +221,36 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
         return 0; //report no file
     }
 
+    //check for . and .. which we want to omit
+    if (memcmp(ctx->finddata.cFileName, ".", 2) == 0 || memcmp(ctx->finddata.cFileName, "..", 3) == 0) {
+        //this won't recurse a lot so it should be fine
+        filelist_PrepareNextFile(ctx);
+        return filelist_GetNextFile(ctx, namebuf, namebufsize, isdirectory);
+    }
+
     //retrieve current file name
-    filename = ctx->finddata.cFileName;
+    filename = strdup(ctx->finddata.cFileName);
+    if (!filename) {
+        if (isdirectory) {
+            //revert value on error so it is unaltered
+            *isdirectory = originalisdirectoryvalue;
+        }
+        return -1;
+    }
     unsigned int length = strlen(filename);
 
-    //prepare the next file we shall examine next time
-    if (FindNextFile(ctx->findhandle, &ctx->finddata) == 0) {
-        if (GetLastError() == ERROR_NO_MORE_FILES) {
-            //prepare for next time to return no files
-            FindClose(ctx->findhandle);
-            ctx->findhandle = INVALID_HANDLE_VALUE;
-        }else{
-            //this is an actual error. however, we want to report it next time
-            ctx->reporterror = 1;
-        }
-    }
+    filelist_PrepareNextFile(ctx);
 #endif
 
     //check whether it is a directory, the long way :p
     if (setisdirectory && isdirectory) {
         char* p = file_AddComponentToPath(ctx->path, filename);
         if (!p) {
+            if (isdirectory) {
+                //revert value on error so it is unaltered
+                *isdirectory = originalisdirectoryvalue;
+            }
+            free(filename);
             return -1;
         }
         if (file_IsDirectory(p)) {
@@ -230,6 +259,11 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
             if (file_DoesFileExist(p)) {
                 *isdirectory = 0;
             }else{
+                if (isdirectory) {
+                    //revert value on error so it is unaltered
+                    *isdirectory = originalisdirectoryvalue;
+                }
+                free(filename);
                 free(p);
                 return -1;
             }
@@ -242,12 +276,14 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
         memcpy(namebuf, filename, length);
         namebuf[length] = 0;
     }else{
+        free(filename);
         if (isdirectory) {
             //revert value on error so it is unaltered
             *isdirectory = originalisdirectoryvalue;
         }
         return -1;
     }
+    free(filename);
     return 1;
 }
 

@@ -509,9 +509,9 @@ int main(int argc, char** argv) {
 
 #ifdef WINDOWS
     //obtain command line arguments a special way on windows:
-    int argc = 0;
-    char** argv = (char**)CommandLineToArgvW(GetCommandLine(), &argc);
-    //argv will leak if not free'd, but we don't care.
+    int argc = __argc;
+    char** argv = __argv;
+    printf("argv[0]: %s\n",argv[0]);
 #endif
 
     while (i < argc) {
