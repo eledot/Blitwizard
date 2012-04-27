@@ -27,6 +27,7 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "os.h"
 #include "sockets.h"
 
 #ifdef USE_SOCKETS
