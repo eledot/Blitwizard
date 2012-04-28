@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# This test confirms os.ls() (a blitwizard lua api function) works.
+# It lists the files in the templates/ directory using blitwizard/os.ls,
+# then does the same in bash and compares the results.
+
 source preparetest.sh
 
 # Get output from blitwizard
