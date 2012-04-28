@@ -21,6 +21,8 @@
 
 */
 
+#include "os.h"
+
 #ifdef USE_AUDIO
 
 #ifdef USE_FLAC_AUDIO
@@ -31,7 +33,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "os.h"
 #include "logging.h"
 #include "audiosource.h"
 #include "audiosourceflac.h"
@@ -41,7 +42,7 @@
 
 #ifndef USE_FLAC_AUDIO
 
-// No FFmpeg support!
+// No FLAC support!
 
 struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     if (source) {source->close(source);}

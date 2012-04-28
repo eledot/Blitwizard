@@ -75,7 +75,9 @@ blitwiz.net.irc.open = function(name, port, nickname, callback_on_event)
     --
     --  blitwiz.net.irc.getNick(server)
     --    Get the nickname you have on the given server/blitwizard IRC instance
-    --  
+    --  blitwiz.net.irc.quit(server, reason)
+    --    Leave the server with the specified reason (a text message/string,
+    --    e.g. "Goodbye")
     --
 
     local server = {
@@ -153,11 +155,16 @@ blitwiz.net.irc.open = function(name, port, nickname, callback_on_event)
                 blitwiz.net.send(stream, "PONG :" .. args[2] .. "\n")
             end
         end,
-        function(stream)
+        function(stream, errmsg)
             callback_on_event(server, "disconnect")
         end
     )
     return server
+end
+
+function blitwiz.net.irc.quit(server, reason)
+    blitwiz.net.send(server.connection, "QUIT :" .. reason .. "\n")
+    blitwiz.net.close(server.connection)
 end
 
 function blitwiz.net.irc.getNick(server)

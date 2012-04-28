@@ -221,7 +221,7 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
         }
         length++;
     }
-#else
+#else //ifndef WINDOWS
     //check if we actually have an empty dir
     if (ctx->findhandle == INVALID_HANDLE_VALUE) {
         if (ctx->reporterror) {
@@ -259,7 +259,9 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
                 //revert value on error so it is unaltered
                 *isdirectory = originalisdirectoryvalue;
             }
+#ifdef WINDOWS
             free(filename);
+#endif
             return -1;
         }
         if (file_IsDirectory(p)) {
@@ -272,7 +274,9 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
                     //revert value on error so it is unaltered
                     *isdirectory = originalisdirectoryvalue;
                 }
+#ifdef WINDOWS
                 free(filename);
+#endif
                 free(p);
                 return -1;
             }
@@ -285,14 +289,18 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
         memcpy(namebuf, filename, length);
         namebuf[length] = 0;
     }else{
+#ifdef WINDOWS
         free(filename);
+#endif
         if (isdirectory) {
             //revert value on error so it is unaltered
             *isdirectory = originalisdirectoryvalue;
         }
         return -1;
     }
+#ifdef WINDOWS
     free(filename);
+#endif
     return 1;
 }
 

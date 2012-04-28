@@ -53,9 +53,9 @@ ul {
 <li><a href="#2summary">2. API summary and document structure</a></li>
 <li><a href="#3blitwiz.font">3. <i>blitwiz.font</i> namespace</a></li>
 <li><a href="#4blitwiz.graphics">4. <i>blitwiz.graphics</i> namespace</a></li>
-<li><a href="#5blitwiz.physics">5. <i>blitwiz.physics</i> namespace</a></li>
-<li><a href="#6blitwiz.random">6. <i>blitwiz.random</i> namespace</a></li>
-<li><a href="#7blitwiz.sound">7. <i>blitwiz.sound</i> namespace</a></li>
+<li><a href="#blitwiz.net">5. <i>blitwiz.net</i> namespace</a></li>
+<li><a href="#blitwiz.physics">6. <i>blitwiz.physics</i> namespace</a></li>
+<li><a href="#blitwiz.sound">7. <i>blitwiz.sound</i> namespace</a></li>
 <li><a href="#blitwiz.time">8. <i>blitwiz.time</i> namespace</a></li>
 <li><a href="#9blitwiz.on_*">9. Event callbacks</a></li>
 <li><a href="#10os">10. <i>os</i> standard namespace extension</a></li>
@@ -571,7 +571,63 @@ end
 </li>
 
 </ul>
-<a name="5blitwiz.physics"><h1>5. <i>blitwiz.physics</i> namespace</h1></a>
+<a name="blitwiz.net"><h1>5. <i>blitwiz.net</i> namespace</h1><a>
+<p>
+This namespace offers lowlevel networking functionality. Please note that blitwizard also has easy-to-use <b>HTTP</b> (website access) and <b>IRC</b> (a realtime text chat protocol) support. Check out <a href="https://github.com/JonasT/Blitwizard/blob/master/templates/http/http.lua">http.lua</a> and <a href="https://github.com/JonasT/Blitwizard/blob/master/templates/irc/irc.lua">irc.lua</a> for demonstration and documentation, and look at those examples:
+</p>
+<p>
+<div class="code">-- EXAMPLE FOR HTTP/IRC
+    
+-- Open a console for output with the print() function
+os.openConsole()
+
+-- Fetch a document using http
+blitwiz.net.http.get("http://www.blitwizard.de/doc-files/Ship-your-game.txt",
+    function(data)
+        if data == nil then
+            print("Failed to fetch the document (network error).")
+        else
+            print("Document arrived. HTTP response code: " .. data.response_code)
+            print("HTTP response headers: " .. data.headers .. "\n")
+            print("Document content: " .. data.content)
+        end
+    end
+) -- end of blitwiz.net.http.get
+
+-- Connect to an IRC server, join a channel and say something
+blitwiz.net.irc.open("irc.eloxoph.de", 6667, "blitwiz" .. math.ceil(1 + math.random() * 999),
+    function(server, event, ...)
+        args = {...}
+        if event == "connect" then
+            -- We are connected to the server. Join the channel:
+            blitwiz.net.irc.channelJoin(server, "#test")
+        end
+        if event == "join" then
+            -- Someone joined a channel
+            if string.lower(args[2]) == string.lower(blitwiz.net.irc.getNick(server)) then
+                -- We joined a channel! Is it #test?
+                if string.lower(args[1]) == "#test" then
+                    -- We joined #test as intended. Say something:
+                    blitwiz.net.irc.channelMessage(server, "#test", "Hello from blitwizard!")
+
+                    -- Then leave the server again:
+                    blitwiz.net.irc.quit(server, "Goodbye, test complete!")
+                end
+            else
+                -- Someone else (not ourselves) joined a channel.
+            end
+        end
+    end
+) -- end of blitwiz.net.irc.open
+
+</div>
+<p>If you do not wish to use IRC/HTTP but something else or your own custom protocol, then read on.</p>
+</p>
+<p>Information for advanced users: blitwiz.net is based on TCP networking (but allows low delay networking with TCP_NODELAY, see lowdelay option below) and supports both IPv6/IPv4. SSL support is planned but not implemented yet.</p>
+<ul>
+
+</ul>
+<a name="blitwiz.physics"><h1>6. <i>blitwiz.physics</i> namespace</h1></a>
 <p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world. You can also not move objects directly (except <a href="#blitwiz.physics.warp">warping</a> which you should use as rarely as possible) - they will move on their own according to their mass, how they collide with each other etc. You can give them "pushes" though by using <a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>.</p>
 <p><b>Physics are complicated. Take a look at the examples to get an idea for it, especially the "Moving character" example if you simply want to make a character that walks around in a level.</b></p>
 <p>

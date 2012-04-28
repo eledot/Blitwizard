@@ -101,15 +101,18 @@ blitwiz.net.http.get = function(url, callback, headers)
         resource = "/"
     end
     resource = string.gsub(resource, " ", "%20")
+    if not string.starts(resource, "/") then
+        resource = "/" .. resource
+    end
 
     if headers == nil then
         headers = ""
     end
 
     local final_headers = blitwiz.net.http._merge_headers(
-        "GET " .. resource .. " HTTP/1.0\n" ..
+        "GET " .. resource .. " HTTP/1.1\n" ..
         "Connection: Close\n" ..
-        "Accept-Encoding: identity *;q=0\n" ..
+        "Accept-Encoding: identity;q=1 *;q=0\n" ..
         "Host: " .. server_name .. "\n"
     ,
     headers
@@ -151,6 +154,22 @@ blitwiz.net.http.get = function(url, callback, headers)
                 local header,body = string.split(datastr, "\n\n",1)
                 data.content = body
                 data.headers = header
+
+                -- Make sure we have proper content and header (not nil)
+                if data.content == nil then
+                    data.content = ""
+                    if data.headers ~= nil then
+                        if string.find(data.headers, "<html>") ~= nil then
+                            -- nginx likes to sent without header sometimes
+                            -- (for bad requests)
+                            data.content = data.headers
+                            data.headers = ""
+                        end
+                    end
+                end
+                if data.headers == nil then
+                    data.headers = ""
+                end
                 callback(data)
                 return
             end
