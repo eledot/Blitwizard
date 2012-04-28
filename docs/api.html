@@ -635,9 +635,9 @@ blitwiz.net.irc.open("irc.eloxoph.de", 6667, "blitwiz" .. math.ceil(1 + math.ran
 <p>If you do not wish to use IRC/HTTP but something else or your own custom protocol, then read on.</p>
 <p>Information for advanced users: blitwiz.net is based on TCP networking (but allows low delay networking with TCP_NODELAY, see lowdelay option below) and supports both IPv6/IPv4. SSL support is planned but not implemented yet.</p>
 <ul>
-<li><h2><a name="blitwiz.net.open">blitwiz.net.open(settings <i>(table)</i>, open callback <i>(function)</i>, read callback <i>(function)</i>, close callback <i>(function)</i>)</a></h2>
+<li><h2><a name="blitwiz.net.open">blitwiz.net.open(settings <i>(table)</i>, open callback <i>(function(stream))</i>, read callback <i>(function(stream, data))</i>, close callback <i>(function(stream))</i>)</a></h2>
 <p>Open a network stream with the given settings and callbacks. The callbacks will inform you about when the stream is opened, closed and when data arrived.</p>
-<p>If you don't keep a Lua reference to the stream (which is returned by this function), the connection will get auto-closed and garbage collected when no data arrives for a while (and nothing remains to be sent).</p>
+<p>If you don't keep a Lua reference to the stream (which is returned by this function), the connection will get auto-closed and garbage collected when no data arrives for a while (and when nothing remains to be sent).</p>
 <p>
 Parameters: 
 <ul class="parameters">
@@ -676,9 +676,9 @@ Parameters:
     </tr>
 </table>
 </li>
-<li>open callback <i>(function)</i> &mdash; a callback function that will be called when the stream has been successfully opened. As first and only parameter, the stream object <a href="#network_stream"><i>(network stream)</i></a> will be passed. As soon as a stream is opened, you can use <a href="#blitwiz.net.send">blitwiz.net.send</a> on it.</li>
-<li>read callback <i>(function)</i> &mdash; a callback function that will be called when the stream has been previously opened at some point, and when data has arrived (sent by whatever you opened that stream to). The first parameter will be the stream object, the second will be the data <i>(string)</i> that arrived.</li>
-<li>close callback <i>(function)</i> &mdash; a callback function that will be called when your stream was closed (or failed to open right from the start). It will be both triggered by a stream close caused by your stream target, and by a stream close triggered by yourself through <a href="#blitwiz.net.close">blitwiz.net.close</a>. The first parameter will be the now closed stream object.</li>
+<li>open callback <i>(function(stream))</i> &mdash; a callback function that will be called when the stream has been successfully opened. As first and only parameter, the stream object <a href="#network_stream"><i>(network stream)</i></a> will be passed. As soon as a stream is opened, you can use <a href="#blitwiz.net.send">blitwiz.net.send</a> on it.</li>
+<li>read callback <i>(function(stream, data))</i> &mdash; a callback function that will be called when the stream has been previously opened at some point, and when data has arrived (sent by whatever you opened that stream to). The first parameter will be the stream object, the second will be the data <i>(string)</i> that arrived.</li>
+<li>close callback <i>(function(stream))</i> &mdash; a callback function that will be called when your stream was closed (or failed to open right from the start). It will be both triggered by a stream close caused by your stream target, and by a stream close triggered by yourself through <a href="#blitwiz.net.close">blitwiz.net.close</a>. The first parameter will be the now closed stream object.</li>
 </ul>
 </p>
 <p>
