@@ -3,3 +3,5 @@ all:
 clean:
 	rm -rf ./.depsarebuilt
 	rm -rf ../libs/*.a
+check:
+	# do nothing.

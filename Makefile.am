@@ -1,5 +1,5 @@
 
-SUBDIRS = scripts src
+SUBDIRS = scripts src tests
 
 clean:
 	cd libs && rm libblitwizard*.a

@@ -511,7 +511,6 @@ int main(int argc, char** argv) {
     //obtain command line arguments a special way on windows:
     int argc = __argc;
     char** argv = __argv;
-    printf("argv[0]: %s\n",argv[0]);
 #endif
 
     while (i < argc) {

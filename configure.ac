@@ -674,7 +674,8 @@ LIBS="$FINAL_LD_FLAGS $LIBS"
 
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+                 src/Makefile
+                 tests/Makefile])
 AC_OUTPUT
 
 echo "$LIBS_DEP_INFO_TEXT"

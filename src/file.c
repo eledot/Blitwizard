@@ -101,7 +101,7 @@ char* file_GetCwd() {
         return 0;
     }
     //turn all paths like C:\blubb\ into C:/blubb/ (blitwizard-style paths)
-    int i = 0;
+    unsigned int i = 0;
     while (i <= strlen(cwdbuf)) {
         if (cwdbuf[i] == '\\') {cwdbuf[i] = '/';}
         i++;

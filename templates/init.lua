@@ -18,6 +18,8 @@ if os.sysname() ~= "Android" then
 	end
 else
 	-- For android, we get a pre-generated Lua file
+    -- (provided by the android build script in scripts/ folder
+    -- which assembled the .apk package)
 	dofile("templates/filelist.lua")
 end
 
