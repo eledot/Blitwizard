@@ -593,7 +593,6 @@ int connectionevents(int port, int socket, const char* ip, void* sslptr, void* u
 
     //without a valid callback, there is nothing we could do:
     if (lua_type(l, -1) != LUA_TFUNCTION) {
-        printf("no callback.\n");
         so_CloseSSLSocket(socket, &sslptr);
         return 1;
     }
@@ -695,7 +694,7 @@ static int errorevents(struct connection* c, int error) {
     //prompt callback:
     int result = lua_pcall(l, 2, 0, -4);
     if (result != 0) {
-        printerror("Error: An error occured when calling blitwiz.net.open() error callback: %s", lua_tostring(l, -1));
+        printerror("Error: An error occured when calling blitwiz.net.open() close callback: %s", lua_tostring(l, -1));
         lua_pop(l, 1); //pop error message, error handler
         return 0;
     }

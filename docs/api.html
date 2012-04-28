@@ -6,6 +6,7 @@ Please modify, copy, share as you like.
 Correct or complete information isn't guaranteed.
  -->
 <head>
+<title>Blitwizard API documentation</title>    
 <style type="text/css">
 a[href] {
 	color:#00f;
@@ -32,6 +33,9 @@ li h2 {
 }
 ul {
 	list-style-type:none;
+}
+tr,td {
+    vertical-align:top;
 }
 .parameters {
 	list-style-type:disc;
@@ -88,23 +92,30 @@ The types are specified
 in brackets behind the parameters like this: <i>(number)</i>. The return value is
 described in the more lengthy description which
 follows each listed function.</p>
-<p>Those types refer to standard Lua 5 variable types: <i>number, string, boolean, nil</i></p>
-<p>Those types are special blitwizard types which you can only use with blitwizard functions:
+<p>Those types refer to standard Lua 5 variable types: <i>number, string, boolean, function, nil</i></p>
+<p>Those types are special blitwizard types which are introduced by blitwizard functions:
 <ul>
 <li>
-<p>
-<i><a name="sound_handle">sound handle</a></i> &mdash; specifies a played sound. You can use the handle to check whether it still plays or whether it stopped and it allows you to modify some things afterwards (e.g. abort the sound).
-If you play the same sound file many times, you will always get different sound handles for each separately played sound.
+<p><i><a name="network_stream">network stream</a></i> &mdash; represents a network stream. You can send data over a network stream, change its settings or close it.
 </p>
 <p>
-Scope: If you no longer have any reference to a sound handle, the sound is unaffected - it continues to play until it ends regularly
+Scope: If you no longer reference your network stream, it will disappear automatically. However, it will only disappear after some time (when garbage collected) and up to that point, it will continue to hang around (and the network connection to your target will remain open for that time). Therefore, it is recommended you explicitely close it with <a href="#blitwiz.net.close">blitwiz.net.close</a>.
 </p>
 </li>
 <li>
 <p><i><a name="physics_object">physics object</a></i> &mdash; represents a physics object. Allows you to retrieve its position/rotation and apply new forces.
 </p>
 <p>
-Scope: If you no longer reference your physics object, it will disappear automatically (after some time when it is garbage collected). However, it is recommended you explicitely destroy it with <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a> so it is removed immediately
+Scope: If you no longer reference your physics object, it will disappear automatically. However, it will only disappear after some time (when garbage collected) and up to that point, it will continue to hang around (and other physics objects will still be able to collide with it for that time). Therefore, it is recommended you explicitely destroy physics objects with <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a>.
+</p>
+</li>
+<li>
+<p>
+<i><a name="sound_handle">sound handle</a></i> &mdash; specifies a played sound. You can use the handle to check whether it still plays or whether it stopped and it allows you to modify some things afterwards (e.g. abort the sound).
+If you play the same sound file many times, you will always get different sound handles for each separately played sound.
+</p>
+<p>
+Scope: If you no longer have any reference to a sound handle, the sound is unaffected - it continues to play until it ends regularly. You also don't need to destroy the sound handle in any way when the sound has finished playing.
 </p>
 </li>
 </ul>
@@ -138,7 +149,7 @@ Parameters:
         "x"
         </td>
         <td>number</td>
-        <td>horizontal position in pixels (0 is left, positive goes right) on the screen, negative coordinates are also allowed (image will be blitted partly or fully moved out of the screen)</tr>
+        <td>horizontal position in pixels (0 is left, positive goes right) on the screen, negative coordinates are also allowed (image will be blitted partly or fully moved out of the screen)</td>
     </tr>
     <tr>
         <td>
@@ -573,7 +584,7 @@ end
 </ul>
 <a name="blitwiz.net"><h1>5. <i>blitwiz.net</i> namespace</h1><a>
 <p>
-This namespace offers lowlevel networking functionality. Please note that blitwizard also has easy-to-use <b>HTTP</b> (website access) and <b>IRC</b> (a realtime text chat protocol) support. Check out <a href="https://github.com/JonasT/Blitwizard/blob/master/templates/http/http.lua">http.lua</a> and <a href="https://github.com/JonasT/Blitwizard/blob/master/templates/irc/irc.lua">irc.lua</a> for demonstration and documentation, and look at those examples:
+This namespace offers lowlevel networking functionality. Please note that blitwizard also has easy-to-use <b>HTTP</b> (website access) and <b>IRC</b> (a realtime text chat protocol) support. Read <a href="https://github.com/JonasT/Blitwizard/blob/master/templates/http/http.lua">http.lua</a> and <a href="https://github.com/JonasT/Blitwizard/blob/master/templates/irc/irc.lua">irc.lua</a> for documentation, or take a look at those examples:
 </p>
 <p>
 <div class="code">-- EXAMPLE FOR HTTP/IRC
@@ -622,10 +633,79 @@ blitwiz.net.irc.open("irc.eloxoph.de", 6667, "blitwiz" .. math.ceil(1 + math.ran
 
 </div>
 <p>If you do not wish to use IRC/HTTP but something else or your own custom protocol, then read on.</p>
-</p>
 <p>Information for advanced users: blitwiz.net is based on TCP networking (but allows low delay networking with TCP_NODELAY, see lowdelay option below) and supports both IPv6/IPv4. SSL support is planned but not implemented yet.</p>
 <ul>
+<li><h2><a name="blitwiz.net.open">blitwiz.net.open(settings <i>(table)</i>, open callback <i>(function)</i>, read callback <i>(function)</i>, close callback <i>(function)</i>)</a></h2>
+<p>Open a network stream with the given settings and callbacks. The callbacks will inform you about when the stream is opened, closed and when data arrived.</p>
+<p>If you don't keep a Lua reference to the stream (which is returned by this function), the connection will get auto-closed and garbage collected when no data arrives for a while (and nothing remains to be sent).</p>
+<p>
+Parameters: 
+<ul class="parameters">
+<li>settings <i>(table)</i></a> &mdash; a settings table, filled with key-&gt;value pairs that specify some of the following available settings (please note server/port are <b>required</b>, all other settings are optional):
+<table style="border:1px solid black">
+    <tr>
+        <td><u>Settings name</u></td><td><u>Value type</u></td><td><u>Explanation</u></td>
+    </tr>
+    <tr>
+        <td>
+        "server"
+        </td>
+        <td>string</td>
+        <td>the server host name or ip address to which you want to open a network stream</td>
+    </tr>
+    <tr>
+        <td>
+        "port"
+        </td>
+        <td>number</td>
+        <td>the network port of the server to which you want to connect</td>
+    </tr>
+    <tr style="vertical-align:top">
+        <td>
+        "linebuffered"
+        </td>
+        <td>boolean</td>
+        <td>this setting controls whether you get the received data as soon as it arrives in whatever chunk it arrives (false), or whether you want to get only neat, complete and properly line break separated lines (true). The latter setting will cause incomplete lines to be held back until the full line arrived, while the former will instantly deliver you all data, even when incomplete. The default is false (no line buffering)</td>
+    </tr>
+    <tr style="vertical-align:top">
+        <td>
+        "lowdelay"
+        </td>
+        <td>boolean</td>
+        <td>this option allows you to enable faster sending on your network stream, cutting down the time until the network data will get sent out and eventually arrive at its target. This only affects the delay, NOT the overall network speed/bandwidth!<br><br>Actually, this option can cause severely <b>degraded</b> stream bandwidth, so don't use when you send a lot of data! This option is *only* useful when you send data that is vital to arrive very soon and where the small win on delay time is worth the downsides, e.g. player position data in a very fast-paced networking game.<br><br>Therefore, <b>DO NOT USE</b> this for data that doesn't need to have an ultra low arrival delay.<br><br>If you have both data that needs to arrive with ultra low delay and "normal" data, it is recommended you open two network streams and enable lowdelay only on one of the two streams, and use it for the low delay data purely</td>
+    </tr>
+</table>
+</li>
+<li>open callback <i>(function)</i> &mdash; a callback function that will be called when the stream has been successfully opened. As first and only parameter, the stream object <a href="#network_stream"><i>(network stream)</i></a> will be passed. As soon as a stream is opened, you can use <a href="#blitwiz.net.send">blitwiz.net.send</a> on it.</li>
+<li>read callback <i>(function)</i> &mdash; a callback function that will be called when the stream has been previously opened at some point, and when data has arrived (sent by whatever you opened that stream to). The first parameter will be the stream object, the second will be the data <i>(string)</i> that arrived.</li>
+<li>close callback <i>(function)</i> &mdash; a callback function that will be called when your stream was closed (or failed to open right from the start). It will be both triggered by a stream close caused by your stream target, and by a stream close triggered by yourself through <a href="#blitwiz.net.close">blitwiz.net.close</a>. The first parameter will be the now closed stream object.</li>
+</ul>
+</p>
+<p>
+Return value: newly opened network stream <a href="#network stream"><i>(network stream)</i></a>
+</p>
+<p>
+Example:
+<div class="code">-- Open a console for reading the console output from print():
+os.openConsole()
 
+-- Open a connection to www.blitwizard.de at port 80:
+<a href="#blitwiz.net.open">blitwiz.net.open</a>({server="www.blitwizard.de", port=80, linebuffered=true},
+    function(stream) -- open callback
+        -- as soon as the stream is open, send a http request
+        <a href="#blitwiz.net.send">blitwiz.net.send</a>(stream, "GET / HTTP/1.0\nHost: www.blitwizard.de\n\n")
+    end,
+    function(stream, data) -- read callback
+        -- when a response line arrives, print it to the console:
+        print("Data arrived: " .. data)
+    end,
+    function(stream) -- close callback
+        print("Connection is now closed!")
+    end
+)
+</div>
+</p>
+</li>
 </ul>
 <a name="blitwiz.physics"><h1>6. <i>blitwiz.physics</i> namespace</h1></a>
 <p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world. You can also not move objects directly (except <a href="#blitwiz.physics.warp">warping</a> which you should use as rarely as possible) - they will move on their own according to their mass, how they collide with each other etc. You can give them "pushes" though by using <a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>.</p>
