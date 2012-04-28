@@ -680,4 +680,8 @@ AC_OUTPUT
 
 echo "$LIBS_DEP_INFO_TEXT"
 echo "$DEPS_INFO_OUTPUT"
-echo "$BUILD_FLAGS_OUTPUT"
+
+echo " "
+echo "*** You can now build the project by typing 'make'."
+echo "The resulting binaries will be created inside the bin/ folder."
+
