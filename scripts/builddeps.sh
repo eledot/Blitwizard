@@ -195,10 +195,8 @@ if [ ! -e libs/libblitwizardSDL.a ]; then
             cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-mmx --disable-3dnow --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
         fi
         cd $dir
-        if [ "$changeddeps" = "yes" ]; then
-            cd src/sdl && make clean || { echo "Failed to compile SDL2"; exit 1; }
-            cd $dir
-        fi
+        cd src/sdl && make clean || { echo "Failed to compile SDL2"; exit 1; }
+        cd $dir
         cd src/sdl && make || { echo "Failed to compile SDL2"; exit 1; }
         cd $dir
     fi
