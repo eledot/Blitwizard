@@ -192,7 +192,7 @@ if [ ! -e libs/libblitwizardSDL.a ]; then
             cd src/sdl && ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
         else
             rm -r src/sdl/.hg/
-            cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-mmx --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
+            cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-mmx --disable-3dnow --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
         fi
         cd $dir
         if [ "$changeddeps" = "yes" ]; then
