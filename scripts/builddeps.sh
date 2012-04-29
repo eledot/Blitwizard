@@ -98,11 +98,16 @@ fi
 if [ ! -e libs/libblitwizardFLAC.a ]; then
     if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
         echo "Compiling libFLAC..."
+        asmoption=""
+        if [ "$MACBUILD" = "yes" ]; then
+            # This doesn't work on Mac OS X as it seems
+            asmoption="--disable-asm-optimizations"
+        fi
         if [ -n "`echo $static_libs_use | grep ogg`" ]; then
             # Build flac and tell it where ogg is
             oggincludedir="`pwd`/src/ogg/include/"
             ogglibrarydir="`pwd`/src/ogg/src/.libs/"
-            cd src/flac && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
+            cd src/flac && ./configure --host="$HOST" $asmoption --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
         else
             # Build flac and make it guess where ogg is
             cd src/flac && ./configure --host="$HOST" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
