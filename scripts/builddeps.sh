@@ -166,15 +166,15 @@ if [ ! -e libs/libblitwizardbox2d.a ]; then
         # therefore we do this manually:
         cd src/box2d
         bflags="-c -O2 -I."
-        $CXX $bflags Box2D/Common/*.cpp
-        $CXX $bflags Box2D/Dynamics/*.cpp
-        $CXX $bflags Box2D/Dynamics/Contacts/*.cpp
-        $CXX $bflags Box2D/Dynamics/Joints/*.cpp
-        $CXX $bflags Box2D/Collision/*.cpp
-        $CXX $bflags Box2D/Collision/Shapes/*.cpp
-        $CXX $bflags Box2D/Rope/*.cpp
+        $CXX $bflags Box2D/Common/*.cpp || { echo "Failed to compile Box2D"; exit 1; }
+        $CXX $bflags Box2D/Dynamics/*.cpp || { echo "Failed to compile Box2D"; exit 1; }
+        $CXX $bflags Box2D/Dynamics/Contacts/*.cpp || { echo "Failed to compile Box2D"; exit 1; }
+        $CXX $bflags Box2D/Dynamics/Joints/*.cpp || { echo "Failed to compile Box2D"; exit 1; }
+        $CXX $bflags Box2D/Collision/*.cpp || { echo "Failed to compile Box2D"; exit 1; }
+        $CXX $bflags Box2D/Collision/Shapes/*.cpp || { echo "Failed to compile Box2D"; exit 1; }
+        $CXX $bflags Box2D/Rope/*.cpp || { echo "Failed to compile Box2D"; exit 1; }
         rm -f Box2D/libBox2D.a
-        $AR rcs Box2D/libBox2D.a *.o
+        $AR rcs Box2D/libBox2D.a *.o || { echo "Failed to compile Box2D"; exit 1; }
         cd $dir
     fi
 fi
