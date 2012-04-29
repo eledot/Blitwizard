@@ -601,17 +601,15 @@ AS_IF([test -z "$maybeos"],[
         WRITELINE="\nluatarget=posix\nCXX=$CXX\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no"
     ],[
         # Mac OS X:
-        LIBS="$LIBS -lm -liconv -lrt -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
+        LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
         WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCXX=$CXX\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes"
     ])
 
     echo -e "$WRITELINE" > scripts/.buildinfo
     CFLAGS="$CFLAGS $USE_FFMPEG `cd $scriptsdir && sh ./checksse.sh`"   
 
-    AS_IF([test -z "$MACTEST"],[
-        # Only check if not on Mac (test fails there for some reason)
-        AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
-    ])
+    AC_CHECK_LIB([dl], [dlopen],, AC_MSG_ERROR(Cannot find all the necessary functions. Try to install the necessary libraries and headers))
+    
     # Checks for header files.
     AC_CHECK_HEADERS([arpa/inet.h dlfcn.h ctype.h fcntl.h netdb.h netinet/in.h stdarg.h sys/stat.h sys/socket.h sys/wait.h],,AC_MSG_ERROR(Cannot find all the necessary headers. Try to install the necessary libraries and headers))
     AC_CHECK_HEADERS([malloc.h])
