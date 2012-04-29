@@ -738,13 +738,18 @@ Return value: None
 </p>
 </li>
 
-<li><h2><a name="blitwiz.net.server">blitwiz.net.server(stream <a href="#network_stream"><i>(network stream)</i></a>)</a></h2>
-<p>Close a network stream which you have previously opened with <a href="#blitwiz.net.open">blitwiz.net.open</a>. Please note you cannot close network streams for which the close callback was already triggered! However, waiting for the open callback to happen before closing is not necessary.
+<li><h2><a name="blitwiz.net.server">blitwiz.net.server(port <i>(number)</i>, connection callback <i>(function(server, stream))</i>)</a></h2>
+<p>Open a server listener on the given network port. The callback will be executed once a new client connection occurs, and will be passed the server (which is simply the port number) as first argument and the new client's network stream as second argument.</p>
+<p>Please note the network stream you get handed over has no open/read/close-callbacks set - you will want to use <a href="#blitwiz.net.set">blitwiz.net.set</a> to set a read and close callback (connect is useless since when you get the network stream, it is already connected as a client to you).</p>
+<p>To close a server, use blitwiz.net.close() on the server port.
+</p>
+<p>blitwiz.net.server throws an error when the server can't be opened (e.g. another server listener might be already using and blocking the same port).
 </p>
 <p>
 Parameters:
 <ul class="parameters">
-<li>stream to be closed <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream which should be closed</li>
+    <li>port <i>(number)</i> &mdash; the network port you want the server to listen at</li>
+    <li>connection callback <i>(function(server, stream))</i> &mdash; the callback function which handles the new connections</li>
 </ul>
 </p>
 <p>
