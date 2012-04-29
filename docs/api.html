@@ -639,6 +639,7 @@ blitwiz.net.irc.open("irc.eloxoph.de", 6667, "blitwiz" .. math.ceil(1 + math.ran
 <li><h2><a name="blitwiz.net.close">blitwiz.net.close(stream <a href="#network_stream"><i>(network stream)</i></a>)</a></h2>
 <p>Close a network stream which you have previously opened with <a href="#blitwiz.net.open">blitwiz.net.open</a>. Please note you cannot close network streams for which the close callback was already triggered! However, waiting for the open callback to happen before closing is not necessary.
 </p>
+<p>All send data in the stream's send queue will still get sent, so doing <a href="#blitwiz.net.send">blitwiz.net.send</a>(stream, "a lot of data......") followed instantly by <a href="#blitwiz.net.close">blitwiz.net.close</a>() is safe and won't discard anything which hasn't been transmitted yet.</p>
 <p>
 Parameters: 
 <ul class="parameters">
@@ -691,9 +692,9 @@ Parameters:
     </tr>
 </table>
 </li>
-<li>open callback <i>(function(stream))</i> &mdash; a callback function that will be called when the stream has been successfully opened. As first and only parameter, the stream object <a href="#network_stream"><i>(network stream)</i></a> will be passed. As soon as a stream is opened, you can use <a href="#blitwiz.net.send">blitwiz.net.send</a> on it.</li>
-<li>read callback <i>(function(stream, data))</i> &mdash; a callback function that will be called when the stream has been previously opened at some point, and when data has arrived (sent by whatever you opened that stream to). The first parameter will be the stream object, the second will be the data <i>(string)</i> that arrived.</li>
-<li>close callback <i>(function(stream))</i> &mdash; a callback function that will be called when your stream was closed (or failed to open right from the start). It will be both triggered by a stream close caused by your stream target, and by a stream close triggered by yourself through <a href="#blitwiz.net.close">blitwiz.net.close</a>. The first parameter will be the now closed stream object.</li>
+<li>open callback <i>(function(stream), optional)</i> &mdash; a callback function that will be called when the stream has been successfully opened. As first and only parameter, the stream object <a href="#network_stream"><i>(network stream)</i></a> will be passed. As soon as a stream is opened, you can use <a href="#blitwiz.net.send">blitwiz.net.send</a> on it.</li>
+<li>read callback <i>(function(stream, data), optional)</i> &mdash; a callback function that will be called when the stream has been previously opened at some point, and when data has arrived (sent by whatever you opened that stream to). The first parameter will be the stream object, the second will be the data <i>(string)</i> that arrived.</li>
+<li>close callback <i>(function(stream), optional)</i> &mdash; a callback function that will be called when your stream was closed (or failed to open right from the start). It will be both triggered by a stream close caused by your stream target, and by a stream close triggered by yourself through <a href="#blitwiz.net.close">blitwiz.net.close</a>. The first parameter will be the now closed stream object.</li>
 </ul>
 </p>
 <p>
@@ -721,6 +722,54 @@ os.openConsole()
 </div>
 </p>
 </li>
+
+<li><h2><a name="blitwiz.net.send">blitwiz.net.send(stream <a href="#network_stream"><i>(network stream)</i></a>, data <i>(string)</i>)</a></h2>
+<p>Send data over the given network stream (the open event on the network stream must have been triggered for this to work).
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+    <li>stream <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream over which you want to send data</li>
+    <li>data <i>(string)</i> &mdash; the data you want to send</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
+
+<li><h2><a name="blitwiz.net.server">blitwiz.net.server(stream <a href="#network_stream"><i>(network stream)</i></a>)</a></h2>
+<p>Close a network stream which you have previously opened with <a href="#blitwiz.net.open">blitwiz.net.open</a>. Please note you cannot close network streams for which the close callback was already triggered! However, waiting for the open callback to happen before closing is not necessary.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>stream to be closed <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream which should be closed</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
+
+<li><h2><a name="blitwiz.net.set">blitwiz.net.set(stream <a href="#network_stream"><i>(network stream)</i></a>, settings <i>(table)</i>, open callback <i>(function(stream))</i>, read callback <i>(function(stream, data))</i>, close callback <i>(function(stream))</i>)</a></h2>
+<p>Set new, different settings and new callbacks to an existing network stream. Settings and callbacks are as described at <a href="#blitwiz.net.open">blitwiz.net.open</a>. If you omit a setting or a callback, it will remain unchanged.
+</p>
+<p>
+Parameters:
+<ul class="parameters">
+<li>stream <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream for which you want to change the settings and/or the callbacks</li>
+<li>settings <i>(table)</i> &mdash; the stream settings, see <a href="#blitwiz.net.open">blitwiz.net.open</a></li>
+<li>open callback <i>(function(stream))</i> &mdash; open callback, see <a href="#blitwiz.net.open">blitwiz.net.open</a></li>
+<li>read callback <i>(function(stream, read))</i> &mdash; read callback</li>
+<li>close callback <i>(function(stream,))</i> &mdash; close callback</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
+
 </ul>
 <a name="blitwiz.physics"><h1>6. <i>blitwiz.physics</i> namespace</h1></a>
 <p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world. You can also not move objects directly (except <a href="#blitwiz.physics.warp">warping</a> which you should use as rarely as possible) - they will move on their own according to their mass, how they collide with each other etc. You can give them "pushes" though by using <a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>.</p>
