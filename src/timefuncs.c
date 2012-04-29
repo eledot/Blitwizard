@@ -35,10 +35,19 @@
 #endif
 #endif
 #include "timefuncs.h"
+#ifdef MAC
+#include <CoreServices/CoreServices.h>
+#include <mach/mach.h>
+#include <mach/mach_time.h>
+#endif
 
 #if (!defined(HAVE_SDL) && defined(UNIX))
+#ifdef MAC
+uint64_t lastunixtime;
+#else
 static struct timespec lastunixtime;
 uint64_t oldtimestamp = 0;
+#endif
 int startinitialised = 0;
 #endif
 
@@ -58,9 +67,21 @@ uint64_t time_GetMilliseconds() {
     }
 #else //ifdef HAVE_SDL
 #ifdef WINDOWS
-    
+    // WINDOWS NO-SDL TIME
 #error "This code path is not implemented"
 #else //ifdef WINDOWS
+#ifdef MAC
+    //MAC NO-SDL TIME
+    if (!startinitialised) {
+        lastunixtime = mach_absolute_time();
+        startinitialised = 1;
+        return 0;
+    }
+    uint64_t elapsed = mach_absolute_time() - lastunixtime;
+    Nanoseconds ns = AbsoluteToNanoseconds(*(AbsoluteTime*)&elapsed);
+    return *(uint64_t)&ns;
+#else //ifdef MAC
+    //UNIX/LINUX NO-SDL TIME
     if (!startinitialised) {
         clock_gettime(CLOCK_MONOTONIC, &lastunixtime);
         startinitialised = 1;
@@ -79,6 +100,7 @@ uint64_t time_GetMilliseconds() {
     }else{
         i += oldtimestamp;
     }
+#endif //ifdef MAC
 #endif //ifdef WINDOWS
 #endif //ifdef HAVE_SDL
     return i;
