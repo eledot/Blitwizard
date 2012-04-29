@@ -632,9 +632,24 @@ blitwiz.net.irc.open("irc.eloxoph.de", 6667, "blitwiz" .. math.ceil(1 + math.ran
 ) -- end of blitwiz.net.irc.open
 
 </div>
-<p>If you do not wish to use IRC/HTTP but something else or your own custom protocol, then read on.</p>
+<p>If you do not wish to use IRC/HTTP but something else or your own custom protocol, then read on (you should probably start with <a href="#blitwiz.net.open">blitwiz.net.open</a>).</p>
 <p>Information for advanced users: blitwiz.net is based on TCP networking (but allows low delay networking with TCP_NODELAY, see lowdelay option below) and supports both IPv6/IPv4. SSL support is planned but not implemented yet.</p>
 <ul>
+
+<li><h2><a name="blitwiz.net.close">blitwiz.net.close(stream <a href="#network_stream"><i>(network stream)</i></a>)</a></h2>
+<p>Close a network stream which you have previously opened with <a href="#blitwiz.net.open">blitwiz.net.open</a>. Please note you cannot close network streams for which the close callback was already triggered! However, waiting for the open callback to happen before closing is not necessary.
+</p>
+<p>
+Parameters: 
+<ul class="parameters">
+<li>stream to be closed <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream which should be closed</li>
+</ul>
+</p>
+<p>
+Return value: None
+</p>
+</li>
+
 <li><h2><a name="blitwiz.net.open">blitwiz.net.open(settings <i>(table)</i>, open callback <i>(function(stream))</i>, read callback <i>(function(stream, data))</i>, close callback <i>(function(stream))</i>)</a></h2>
 <p>Open a network stream with the given settings and callbacks. The callbacks will inform you about when the stream is opened, closed and when data arrived.</p>
 <p>If you don't keep a Lua reference to the stream (which is returned by this function), the connection will get auto-closed and garbage collected when no data arrives for a while (and when nothing remains to be sent).</p>
