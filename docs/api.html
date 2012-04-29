@@ -606,6 +606,7 @@ blitwiz.net.http.get("http://www.blitwizard.de/doc-files/Ship-your-game.txt",
 ) -- end of blitwiz.net.http.get
 
 -- Connect to an IRC server, join a channel and say something
+math.randomseed(os.time()) -- initialise randomness for math.random()
 blitwiz.net.irc.open("irc.eloxoph.de", 6667, "blitwiz" .. math.ceil(1 + math.random() * 999),
     function(server, event, ...)
         args = {...}

@@ -85,7 +85,7 @@ static int connections_TryConnect(struct connection* c, const char* target) {
     //connect:
     int result;
 #ifdef CONNECTIONSDEBUG
-    printinfo("[connections] TryConnect: %s:%d (%d)", target, c->targetport, c->socket);
+    printinfo("[connections] TryConnect on %d: %s:%d", c->socket, target, c->targetport);
 #endif
     if (0) { //ssl
         result = so_ConnectSSLSocketToIP(c->socket, target, c->targetport, &c->sslptr);
@@ -426,7 +426,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                     return 0;
                 }
 #ifdef CONNECTIONSDEBUG
-                printinfo("[connections] receive returned end of stream");
+                printinfo("[connections] receive on %d returned end of stream", c->socket);
 #endif
                 c = cnext;
                 continue;
@@ -528,9 +528,11 @@ void connections_Init(struct connection* c, const char* target, int port, int li
     c->lastreadtime = time_GetMilliseconds();
     if (connectionlist) {
         c->next = connectionlist;
-    }else{
-        connectionlist = c;
     }
+    connectionlist = c;
+#ifdef CONNECTIONSDEBUG
+    printinfo("[connections] Adding connection to list");
+#endif
     //initialise socket system (just in case it's not done yet):
     if (!so_Startup()) {
         c->error = CONNECTIONERROR_INITIALISATIONFAILED;
@@ -605,7 +607,7 @@ void connections_Send(struct connection* c, const char* data, int datalength) {
     c->outbufbytes += r;
     so_SelectWantWrite(c->socket, 1);
 }
-    
+ 
 //Close the given connection struct
 void connections_Close(struct connection* c) {
     if (justreadingfromconnection == c) {
@@ -632,15 +634,18 @@ void connections_Close(struct connection* c) {
     if (c->retryv4ip) {
         free(c->retryv4ip);
     }
-    //Remove use from the list:
+    //Remove us from the list:
+#ifdef CONNECTIONSDEBUG
+    printinfo("[connections] Removing connection from list");
+#endif
     struct connection* prevc = connectionlist;
     while (prevc && prevc->next != c) {
         prevc = prevc->next;
     }
     if (prevc) {
-        prevc = c->next;
+        prevc->next = c->next;
     }else{
-        connectionlist = NULL;
+        connectionlist = c->next;
     }
 #ifdef CONNECTIONSDEBUG
     printinfo("[connections] connection closed and removed from the list.");

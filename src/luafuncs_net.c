@@ -421,9 +421,15 @@ int luafuncs_netclose(lua_State* l) {
         so_CloseSSLSocket(netstream->c->socket, &netstream->c->sslptr);
         netstream->c->socket = -1;
         netstream->c->error = CONNECTIONERROR_CONNECTIONCLOSED;
+#ifdef CONNECTIONSDEBUG
+        printinfo("[connections] close() on %d: closed instantly", netstream->c->socket);
+#endif
     }else{
         netstream->c->closewhensent = 1;
         netstream->c->error = CONNECTIONERROR_CONNECTIONCLOSED;
+#ifdef CONNECTIONSDEBUG
+        printinfo("[connections] close() on %d: will close when %d bytes sent", netstream->c->socket, netstream->c->outbufbytes);
+#endif
     }
     return 0;
 }

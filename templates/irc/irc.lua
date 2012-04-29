@@ -165,6 +165,7 @@ end
 function blitwiz.net.irc.quit(server, reason)
     blitwiz.net.send(server.connection, "QUIT :" .. reason .. "\n")
     blitwiz.net.close(server.connection)
+    server.connection = nil
 end
 
 function blitwiz.net.irc.getNick(server)
