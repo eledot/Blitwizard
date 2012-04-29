@@ -109,8 +109,8 @@ if [ ! -e libs/libblitwizardFLAC.a ]; then
             ogglibrarydir="`pwd`/src/ogg/src/.libs/"
             cd src/flac && ./configure --host="$HOST" $asmoption --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
         else
-            # Build flac and make it guess where ogg is
-            cd src/flac && ./configure --host="$HOST" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
+            # Build flac and let it guess where ogg is
+            cd src/flac && ./configure --host="$HOST" $asmoption --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
         fi
         cd $dir
     fi
