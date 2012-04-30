@@ -127,7 +127,7 @@ if [ "$REDOWNLOAD" = "yes" ]; then
     rm -rf blitwizard-android/
     # (Re)download the tarball
     if [ "$DOSOURCERELEASE" = "yes" ]; then
-        rm blitwizard-$RELEASEVERSION-src.zip
+        rm blitwizard-$RELEASEVERSION-source.zip
     fi
     rm blitwizard-$RELEASEVERSION-$BINRELEASENAME.zip
     rm deps.zip
@@ -157,7 +157,7 @@ if [ "$REDOWNLOAD" = "yes" ]; then
     mv ./tarball ./blitwizard || { echo "Failed to rename tarball -> blitwizard."; exit 1; }
     if [ "$DOSOURCERELEASE" = "yes" ]; then
         mv ./blitwizard/ffmpeg-*.tar.bz2 ./
-        zip -r -9 ./blitwizard-$RELEASEVERSION-src.zip ./blitwizard/ || { mv ./ffmpeg-*.tar.bz2 ./blitwizard/; echo "zip doesn't work as expected - is zip installed?"; exit 1; }
+        zip -r -9 ./blitwizard-$RELEASEVERSION-source.zip ./blitwizard/ || { mv ./ffmpeg-*.tar.bz2 ./blitwizard/; echo "zip doesn't work as expected - is zip installed?"; exit 1; }
         mv ./ffmpeg-*.tar.bz2 ./blitwizard/
     fi
     cd blitwizard
