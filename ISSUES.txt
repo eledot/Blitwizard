@@ -1,0 +1,12 @@
+Known issues of this release:
+
+ - FFmpeg/FLAC don't work yet - this means you can only use ogg audio.
+   The according sections in README or Ship-your-game.txt or other places
+   mentioning those features are preliminary. Please wait for the next
+   release for FFmpeg/FLAC support.
+
+ - Physics support is incomplete and doesn't support collision callbacks,
+   hinges/skeletons or collision masking yet.
+
+ - The Android port is in a pretty incomplete and not really usable state.
+

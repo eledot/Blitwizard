@@ -209,6 +209,7 @@ cp ../blitwizard/README-ffmpeg.txt ./
 cp ../blitwizard/README-lgpl.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
+cp ../blitwizard/ISSUES.txt ./
 
 if [ -e "./bin/blitwizard.exe" ]; then
     # Add easy start script
@@ -227,6 +228,7 @@ $UNIXTODOS ./README*.txt || {
     UNIXTODOS="todos"
     $UNIXTODOS ./README*.txt || { echo "unix2dos/todos not working - is any of them installed?"; exit 1; }
 }
+$UNIXTODOS ./ISSUES.txt
 $UNIXTODOS ./Credits.txt
 $UNIXTODOS ./Ship-your-game.txt
 cp -R ../blitwizard/examples ./examples/
