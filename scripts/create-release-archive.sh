@@ -210,6 +210,7 @@ cp ../blitwizard/README-lgpl.txt ./
 cp ../blitwizard/Ship-your-game.txt ./
 cp ../blitwizard/README.txt ./
 cp ../blitwizard/ISSUES.txt ./
+cp ../blitwizard/Credits.txt ./
 
 if [ -e "./bin/blitwizard.exe" ]; then
     # Add easy start script
