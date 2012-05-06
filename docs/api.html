@@ -444,24 +444,21 @@ blitwiz.graphics.loadImageAsync("mypicture.png")
 </div>
 </li>
 
-<!--<li><h2><a name="blitwiz.graphics.rayCast">blitwiz.graphics.rayCast</a>(raycast sector <a href="#raycast_sector"><i>(raycast sector)</i></a>, draw window x <i>(number)</i>, draw window y <i>(number)</i>, draw window width <i>(number)</i>, draw window height <i>(number)</i>, camera x<i>(number), camera y<i>(number)</i>, camera z<i>(number)</i>, camera horizontal angle <i>(number)</i>, camera vertical shift <i>(number)</i>, camera fov angle <i>(number)</i>, camera aspect ratio<i>(number)</i>)</h2>
-<p>
-Draw the raycasting sector inside the given draw window on the screen with the given camera info. This will lead to other sectors being drawn when the sector has callbacks for portals to other sectors specified (see <a href="#blitwiz.graphics.setRayCastSectorPortal">blitwiz.graphics.setRayCastSectorPortal</a>).
+<li><h2><a name="blitwiz.graphics.rayCast">blitwiz.graphics.rayCast</a>(raycast sector <a href="#raycast_sector"><i>(raycast sector)</i></a>, draw window x <i>(number)</i>, draw window y <i>(number)</i>, draw window width <i>(number)</i>, draw window height <i>(number)</i>, camera x<i>(number)</i>, camera y<i>(number)</i>, camera z <i>(number)</i>, camera horizontal angle <i>(number)</i>, camera vertical shift <i>(number)</i>, camera fov angle <i>(number)</i>, camera aspect ratio <i>(number)</i>)</h2>
+<p><i>Available in Blitwizard 0.4 or newer.</i> Draw the raycasting sector inside the given draw window on the screen with the given camera info. This will lead to other sectors being drawn when the sector has callbacks for portals to other sectors specified (see <a href="#blitwiz.graphics.setRayCastSectorPortal">blitwiz.graphics.setRayCastSectorPortal</a>).
 </p>
-</li>-->
+</li>
 
-<!--<li><h2><a name="blitwiz.graphics.rayCastTest">blitwiz.graphics.rayCastTest</a>(raycast sector <a href="#raycast_sector"><i>(raycast sector)</i></a>, ray start x <i>(number)</i>, ray start y<i>(number)</i>, ray start z <i>(number)</i>, ray end x<i>(number)</i>, ray end y<i>(number)</i>, ray end z<i>(number)</i>)</h2>
-<p>
-This function works similar to <a href="#blitwiz.graphics.rayCast">blitwiz.graphics.rayCast</a> in starting in a specified sector and then walking through others as needed by calling the portal callbacks, but it doesn't do that to draw the world on screen, instead it checks for collisions.</p>
+<li><h2><a name="blitwiz.graphics.rayCastTest">blitwiz.graphics.rayCastTest</a>(raycast sector <a href="#raycast_sector"><i>(raycast sector)</i></a>, ray start x <i>(number)</i>, ray start y<i>(number)</i>, ray start z <i>(number)</i>, ray end x<i>(number)</i>, ray end y<i>(number)</i>, ray end z<i>(number)</i>)</h2>
+<p><i>Available in Blitwizard 0.4 or newer.</i> This function works similar to <a href="#blitwiz.graphics.rayCast">blitwiz.graphics.rayCast</a> in starting in a specified sector and then walking through others as needed by calling the portal callbacks, but it doesn't do that to draw the world on screen, instead it checks for collisions.</p>
 <p>When a collision is found, the collision point is returned with a sector reference, the 3d world position in the sector, the sector surface (a sector wall or ceiling/floor) that was hit and a surface normal vector of the collided surface. See return value for details.
 </p>
-</li>-->
+</li>
 
-<!--<li><h2><a name="blitwiz.graphics.setRayCastPortal">blitwiz.graphics.setRayCastPortal</a>(raycast sector <a href="#raycast_sector"><i>(raycast sector)</i></a>, surface id <i>(number)</i>, portal callback <i>(function(sector))</i>)</h2>
-<p>
-Set portals to a surface (a wall or the ceiling or the floor) by specifying a function which returns the new sector you end up in.
+<li><h2><a name="blitwiz.graphics.setRayCastPortal">blitwiz.graphics.setRayCastPortal</a>(raycast sector <a href="#raycast_sector"><i>(raycast sector)</i></a>, surface id <i>(number)</i>, portal callback <i>(function(sector))</i>)</h2>
+<p><i>Available in Blitwizard 0.4 or newer.</i> Set portals to a surface (a wall or the ceiling or the floor) by specifying a function which returns the new sector you end up in.
 </p>
-</li>-->
+</li>
 
 <li><h2><a name="blitwiz.graphics.setWindow">blitwiz.graphics.setWindow</a>(width <i>(number)</i>, height <i>(number)</i>, title<i>(string)</i>, fullscreen<i>(boolean)</i>, renderer<i>(string)</i>)</h2>
 <p>
