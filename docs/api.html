@@ -268,11 +268,11 @@ Parameters:
 </ul>
 <p>
 Example:
+</p>
 <div class="code">-- Fill whole screen with a blue/greenish rectangle
 local w,h = blitwiz.graphics.getWindowSize()
 blitwiz.graphics.drawRectangle(0, 0, w, h, 0, 0.5, 1)
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.graphics.getDesktopDisplayMode">blitwiz.graphics.getDesktopDisplayMode()</a></h2></li>
@@ -282,11 +282,11 @@ Get the current display mode of the desktop. Simply returns the fullscreen video
 <p>Parameters: None</p>
 <p>Return values: width <i>(number)</i>, height <i>(number)</i></p>
 <p>Example:
+</p>
 <div class="code">-- Obtain the desktop display mode
 local w,h = blitwiz.graphics.getDesktopDisplayMode()
 print("Current display mode of the desktop: " .. w .. "x" .. h)
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes()</a></h2></li>
@@ -296,13 +296,13 @@ Get a table of display modes which are supported for fullscreen windows.
 <p>Parameters: None</p>
 <p>Return values: table containing display modes (each display mode is itself a table containing two values representing width and height in pixels), the one that is believed to be the native screen resolution will come first</p>
 <p>Example:
+</p>
 <div class="code">-- Print out all available screen resolutions
 local displaymodes = blitwiz.graphics.getDisplayModes()
 for index,displaymode in ipairs(displaymodes) do
 	print("Display mode: " .. tostring(displaymode[1]) .. "x" .. tostring(displaymode[2]))
 end
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.graphics.getImageSize">blitwiz.graphics.getImageSize</a>(filename <i>(string)</i>)</h2>
@@ -321,11 +321,11 @@ Return values: image width <i>(number)</i>, image height <i>(number)</i>
 </p>
 <p>
 Example:
+</p>
 <div class="code">-- Output the size of an image
 local w,h = blitwiz.graphics.getImageSize("mypicture.png")
 print("The size of mypicture.png is: " .. tostring(w) .. "," .. tostring(h))
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.graphics.getRendererName">blitwiz.graphics.getRendererName</a>()</h2>
@@ -396,12 +396,12 @@ Return value: <i>nil</i> &mdash; none
 </p>
 <p>
 Example:
+</p>
 <div class="code">-- Load an image:
 blitwiz.graphics.loadImage("mypicture.png")
 
 -- You can now use the image instantly for drawing with <a href="#blitwiz.graphics.drawImage">blitwiz.graphis.drawImage</a>
 </div>
-</p>
 </li>
 
 
@@ -435,13 +435,13 @@ Return value: <i>nil</i> &mdash; none
 </p>
 <p>
 Example:
+</p>
 <div class="code">-- Load an image:
 blitwiz.graphics.loadImageAsync("mypicture.png")
 
 -- Here at this point, the image is NOT available for use yet, so drawing and all that will fail.
 -- We need to wait for an <a href="#blitwiz.on_image">on_image</a> event first!
 </div>
-</p>
 </li>
 
 <!--<li><h2><a name="blitwiz.graphics.rayCast">blitwiz.graphics.rayCast</a>(raycast sector <a href="#raycast_sector"><i>(raycast sector)</i></a>, draw window x <i>(number)</i>, draw window y <i>(number)</i>, draw window width <i>(number)</i>, draw window height <i>(number)</i>, camera x<i>(number), camera y<i>(number)</i>, camera z<i>(number)</i>, camera horizontal angle <i>(number)</i>, camera vertical shift <i>(number)</i>, camera fov angle <i>(number)</i>, camera aspect ratio<i>(number)</i>)</h2>
@@ -526,6 +526,7 @@ Call <a href="#os.sysname">os.sysname</a> to get the platform name, so you can d
 </ul>
 <p>
 Example:
+</p>
 <div class="code">-- Attempt to run in fullscreen and open a window if that doesn't work.
 -- Fallback to unusual resolutions for mobile device support
 
@@ -598,7 +599,6 @@ local function initialisewindow()
 	error "Failed to open graphics output"
 end
 </div>
-</p>
 </li>
 
 </ul>
@@ -723,6 +723,7 @@ Return value: newly opened network stream <a href="#network stream"><i>(network 
 </p>
 <p>
 Example:
+</p>
 <div class="code">-- Open a console for reading the console output from print():
 os.openConsole()
 
@@ -741,7 +742,6 @@ os.openConsole()
     end
 )
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.net.send">blitwiz.net.send(stream <a href="#network_stream"><i>(network stream)</i></a>, data <i>(string)</i>)</a></h2>
@@ -846,6 +846,7 @@ Return value: movable <a href="#physics_object">physics object</a>
 </p>
 <p>
 Example:
+</p>
 <div class="code">-- Create a 1x1 box object (if you pick a meter -&gt; pixel factor of 30,
 -- which would be a reasonable idea, you should represent it with a 30x30
 -- sized image)
@@ -863,7 +864,6 @@ local pobject = <a href="#blitwiz.physics.createMovableObject">blitwiz.physics.c
 -- Now you simply need to use <a href="#blitwiz.physics.getPosition">blitwiz.physics.getPosition</a> inside <a href="#blitwiz.on_draw">blitwiz.on_draw</a> to query
 -- the position, then draw a 30x30 box image at that position each frame
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.physics.createStaticObject">blitwiz.physics.createStaticObject()</a></h2>
@@ -883,6 +883,7 @@ Return value: static <a href="#physics_object">physics object</a>
 </p>
 <p>
 Example:
+</p>
 <div class="code">-- Create some static level geometry. We will assume a meter -&gt; pixel factor of 30
 local pixelpermeterfac = 30
 
@@ -897,7 +898,6 @@ local geometry = <a href="#blitwiz.physics.createStaticObject">blitwiz.physics.c
 
 -- Since the object is static, those edges will never move unless you <a href="#blitwiz.physics.warp">warp</a> the object around.
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.physics.destroyObject">blitwiz.physics.destroyObject(physics object <a href="#physics_object"><i>(physics object)</i></a>)</a></h2>
@@ -947,6 +947,7 @@ Return value: None
 </p>
 <p>
 Example:
+</p>
 <div class="code">-- Apply an impulse coming from the left into the center of an object
 local x,y = <a href="#blitwiz.physics.setPosition">blitwiz.physics.setPosition</a>(object)
 <a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>(object, x - 5, y, 5, 0)
@@ -954,7 +955,6 @@ local x,y = <a href="#blitwiz.physics.setPosition">blitwiz.physics.setPosition</
 -- The direction 5, 0 basically points from the source x - 5, y into the center of the object (to the right).
 -- The strength of the force impulse is the length of the force direction vector, so 5 in this case.
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.physics.ray">blitwiz.physics.ray</a>(source x <i>(number)</i>, sourcey <i>(number)</i>, target x <i>(number)</i>, target y <i>(number)</i>)</h2>
@@ -1177,6 +1177,7 @@ Return value: None
 </p>
 <p>
 Example:
+</p>
 <div class="code">-- Set a 0,100-500,100 pixel edge and a 0,400-500,400 pixel edge (not connected to each other), assuming 30 pixels per meter
 local pixelpermeterfac = 30
 <a href="#blitwiz.physics.setShapeEdges">blitwiz.physics.setShapeEdges</a>(object, [
@@ -1184,7 +1185,6 @@ local pixelpermeterfac = 30
 	[0/pixelpermeterfac, 400/pixelpermeterfac, 500/pixelpermeterfac, 400/pixelpermeterfac],
 ])
 </div>
-</p>
 </li>
 
 
@@ -1333,6 +1333,7 @@ Return values: sound handle <i>(<a href="#sound_handle">sound handle</a>)</i>
 </p>
 <p>
 Examples:
+</p>
 <div class="code">-- Simply play a sound:
 blitwiz.sound.play("buzz.ogg")
 </div>
@@ -1344,7 +1345,6 @@ blitwiz.sound.play("ambient.ogg", 0.5, -0.5, true)
 <div class="code">-- Play a music track at 80% volume, looping forever with high priority
 blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.sound.playing">blitwiz.sound.playing</a>(sound <a href="#sound_handle"><i>(sound handle)</i></a>)</h2>
@@ -1411,11 +1411,12 @@ your programs if you don't wish to add special confirmation questions
 which should delay the termination progress:
 </p>
 <p>
+Example:
+</p>
 <div class="code">function blitwiz.on_close()
 	os.exit(0)
 end
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.on_draw">blitwiz.on_draw</a>()</h2>
@@ -1448,6 +1449,7 @@ it will be true), or failed to load (in which case it will be false)</li>
 </ul>
 <p>
 Example:
+</p>
 <div class="code">--Print out the loading result of any loaded image
 function blitwiz.on_image(texture, result)
 	if result == true then
@@ -1457,7 +1459,6 @@ function blitwiz.on_image(texture, result)
 	end
 end
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.on_init">blitwiz.on_init</a>()</h2>
@@ -1477,12 +1478,12 @@ This is done to support short Lua command line programs aswell.
 </p>
 <p>
 Example:
+</p>
 <div class="code">function blitwiz.on_init()
 	-- Open a window
 	blitwiz.graphics.setWindow(400,300)
 end
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.on_keydown">blitwiz.on_keydown</a>(key <i>(string)</i>)</h2>
@@ -1507,6 +1508,7 @@ Parameters:
 </ul>
 <p>
 Example:
+</p>
 <div class="code">function blitwiz.on_keydown(key)
 	if key == "escape" then
 		-- Quit the program
@@ -1514,7 +1516,6 @@ Example:
 	end
 end
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.on_mousedown">blitwiz.on_mousedown</a>(button <i>(number)</i>, x <i>(number)</i>, y <i>(number)</i>)</h2>
@@ -1534,6 +1535,7 @@ Parameters:
 </ul>
 <p>
 Example:
+</p>
 <div class="code">--Terminate the program when the user clicks the upper left corner of the drawing area:
 function blitwiz.on_mousedown(button, x, y)
 	if x &lt; 50 and y &lt; 50 then
@@ -1542,7 +1544,6 @@ function blitwiz.on_mousedown(button, x, y)
 	end
 end
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.on_mousemove">blitwiz.on_mousemove</a>(x <i>(number)</i>, y <i>(number)</i>)</h2>
@@ -1597,6 +1598,7 @@ much you're doing, you should keep this limitation in mind.
 </p>
 <p>
 Example:
+</p>
 <div class="code">--Terminate the program when the user clicks the upper left corner of the drawing area:
 function blitwiz.on_mousedown(button, x, y)
 	if x &lt; 50 and y &lt; 50 then
@@ -1605,7 +1607,6 @@ function blitwiz.on_mousedown(button, x, y)
 	end
 end
 </div>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.on_text">blitwiz.on_text</a>(text <i>(string)</i>)</h2>
@@ -1656,6 +1657,7 @@ fails (e.g. due to insufficient privilegues), an error is thrown.
 <b>Important:</b>
 You should use / as a cross-platform folder delimeter in blitwizard,
 NOT \ which is only safe on Windows:
+</p>
 <div style="font-style:italic">Correct:</div>
 <div class="code">folder/subfolder/
 C:/testfolder/
@@ -1663,7 +1665,6 @@ C:/testfolder/
 <div style="font-style:italic">Wrong:</div>
 <div class="code">C:\testfolder\
 </div>
-</p>
 <p>
 Parameters:
 </p>
@@ -1680,6 +1681,7 @@ Check whether a given path leads to some actual place (directory, file, ...).
 <b>Important:</b>
 You should use / as a cross-platform folder delimeter in blitwizard,
 NOT \ which is only safe on Windows:
+</p>
 <div style="font-style:italic">Correct:</div>
 <div class="code">folder/subfolder/
 C:/testfolder/
@@ -1687,7 +1689,6 @@ C:/testfolder/
 <div style="font-style:italic">Wrong:</div>
 <div class="code">C:\testfolder\
 </div>
-</p>
 <p>
 Parameters:
 </p>
@@ -1707,6 +1708,7 @@ Check whether a given path is a directory or a folder. Throws an error if the pa
 <b>Important:</b>
 You should use / as a cross-platform folder delimeter in blitwizard,
 NOT \ which is only safe on Windows:
+</p>
 <div style="font-style:italic">Correct:</div>
 <div class="code">folder/subfolder/
 C:/testfolder/
@@ -1714,7 +1716,6 @@ C:/testfolder/
 <div style="font-style:italic">Wrong:</div>
 <div class="code">C:\testfolder\
 </div>
-</p>
 <p>
 Parameters:
 </p>
@@ -1737,8 +1738,8 @@ Paramaters: None
 Return value: current working directory <i>(string)</i>
 </p>
 <p>Examples:
-<div class="code">print ("Current working directory is: " .. os.cwd())</div>
 </p>
+<div class="code">print ("Current working directory is: " .. os.cwd())</div>
 </li>
 
 <li><h2><a name="os.ls">os.ls</a>(path <i>(string)</i>)</h2>
@@ -1749,6 +1750,7 @@ Return an array table listing the name of all items (subfolders and files) insid
 <b>Important:</b>
 You should use / as a cross-platform folder delimeter in blitwizard,
 NOT \ which is only safe on Windows:
+</p>
 <div style="font-style:italic">Correct:</div>
 <div class="code">folder/subfolder/
 C:/testfolder/
@@ -1756,7 +1758,6 @@ C:/testfolder/
 <div style="font-style:italic">Wrong:</div>
 <div class="code">C:\testfolder\
 </div>
-</p>
 <p>
 Parameters:
 </p>
@@ -1767,13 +1768,13 @@ Parameters:
 Return value: <i>(table)</i> array of directory contents
 </p>
 <p>Example:
+</p>
 <div class="code">-- Print out the names of all files and directories inside the current working dir
 local files = os.ls("")
 for i,f in ipairs(files) do
 	print ("File: " .. f)
 end
 </div>
-</p>
 </li>
 
 <li><h2><a name="os.openConsole">os.openConsole</a>()</h2>
@@ -1792,9 +1793,8 @@ Paramaters: None
 <p>
 Return value: None
 </p>
-<p>Examples:
+<p>Examples:</p>
 <div class="code">os.openConsole()</div>
-</p>
 </li>
 
 <li><h2><a name="os.sysname">os.sysname</a>()</h2>
@@ -1858,6 +1858,7 @@ Parameters:
 Return value: <i>(string, multiple)</i> all the resulting strings of the split
 </p>
 <p>Examples:
+</p>
 <div class="code">local a,b = string.split("a|b", "|")
 print(a .. ", " .. b)  -- outputs: a, b
 
@@ -1868,7 +1869,6 @@ local a,b,c = string.split("c|d|e", "|", 1)
 print(a)  -- outputs: c
 print(b)  -- outputs: d|e
 print(c)  -- outputs: no value (nil)</div>
-</p>
 </li>
 
 <li><h2><a name="string.starts">string.starts</a>(str1 <i>(string)</i>, str2 <i>(string)</i>)</h2>
