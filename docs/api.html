@@ -94,6 +94,7 @@ described in the more lengthy description which
 follows each listed function.</p>
 <p>Those types refer to standard Lua 5 variable types: <i>number, string, boolean, function, nil</i></p>
 <p>Those types are special blitwizard types which are introduced by blitwizard functions:
+</p>
 <ul>
 <li>
 <p><i><a name="network_stream">network stream</a></i> &mdash; represents a network stream. You can send data over a network stream, change its settings or close it.
@@ -119,7 +120,6 @@ Scope: If you no longer have any reference to a sound handle, the sound is unaff
 </p>
 </li>
 </ul>
-</p>
 <p>The Lua 5 of blitwizard is mostly compiled with standard settings, e.g. numbers
 being double 64bit floating point numbers. Null bytes in strings are generally not
 supported by functions in the blitwiz namespace (those will cut the string off at the
@@ -137,6 +137,7 @@ Don't use this call anywhere else than from inside <a href="#blitwiz.on_draw">on
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the loaded image</li>
 <li>settings <i>(table)</i> &mdash; a table with key-&gt;value pairs containing the settings, with the settings being those (all settings are optional):
@@ -230,7 +231,6 @@ Parameters:
     </tr>
 </table>
 </ul>
-</p>
 <p>
 Return value: <i>nil</i> &mdash; none
 </p>
@@ -255,6 +255,7 @@ Draw a simple colored filled rectangle at the given coordinates with the given d
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>x <i>(number)</i> &mdash; x drawing position</li>
 <li>y <i>(number)</i> &mdash; y drawing position</li>
@@ -265,7 +266,6 @@ Parameters:
 <li>green <i>(number)</i> &mdash; green color value of the rectangle's color (i n a range from 0 to 1)</li>
 <li>alpha <i>(number, optional)</i> &mdash; alpha opaque value for the rectangle, which is a value between 0 (meaning invisible) and 1 (for fully visible/solid). Default is 1</li>
 </ul>
-</p>
 <p>
 Example:
 <div class="code">-- Fill whole screen with a blue/greenish rectangle
@@ -312,10 +312,10 @@ Throws an error if the image isn't fully loaded.
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the loaded image</li>
 </ul>
-</p>
 <p>
 Return values: image width <i>(number)</i>, image height <i>(number)</i>
 </p>
@@ -363,10 +363,10 @@ the function will return false.
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the image</li>
 </ul>
-</p>
 <p>
 Return value: image presence state as described above <i>(boolean)</i>
 </p>
@@ -387,10 +387,10 @@ to <a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a
 will lead to an error being thrown.
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the image</li>
 </ul>
-</p>
 <p>
 Return value: <i>nil</i> &mdash; none
 </p>
@@ -426,10 +426,10 @@ If <a href="#blitwiz.on_image">on_image</a> reported failure, you can retry
 (or <a href="#blitwiz.graphics.loadImage">blitwiz.graphics.loadImage</a>) safely.
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the image</li>
 </ul>
-</p>
 <p>
 Return value: <i>nil</i> &mdash; none
 </p>
@@ -472,6 +472,7 @@ You can also <i>close</i> the window by passing no parameters.
 <p>
 If there is a problem opening a window,
 an error will be triggered. Common errors that might occur:
+</p>
 <ul style="list-style-type:disc">
 <li>
 Using a resolution not listed in <a href="#blitwiz.graphics.getDisplayModes">blitwiz.graphics.getDisplayModes</a> for fullscreen will throw an error. Pick a resolution from that list for a fullscreen window to avoid this (or simply try your preferred first, then one that should be supported - see example code below).
@@ -483,7 +484,6 @@ Using windowed mode isn't supported on some platforms supported by blitwizard (e
 Using some renderers that blitwizard considered to be available (blitwizard will only allow you to use a renderer it thinks is available and will otherwise simply use the default) can sometimes result in an error if it turns out the renderer is not working properly on the given system. You should always try the renderer "software" as a slower but safe fallback in such a case.
 </li>
 </ul>
-</p>
 <p>
 Texture loading is possible without any open window, and textures remain
 available even if you call setWindow again or setWindow fails.
@@ -499,6 +499,7 @@ and only return as soon as the renderer change is complete.
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>width <i>(number)</i> &mdash; specify the width (in pixels) of the output window</li>
 <li>height <i>(number)</i> &mdash; specify the height (in pixels) of the output window</li>
@@ -511,6 +512,7 @@ renderer explicitely or when setWindow fails with the default choice (which is d
 on various things like the platform).
 </p>
 <p><a name="renderers">Supported renderers:</a>
+</p>
 <ul style="list-style-type:disc">
 <li><b>software</b> - available on Windows, Mac, Linux, all other Unix-like Systems like FreeBSD, OppenBSD,... <i>Note: Slow, but always works on those platforms - allow the user to pick this one in case the other renderers don't work correctly.</i></li>
 <li><b>opengl</b> - available on Windows, Mac (default), Linux (default), Android (default), all other Unix-like systems like FreeBSD, OpenBSD,... (default). <i>Note: Only choice on Android. Windows often supports this one badly</i></li>
@@ -522,7 +524,6 @@ Call <a href="#os.sysname">os.sysname</a> to get the platform name, so you can d
 </p>
 </li>
 </ul>
-</p>
 <p>
 Example:
 <div class="code">-- Attempt to run in fullscreen and open a window if that doesn't work.
@@ -662,10 +663,10 @@ blitwiz.net.irc.open("irc.eloxoph.de", 6667, "blitwiz" .. math.ceil(1 + math.ran
 <p>All send data in the stream's send queue will still get sent, so doing <a href="#blitwiz.net.send">blitwiz.net.send</a>(stream, "a lot of data......") followed instantly by <a href="#blitwiz.net.close">blitwiz.net.close</a>() is safe and won't discard anything which hasn't been transmitted yet.</p>
 <p>
 Parameters: 
+</p>
 <ul class="parameters">
 <li>stream to be closed <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream which should be closed</li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -676,6 +677,7 @@ Return value: None
 <p>If you don't keep a Lua reference to the stream (which is returned by this function), the connection will get auto-closed and garbage collected when no data arrives for a while (and when nothing remains to be sent).</p>
 <p>
 Parameters: 
+</p>
 <ul class="parameters">
 <li>settings <i>(table)</i></a> &mdash; a settings table, filled with key-&gt;value pairs that specify some of the following available settings (please note server/port are <b>required</b>, all other settings are optional):
 <table style="border:1px solid black">
@@ -716,7 +718,6 @@ Parameters:
 <li>read callback <i>(function(stream, data), optional)</i> &mdash; a callback function that will be called when the stream has been previously opened at some point, and when data has arrived (sent by whatever you opened that stream to). The first parameter will be the stream object, the second will be the data <i>(string)</i> that arrived.</li>
 <li>close callback <i>(function(stream), optional)</i> &mdash; a callback function that will be called when your stream was closed (or failed to open right from the start). It will be both triggered by a stream close caused by your stream target, and by a stream close triggered by yourself through <a href="#blitwiz.net.close">blitwiz.net.close</a>. The first parameter will be the now closed stream object.</li>
 </ul>
-</p>
 <p>
 Return value: newly opened network stream <a href="#network stream"><i>(network stream)</i></a>
 </p>
@@ -748,11 +749,11 @@ os.openConsole()
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
     <li>stream <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream over which you want to send data</li>
     <li>data <i>(string)</i> &mdash; the data you want to send</li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -767,11 +768,11 @@ Return value: None
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
     <li>port <i>(number)</i> &mdash; the network port you want the server to listen at</li>
     <li>connection callback <i>(function(server, stream))</i> &mdash; the callback function which handles the new connections</li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -782,6 +783,7 @@ Return value: None
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>stream <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream for which you want to change the settings and/or the callbacks</li>
 <li>settings <i>(table)</i> &mdash; the stream settings, see <a href="#blitwiz.net.open">blitwiz.net.open</a></li>
@@ -789,7 +791,6 @@ Parameters:
 <li>read callback <i>(function(stream, read))</i> &mdash; read callback</li>
 <li>close callback <i>(function(stream,))</i> &mdash; close callback</li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -825,6 +826,7 @@ Remember to use <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroy
 </p>
 <p>
 You will want to take the following steps:
+</p>
 <ul style="list-style-type:disc">
 <li>
 Set a geometry shape with any of the blitwiz.physics.setShape* functions which support movable objects, e.g. <a href="#blitwiz.physics.setShapeRectangle">blitwiz.physics.setShapeRectangle</a>.
@@ -836,7 +838,6 @@ Set a non-zero mass with <a href="#blitwiz.physics.setMass">blitwiz.physics.setM
 Use <a href="#blitwiz.physics.warp">blitwiz.physics.warp</a> to place the object at any desired starting position (Warning: if it intersects with other objects, weird things will happen. Try it out if you want to have some physics fun).
 </li>
 </ul>
-</p>
 <p>
 Parameters: None
 </p>
@@ -905,10 +906,10 @@ The given physics object will be destroyed. All references to it become invalid 
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to be destroyed</li>
 </ul>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.physics.impulse">blitwiz.physics.impulse(physics object <a href="#physics_object"><i>(physics object)</i></a>, impulse source x <i>(number)</i>, impulse source y <i>(number)</i>, impulse force x <i>(number)</i>, impulse force y <i>(number)</i>)</a></h2>
@@ -923,6 +924,7 @@ For player characters which you want to move around as intended to make them wal
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to which you want to apply an impulse
@@ -940,7 +942,6 @@ impulse force x <i>(number)</i> &mdash; the x coordinate of the direction and st
 impulse force y <i>(number)</i> &mdash; the y coordinate of the direction and strength vector
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -960,6 +961,7 @@ local x,y = <a href="#blitwiz.physics.setPosition">blitwiz.physics.setPosition</
 <p>Cast a collision test ray from the source physics coordinates to the target coordinates to check if it hits a physics object. If an object is hit, you will get impact information. Please note this doesn't do anything to the target object, it is a purely informational collision check function. Returns nil if nothing was hit, otherwise the object that was hit, the impact position and normal.</p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 source x <i>(number)</i> &mdash; source x coordinate for the ray's originating source position
@@ -974,7 +976,6 @@ target x <i>(number)</i> &mdash; target x coordinate for the ray's target
 target y <i>(number)</i> &mdash; target y coordinate
 </li>
 </ul>
-</p>
 <p>Return value: either nil (when nothing was hit), or: hit object <a href="#physics_object"><i>(physics object)</i></a>, impact position x <i>(number)</i>, impact position y <i>(number)</i>, impact surface normal x <i>(number)</i>, impact surface normal y <i>(number)</i></p>
 </li>
 
@@ -987,6 +988,7 @@ This is mainly useful when you want an object that can move around and collide, 
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
@@ -995,7 +997,6 @@ physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the
 restrict <i>(boolean)</i> &mdash; a boolean whether you want to restrict it from now on (true) or not (false)
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1009,6 +1010,7 @@ Set the angular damping of the object which is always applied when the object ro
 <p>This can probably compared best to air friction.</p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the damping
@@ -1017,7 +1019,6 @@ physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the
 damping <i>(number)</i> &mdash; the angular damping you want to set which should be in the range 0 (no damping) to infinity (full damping) - however, recommended values are between 0 and 0.1
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1029,6 +1030,7 @@ Set the friction of the physics object which is applied when it touches/collides
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the friction
@@ -1037,7 +1039,6 @@ physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the
 friction <i>(number)</i> &mdash; the friction you want to set which should be in the range 0 (no friction) to 1 (full friction)
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1052,6 +1053,7 @@ Use setGravity with just the object as parameter (without the gravity x/y force 
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to which apply a dedicated gravity force
@@ -1062,7 +1064,6 @@ x gravity force <i>(number)</i> &mdash; the x coordinate of the object's gravity
 y gravity force <i>(number)</i> &mdash; the y coordinate of the force
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1075,6 +1076,7 @@ Set the linear damping of the object which is always applied when the object mov
 <p>This can probably compared best to air friction.</p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the damping
@@ -1083,7 +1085,6 @@ physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the
 damping <i>(number)</i> &mdash; the linear damping you want to set which should be in the range 0 (no damping) to infinity (full damping) - however, recommended values are between 0 and 0.1
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1095,6 +1096,7 @@ Set the mass of a movable physics object (and optionally the mass center). It is
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the mass settings
@@ -1109,7 +1111,6 @@ mass center x coordinate <i>(number, optional)</i> &mdash; the x coordinate of t
 mass center y coordinate <i>(number, optional)</i> &mdash; the y coordinate of the mass center
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1121,6 +1122,7 @@ Set how much an object restitutes velocity after an impact. A restitution of 0 w
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to change restitution
@@ -1129,7 +1131,6 @@ physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the
 restitution <i>(number)</i> &mdash; the restitution in a range from 0 to 1
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1141,6 +1142,7 @@ Set a circle shape for an object. Compatible with both movable and static object
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
@@ -1149,7 +1151,6 @@ physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the
 radius <i>(number)</i> &mdash; the circle radius in physics units
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1162,6 +1163,7 @@ Set edges as collision shape for an object. Only compatible with static objects.
 <p>It is mainly intended for use with static surrounding level walls. You can dump your whole level edges into one object, or use multiple objects.</p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
@@ -1170,7 +1172,6 @@ physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the
 edge list <i>(table)</i> &mdash; a table/array that contains all edges. Each edge is an own table that contains 4 numbers - x/y coordinate of the edge's starting point, and x/y coordinate of the edge's end point. It is NOT required each edge is connected to the other
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1193,6 +1194,7 @@ Set an oval shape for an object. Compatible with both movable and static objects
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
@@ -1204,7 +1206,6 @@ oval width <i>(number)</i> &mdash; horizontal size of the oval shape in physics 
 oval height <i>(number)</i> &mdash; vertical size of the oval shape
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1216,6 +1217,7 @@ Set a rectangle shape for an object. Compatible with both movable and static obj
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
@@ -1227,7 +1229,6 @@ rectangle width <i>(number)</i> &mdash; the width in physics units of the rectan
 rectangle height <i>(number)</i> &mdash; the height of the rectangle
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1239,6 +1240,7 @@ Set the world gravity force which applies to all movable objects for which a ded
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>
 world x gravity force <i>(number)</i> &mdash; the x coordinate of the world gravity force
@@ -1247,7 +1249,6 @@ world x gravity force <i>(number)</i> &mdash; the x coordinate of the world grav
 world y gravity force <i>(number)</i> &mdash; the y coordinate of the force
 </li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1262,13 +1263,13 @@ Please remember (see the introduction text to this chapter) that you shouldn't u
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to be warped</li>
 <li>x position <i>(number)</i> &mdash; the x coordinate of the position where you want to warp the object to</li>
 <li>y position <i>(number)</i> &mdash; the y coordinate of the warp position</li>
 <li>rotation angle <i>(number)</i> &mdash; the angle for the rotation. 90 is 90° clockwise, -90 is 90° ocounter-clockwise etc.</li>
 </ul>
-</p>
 <p>
 Return value: None
 </p>
@@ -1281,12 +1282,12 @@ Return value: None
 <li><h2><a name="blitwiz.sound.adjust">blitwiz.sound.adjust</a>(sound <a href="#sound_handle"><i>(sound handle)</i></a>, volume <i>(number)</i>, panning <i>(number)</i>)</h2>
 <p>Adjust the parameters of a playing sound: You can change the volume and the panning (stereo placement). Does nothing if the sound is no longer playing.</p>
 <p>Parameters:
+</p>
 <ul>
 <li>sound <a href="#sound_handle"><i>(sound handle)</i></a> &mdash; the sound for which the parameters should be adjusted</li>
 <li>volume <i>(number)</i> &mdash; the volume, specified in a range from 0 (quiet) to 1 (full volume)</li>
 <li>panning <i>(number)</i> &mdash; panning for the sound in a range from 1 (left) to -1 (right)</li>
 </ul>
-</p>
 <p>Return value: None</p>
 </li>
 
@@ -1305,19 +1306,20 @@ so this function usually causes no load delay.
 </p>
 <p>
 Currently supported audio file formats:
+</p>
 <ul>
 <li>.ogg <small>(natively/always)</small>, </li>
 <li>
 mp3, .wav, .aac, .flac, .mp4 &mdash; <i>and many more...</i> <small>(only when <a href="http://ffmpeg.org/">FFmpeg</a> is available which you should provide yourself if you want to use it, see blitwizard's README.txt's note on audio)</small>
 </li>
 </ul>
-</p>
 <p>If a sound fails to play because the file on disk cannot be opened/read, it will throw an error. If a sound fails to play because all slots are used by higher priority sounds (see remark on the priority parameter below), it will return a sound handle without error but simply not play the sound.
 </p>
 <p>When the audio format isn't known or the audio file is corrupt and cannot be played, an error will be thrown aswell. If you cannot play any other formats than .ogg files correctly, please check on FFmpeg (see supported audio file formats above).
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>path <i>(string)</i> &mdash; the path to the audio file</li>
 <li>volume <i>(number, optional)</i> &mdash; volume from 0 (silent) to 1 (full volume), default is 1</li>
@@ -1326,7 +1328,6 @@ Parameters:
 <li>priority <i>(number, optional)</i> &mdash; specify the priority of a sound. The amount of sounds that can play at once is limited, and a higher priority sound will always kill a lower priority sound to gain a slot. A lower priority sound might not be played at all if all slots are occupied with higher priority sounds. Using high priority for music is suggested. The priority is a positive number starting from 0 upwards (higher number is higher priority). If you specify no priority (default), the sound is even less priority than a sound with any specified priority</li>
 <li>fadein <i>(number, optional)</i> &mdash; the amount of seconds to use for a fadein effect. E.g. specify 1.5 to fade in from silent to the specified volume in 1.5 seconds. Default: 0 (instant full volume)</li>
 </ul>
-</p>
 <p>
 Return values: sound handle <i>(<a href="#sound_handle">sound handle</a>)</i>
 </p>
@@ -1349,6 +1350,7 @@ blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
 <li><h2><a name="blitwiz.sound.playing">blitwiz.sound.playing</a>(sound <a href="#sound_handle"><i>(sound handle)</i></a>)</h2>
 <p>Check if a sound is still playing. Returns true if it is, otherwise false.</p>
 <p>Parameters:
+</p>
 <ul>
 <li>sound <a href="#sound_handle"><i>(sound handle)</i></a> &mdash; the sound which should be checked</li>
 </ul>
@@ -1361,7 +1363,6 @@ blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
 <ul>
 <li>sound <a href="#sound_handle"><i>(sound handle)</i></a> &mdash; the sound which should be stopped</li>
 </ul>
-</p>
 <p>Return value: None</p>
 </li>
 
@@ -1386,10 +1387,10 @@ Stop the execution of the whole program for the specified amount of time. This f
 <p>During the blocking of this function, no drawing or event or physics processing will be done. However, sound will continue to play. Please note physics and game logic (on_step) will attempt to catch up for the missed time, so blocking your program for multiple seconds might be a bad idea.</p>
 <p>Therefore, the only senseful usage of this call is probably using it for small (20-200 milliseconds) sleeps to lower cpu usage.</p>
 <p>Parameters:
+</p>
 <ul>
 <li>milliseconds <i>(number)</i> &mdash; the amount of milliseconds you want execution to stop</li>
 </ul>
-</p>
 <p>Return value: None</p>
 </li>
 
@@ -1438,13 +1439,13 @@ operations, or if an image has failed loading and won't be available at all.
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>texture name <i>(string)</i> &mdash; contains the texture path (which was originally
 provided to <a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>)</li>
 <li>result <i>(boolean)</i> &mdash; indicates whether the image has been successfully loaded (in which case
 it will be true), or failed to load (in which case it will be false)</li>
 </ul>
-</p>
 <p>
 Example:
 <div class="code">--Print out the loading result of any loaded image
@@ -1500,10 +1501,10 @@ multi-language text input support.
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>key <i>(string)</i> &mdash; a string that describes the key. See <a href="keylist.html">the key list</a> for a complete list of supported keys</li>
 </ul>
-</p>
 <p>
 Example:
 <div class="code">function blitwiz.on_keydown(key)
@@ -1525,12 +1526,12 @@ a mouse button.
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>button <i>(number)</i> &mdash; the mouse button pressed or released, 1 for left, 2 for right, 3 for middle, 4...</li>
 <li>x <i>(number)</i> &mdash; the mouse position's x coordinate where the action was triggered</li>
 <li>y <i>(number)</i> &mdash; the mouse position's y</li>
 </ul>
-</p>
 <p>
 Example:
 <div class="code">--Terminate the program when the user clicks the upper left corner of the drawing area:
@@ -1552,11 +1553,11 @@ Mouse movements outside of the window are not detected.
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>x <i>(number)</i> &mdash; the mouse position's x coordinate where the action was triggered</li>
 <li>y <i>(number)</i> &mdash; the mouse position's y</li>
 </ul>
-</p>
 </li>
 
 <li><h2><a name="blitwiz.on_step">blitwiz.on_step</a>()</h2>
@@ -1629,10 +1630,10 @@ cannot exactly process much.
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>text <i>(string)</i> &mdash; the new letter of group of letters entered, Utf-8 encoded for non-ASCII letters</li>
 </ul>
-</p>
 </li>
 
 </ul>
@@ -1665,10 +1666,10 @@ C:/testfolder/
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>path <i>(string)</i> &mdash; the path to change the current working directory to</li>
 </ul>
-</p>
 </li>
 
 <li><h2><a name="os.exists">os.exists</a>(path <i>(string)</i>)</h2>
@@ -1689,10 +1690,10 @@ C:/testfolder/
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>path <i>(string)</i> &mdash; the path to check for existance</li>
 </ul>
-</p>
 <p>
 Return value: <i>(boolean)</i> target exists (true) or doesn't (false)
 </p>
@@ -1716,10 +1717,10 @@ C:/testfolder/
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>path <i>(string)</i> &mdash; the path to check for being a directory or not</li>
 </ul>
-</p>
 <p>
 Return value: <i>(boolean)</i> directory (true) or not (false)
 </p>
@@ -1758,10 +1759,10 @@ C:/testfolder/
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>path <i>(string)</i> &mdash; the path to list all the contents from</li>
 </ul>
-</p>
 <p>
 Return value: <i>(table)</i> array of directory contents
 </p>
@@ -1831,11 +1832,11 @@ Check if str1 ends with str2 (so str1 has at least the length of str2, and cropp
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>str1 <i>(string)</i> &mdash; the string which should be tested for str2</li>
 <li>str2 <i>(string)</i> &mdash; the string with which str2 possibly ends</li>
 </ul>
-</p>
 <p>
 Return value: <i>(boolean)</i> result of the check
 </p>
@@ -1848,11 +1849,11 @@ Search occurances of the delimeter in the given expression, and split it up arou
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>str1 <i>(string)</i> &mdash; the string which should be tested for str2</li>
 <li>str2 <i>(string)</i> &mdash; the string with which str2 possibly begins</li>
 </ul>
-</p>
 <p>
 Return value: <i>(string, multiple)</i> all the resulting strings of the split
 </p>
@@ -1876,11 +1877,11 @@ Check if str1 begins with str2 (so str1 has at least the length of str2, and cro
 </p>
 <p>
 Parameters:
+</p>
 <ul class="parameters">
 <li>str1 <i>(string)</i> &mdash; the string which should be tested for str2</li>
 <li>str2 <i>(string)</i> &mdash; the string with which str2 possibly begins</li>
 </ul>
-</p>
 <p>
 Return value: <i>(boolean)</i> result of the check
 </p>
