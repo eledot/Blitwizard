@@ -19,6 +19,12 @@ Permission is granted to anyone to use this software for any purpose, including 
 blitwiz.font = {}
 blitwiz.font.fonts = {}
 
+function loadfontimage(path)
+    if blitwiz.graphics.isImageLoaded(path) ~= true then
+        blitwiz.graphics.loadImageAsync(path)
+    end
+end
+
 function blitwiz.font.register(path, name, charwidth, charheight, charsperline, charset)
 	blitwiz.font.fonts[name] = {
 		path,
@@ -27,9 +33,11 @@ function blitwiz.font.register(path, name, charwidth, charheight, charsperline, 
 		charsperline,
 		charset
 	}
-	if blitwiz.graphics.isImageLoaded(path) ~= true then
-		blitwiz.graphics.loadImageAsync(path)
-	end
+    result = pcall(loadfontimage)
+    if result == false then
+        -- We cannot load the font as it seems
+        blitwiz.font.fonts[name] = nil
+    end
 end
 
 local function drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)

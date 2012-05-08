@@ -87,4 +87,3 @@ const char* lua_strtype(lua_State* l, int stack) {
     luatypetoname(type, strtypebuf, sizeof(strtypebuf));
     return strtypebuf;
 }
-

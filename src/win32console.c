@@ -58,4 +58,3 @@ void win32console_Close() {
 #endif
     consoleopen = 0;
 }
-

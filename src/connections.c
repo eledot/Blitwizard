@@ -52,10 +52,10 @@ static int connections_SetSocket(struct connection* c, int iptype) {
         so_CloseSSLSocket(c->socket, &c->sslptr);
     }
     //create socket
-    if (iptype == IPTYPE_IPV4) { 
+    if (iptype == IPTYPE_IPV4) {
         c->socket = so_CreateSocket(1, IPTYPE_IPV4);
         c->iptype = IPTYPE_IPV4;
-    }else{ 
+    }else{
         c->socket = so_CreateSocket(1, IPTYPE_IPV6);
         c->iptype = IPTYPE_IPV6;
     }
@@ -187,7 +187,7 @@ static int connections_ProcessReceivedData(struct connection* c, int (*readcallb
         if (readconnectionclosed || c->socket < 0) { //connection was closed by callback
             *closed = 1;
             return 1;
-        } 
+        }
     }
     return 1;
 }
@@ -227,7 +227,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                 connections_Close(c);
                 c = cnext;
             }else{
-                //make connection error: 
+                //make connection error:
                 if (!connections_E(c, errorcallback, CONNECTIONERROR_CONNECTIONAUTOCLOSE)) {
                     return 0;
                 }
@@ -279,7 +279,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                 if (p) {
                     ipv6 = strdup(p);
                 }
-                
+
                 //free requests:
                 if (c->hostresolveptr) {hostresolv_CancelRequest(c->hostresolveptr);}
                 if (c->hostresolveptrv6) {hostresolv_CancelRequest(c->hostresolveptrv6);}
@@ -289,7 +289,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
 #ifdef CONNECTIONSDEBUG
                 printinfo("[connections] resolved host, results: v4: %s, v6: %s", ipv4, ipv6);
 #endif
-                
+
                 //if we got a v6 ip, connect there first:
                 int result;
                 if (ipv6) {
@@ -313,7 +313,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                     }
                     //ok we are about to connect, preserve v4 ip for later trying in case it fails:
                     c->retryv4ip =  ipv4;
-                    
+
                     //then continue:
                     c = cnext;
                     continue;
@@ -475,7 +475,7 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                 }
             }
         }
-        
+
         //check for close after send:
         if (c->outbufbytes <= 0 && c->closewhensent) {
             if (c->luarefcount <= 0) {
@@ -582,7 +582,7 @@ void connections_Init(struct connection* c, const char* target, int port, int li
         return;
     }
     //connect:
-    int result = connections_TryConnect(c, target); 
+    int result = connections_TryConnect(c, target);
     if (!result) {
         return;
     }
@@ -607,7 +607,7 @@ void connections_Send(struct connection* c, const char* data, int datalength) {
     c->outbufbytes += r;
     so_SelectWantWrite(c->socket, 1);
 }
- 
+
 //Close the given connection struct
 void connections_Close(struct connection* c) {
     if (justreadingfromconnection == c) {
@@ -656,4 +656,3 @@ int connections_NoConnectionsOpen() {
     if (connectionlist) {return 0;}
     return 1;
 }
-

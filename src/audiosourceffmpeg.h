@@ -34,4 +34,3 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* filesource);
 //Will attempt to load FFmpeg at runtime.
 //If the file isn't understood by FFmpeg or FFmpeg failed to load,
 //this creation function will simply return NULL.
-

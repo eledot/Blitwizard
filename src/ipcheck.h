@@ -23,4 +23,3 @@
 
 int isipv6ip(const char* str);
 int isipv4ip(const char* str);
-

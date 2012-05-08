@@ -66,7 +66,7 @@ int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int d
 int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigned int* height) {
     struct graphicstexture* gt = graphicstexturelist_GetTextureByName(name);
     if (!gt || gt->threadingptr) {return 0;}
-    
+
     *width = gt->width;
     *height = gt->height;
     return 1;
@@ -96,7 +96,7 @@ int graphics_PromptTextureLoading(const char* texture) {
         }
         return 2; //texture is already present
     }
-    
+
     //allocate new texture info
     gt = malloc(sizeof(*gt));
     if (!gt) {
@@ -136,7 +136,7 @@ int graphics_PromptTextureLoading(const char* texture) {
 #endif
         return 0;
     }
-    
+
     //add us to the list
     graphicstexturelist_AddTextureToList(gt);
     graphicstexturelist_AddTextureToHashmap(gt);
@@ -221,7 +221,7 @@ int graphics_LoadTextureInstantly(const char* texture) {
 #endif
 #endif
     }
-    
+
     //complete image
     return graphics_FinishImageLoading(gt, graphicstexturelist_GetPreviousTexture(gt), NULL);
 }
@@ -253,7 +253,7 @@ static int graphics_CheckTextureLoadingCallback(struct graphicstexture* gt, stru
             return 0;
         }
     }
-    return 1;   
+    return 1;
 }
 
 void graphics_CheckTextureLoading(void (*callback)(int success, const char* texture)) {
@@ -276,4 +276,3 @@ int graphics_IsTextureLoaded(const char* name) {
 }
 
 #endif //ifdef USE_GRAPHICS
-

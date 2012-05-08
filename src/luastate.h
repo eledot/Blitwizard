@@ -60,5 +60,3 @@ struct luaidref {
         void* ptr;
     } ref;
 };
-
-

@@ -47,5 +47,3 @@ struct graphicstexture {
     struct graphicstexture* hashbucketnext;
 
 };
-
-

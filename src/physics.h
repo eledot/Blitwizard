@@ -74,4 +74,3 @@ int physics_Ray(struct physicsworld* world, double startx, double starty, double
 #endif
 
 #endif
-

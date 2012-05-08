@@ -312,7 +312,7 @@ int luafuncs_warp(lua_State* l) {
         warpy = lua_tonumber(l, 3);
     }
     if (lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL) {
-        if (lua_type(l, 4) != LUA_TNUMBER) { 
+        if (lua_type(l, 4) != LUA_TNUMBER) {
             lua_pushstring(l, "Fourth parameter not a valid warp angle number");
             return lua_error(l);
         }
@@ -353,7 +353,7 @@ int luafuncs_setFriction(lua_State* l) {
         return lua_error(l);
     }
     obj->friction = lua_tonumber(l, 2);
-    applyobjectsettings(obj);    
+    applyobjectsettings(obj);
     return 0;
 }
 
@@ -375,7 +375,7 @@ int luafuncs_setAngularDamping(lua_State* l) {
         return lua_error(l);
     }
     obj->angulardamping = lua_tonumber(l, 2);
-    applyobjectsettings(obj);   
+    applyobjectsettings(obj);
     return 0;
 }
 
@@ -426,17 +426,17 @@ int luafuncs_setShapeEdges(lua_State* l) {
         x1 = lua_tonumber(l, -1);
         lua_pop(l, 1);
 
-        lua_pushnumber(l, 2); 
+        lua_pushnumber(l, 2);
         lua_gettable(l, -2);
         y1 = lua_tonumber(l, -1);
         lua_pop(l, 1);
 
-        lua_pushnumber(l, 3); 
+        lua_pushnumber(l, 3);
         lua_gettable(l, -2);
         x2 = lua_tonumber(l, -1);
         lua_pop(l, 1);
 
-        lua_pushnumber(l, 4); 
+        lua_pushnumber(l, 4);
         lua_gettable(l, -2);
         y2 = lua_tonumber(l, -1);
         lua_pop(l, 1);
@@ -445,7 +445,7 @@ int luafuncs_setShapeEdges(lua_State* l) {
         lua_pop(l, 1);
         d++;
     }
-    
+
     struct physicsobject* oldobject = obj->object;
 
     obj->object = physics_CreateObjectEdges_End(context);
@@ -453,7 +453,7 @@ int luafuncs_setShapeEdges(lua_State* l) {
         lua_pushstring(l, "Creation of the edges shape failed");
         return lua_error(l);
     }
-    
+
     if (oldobject) {
         transferbodysettings(oldobject, obj->object);
         physics_DestroyObject(oldobject);
@@ -541,4 +541,3 @@ int luafuncs_setShapeRectangle(lua_State* l) {
 }
 
 #endif
-

@@ -88,4 +88,3 @@
 #endif
 
 #endif //ifndef _BLITWIZARD_OS_H
-

@@ -79,7 +79,7 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
     if (idata->filesourceeof) {
         return;
     }
-    
+
     //move buffer back if required
     if (idata->fetchedbufreadoffset > 0) {
         memmove(idata->fetchedbuf, idata->fetchedbuf + idata->fetchedbufreadoffset, idata->fetchedbytes);
@@ -112,20 +112,20 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
 }
 
 //block size reader for libvorbisfile:
-static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *datasource) {  
+static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *datasource) {
     struct audiosourceogg_internaldata* idata = datasource;
-    
+
     unsigned int writtenchunks = 0;
     while (writtenchunks < nmemb) {
         //read new bytes
         if (idata->fetchedbytes < size && idata->filesourceeof != 1) {
             audiosourceogg_ReadUndecoded(idata);
         }
-    
+
         //see how many bytes we have now
         unsigned int amount = size * nmemb;
         if (amount > idata->fetchedbytes) {amount = idata->fetchedbytes;}
-        
+
         //is it sufficient for a chunk?
         if (amount < size) {
             //no, we are done
@@ -136,7 +136,7 @@ static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *dat
             while (chunks * size <= amount - size && chunks < nmemb) {
                 chunks += 1;
             }
-            
+
             //write chunks
             writtenchunks += chunks;
             memcpy(ptr, idata->fetchedbuf + idata->fetchedbufreadoffset, chunks * size);
@@ -156,12 +156,12 @@ static int audiosourceogg_InitOgg(struct audiosource* source) {
     ov_callbacks callbacks;
     memset(&callbacks, 0, sizeof(callbacks));
     callbacks.read_func = &vorbismemoryreader;
-    
+
     int v = ov_open_callbacks(idata, &idata->vorbisfile, NULL, 0, callbacks);
     if (v != 0) {
         return 0;
     }
-    
+
     return 1;
 }
 
@@ -170,7 +170,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
     if (idata->eof) {
         return -1;
     }
-    
+
     //open up ogg file if we don't have one yet
     if (!idata->vorbisopened) {
 #ifdef NOTHREADEDSDLRW
@@ -211,7 +211,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
         }
         idata->vorbisopened = 1;
     }
-    
+
     //if no bytes were requested, don't do anything
     if (bytes <= 0) {
         return 0;
@@ -219,7 +219,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 
     //read bytes
     audiosourceogg_ReadUndecoded(idata);
-    
+
     unsigned int byteswritten = 0;
     while (bytes > 0) {
         //see how much we want to decode now
@@ -227,7 +227,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
         if (decodeamount > sizeof(idata->decodedbuf)) {
             decodeamount = sizeof(idata->decodedbuf);
         }
-        
+
         //decode from encoded fetched bytes
         unsigned int decodesamples = decodeamount/(source->channels * sizeof(float));
         if (decodesamples * (source->channels * sizeof(float)) < decodeamount && decodesamples * (source->channels * sizeof(float)) <= (sizeof(idata->decodedbuf) - sizeof(float) * source->channels)) {
@@ -236,7 +236,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
         }
         while (!idata->vorbiseof && decodesamples > 0 && !idata->vorbiseof) {
             float **pcm;
-            
+
             long ret = ov_read_float(&idata->vorbisfile, &pcm, decodesamples, &idata->vbitstream);
             if (ret < 0) {
                 if (ret == OV_HOLE) {
@@ -266,14 +266,14 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
             }
             break;
         }
-        
+
         //check how much we want and can copy
         unsigned int amount = idata->decodedbytes;
         if (amount > bytes) {
             //never copy more than we want
             amount = bytes;
         }
-        
+
         //see vorbis end of file
         if (amount <= 0) {
             if (byteswritten <= 0) {
@@ -286,7 +286,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
                 return byteswritten;
             }
         }
-        
+
         //output bytes
         memcpy(buffer, idata->decodedbuf, amount);
         byteswritten += amount;
@@ -302,17 +302,17 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 
 static void audiosourceogg_Close(struct audiosource* source) {
     struct audiosourceogg_internaldata* idata = source->internaldata;
-    
+
     //close ogg file if we have it open
     if (idata->vorbisopened) {
         ov_clear(&idata->vorbisfile);
     }
-    
+
     //close file source if we have one
     if (idata->filesource) {
         idata->filesource->close(idata->filesource);
     }
-    
+
     //free all structs
     if (source->internaldata) {
         free(source->internaldata);
@@ -346,7 +346,7 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
         return NULL;
     }
     memset(a,0,sizeof(*a));
-    
+
     //internal data structure
     a->internaldata = malloc(sizeof(struct audiosourceogg_internaldata));
     if (!a->internaldata) {
@@ -358,12 +358,12 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 #endif
         return NULL;
     }
-    
+
     //internal data values
     struct audiosourceogg_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->filesource = filesource;
-    
+
     //function pointers
     a->read = &audiosourceogg_Read;
     a->close = &audiosourceogg_Close;
@@ -371,7 +371,7 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 #ifdef NOTHREADEDSDLRW
     a->closemainthread = &audiosourceogg_CloseMainthread;
 #endif
-    
+
     //ensure proper initialisation of sample rate + channels variables
     audiosourceogg_Read(a, NULL, 0);
     if (idata->eof && idata->returnerroroneof) {
@@ -383,7 +383,7 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
 #endif
         return NULL;
     }
-    
+
     return a;
 }
 

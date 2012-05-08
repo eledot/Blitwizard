@@ -207,7 +207,7 @@ int luafuncs_print(lua_State* l) { //not threadsafe
                 break;
             }
             default:
-                break;  
+                break;
         }
         while (luafuncs_printline()) { }
         i++;
@@ -255,7 +255,7 @@ int luafuncs_dofile(lua_State* l) {
     lua_call(l, 1, 1); //call loadfile
     int previoustop = lua_gettop(l)-1; //minus the function on the stack which lua_pcall() removes
     lua_call(l, 0, LUA_MULTRET); //call returned function by loadfile
-    
+
     //return all values the function has left for us on the stack
     return lua_gettop(l)-previoustop;
 }
@@ -358,13 +358,13 @@ int luafuncs_setWindow(lua_State* l) {
         lua_pushstring(l, "Second argument is not a valid resolution height");
         return lua_error(l);
     }
-    
+
     char defaulttitle[] = "blitwizard";
     const char* title = lua_tostring(l, 3);
     if (!title) {
         title = defaulttitle;
     }
-    
+
     int fullscreen = 0;
     if (lua_type(l,4) == LUA_TBOOLEAN) {
         fullscreen = lua_toboolean(l, 4);
@@ -374,7 +374,7 @@ int luafuncs_setWindow(lua_State* l) {
             return lua_error(l);
         }
     }
-    
+
     const char* renderer = lua_tostring(l, 5);
     char* error;
     if (!graphics_SetMode(x, y, fullscreen, 0, title, renderer, &error)) {
@@ -423,7 +423,7 @@ int luafuncs_loadImage(lua_State* l) {
     if (i > 0) {
         lua_pushstring(l, "Image is either already loaded or currently being asynchronously loaded");
         return lua_error(l);
-    } 
+    }
     i = graphics_LoadTextureInstantly(p);
     if (i == 0) {
         lua_pushstring(l, "Failed to load image");
@@ -695,7 +695,7 @@ static int gettablesetting(lua_State* l, const char* name, int type) {
     //get the string name of the desired type of the setting:
     char buf[64];
     luatypetoname(type, buf, sizeof(buf));
-    
+
     if (lua_type(l, -1) != LUA_TNIL) {
         //the setting is either not nil, or nil is not allowed
         //compare with desired type:
@@ -732,7 +732,7 @@ int luafuncs_drawImage(lua_State* l) {
 
     //drop other unrequired parameters:
     if (lua_gettop(l) > 2) {lua_pop(l, lua_gettop(l)-2);}
-    
+
     //get position parameters
     int x = 0;
     int y = 0;
@@ -753,13 +753,13 @@ int luafuncs_drawImage(lua_State* l) {
         if (alpha > 1) {alpha = 1;}
     }
     lua_pop(l, 1);
-    
+
     //read cut rectangle parameters
     int cutx = 0;
     int cuty = 0;
     int cutwidth = -1;
     int cutheight = -1;
-    if (gettablesetting(l, "cutx", LUA_TNUMBER)) { 
+    if (gettablesetting(l, "cutx", LUA_TNUMBER)) {
         cutx = (int)((float)lua_tonumber(l, -1)+0.5f);
     }
     lua_pop(l, 1);
@@ -775,7 +775,7 @@ int luafuncs_drawImage(lua_State* l) {
         cutheight = (int)((float)lua_tonumber(l, -1)+0.5);
     }
     lua_pop(l, 1);
-    
+
     //obtain scale parameters
     float scalex = 1;
     float scaley = 1;
@@ -881,7 +881,7 @@ int luafuncs_drawImage(lua_State* l) {
             if (imgdraww == 0) {imgdraww = w;}
             if (imgdrawh == 0) {imgdrawh = h;}
         }
-    }   
+    }
     unsigned int drawwidth = (unsigned int)((float)(imgdraww) * scalex + 0.5f);
     unsigned int drawheight = (unsigned int)((float)(imgdrawh) * scaley + 0.5f);
 
@@ -1160,7 +1160,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
         //add all supported video modes...
         int w,h;
         graphics_GetVideoMode(i, &w, &h);
-        
+
         //...but not the desktop mode twice
         if (w == desktopw && h == desktoph) {
             i++;
@@ -1175,7 +1175,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
         lua_pushnumber(l, 2);
         lua_pushnumber(l, h);
         lua_settable(l, -3);
-        
+
         //add the table into our list
         lua_pushnumber(l, index);
         lua_insert(l, -2);
@@ -1210,4 +1210,3 @@ int luafuncs_exit(lua_State* l) {
     main_Quit(exitcode);
     return 0;
 }
-

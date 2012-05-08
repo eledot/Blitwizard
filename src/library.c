@@ -195,4 +195,3 @@ void library_Close(void* ptr) {
     dlclose(ptr);
     #endif
 }
-

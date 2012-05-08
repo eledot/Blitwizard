@@ -144,4 +144,3 @@ int graphics_HaveValidWindow();
 #define compiled_without_graphics "No graphics available - this binary was compiled with graphics (including null device) disabled"
 
 #endif //ifdef USE_GRAPHICS
-

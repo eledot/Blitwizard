@@ -63,7 +63,7 @@ mutex* mutex_Create() {
 #endif
 #endif
     return m;
-} 
+}
 
 void mutex_Destroy(mutex* m) {
 #ifdef HAVE_SDL
@@ -101,5 +101,3 @@ void mutex_Release(mutex* m) {
 #endif
 #endif
 }
-
-

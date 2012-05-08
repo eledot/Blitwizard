@@ -438,7 +438,7 @@ int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned in
         if (rwread_result > -2) {break;}
         mutex_Release(rwread_executemutex);
     }
-    
+
     //we are done!
     int r = rwread_result;
     rwread_result = 0;
@@ -540,7 +540,7 @@ int main(int argc, char** argv) {
         i++;
     }
 
-#ifdef USE_AUDIO    
+#ifdef USE_AUDIO
     //This needs to be done at some point before we actually initialise audio
     audiomixer_Init();
 #endif
@@ -559,7 +559,7 @@ int main(int argc, char** argv) {
         filenamebuf = file_AddComponentToPath(script, "game.lua");
         script = filenamebuf;
     }
-    
+
     //check if we want to change directory to the provided path:
     if (option_changedir) {
         char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
@@ -668,13 +668,13 @@ int main(int argc, char** argv) {
     //call init
     if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error, NULL)) {
         printerror("Error: An error occured when calling blitwiz.on_init: %s",error);
-        if (error != outofmem) {    
+        if (error != outofmem) {
             free(error);
         }
         fatalscripterror();
         main_Quit(1);
     }
-    
+
     //when graphics or audio is open, run the main loop
 #ifdef USE_GRAPHICS
 #ifdef USE_SOUND
@@ -697,13 +697,13 @@ int main(int argc, char** argv) {
 
         //Initialise audio when it isn't
         main_InitAudio();
-        
+
         //If we failed to initialise audio, we want to simulate it
         uint64_t simulateaudiotime = 0;
         if (simulateaudio) {
             simulateaudiotime = time_GetMilliseconds();
         }
-    
+
         uint64_t logictimestamp = time_GetMilliseconds();
         uint64_t lastdrawingtime = 0;
         uint64_t physicstimestamp = time_GetMilliseconds();
@@ -716,8 +716,8 @@ int main(int argc, char** argv) {
 #ifdef NOTHREADEDSDLRW
             uint64_t start = time_GetMilliseconds();
             while (main_ProcessNoThreadedReading() && start + 20 > time_GetMilliseconds()) { }
-#endif      
-    
+#endif
+
 #ifdef USE_AUDIO
             //simulate audio
             if (simulateaudio) {
@@ -799,7 +799,7 @@ int main(int argc, char** argv) {
             if (iterations >= MAXLOGICITERATIONS) {
                 if (
 #ifdef USE_PHYSICS
-                        physicstimestamp < time || 
+                        physicstimestamp < time ||
 #endif
                      logictimestamp < time) {
                     //we got a problem: we aren't finished,
@@ -823,11 +823,11 @@ int main(int argc, char** argv) {
 
 #ifdef USE_GRAPHICS
             if (graphics_AreGraphicsRunning()) {
-                if (!appinbackground) { 
+                if (!appinbackground) {
                     //start drawing
                     drawingallowed = 1;
                     graphics_StartFrame();
-                    
+
                     //call the drawing function
                     int ondrawdoesntexist = 0;
                     if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error, &ondrawdoesntexist)) {
@@ -838,7 +838,7 @@ int main(int argc, char** argv) {
                     }else{
                         if (!ondrawdoesntexist) {blitwizondrawworked = 1;}
                     }
-                    
+
                     //complete the drawing
                     drawingallowed = 0;
                     graphics_CompleteFrame();
@@ -879,4 +879,3 @@ int main(int argc, char** argv) {
     main_Quit(0);
     return 0;
 }
-

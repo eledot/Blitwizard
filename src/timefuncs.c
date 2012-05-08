@@ -63,7 +63,7 @@ uint64_t time_GetMilliseconds() {
     }else{
         //we wrapped around. set a time offset to avoid the wrap
         timeoffset = (oldtime-i)+1;
-        i += timeoffset;    
+        i += timeoffset;
     }
 #else //ifdef HAVE_SDL
 #ifdef WINDOWS
@@ -117,4 +117,3 @@ void time_Sleep(uint32_t milliseconds) {
 #endif
 #endif
 }
-

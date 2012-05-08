@@ -125,7 +125,7 @@ static int loadorfailstate = 0;
 static void loadorfail(void** ptr, void* lib, const char* name) {
     if (loadorfailstate) {return;}
     *ptr = library_GetSymbol(lib, name);
-    
+
     if (!*ptr) {
         printwarning("Warning: [FFmpeg] Failed to load symbol: %s",name);
         loadorfailstate = 1;
@@ -167,9 +167,9 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
     struct audiosource* source = data;
     struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
     if (idata->sourceeof) {return 0;}
-    
+
     if (idata->source) {
-        int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size); 
+        int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size);
         errno = 0;
         if (i < 0) {
             idata->returnerroroneof = 1;
@@ -240,12 +240,12 @@ int audiosourceffmpeg_LoadFFmpeg() {
             printinfo("[FFmpeg-debug] avutilptr NOT present");
 #endif
         }
-    
+
         printinfo("[FFmpeg] Library not found or cannot be loaded, FFmpeg support will be unavailable");
         ffmpegopened = -1;
         return 0;
     }
-    
+
     //Load functions
     if (!audiosourceffmpeg_LoadFFmpegFunctions()) {
         library_Close(avcodecptr);
@@ -265,13 +265,13 @@ int audiosourceffmpeg_LoadFFmpeg() {
     }
 
     printinfo("[FFmpeg] Library successfully loaded.");
-    ffmpegopened = 1;   
+    ffmpegopened = 1;
     return 1;
 }
 
 static void audiosourceffmpeg_Rewind(struct audiosource* source) {
     struct audiosourceffmpeg_internaldata* idata = source->internaldata;
-    if (idata->returnerroroneof) {return;}  
+    if (idata->returnerroroneof) {return;}
     idata->eof = 0;
     if (idata->source) {
         idata->source->rewind(idata->source);
@@ -332,7 +332,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
     if (idata->eof) {
         return -1;
     }
-    
+
     if (!audiosourceffmpeg_LoadFFmpeg()) {
         audiosourceffmpeg_FatalError(source);
         return -1;
@@ -355,14 +355,14 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
-        idata->iocontext = ffmpeg_avio_alloc_context(idata->aviobuf, AVIOBUFSIZE, 0, source, ffmpegreader, NULL, NULL); 
+        idata->iocontext = ffmpeg_avio_alloc_context(idata->aviobuf, AVIOBUFSIZE, 0, source, ffmpegreader, NULL, NULL);
         if (!idata->iocontext) {
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
         idata->formatcontext->pb = idata->iocontext;
         idata->formatcontext->iformat = NULL;
-        
+
         //Read format
         if (ffmpeg_avformat_open_input(&idata->formatcontext, "", NULL, NULL) != 0) {
             audiosourceffmpeg_FatalError(source);
@@ -374,7 +374,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
-        
+
         //Find best stream
         int stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, &idata->audiocodec, 0);
         if (stream < 0) {
@@ -392,7 +392,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
-    
+
         //If this isn't an audio stream, we don't want it:
         if (c->codec_type != AVMEDIA_TYPE_AUDIO) {
             audiosourceffmpeg_FatalError(source);
@@ -406,7 +406,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         if (ffmpeg_avcodec_open2(idata->codeccontext, idata->audiocodec, NULL) < 0) {
             audiosourceffmpeg_FatalError(source);
             return -1;
-        }   
+        }
 
         //Allocate actual decoding buf
         idata->buf = ffmpeg_av_malloc(DECODEBUFSIZE);
@@ -420,7 +420,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
-        
+
         //Remember format data
         source->channels = c->channels;
         source->samplerate = c->sample_rate;
@@ -464,7 +464,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         if (copybytes < idata->decodedbufbytes) {
             memmove(idata->decodedbuf, idata->decodedbuf + copybytes, DECODEDBUFSIZE - copybytes);
         }
-        
+
         idata->decodedbufbytes -= copybytes;
         bytes -= copybytes;
     }
@@ -570,7 +570,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 }
 
 static void audiosourceffmpeg_Close(struct audiosource* source) {
-    struct audiosourceffmpeg_internaldata* idata = source->internaldata;    
+    struct audiosourceffmpeg_internaldata* idata = source->internaldata;
     //close audio source we might have opened
     if (idata && idata->source) {
         idata->source->close(idata->source);
@@ -605,7 +605,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     if (!a) {
         if (source) {source->close(source);}
         return NULL;
-    }   
+    }
     memset(a,0,sizeof(*a));
 
     //allocate internal data struct:
@@ -615,7 +615,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
         if (source) {source->close(source);}
         return NULL;
     }
-    
+
     //prepare internal data:
     struct audiosourceffmpeg_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
@@ -637,7 +637,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     a->rewind = &audiosourceffmpeg_Rewind;
 #ifdef NOTHREADEDSDLRW
     a->closemainthread = &audiosourceffmpeg_CloseMainthread;
-#endif  
+#endif
 
     //ensure proper initialisation of sample rate + channels variables
     audiosourceffmpeg_Read(a, NULL, 0);
@@ -650,7 +650,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
 #endif
         return NULL;
     }
-    
+
     return a;
 }
 

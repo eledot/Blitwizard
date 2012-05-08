@@ -181,7 +181,7 @@ void hostresolv_FreeRequest(void* handle) {
 #ifdef WINDOWS
     CloseHandle(i->threadhandle);
 #else
-    
+
 #endif
     free(handle);
 }
@@ -203,4 +203,3 @@ void hostresolv_CancelRequest(void* handle) {
 }
 
 #endif // ifdef USE_SOCKETS
-

@@ -32,4 +32,3 @@ void* main_NoThreadedRWopsOpen(const char* path);
 int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned int bytes);
 int main_ProcessNoThreadedReading();
 #endif
-

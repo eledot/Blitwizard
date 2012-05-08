@@ -23,4 +23,3 @@
 
 void win32console_Launch();
 void win32console_Close();
-

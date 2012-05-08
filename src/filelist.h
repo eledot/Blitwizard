@@ -38,4 +38,3 @@ int filelist_GetNextFile(struct filelistcontext* listcontext, char* namebuf, siz
 
 //Free a file list context:
 void filelist_Free(struct filelistcontext* listcontext);
-

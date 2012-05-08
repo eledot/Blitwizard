@@ -26,4 +26,3 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
 int listeners_CloseByPort(int port);
 int listeners_HaveActiveListeners(); //1: yes, at least one, 0: no, none
 void listeners_CloseAll();
-

@@ -27,4 +27,3 @@ struct audiosource* audiosourceflac_Create(struct audiosource* filesource);
 //and attempt to decode the data as FLAC audio.
 //If the file isn't understood by FLAC,
 //this creation function will simply return NULL.
-

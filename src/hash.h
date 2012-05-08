@@ -29,4 +29,3 @@ typedef struct hashmap {
 hashmap* hashmap_New(uint32_t size);
 uint32_t hashmap_GetIndex(hashmap* h, const char* buf, size_t len, int ignorecase);
 void hashmap_Free(hashmap* h);
-

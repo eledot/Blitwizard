@@ -41,4 +41,3 @@ void* library_GetSymbol(void* ptr, const char* name);
 
 void library_Close(void* ptr);
 //Close dynamically loaded library again
-

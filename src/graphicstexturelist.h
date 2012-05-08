@@ -46,4 +46,3 @@ int graphicstexturelist_FreeAllTextures();
 void graphicstexturelist_DoForAllTextures(int (*callback)(struct graphicstexture* texture, struct graphicstexture* previoustexture, void* userdata), void* userdata);
 
 #endif //ifdef USE_GRAPHICS
-

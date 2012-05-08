@@ -198,7 +198,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         free(nulldevicetitle);
         nulldevicetitle = NULL;
     }
-    nulldevicetitle = strdup(title);    
+    nulldevicetitle = strdup(title);
     if (nulldevicetitle) {
         nulldevicetitle = strdup("");
     }
@@ -221,4 +221,3 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 }
 
 #endif //ifdef USE_GRAPHICS
-

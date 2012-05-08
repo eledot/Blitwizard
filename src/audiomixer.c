@@ -43,8 +43,8 @@
 #include "mathhelpers.h"
 
 #ifndef USE_SDL_AUDIO
-#define audio_UnlockAudioThread(); 
-#define audio_LockAudioThread(); 
+#define audio_UnlockAudioThread();
+#define audio_LockAudioThread();
 #endif
 
 #ifndef ANDROID
@@ -59,7 +59,7 @@ struct soundchannel {
     struct audiosource* mixsource;
     struct audiosource* fadepanvolsource;
     struct audiosource* loopsource;
-    
+
     int priority;
     int id;
 };
@@ -217,7 +217,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
             }
         }
     }
-    
+
     //wrap up the decoded audio into the resampler and fade/pan/vol modifier
     channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(audiosourceresample_Create(decodesource, 48000));
 
@@ -225,13 +225,13 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
         audio_UnlockAudioThread();
         return -1;
     }
-    
+
     //set the options for the fade/pan/vol modifier
     audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning);
     if (fadeinseconds > 0) {
         audiosourcefadepanvol_StartFade(channels[slot].fadepanvolsource, fadeinseconds, volume, 0);
     }
-    
+
     //wrap the fade/pan/vol modifier into a loop audio source
     channels[slot].loopsource = audiosourceloop_Create(channels[slot].fadepanvolsource);
     if (!channels[slot].loopsource) {
@@ -239,11 +239,11 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
         channels[slot].fadepanvolsource = NULL;
         audio_UnlockAudioThread();
         return -1;
-    }   
+    }
 
     //set the options for the loop audio source
     audiosourceloop_SetLooping(channels[slot].loopsource, loop);
-    
+
     //remember that loop audio source as final processed audio
     channels[slot].mixsource = channels[slot].loopsource;
 
@@ -304,7 +304,7 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
                 i++;
                 continue;
             }
-            
+
             //see how many samples we can actually mix from this
             unsigned int mixsamples,mixbytes;
             if (k != samplebytes) {
@@ -328,7 +328,7 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
                     sourcevalue = (sourcevalue + 1)/2;
                     float targetvalue = *mixtarget;
                     targetvalue = (targetvalue + 1)/2;
-                
+
                     float result = -(targetvalue * sourcevalue) + (targetvalue + sourcevalue);
                     result = (result * 2) - 1;
                     *mixtarget = (MIXTYPE)result;
@@ -380,7 +380,7 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
     char* p = streambuf;
     while (len > 0) {
         audiomixer_RequestMix(len);
-        
+
         //see how much bytes we can get
         unsigned int filledbytes = filledmixpartial + filledmixfull * sizeof(MIXTYPE);
         unsigned int amount = len;
@@ -411,7 +411,7 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
             int partialparsedbytes = amount - fullparsedsamples * sizeof(MIXTYPE);
             filledmixfull -= fullparsedsamples;
             filledmixpartial -= partialparsedbytes;
-            
+
             //handle partial bytes correctly
             while (filledmixpartial < 0) {
                 filledmixpartial += sizeof(MIXTYPE);
@@ -437,9 +437,8 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
             i2 += sizeof(int16_t);
         }
     }
-    
+
     return streambuf;
 }
 
 #endif //ifdef USE_AUDIO
-

@@ -97,4 +97,3 @@ int connections_NoConnectionsOpen();
 int connections_CheckIfConnected(struct connection* c);
 
 #endif // _BLITWIZARD_CONNECTIONS_H
-

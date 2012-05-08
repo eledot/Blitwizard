@@ -103,4 +103,3 @@ int isipv4ip(const char* str) {
 int isipv6ip(const char* str) {
     return isip_check(str,1);
 }
-

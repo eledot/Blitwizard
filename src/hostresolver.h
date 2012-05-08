@@ -31,7 +31,7 @@ void* hostresolv_LookupRequest(const char* host, int ipv6);
  /* Start a normal lookup request of that host.
     Set ipv6 to 1 if you want an ipv6 ip (otherwise to 0).
     Returns a request handle */
- 
+
 int hostresolv_GetRequestStatus(void* handle);
  /* Get the current status of the request */
 #define RESOLVESTATUS_PENDING 1
@@ -43,13 +43,12 @@ const char* hostresolv_GetRequestResult(void* handle);
     Only use this if the request status is RESOLVESTATUS_SUCCESS! */
 
 
- 
+
 void hostresolv_FreeRequest(void* handle);
  /* Free the request and all associated data (handle will become invalid).
     NEVER use this if the request is still pending (will break horribly).
    */
- 
+
 void hostresolv_CancelRequest(void* handle);
  /* Cancel a host resolve request. If the request is already terminated,
     it will be instantly free'd. */
- 

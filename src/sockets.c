@@ -143,7 +143,7 @@ static int soinitfunc(const char* cert, const char* key) {
     if (cert && key) {
         SSL_library_init();
         SSL_load_error_strings();
-        
+
         if ((ctx = SSL_CTX_new(SSLv23_server_method())) == NULL ||
         SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM) <= 0 ||
         SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM) <= 0) {
@@ -320,7 +320,7 @@ void so_SelectWantWrite(int socket, int enabled) {
     }
 }
 
-void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {    
+void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {
     if (so_sysinited == 0) {return;}
 #ifdef USESSL
     if (sslptr == NULL || *sslptr == NULL) {
@@ -356,7 +356,7 @@ int so_CreateSocket(int addToSelect, int iptype) {
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
         newsock = socket(AF_INET6, SOCK_STREAM, 0);
-#endif  
+#endif
     }
     if (iptype == IPTYPE_IPV4) {
         newsock = socket(AF_INET, SOCK_STREAM, 0);
@@ -419,7 +419,7 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
 #endif
 
         //2.2- check if binding worked
-        
+
         if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
             if (IN6_IS_ADDR_UNSPECIFIED(&addressstruct6.sin6_addr) && strcasecmp(bindip, "::0") != 0 && strcasecmp(bindip, "::") != 0) {
@@ -531,7 +531,7 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
 #endif
 
         // 2 - check if ip extraction worked
-        
+
         if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
             if (IN6_IS_ADDR_UNSPECIFIED(&addressstruct6->sin6_addr)) {
@@ -579,11 +579,11 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
     struct sockaddr_in6 addressstruct6;
 #endif
     struct sockaddr_in addressstruct4;
-    
+
     // Detect ip type:
     int iptype = IPTYPE_IPV4;
     if (isipv6ip(ip)) {iptype = IPTYPE_IPV6;}
-    
+
     // ( 2 ) --- fill in ip of struct
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
@@ -594,7 +594,7 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
     }else{
         if (!so_AddressToStruct(ip, iptype, &addressstruct4)) {return 0;}
     }
-    
+
     // ( 3 ) --- set port of struct
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
@@ -769,7 +769,7 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
                 writeip[IPV4LEN] = 0;
             }
 #endif
-            
+
         }
         if (writesocket != NULL) {
             *writesocket = new_socket;
@@ -944,7 +944,7 @@ int so_DoAcceptThings(int socket, void* sslptr) {
             }
             i->ssl_requiresend = 0;
         }
-        
+
         if (SSL_accept(i->sslhandle) < 0) {
             int r = SSL_get_error(i->sslhandle, -1);
             ERR_clear_error();
@@ -1099,5 +1099,3 @@ void so_CloseSSLSocket(int socket, void** sslptr) {
 }
 
 #endif // ifdef USE_SOCKETS
-
-

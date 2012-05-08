@@ -119,7 +119,7 @@ struct filelistcontext* filelist_Create(const char* path) {
             //this is invalid
             free(ctx->path);
             free(ctx);
-            return NULL;    
+            return NULL;
         }
         i++;
     }
@@ -144,7 +144,7 @@ struct filelistcontext* filelist_Create(const char* path) {
             return 0;
         }
         //directory empty, so we want to continue but report no files later
-    }   
+    }
 #endif
 
     return ctx;
@@ -215,7 +215,7 @@ int filelist_GetNextFile(struct filelistcontext* ctx, char* namebuf, size_t name
 #define NAME_MAX FILENAME_MAX
 #endif
     while (length < NAME_MAX) {
-    
+
         if (ctx->entrybuf->d_name[length] == 0) {
             break;
         }
@@ -317,7 +317,6 @@ void filelist_Free(struct filelistcontext* ctx) {
         FindClose(ctx->findhandle);
     }
 #endif
-    
+
     free(ctx);
 }
-

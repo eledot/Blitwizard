@@ -86,10 +86,10 @@ static int graphics_InitVideoSubsystem(char** error) {
 
 int graphics_Init(char** error) {
     char errormsg[512];
-    
+
     //set scaling settings
     SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_NORMAL);
-    
+
     //initialize SDL
     if (SDL_Init(SDL_INIT_TIMER) < 0) {
         snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL: %s", SDL_GetError());
@@ -120,10 +120,10 @@ int graphics_TextureToHW(struct graphicstexture* gt) {
 
     //copy pixels into texture
     memcpy(pixels, gt->pixels, gt->width * gt->height * 4);
-    
+
     //unlock texture
     SDL_UnlockTexture(t);
-    
+
     //set blend mode
     if (SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND) < 0) {
         printf("Warning: Blend mode SDL_BLENDMODE_BLEND not applied: %s\n",SDL_GetError());
@@ -134,7 +134,7 @@ int graphics_TextureToHW(struct graphicstexture* gt) {
     free(gt->pixels);
     gt->pixels = NULL;
 #endif
-    
+
     gt->tex = t;
     return 1;
 }
@@ -142,7 +142,7 @@ int graphics_TextureToHW(struct graphicstexture* gt) {
 void graphics_TextureFromHW(struct graphicstexture* gt) {
     if (!gt->tex || gt->threadingptr || !gt->name) {return;}
 
-    if (!gt->pixels) {  
+    if (!gt->pixels) {
         gt->pixels = malloc(gt->width * gt->height * 4);
         if (!gt->pixels) {
             //wipe this texture
@@ -153,7 +153,7 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
             gt->name = NULL;
             return;
         }
-    
+
         //Lock SDL Texture
         void* pixels;int pitch;
         if (SDL_LockTexture(gt->tex, NULL, &pixels, &pitch) != 0) {
@@ -161,7 +161,7 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
             //can/should we do anything about this? (a purely visual problem)
             printf("Warning: SDL_LockTexture() failed\n");
         }else{
-    
+
             //Copy texture
             memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
 
@@ -170,7 +170,7 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
 
         }
     }
-        
+
     SDL_DestroyTexture(gt->tex);
     gt->tex = NULL;
 }
@@ -184,7 +184,7 @@ void graphics_DrawRectangle(int x, int y, int width, int height, float r, float 
     rect.w = width;
     rect.h = height;
 
-    SDL_SetRenderDrawBlendMode(mainrenderer, SDL_BLENDMODE_BLEND);  
+    SDL_SetRenderDrawBlendMode(mainrenderer, SDL_BLENDMODE_BLEND);
     SDL_RenderFillRect(mainrenderer, &rect);
 }
 
@@ -196,7 +196,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 
     if (alpha <= 0) {return 1;}
     if (alpha > 1) {alpha = 1;}
-    
+
     //calculate source dimensions
     SDL_Rect src,dest;
     src.x = sourcex;
@@ -212,7 +212,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
     }else{
         src.h = gt->height;
     }
-    
+
     //set target dimensinos
     dest.x = x; dest.y = y;
     if (drawwidth <= 0 || drawheight <= 0) {
@@ -220,7 +220,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
     }else{
         dest.w = drawwidth; dest.h = drawheight;
     }
-    
+
     //render
     int i = (int)((float)255.0f * alpha);
     if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
@@ -277,7 +277,7 @@ void graphics_Close(int preservetextures) {
 void graphics_ReopenForAndroid() {
     //throw away hardware textures:
     graphicstexturelist_InvalidateSDLTextures();
-    
+
     //preserve old window size:
     int w,h;
     w = 0;h = 0;
@@ -386,7 +386,7 @@ static void graphics_ReadVideoModes() {
                         isduplicate = 1;
                         break;
                     }
-                    j++;    
+                    j++;
                 }
                 if (isduplicate) {i++;continue;}
 
@@ -534,7 +534,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 #endif
         }
     }
-    
+
     //get renderer index
     int rendererindex = -1;
     if (strlen(preferredrenderer) > 0 && !softwarerendering) {
@@ -572,7 +572,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
             return 1;
         }
     }
-    
+
     //Check if we support the video mode for fullscreen -
     //  This is done to avoid SDL allowing impossible modes and
     //  giving us a fake resized/padded/whatever output we don't want.
@@ -600,13 +600,13 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
             }
         }
     }
-    
+
     //preserve textures by managing them on our own for now
     graphicstexturelist_TransferTexturesFromHW();
-    
+
     //destroy old window/renderer if we got one
     graphics_Close(1);
-    
+
     //create window
     if (fullscreen) {
         mainwindow = SDL_CreateWindow(title, 0,0, width, height, SDL_WINDOW_FULLSCREEN);
@@ -621,7 +621,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         *error = strdup(errormsg);
         return 0;
     }
-    
+
     //Create renderer
     if (!softwarerendering) {
         mainrenderer = SDL_CreateRenderer(mainwindow, rendererindex, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
@@ -652,7 +652,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         SDL_RendererInfo info;
         SDL_GetRendererInfo(mainrenderer, &info);
     }
-    
+
     //Transfer textures back to SDL
     if (!graphicstexturelist_TransferTexturesToHW()) {
         SDL_RendererInfo info;
@@ -794,4 +794,3 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 }
 
 #endif //ifdef USE_SDL_GRAPHICS
-

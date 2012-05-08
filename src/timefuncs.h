@@ -37,4 +37,3 @@ uint64_t time_GetMilliseconds();
 
 void time_Sleep(uint32_t milliseconds);
 //Sleep for a specified amount of time.
-

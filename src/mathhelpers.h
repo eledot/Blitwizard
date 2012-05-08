@@ -59,4 +59,3 @@ static inline int fastdoubletoint32(double i) {
 #ifdef __cplusplus
 }
 #endif
-

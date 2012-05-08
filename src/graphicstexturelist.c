@@ -173,4 +173,3 @@ void graphicstexturelist_DoForAllTextures(int (*callback)(struct graphicstexture
 }
 
 #endif //ifdef USE_GRAPHICS
-

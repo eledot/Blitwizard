@@ -32,7 +32,7 @@
 #include "connections.h"
 #include "luafuncs_net.h"
 #include "luastate.h"
-#include "logging.h" 
+#include "logging.h"
 #include "timefuncs.h"
 #include "sockets.h"
 #include "listeners.h"
@@ -376,7 +376,7 @@ int luafuncs_netopen(lua_State* l) {
     }
 
     luafuncs_setcallbacks(l, ((struct luanetstream*)idref->ref.ptr)->c, 2, haveconnect, haveread, haveerror);
-    
+
     //attempt to connect:
     connections_Init(((struct luanetstream*)idref->ref.ptr)->c, server, port, linebuffered, lowdelay, haveread, clearconnectioncallbacks, (void*)l);
     free(server);
@@ -440,7 +440,7 @@ int luafuncs_netset(lua_State* l) {
         lua_pushstring(l, "Cannot set callbacks to a closed stream");
         return lua_error(l);
     }
-    
+
     //check/retrieve callbacks:
     int haveconnect,haveread,haveerror;
     luafuncs_checkcallbackparameters(l, 3, "blitwiz.net.set", &haveconnect, &haveread, &haveerror);
@@ -533,7 +533,7 @@ static int readevents(struct connection* c, char* data, unsigned int datalength)
     luaL_buffinit(l, &b);
     luaL_addlstring(&b, data, datalength);
     luaL_pushresult(&b);
-   
+
     //prompt callback:
     int result = lua_pcall(l, 2, 0, -4);
     if (result != 0) {
@@ -633,7 +633,7 @@ int connectionevents(int port, int socket, const char* ip, void* sslptr, void* u
         printwarning("Failed to allocate connection");
         return 0;
     }
-    
+
     //add connection to list:
     c->next = connectionlist;
     connectionlist = c;
@@ -714,4 +714,3 @@ int luafuncs_ProcessNetEvents() {
     result = connections_CheckAll(&connectedevents, &readevents, &errorevents);
     return result;
 }
-

@@ -43,4 +43,3 @@ int luafuncs_warp(lua_State* l);
 int luafuncs_setGravity(lua_State* l);
 
 #endif
-

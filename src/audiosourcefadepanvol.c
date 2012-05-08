@@ -34,16 +34,16 @@ struct audiosourcefadepanvol_internaldata {
     int sourceeof;
     int eof;
     int returnerroroneof;
-    
+
     int fadesamplestart;
     int fadesampleend;
     float fadevaluestart;
     float fadevalueend;
     int terminateafterfade;
-    
+
     float pan;
     float vol;
-    
+
     char processedsamplesbuf[512];
     unsigned int processedsamplesbytes;
 };
@@ -64,7 +64,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
     if (idata->eof) {
         return -1;
     }
-    
+
     unsigned int byteswritten = 0;
     while (bytes > 0) {
         //see how many samples we want to have minimum
@@ -72,7 +72,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
         if (stereosamples * sizeof(float) * 2 < bytes) {
             stereosamples++;
         }
-            
+
         //get new unprocessed samples
         int unprocessedstart = idata->processedsamplesbytes;
         if (!idata->sourceeof) {
@@ -91,7 +91,7 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
                 stereosamples--;
             }
         }
-    
+
         //process unprocessed samples
         unsigned int i = unprocessedstart;
         float faderange = (-idata->fadesamplestart + idata->fadesampleend);
@@ -99,16 +99,16 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
         while ((int)i <= ((int)idata->processedsamplesbytes - ((int)sizeof(float) * 2))) {
             float leftchannel = *((float*)((char*)idata->processedsamplesbuf+i));
             float rightchannel = *((float*)((float*)((char*)idata->processedsamplesbuf+i))+1);
-    
+
             if (idata->fadesamplestart < 0 || idata->fadesampleend > 0) {
                 //calculate fade volume
                 idata->vol = idata->fadevaluestart + (idata->fadevalueend - idata->fadevaluestart)*(1 - fadeprogress/faderange);
-    
+
                 //increase fade progress
                 idata->fadesamplestart--;
                 idata->fadesampleend--;
                 fadeprogress = idata->fadesampleend;
-                    
+
                 if (idata->fadesampleend < 0) {
                     //fade ended
                     idata->vol = idata->fadevalueend;
@@ -125,15 +125,15 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
             //apply volume
             leftchannel = (leftchannel+1)*idata->vol - 1;
             rightchannel = (rightchannel+1)*idata->vol - 1;
-    
+
             //calculate panning
             leftchannel *= (idata->pan+1)/2;
             rightchannel *= 1-(idata->pan+1)/2;
-    
+
             //write floats back
             memcpy(idata->processedsamplesbuf+i, &leftchannel, sizeof(float));
             memcpy(idata->processedsamplesbuf+i+sizeof(float), &rightchannel, sizeof(float));
-                
+
             i += sizeof(float)*2;
         }
 
@@ -169,12 +169,12 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 
 static void audiosourcefadepanvol_Close(struct audiosource* source) {
     struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
-    
+
     //close the processed source
     if (idata->source) {
         idata->source->close(idata->source);
     }
-    
+
     //free all structs
     if (source->internaldata) {
         free(source->internaldata);
@@ -219,7 +219,7 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 #endif
         return NULL;
     }
-    
+
     //allocate internal data struct
     memset(a,0,sizeof(*a));
     a->internaldata = malloc(sizeof(struct audiosourcefadepanvol_internaldata));
@@ -232,14 +232,14 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 #endif
         return NULL;
     }
-    
+
     //remember various things
     struct audiosourcefadepanvol_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->source = source;
     a->samplerate = source->samplerate;
     a->channels = source->channels;
-    
+
     //function pointers
     a->read = &audiosourcefadepanvol_Read;
     a->close = &audiosourcefadepanvol_Close;
@@ -247,7 +247,7 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 #ifdef NOTHREADEDSDLRW
     a->closemainthread = &audiosourcefadepanvol_CloseMainthread;
 #endif
-    
+
     return a;
 }
 
@@ -259,7 +259,7 @@ void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float vol, floa
     if (vol > 1) {vol = 1;}
     idata->pan = pan;
     idata->vol = vol;
-    
+
     idata->fadesamplestart = 0;
     idata->fadesampleend = 0;
     idata->fadevalueend = vol;
@@ -276,11 +276,10 @@ void audiosourcefadepanvol_StartFade(struct audiosource* source, float seconds, 
     }
     if (targetvol < 0) {targetvol = 0;}
     if (targetvol > 1) {targetvol = 1;}
-    
+
     idata->terminateafterfade = terminate;
     idata->fadevaluestart = idata->vol;
     idata->fadevalueend = targetvol;
     idata->fadesamplestart = 0;
     idata->fadesampleend = (int)((double)((double)idata->source->samplerate) * ((double)seconds));
 }
-

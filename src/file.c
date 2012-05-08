@@ -220,38 +220,38 @@ char* file_GetAbsolutePathFromRelativePath(const char* path) {
     if (!file_IsPathRelative(path)) {
         return strdup(path);
     }
-    
+
     //cut off unrequired clutter
     while (path[0] == '.' && path[1] == file_NativeSlash()) {
         path += 2;
     }
-    
+
     //get current working directory
     char* currentdir = file_GetCwd();
     if (!currentdir) {
         return NULL;
     }
-    
+
     //process ../
     while (path[0] == '.' && path[1] == '.' && path[2] == file_NativeSlash()) {
         file_CutOffOneElement(currentdir);
         path += 3;
     }
-    
+
     //allocate space for new path
     char* newdir = malloc(strlen(currentdir) + 1 + strlen(path) + 1);
     if (!newdir) {
         free(currentdir);
         return NULL;
     }
-    
+
     //assemble new path
     memcpy(newdir, currentdir, strlen(currentdir));
     char slash = file_NativeSlash();
     newdir[strlen(currentdir)] = slash;
     memcpy(newdir + strlen(currentdir) + 1, path, strlen(path));
     newdir[strlen(currentdir) + 1 + strlen(path)] = 0;
-    
+
     free(currentdir);
     return newdir;
 }
@@ -286,11 +286,11 @@ int file_IsPathRelative(const char* path) {
 char* file_GetAbsoluteDirectoryPathFromFilePath(const char* path) {
     char* p = file_GetDirectoryPathFromFilePath(path);
     if (!p) {return NULL;}
-    
+
     if (!file_IsPathRelative(p)) {
         return p;
     }
-    
+
     char* p2 = file_GetAbsolutePathFromRelativePath(p);
     if (!p2) {return NULL;}
     return p2;
@@ -366,4 +366,3 @@ char* filesystem_GetUserFileDir() {
     return strdup(programsdirbuf);
 }
 #endif
-

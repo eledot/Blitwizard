@@ -75,7 +75,7 @@ static void audiosourcefile_Rewind(struct audiosource* source) {
 
 static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
     struct audiosourcefile_internaldata* idata = source->internaldata;
-    
+
     if (idata->file == NULL) {
         if (idata->eof) {
             return -1;
@@ -144,7 +144,7 @@ static int audiosourcefile_ReadMainthread(struct audiosource* source, char* buff
 #endif
 
 static void audiosourcefile_Close(struct audiosource* source) {
-    struct audiosourcefile_internaldata* idata = source->internaldata;  
+    struct audiosourcefile_internaldata* idata = source->internaldata;
     if (!idata) {return;}
     //close file we might have opened
 #ifdef SDLRW
@@ -183,14 +183,14 @@ struct audiosource* audiosourcefile_Create(const char* path) {
     if (!a) {
         return NULL;
     }
-    
+
     memset(a,0,sizeof(*a));
     a->internaldata = malloc(sizeof(struct audiosourcefile_internaldata));
     if (!a->internaldata) {
         free(a);
         return NULL;
     }
-    
+
     struct audiosourcefile_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->path = strdup(path);
@@ -198,7 +198,7 @@ struct audiosource* audiosourcefile_Create(const char* path) {
         free(a->internaldata);
         free(a);
         return NULL;
-    }   
+    }
 
     a->read = &audiosourcefile_Read;
     a->close = &audiosourcefile_Close;
@@ -206,7 +206,6 @@ struct audiosource* audiosourcefile_Create(const char* path) {
 #ifdef NOTHREADEDSDLRW
     a->readmainthread = &audiosourcefile_ReadMainthread;
 #endif
-    
+
     return a;
 }
-

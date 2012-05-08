@@ -404,7 +404,7 @@ static lua_State* luastate_New() {
     luastate_RememberTracebackFunc(l);
     luastate_VoidDebug(l);
     luastate_AddBlitwizFuncs(l);
-    
+
     //own dofile/loadfile/print
     lua_pushcfunction(l, &luafuncs_loadfile);
     lua_setglobal(l, "loadfile");
@@ -429,11 +429,11 @@ static lua_State* luastate_New() {
     lua_pushstring(l, "net");
     luastate_CreateNetTable(l);
     lua_settable(l, -3);
-    
+
     lua_pushstring(l, "sound");
     luastate_CreateSoundTable(l);
     lua_settable(l, -3);
-    
+
     lua_pushstring(l, "callback");
     lua_newtable(l);
         lua_pushstring(l, "event");
@@ -444,7 +444,7 @@ static lua_State* luastate_New() {
     lua_pushstring(l, "time");
     luastate_CreateTimeTable(l);
     lua_settable(l, -3);
-    
+
     lua_pushstring(l, "physics");
     luastate_CreatePhysicsTable(l);
     lua_settable(l, -3);
@@ -508,7 +508,7 @@ static lua_State* luastate_New() {
     snprintf(vstr, sizeof(vstr), "Blitwizard %s based on Lua 5.2", VERSION);
     lua_pushstring(l, vstr);
     lua_setglobal(l, "_VERSION");
-    
+
     return l;
 }
 
@@ -607,7 +607,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
                 }else{
                     //lookup nested on previous table
                     lua_gettable(scriptstate, -2);
-                    
+
                     //dispose of previous table
                     lua_insert(scriptstate, -2);
                     lua_pop(scriptstate, 1);
@@ -662,7 +662,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
     int i = lua_pcall(scriptstate, args, 0, -(args+2));
 
     //process errors
-    int returnvalue = 1;    
+    int returnvalue = 1;
     if (i != 0) {
         *error = NULL;
         if (i == LUA_ERRRUN || i == LUA_ERRERR) {
@@ -692,4 +692,3 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 void luastate_GCCollect() {
     lua_gc(scriptstate, LUA_GCSTEP, 0);
 }
-

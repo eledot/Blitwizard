@@ -62,4 +62,3 @@ struct audiosource {
 	
 	void* internaldata; //DON'T TOUCH, used for internal purposes.
 };
-

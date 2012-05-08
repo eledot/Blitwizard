@@ -30,7 +30,7 @@ int luafuncs_ls(lua_State* l);
 int luafuncs_openConsole(lua_State* l);
 int luafuncs_exit(lua_State* l);
 int luafuncs_sysname(lua_State* l);
-int luafuncs_sysversion(lua_State* l); 
+int luafuncs_sysversion(lua_State* l);
 
 //blitwiz.*:
 int luafuncs_setstep(lua_State* l);
@@ -68,4 +68,3 @@ int luafuncs_adjust(lua_State* l);
 int luafuncs_startswith(lua_State* l);
 int luafuncs_endswith(lua_State* l);
 int luafuncs_split(lua_State* l);
-

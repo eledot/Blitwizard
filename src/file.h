@@ -48,4 +48,3 @@ void file_MakeSlashesNative(char* path);
 char* file_GetUserFileDir();
 
 char* file_GetTempPath(const char* name);
-

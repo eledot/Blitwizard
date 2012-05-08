@@ -24,4 +24,3 @@
 struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source);
 void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float vol, float pan);
 void audiosourcefadepanvol_StartFade(struct audiosource* source, float seconds, float targetvol, int terminate);
-

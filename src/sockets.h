@@ -65,13 +65,13 @@ int so_GetIPLen();
 void so_ManageSocketWithSelect(int socket);
    //Mark a socket to be managed by select(). so_SelectWait() will then wake up if there is
    //something to read or write for this socket!
-   
+
    //NOTE FOR SSL: please use this before ever receiving/sending data on the socket
    //  (immediately after creation) since the SSL code has to do some specific magic for
    //  managed sockets. And if you use this after some reading/writing, the SSL code won't
    //  be aware of the change and fail to do this magic (which you don't want to run
    //  into).
-   
+
 int so_SelectWait(int maximumsleeptime);
    //If you marked any sockets with so_ManageSocketWithSelect(), this sleeps until for
    //one of all the marked sockets, there is something available to be read or written.
@@ -81,13 +81,13 @@ int so_SelectWait(int maximumsleeptime);
    //If you have nothing to write left, use so_SelectWantWrite(socket, 0).
    //If there is something to read, read everything!
    //Only after you did that, call this function again.
-   
+
    //The maximumsleeptime specifies an amount of time after which you want to wake up
    //if there is nothing to be read/write on any sockets.
-   
+
    //Returns a value > 0 if any sockets have been marked (otherwise, the timeout has
    //triggered the wakeup).
-   
+
 int so_SelectSaysWrite(int sock, void** sslptr);
    //If this returns 1:
    //The socket is now, after so_SelectWait(), marked to be ready for writing.
@@ -95,7 +95,7 @@ int so_SelectSaysWrite(int sock, void** sslptr);
    //If this returns 0:
    //Don't use so_SendData()/so_SendSSLData() since it won't work now anyway.
    //Note: For non-SSL connections, pass NULL for sslptr.
-   
+
 int so_SelectSaysRead(int socket, void** sslptr);
    //If this returns 1:
    //The socket is now, after so_SelectWait(), marked to be ready for reading.
@@ -113,7 +113,7 @@ void so_SelectWantWrite(int socket, int enabled);
    //If you specify 1 and then don't do a write when the socket is ready for it,
    //you'll run in a lot of ugly polling. Therefore set to 0 if all writing is
    //done.
-   
+
 /* === accept new connections, connect and send/recv data === */
 int so_AcceptConnection(int socket, int iptype, char* writeip, int* writesocket); //0: failure, 1: success
 int so_ConnectSocketToIP(int socket, const char* ip, unsigned int port);
@@ -144,5 +144,3 @@ void so_CloseSSLSocket(int socket, void** sslptr);
 #define IPTYPE_IPV6 2
 
 #endif
-
-

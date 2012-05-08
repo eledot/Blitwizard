@@ -91,4 +91,3 @@ void hashmap_Free(hashmap* h) {
     if (h->items) {free(h->items);}
     free(h);
 }
-

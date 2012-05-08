@@ -27,4 +27,3 @@ mutex* mutex_Create();
 void mutex_Destroy(mutex* m);
 void mutex_Lock(mutex* m);
 void mutex_Release(mutex* m);
-
