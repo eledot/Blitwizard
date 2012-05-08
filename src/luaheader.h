@@ -26,9 +26,13 @@
 #define LUAHEADER_H_
 
 #ifdef LUA_5_2_HEADER
-#include "lua5.2.h"
+#include "lua5.2/lua.h"
+#include "lua5.2/lauxlib.h"
+#include "lua5.2/lualib.h"
 #else
 #include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
 #endif
 
 #endif //ifndef LUAHEADER_H_

@@ -22,8 +22,6 @@
 */
 
 #include "luaheader.h"
-#include "lauxlib.h"
-#include "lualib.h"
 #include "luastate.h"
 #include "luafuncs.h"
 #include "luafuncs_physics.h"
