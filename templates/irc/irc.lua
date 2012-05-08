@@ -164,6 +164,9 @@ blitwiz.net.irc.open = function(name, port, nickname, callback_on_event)
 end
 
 function blitwiz.net.irc.quit(server, reason)
+    if reason == nil then
+        reason = "Bye"
+    end
     blitwiz.net.send(server.connection, "QUIT :" .. reason .. "\n")
     blitwiz.net.close(server.connection)
     server.connection = nil
