@@ -389,7 +389,7 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
     # Check for regular -llua5.2 first
     AC_CHECK_LIB([lua5.2], [lua_close],[
         AC_CHECK_LIB([lua5.2], [lua_rawlen],[
-            AC_CHECK_HEADER([lua5.2.h], [
+            AC_CHECK_HEADER([lua5.2/lua.h], [
                 #shared lib is there!
                 LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
