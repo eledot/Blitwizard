@@ -26,7 +26,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include "lua.h"
+#include "luaheader.h"
 #include "lauxlib.h"
 
 #include "os.h"

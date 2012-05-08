@@ -26,7 +26,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include "lua.h"
+#include "luaheader.h"
 
 #include "luaerror.h"
 #include "luastate.h"

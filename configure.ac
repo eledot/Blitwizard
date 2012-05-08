@@ -400,18 +400,20 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
     ])
 
     # Check for -llua5.2
-    AC_CHECK_LIB([lua5.2], [lua_close],[
-        AC_CHECK_LIB([lua5.2], [lua_rawlen],[
-            AC_CHECK_HEADER([lua.h], [
-                #shared lib is there!
-                LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+    AS_IF([test "x$HAVE_LUA_SHARED" = xno],[
+        AC_CHECK_LIB([lua5.2], [lua_close],[
+            AC_CHECK_LIB([lua5.2], [lua_rawlen],[
+                AC_CHECK_HEADER([lua5.2.h], [
+                    #shared lib is there!
+                    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
-                HAVE_LUA_SHARED="yes"
-                SHARED_LUA_5_2="yes"
-                FAST_FLOAT2INT_FEATURE_ENABLED="no, need static liblua"
+                    HAVE_LUA_SHARED="yes"
+                    SHARED_LUA_5_2="yes"
+                    FAST_FLOAT2INT_FEATURE_ENABLED="no, need static liblua"
+                ])
             ])
         ])
-    ]) 
+    ])
 
     AS_IF([test "x$HAVE_LUA_SHARED" = xno],[
         #nothing there
@@ -484,6 +486,9 @@ SDLADDED=no
 statictest=`echo $STATIC_LIBS_USE | grep lua`
 AS_IF([test -z "$statictest"], [
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DNOLLIMITS"
+    AS_IF([test "x$SHARED_LUA_5_2" = xyes],[
+        FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DLUA_5_2_HEADER"
+    ])
 ])
 AS_IF([test "x$GRAPHICS_FEATURE_ENABLED" = xyes],[
     statictest=`echo $STATIC_LIBS_USE | grep SDL2`

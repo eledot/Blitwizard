@@ -26,7 +26,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "lua.h"
+#include "luaheader.h"
 #include "luaerror.h"
 
 char badargument1[] = "bad argument #%d to `%s` (%s expected, got %s)";

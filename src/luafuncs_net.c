@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include "lua.h"
+#include "luaheader.h"
 #include "luaerror.h"
 #include "lauxlib.h"
 #include "connections.h"

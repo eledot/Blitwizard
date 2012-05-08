@@ -21,7 +21,7 @@
 
 */
 
-#include "lua.h"
+#include "luaheader.h"
 #include "lauxlib.h"
 #include "lualib.h"
 #include "luastate.h"
