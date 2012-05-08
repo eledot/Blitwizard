@@ -385,6 +385,8 @@ AC_MSG_CHECKING([for static lua library])
 AS_IF([test ! -f "src/lua/src/lua.h"],[
     AC_MSG_RESULT([no])
     HAVE_LUA_SHARED="no"
+
+    # Check for regular -llua
     AC_CHECK_LIB([lua], [lua_close],[
         AC_CHECK_LIB([lua], [lua_rawlen],[
             AC_CHECK_HEADER([lua.h], [
@@ -396,6 +398,21 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
             ])
         ])
     ])
+
+    # Check for -llua5.2
+    AC_CHECK_LIB([lua5.2], [lua_close],[
+        AC_CHECK_LIB([lua5.2], [lua_rawlen],[
+            AC_CHECK_HEADER([lua.h], [
+                #shared lib is there!
+                LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  liblua: shared"
+                HAVE_LUA_SHARED="yes"
+                SHARED_LUA_5_2="yes"
+                FAST_FLOAT2INT_FEATURE_ENABLED="no, need static liblua"
+            ])
+        ])
+    ]) 
+
     AS_IF([test "x$HAVE_LUA_SHARED" = xno],[
         #nothing there
         AC_MSG_ERROR([Lua 5.2 is required for blitwizard. Check README-deps.txt for help on how to add it.])
@@ -532,7 +549,11 @@ AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
 
 statictest=`echo $STATIC_LIBS_USE | grep lua`
 AS_IF([test -z "$statictest"],[
-    FINAL_LD_FLAGS="$FINAL_LD_FLAGS -llua"
+    AS_IF([test "x$SHARED_LUA_5_2" = "yes"],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -llua5.2"
+    ],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -llua"
+    ])
 ], [
     FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardlua"
     FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ilua/src"
