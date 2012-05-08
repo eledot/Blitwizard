@@ -33,7 +33,7 @@ function blitwiz.font.register(path, name, charwidth, charheight, charsperline, 
 		charsperline,
 		charset
 	}
-    result = pcall(loadfontimage)
+    result = pcall(loadfontimage, path)
     if result == false then
         -- We cannot load the font as it seems
         blitwiz.font.fonts[name] = nil
@@ -93,6 +93,9 @@ end
 function blitwiz.font.draw(name, text, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
 	local origposx = posx
 	local font = blitwiz.font.fonts[name]
+    if font == nil then
+        error ("Font \"" .. name .. "\" is not loaded")
+    end
 	local i = 1
 	while i <= #text do
 		local character = string.byte(string.sub(text, i, i))

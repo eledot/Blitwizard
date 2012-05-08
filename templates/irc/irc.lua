@@ -91,6 +91,7 @@ blitwiz.net.irc.open = function(name, port, nickname, callback_on_event)
             server.nickname = nickname
         end,
         function(stream, line)
+            callback_on_event(server, "raw", line)
             local args = {string.split(line, " ")}
             local i = 1
             local argc = #args
