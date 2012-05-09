@@ -27,7 +27,7 @@
 #include "SDL.h"
 #else
 #ifdef WINDOWS
-
+#include <windows.h>
 #else
 #include <time.h>
 #include <unistd.h>
@@ -54,8 +54,12 @@ int startinitialised = 0;
 uint64_t oldtime = 0;
 uint64_t timeoffset = 0;
 uint64_t time_GetMilliseconds() {
+#if defined(HAVE_SDL) || defined(WINDOWS)
 #ifdef HAVE_SDL
     uint64_t i = SDL_GetTicks();
+#else
+    uint64_t i = GetTickCount();
+#endif
     i += timeoffset; //add an offset we might have set
     if (i > oldtime) {
         //normal time difference
@@ -66,10 +70,6 @@ uint64_t time_GetMilliseconds() {
         i += timeoffset;
     }
 #else //ifdef HAVE_SDL
-#ifdef WINDOWS
-    // WINDOWS NO-SDL TIME
-#error "This code path is not implemented"
-#else //ifdef WINDOWS
 #ifdef MAC
     //MAC NO-SDL TIME
     if (!startinitialised) {
@@ -101,7 +101,6 @@ uint64_t time_GetMilliseconds() {
         i += oldtimestamp;
     }
 #endif //ifdef MAC
-#endif //ifdef WINDOWS
 #endif //ifdef HAVE_SDL
     return i;
 }
