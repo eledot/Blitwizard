@@ -126,7 +126,7 @@ if [ ! -e libs/libblitwizardspeex.a ]; then
             hostoption="--host=\"$HOST\""
             if [ -z "$HOST" ]; then
                 hostoption=""
-            end
+            fi
             configureline="./configure $hostoption --with-ogg-libraries=\"$ogglibrarydir\" --with-ogg-includes=\"$oggincludedir\" --disable-oggtest --disable-shared --enable-static && make clean && make"
             echo "Speex configure line: $configureline"
             cd src/speex && $configureline || { echo "Failed to compile libspeex"; exit 1; }
