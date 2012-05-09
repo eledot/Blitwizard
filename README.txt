@@ -52,7 +52,7 @@ Ship-your-game.txt.
 MORE AUDIO FORMATS THROUGH FFMPEG:
 
 Blitwizard supports FFmpeg, however it does not ship with it.
-FFmpeg supports a wide range of mulltimedia formats (e.g. mp3).
+FFmpeg supports a wide range of multimedia formats (e.g. mp3).
 
 However, many other programs install FFmpeg and blitwizard does
 automatically attempt to load and locate it if that is the case.
