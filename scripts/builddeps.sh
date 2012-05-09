@@ -123,10 +123,12 @@ if [ ! -e libs/libblitwizardspeex.a ]; then
             # Build speex and remember to tell it where ogg is
             oggincludedir="`pwd`/src/ogg/include/"
             ogglibrarydir="`pwd`/src/ogg/src/.libs/"
-            cd src/speex && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+            configureline="./configure --host=\"$HOST\" --with-ogg-libraries=\"$ogglibrarydir\" --with-ogg-includes=\"$oggincludedir\" --disable-oggtest --disable-shared --enable-static && make clean && make"
+            echo "Speex configure line: $configureline"
+            cd src/speex && $configureline || { echo "Failed to compile libspeex"; exit 1; }
         else
             # Build speex
-            cd src/speex && ./configure --host="$HOST" --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+            cd src/speex && ./configure --host="$HOST" --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libspeex"; exit 1; }
         fi
         cd "$dir"
     fi
