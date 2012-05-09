@@ -88,6 +88,14 @@ AC_ARG_ENABLE([flac],
  esac],
 [enable_flac=yes])
 
+AC_ARG_ENABLE([speex],
+    [AS_HELP_STRING([--disable-speex],[disable optional Speex audio support.])],
+[case "${enableval}" in
+     yes | no ) enable_speex="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-speex) ;;
+ esac],
+[enable_speex=yes])
+
 
 # Evaluate target os:
 
@@ -341,33 +349,37 @@ AS_IF([test "x$enable_flac" = xyes],[
 
 # Check for libspeex availability:
 
-AC_MSG_CHECKING([for static libspeex library])
-AS_IF([test ! -f "src/speex/src/speexdec.c"],[
-    AC_MSG_RESULT([no])
+AS_IF([test "x$enable_speex" = xyes],[
+    AC_MSG_CHECKING([for static libspeex library])
+    AS_IF([test ! -f "src/speex/src/speexdec.c"],[
+        AC_MSG_RESULT([no])
 
-    # Check for shared speex lib:
-    HAVESHAREDSPEEX="no"
-    AC_CHECK_LIB([speexdsp], [speex_resampler_init],[
-        AC_CHECK_LIB([speex], [speex_encoder_init],[
-            AC_CHECK_HEADER([speex/speex_resampler.h], [
-                HAVESHAREDSPEEX="yes"
-                LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  libspeex: shared"
+        # Check for shared speex lib:
+        HAVESHAREDSPEEX="no"
+        AC_CHECK_LIB([speexdsp], [speex_resampler_init],[
+            AC_CHECK_LIB([speex], [speex_encoder_init],[
+                AC_CHECK_HEADER([speex/speex_resampler.h], [
+                    HAVESHAREDSPEEX="yes"
+                    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+      libspeex: shared"
+                ])
             ])
         ])
-    ])
 
-    # Deactivate features if necessary:
-    AS_IF([test "x$HAVESHAREDSPEEX" = xno],[
+        # Deactivate features if necessary:
+        AS_IF([test "x$HAVESHAREDSPEEX" = xno],[
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+      libspeex: no"
+            SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libspeex"
+        ])
+    ],[
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} speex"
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  libspeex: no"
-        SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libspeex"
+      libspeex: static"
     ])
 ],[
-    AC_MSG_RESULT([yes])
-    STATIC_LIBS_USE="${STATIC_LIBS_USE} speex"
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  libspeex: static"
+    SPEEX_RESAMPLING_FEATURE_ENABLED="no, disabled"
 ])
 
 ],[ # STOP enable_audio block
