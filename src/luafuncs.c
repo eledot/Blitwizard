@@ -27,7 +27,6 @@
 #include <stdarg.h>
 
 #include "luaheader.h"
-#include "lauxlib.h"
 
 #include "os.h"
 #include "luaerror.h"
