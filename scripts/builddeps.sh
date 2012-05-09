@@ -71,19 +71,19 @@ if [ ! -e libs/libimglib.a ]; then
         if [ -n "`echo $static_libs_use | grep png`" ]; then
             echo "Compiling libpng..."
             CC="$CC" AR="$AR" cd src/imgloader && make deps-png || { echo "Failed to compile libpng"; exit 1; }
-            cd $dir
+            cd "$dir"
         fi
         #static zlib
         if [ -n "`echo $static_libs_use | grep zlib`" ]; then
             echo "Compiling zlib..."
             CC="$CC" AR="$AR" cd src/imgloader && make deps-zlib || { echo "Failed to compile zlib"; exit 1; }
-            cd $dir
+            cd "$dir"
         fi
         echo "Compiling imgloader..."
         # Our custom threaded image loader wrapper
         CC="$CC" AR="$AR" cd src/imgloader && make || { echo "Failed to compile imgloader"; exit 1; }
     fi
-    cd $dir
+    cd "$dir"
 fi
 
 if [ ! -e libs/libblitwizardogg.a ]; then
@@ -91,7 +91,7 @@ if [ ! -e libs/libblitwizardogg.a ]; then
         echo "Compiling libogg..."
         # Build ogg
         cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
-        cd $dir
+        cd "$dir"
     fi
 fi
 
@@ -112,7 +112,7 @@ if [ ! -e libs/libblitwizardFLAC.a ]; then
             # Build flac and let it guess where ogg is
             cd src/flac && ./configure --host="$HOST" $asmoption --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
         fi
-        cd $dir
+        cd "$dir"
     fi
 fi
 
@@ -128,7 +128,7 @@ if [ ! -e libs/libblitwizardspeex.a ]; then
             # Build speex
             cd src/speex && ./configure --host="$HOST" --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
         fi
-        cd $dir
+        cd "$dir"
     fi
 fi
 
@@ -160,7 +160,7 @@ if [ "$NOVORBIS" = "yes" ]; then
                 cd src/vorbis && ./configure --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
             fi
         fi
-        cd $dir
+        cd "$dir"
     fi
 fi
 
@@ -180,7 +180,7 @@ if [ ! -e libs/libblitwizardbox2d.a ]; then
         $CXX $bflags Box2D/Rope/*.cpp || { echo "Failed to compile Box2D"; exit 1; }
         rm -f Box2D/libBox2D.a
         $AR rcs Box2D/libBox2D.a *.o || { echo "Failed to compile Box2D"; exit 1; }
-        cd $dir
+        cd "$dir"
     fi
 fi
 
@@ -194,11 +194,11 @@ if [ ! -e libs/libblitwizardSDL.a ]; then
             rm -r src/sdl/.hg/
             cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-mmx --disable-3dnow --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
         fi
-        cd $dir
+        cd "$dir"
         cd src/sdl && make clean || { echo "Failed to compile SDL2"; exit 1; }
-        cd $dir
+        cd "$dir"
         cd src/sdl && make || { echo "Failed to compile SDL2"; exit 1; }
-        cd $dir
+        cd "$dir"
     fi
 fi
 
@@ -206,14 +206,14 @@ if [ ! -e libs/libblitwizardlua.a ]; then
     if [ -n "`echo $static_libs_use | grep lua`" ]; then
         # Avoid the overly stupid Lua build script which doesn't even adhere to $CC
         cd src/lua/ && rm -f src/liblua.a && rm -rf build/ || { echo "Failed to compile Lua 5"; exit 1; }
-        cd $dir
+        cd "$dir"
         cd src/lua/ && mkdir -p build/ && cp src/*.c build/ && cp src/*.h build/ || { echo "Failed to compile Lua 5"; exit 1; }
-        cd $dir
+        cd "$dir"
         if [ -z "$AR" ]; then
             AR="ar"
         fi
         cd src/lua/build && rm lua.c && rm luac.c && $CC -c -O2 *.c && $AR rcs ../src/liblua.a *.o || { echo "Failed to compile Lua 5"; exit 1; }
-        cd $dir
+        cd "$dir"
     fi
 fi
 
