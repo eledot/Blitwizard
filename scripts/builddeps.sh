@@ -121,13 +121,13 @@ if [ ! -e libs/libblitwizardspeex.a ]; then
         echo "Compiling libspeex..."
         if [ -n "`echo $static_libs_use | grep ogg`" ]; then
             # Build speex and remember to tell it where ogg is
-            oggincludedir="`pwd | sed 's/ /\\\\ /g'`/src/ogg/include/"
-            ogglibrarydir="`pwd | sed 's/ /\\\\ /g'`/src/ogg/src/.libs/"
+            oggincludedir="`pwd`/src/ogg/include/"
+            ogglibrarydir="`pwd`/src/ogg/src/.libs/"
             hostoption="--host=\"$HOST\""
             if [ -z "$HOST" ]; then
                 hostoption=""
             fi
-            configureline="./configure $hostoption --with-ogg-libraries=$ogglibrarydir --with-ogg-includes=$oggincludedir --disable-oggtest --disable-shared --enable-static && make clean && make"
+            configureline="./configure $hostoption --with-ogg-libraries=\"$ogglibrarydir\" --with-ogg-includes=\"$oggincludedir\" --disable-oggtest --disable-shared --enable-static && make clean && make"
             echo "Speex configure line: $configureline"
             cd src/speex && eval $configureline || { echo "Failed to compile libspeex"; exit 1; }
         else
