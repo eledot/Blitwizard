@@ -554,7 +554,7 @@ AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
 
 statictest=`echo $STATIC_LIBS_USE | grep lua`
 AS_IF([test -z "$statictest"],[
-    AS_IF([test "x$SHARED_LUA_5_2" = "yes"],[
+    AS_IF([test "x$SHARED_LUA_5_2" = xyes],[
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -llua5.2"
     ],[
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -llua"
