@@ -28,7 +28,6 @@
 
 #include "luaheader.h"
 #include "luaerror.h"
-#include "lauxlib.h"
 #include "connections.h"
 #include "luafuncs_net.h"
 #include "luastate.h"
