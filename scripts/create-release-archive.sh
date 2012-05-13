@@ -166,22 +166,26 @@ if [ "$REDOWNLOAD" = "yes" ]; then
     rm deps.zip
     wget http://www.blitwizard.de/download-files/deps.zip || { echo "Failed to download deps.zip for dependencies"; exit 1; }
     unzip deps.zip
+
+    # Get FFmpeg
+    USE_FFMPEG_TAR="yes"
+    wget http://www.blitwizard.de/ffmpeg.tar.bz2 || { USE_FFMPEG_TAR="no" }
+    if [ "x$USE_FFMPEG_TAR" = xyes ]; then
+        mkdir -p src/ffmpeg/
+        cd src/ffmpeg/
+        tar --strip-components=1 -xvjf ../../ffmpeg.tar.bz2
+        cd ../../
+    fi
 else
     cd blitwizard
 fi
 
 # Do android build here
-if [ "$RELEASETYPE" = "android" ]; then
+if [ "x$RELEASETYPE" = xandroid ]; then
     cd ..
     sh android/android.sh "$ANDROID_SDK_PATH" "$ANDROID_NDK_PATH" "$REDOWNLOAD" || { echo "Failed to complete Android build."; exit 1; }
     exit 0;
 fi
-
-# Ensure FFmpeg support by providing the source of it
-mkdir src/ffmpeg/
-cd src/ffmpeg/
-tar -xjvf ../../ffmpeg-*.tar.bz2 --strip-components=1
-cd ../../
 
 # Do ./configure
 if [ "$TARGETHOST" = "" ]; then
