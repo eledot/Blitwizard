@@ -130,13 +130,22 @@ LIBS_DEP_INFO_TEXT="
 
 AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
     AC_MSG_NOTICE([FFmpeg source code appears to be present, will compile with FFmpeg support.])
+    FFMPEG_CONFIG_FAILED="no"
     AS_IF([test ! -e "src/ffmpeg/libavutil/avconfig.h"], [
         AC_WARN([FFmpeg is not configured yet. FFmpeg will be now configured (but not built) with recommended options. If you want to do that yourself, please cancel and do it now, then rerun blitwizard ./configure.])
-        { cd src/ffmpeg && ./configure --disable-libgsm --enable-runtime-cpudetect  --enable-version3 --disable-gpl --enable-shared --disable-doc --disable-ffmpeg --disable-avconv --disable-ffplay --disable-ffprobe --disable-ffserver --disable-protocols --disable-devices; } || { AC_MSG_ERROR([Failed to configure FFmpeg.]); exit 1; }
+        CONFIGUREFFMPEG="cd src/ffmpeg && ./configure --disable-libgsm --enable-runtime-cpudetect  --enable-version3 --disable-gpl --enable-shared --disable-doc --disable-ffmpeg --disable-avconv --disable-ffplay --disable-ffprobe --disable-ffserver --disable-protocols --disable-devices;"
+        eval $CONFIGUREFFMPEG || { FFMPEG_CONFIG_FAILED="yes"; }
         cd ../../
     ])
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+    AS_IF([test "x$FFMPEG_CONFIG_FAILED" = xno],[
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   FFmpeg headers from tarball: yes"
+    ],[
+        AC_WARN([Failed to configure FFmpeg. Blitwizard will NOT have any FFmpeg support])
+        LIBS_DEP_INFO_TEXT="${LIPS_DEP_INFO_TEXT}
+  FFmpeg headers from tarball: no"
+        FFMPEG_FEATURE_ENABLED="no, FFmpeg configure in tarball failed" 
+    ])
 ],[
     AC_WARN([FFmpeg source code is not present or not properly placed. Blitwizard will NOT have any FFmpeg support.])
     LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
