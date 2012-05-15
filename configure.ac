@@ -361,7 +361,7 @@ AS_IF([test "x$enable_speex" = xyes],[
                 AC_CHECK_HEADER([speex/speex_resampler.h], [
                     HAVESHAREDSPEEX="yes"
                     LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-      libspeex: shared"
+  libspeex: shared"
                 ])
             ])
         ])
@@ -369,14 +369,14 @@ AS_IF([test "x$enable_speex" = xyes],[
         # Deactivate features if necessary:
         AS_IF([test "x$HAVESHAREDSPEEX" = xno],[
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-      libspeex: no"
+  libspeex: no"
             SPEEX_RESAMPLING_FEATURE_ENABLED="no, need libspeex"
         ])
     ],[
         AC_MSG_RESULT([yes])
         STATIC_LIBS_USE="${STATIC_LIBS_USE} speex"
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-      libspeex: static"
+  libspeex: static"
     ])
 ],[
     SPEEX_RESAMPLING_FEATURE_ENABLED="no, disabled"

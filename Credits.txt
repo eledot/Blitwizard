@@ -3,3 +3,12 @@ Blitwizard Credits:
 Project lead/Programmer: Jonas Thiem
 Mac builds and porting assistance: Nicolas Haunold
 Debian/ARM build testing: Francesco Ariis
+
+
+Additional thanks to:
+
+Sam Lantinga and SDL team for SDL 2.0
+Gabriel Jacobo for writing and pushing sprite scaling/rotation into SDL
+Xiph Foundation for all the free audio projects
+
+
