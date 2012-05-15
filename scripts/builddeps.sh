@@ -65,6 +65,7 @@ dir=`pwd`
 
 echo "Will build static dependencies now."
 
+# libpng/zlib/imglib:
 if [ ! -e libs/libimglib.a ]; then
     if [ -n "`echo $static_libs_use | grep imgloader`" ]; then
         # static png:
@@ -86,6 +87,26 @@ if [ ! -e libs/libimglib.a ]; then
     cd "$dir"
 fi
 
+# Copy compiled imglib
+if [ ! -e libs/libimglib.a ]; then
+    if [ -n "`echo $static_libs_use | grep imgloader`" ]; then
+        cp src/imgloader/libimglib.a libs/ || { echo "Failed to copy imglib"; exit 1; }
+    fi
+fi
+
+# Copy compiled png/zlib
+if [ ! -e libs/libblitwizardpng.a ]; then
+    if [ -n "`echo $static_libs_use | grep png`" ]; then
+        cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
+    fi
+fi
+if [ ! -e libs/libblitwizardzlib.a ]; then
+    if [ -n "`echo $static_libs_use | grep zlib`" ]; then
+        cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
+    fi
+fi
+
+# libogg:
 if [ ! -e libs/libblitwizardogg.a ]; then
     if [ -n "`echo $static_libs_use | grep ogg`" ]; then
         echo "Compiling libogg..."
@@ -95,6 +116,14 @@ if [ ! -e libs/libblitwizardogg.a ]; then
     fi
 fi
 
+# Copy compiled libogg:
+if [ ! -e libs/libblitwizardogg.a ]; then
+    if [ -n "`echo $static_libs_use | grep ogg`" ]; then
+        cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a || { echo "Failed to copy libogg"; exit 1; }
+    fi
+fi
+
+# libFLAC:
 if [ ! -e libs/libblitwizardFLAC.a ]; then
     if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
         echo "Compiling libFLAC..."
@@ -116,6 +145,14 @@ if [ ! -e libs/libblitwizardFLAC.a ]; then
     fi
 fi
 
+# Copy compiled libFLAC:
+if [ ! -e libs/libblitwizardFLAC.a ]; then
+    if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
+        cp src/flac/src/libFLAC/.libs/libFLAC.a libs/libblitwizardFLAC.a || { echo "Failed to copy libFLAC"; exit 1; }
+    fi
+fi
+
+# libspeex:
 if [ ! -e libs/libblitwizardspeex.a ]; then
     if [ -n "`echo $static_libs_use | grep speex`" ]; then
         echo "Compiling libspeex..."
@@ -138,6 +175,18 @@ if [ ! -e libs/libblitwizardspeex.a ]; then
     fi
 fi
 
+# Copy compiled libspeex/libspeexdsp:
+if [ ! -e libs/libblitwizardspeex.a ]; then
+    if [ -n "`echo $static_libs_use | grep speex`" ]; then
+        cp src/speex/libspeex/.libs/libspeex.a libs/libblitwizardspeex.a || { echo "Failed to copy libspeex"; exit 1; }
+    fi
+fi
+if [ ! -e libs/libblitwizardspeexdsp.a ]; then
+    if [ -n "`echo $static_libs_use | grep speex`" ]; then
+        cp src/speex/libspeex/.libs/libspeexdsp.a libs/libblitwizardspeexdsp.a || { echo "Failed to copy libspeexdsp"; exit 1; }
+    fi
+fi
+
 NOVORBIS="no"
 if [ ! -e libs/libblitwizardvorbis.a ]; then
     NOVORBIS="yes"
@@ -146,6 +195,7 @@ if [ ! -e libs/libblitwizardvorbisfile.a ]; then
     NOVORBIS="yes"
 fi
 
+# libvorbis/libvorbisfile:
 if [ "$NOVORBIS" = "yes" ]; then
     if [ -n "`echo $static_libs_use | grep vorbis`" ]; then
         echo "Compiling libvorbis..."
@@ -170,6 +220,15 @@ if [ "$NOVORBIS" = "yes" ]; then
     fi
 fi
 
+# Copy compiled libvorbis/libvorbisfile
+if [ "$NOVORBIS" = "yes" ]; then
+    if [ -n "`echo $static_libs_use | grep vorbis`" ]; then
+        cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a || { echo "Failed to copy libvorbis"; exit 1; }
+        cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a || { echo "Failed to copy libvorbisfile"; exit 1; }
+    fi
+fi
+
+# libBox2D:
 if [ ! -e libs/libblitwizardbox2d.a ]; then
     if [ -n "`echo $static_libs_use | grep box2d`" ]; then
         # Build box2d
@@ -190,6 +249,23 @@ if [ ! -e libs/libblitwizardbox2d.a ]; then
     fi
 fi
 
+# Copy compiled libBox2D:
+if [ ! -e libs/libblitwizardbox2d.a ]; then
+    if [ -n "`echo $static_libs_use | grep box2d`" ]; then
+        BOX2DCOPIED1="true"
+        BOX2DCOPIED2="true"
+        cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a || { BOX2DCOPIED1="false"; }
+        cp src/box2d/Box2D/Box2D.lib libs/libblitwizardbox2d.a || { BOX2DCOPIED2="false"; }
+        if [ "$BOX2DCOPIED1" = "false" ]; then
+            if [ "$BOX2DCOPIED2" = "false" ]; then
+                echo "Failed to copy Box2D library"
+                exit 1
+            fi
+        fi
+    fi
+fi
+
+# libSDL:
 if [ ! -e libs/libblitwizardSDL.a ]; then
     if [ -n "`echo $static_libs_use | grep SDL2`" ]; then
         # Build SDL 2
@@ -208,6 +284,14 @@ if [ ! -e libs/libblitwizardSDL.a ]; then
     fi
 fi
 
+# Copy compiled SDL library
+if [ ! -e libs/libblitwizardSDL.a ]; then
+    if [ -n "`echo $static_libs_use | grep SDL2`" ]; then
+        cp src/sdl/build/.libs/libSDL2.a libs/libblitwizardSDL.a || { echo "Failed to copy SDL2 library"; exit 1; }
+    fi
+fi
+
+# liblua:
 if [ ! -e libs/libblitwizardlua.a ]; then
     if [ -n "`echo $static_libs_use | grep lua`" ]; then
         # Avoid the overly stupid Lua build script which doesn't even adhere to $CC
@@ -223,76 +307,16 @@ if [ ! -e libs/libblitwizardlua.a ]; then
     fi
 fi
 
-# Wipe out the object files of blitwizard if we need to
-if [ "$changedhost" = "yes" ]; then
-    rm -f src/*.o
-fi
-
-# Copy libraries
-if [ ! -e libs/libblitwizardSDL.a ]; then
-    if [ -n "`echo $static_libs_use | grep SDL2`" ]; then
-        cp src/sdl/build/.libs/libSDL2.a libs/libblitwizardSDL.a || { echo "Failed to copy SDL2 library"; exit 1; }
-    fi
-fi
-if [ "$NOVORBIS" = "yes" ]; then
-    if [ -n "`echo $static_libs_use | grep vorbis`" ]; then
-        cp src/vorbis/lib/.libs/libvorbis.a libs/libblitwizardvorbis.a || { echo "Failed to copy libvorbis"; exit 1; }
-        cp src/vorbis/lib/.libs/libvorbisfile.a libs/libblitwizardvorbisfile.a || { echo "Failed to copy libvorbisfile"; exit 1; }
-    fi
-fi
-if [ ! -e libs/libblitwizardogg.a ]; then
-    if [ -n "`echo $static_libs_use | grep ogg`" ]; then
-        cp src/ogg/src/.libs/libogg.a libs/libblitwizardogg.a || { echo "Failed to copy libogg"; exit 1; }
-    fi
-fi
-if [ ! -e libs/libblitwizardFLAC.a ]; then
-    if [ -n "`echo $static_libs_use | grep FLAC`" ]; then
-        cp src/flac/src/libFLAC/.libs/libFLAC.a libs/libblitwizardFLAC.a || { echo "Failed to copy libFLAC"; exit 1; }
-    fi
-fi
-if [ ! -e libs/libblitwizardspeex.a ]; then
-    if [ -n "`echo $static_libs_use | grep speex`" ]; then
-        cp src/speex/libspeex/.libs/libspeex.a libs/libblitwizardspeex.a || { echo "Failed to copy libspeex"; exit 1; }
-    fi  
-fi
-if [ ! -e libs/libblitwizardspeexdsp.a ]; then
-    if [ -n "`echo $static_libs_use | grep speex`" ]; then
-        cp src/speex/libspeex/.libs/libspeexdsp.a libs/libblitwizardspeexdsp.a || { echo "Failed to copy libspeexdsp"; exit 1; }
-    fi  
-fi
-if [ ! -e libs/libimglib.a ]; then
-    if [ -n "`echo $static_libs_use | grep imgloader`" ]; then
-        cp src/imgloader/libimglib.a libs/ || { echo "Failed to copy imglib"; exit 1; }
-    fi
-fi
-if [ ! -e libs/libblitwizardpng.a ]; then
-    if [ -n "`echo $static_libs_use | grep png`" ]; then
-        cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
-    fi
-fi
-if [ ! -e libs/libblitwizardzlib.a ]; then
-    if [ -n "`echo $static_libs_use | grep zlib`" ]; then
-        cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
-    fi
-fi
+# Copy compiled liblua:
 if [ ! -e libs/libblitwizardlua.a ]; then
     if [ -n "`echo $static_libs_use | grep lua`" ]; then
         cp src/lua/src/liblua.a libs/libblitwizardlua.a
     fi
 fi
-if [ ! -e libs/libblitwizardbox2d.a ]; then
-    if [ -n "`echo $static_libs_use | grep box2d`" ]; then
-        BOX2DCOPIED1="true"
-        BOX2DCOPIED2="true"
-        cp src/box2d/Box2D/libBox2D.a libs/libblitwizardbox2d.a || { BOX2DCOPIED1="false"; }
-        cp src/box2d/Box2D/Box2D.lib libs/libblitwizardbox2d.a || { BOX2DCOPIED2="false"; }
-        if [ "$BOX2DCOPIED1" = "false" ]; then
-            if [ "$BOX2DCOPIED2" = "false" ]; then
-                echo "Failed to copy Box2D library"
-                exit 1
-            fi
-        fi
-    fi
+
+# Wipe out the object files of blitwizard if we need to
+if [ "$changedhost" = "yes" ]; then
+    rm -f src/*.o
 fi
 
 # Remember for which target we built
