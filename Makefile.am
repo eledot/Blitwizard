@@ -2,8 +2,8 @@
 SUBDIRS = scripts src tests
 
 clean:
-	cd libs && rm libblitwizard*.a
-	cd libs && rm libimglib.a
+	cd libs && rm -f libblitwizard*.a
+	cd libs && rm -f libimglib.a
 install:
 	@echo "Install is currently not supported."
 	@echo "Please copy bin/blitwizard and templates/ into the project folders"
