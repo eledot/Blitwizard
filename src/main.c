@@ -677,13 +677,13 @@ int main(int argc, char** argv) {
 
     //when graphics or audio is open, run the main loop
 #ifdef USE_GRAPHICS
-#ifdef USE_SOUND
+#ifdef USE_AUDIO
     if (graphics_AreGraphicsRunning() || (audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen()|| listeners_HaveActiveListeners()) {
 #else
     if (graphics_AreGraphicsRunning() || !connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
 #endif
 #else
-#ifdef USE_SOUND
+#ifdef USE_AUDIO
     if ((audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
 #else
     if (!connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
@@ -849,7 +849,7 @@ int main(int argc, char** argv) {
 #endif
 
             //we might want to quit if there is nothing else to do
-#ifdef USE_SOUND
+#ifdef USE_AUDIO
             if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners() && audiomixer_NoSoundsPlaying()) {
 #else
             if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners()) {

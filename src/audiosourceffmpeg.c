@@ -68,13 +68,14 @@ int audiosourceffmpeg_LoadFFmpeg() {
 #define DECODEBUFUSESIZE (4096*2)
 #define DECODEBUFSIZE (DECODEBUFUSESIZE + FF_INPUT_BUFFER_PADDING_SIZE)
 #define DECODEBUFMEMMOVETHRESHOLD (4096)
-#define DECODEDBUFSIZE 4096
+#define DECODEDBUFSIZE (4096*20)
 
 struct audiosourceffmpeg_internaldata {
     struct audiosource* source;
     int sourceeof;
     int eof;
     int returnerroroneof;
+    int packetseof;
 
     unsigned char* aviobuf;
     unsigned char* buf __attribute__ ((aligned(16)));
@@ -169,8 +170,11 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
     struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
     if (idata->sourceeof) {return 0;}
 
+    printf("Requested: %d\n", buf_size);
+
     if (idata->source) {
         int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size);
+        printinfo("ffmpegreader: read bytes: %d", i);
         errno = 0;
         if (i < 0) {
             idata->returnerroroneof = 1;
@@ -277,6 +281,7 @@ static void audiosourceffmpeg_Rewind(struct audiosource* source) {
         idata->source->rewind(idata->source);
     }
     idata->sourceeof = 0;
+    idata->packetseof = 0;
 }
 
 static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
@@ -425,10 +430,6 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         source->channels = c->channels;
         source->samplerate = c->sample_rate;
 
-        //Forget about the format context again (we only needed it to probe the format):
-        ffmpeg_av_free(idata->formatcontext);
-        idata->formatcontext = NULL;
-
         //Rewind the audio source:
         idata->source->rewind(idata->source); //XXX: DO WE WANT THIS?!
 
@@ -452,6 +453,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
     if (idata->decodedbufbytes > 0 && bytes > 0) {
         //see how many we want to copy and how many we can actually copy:
         int copybytes = bytes;
+
         if (copybytes > idata->decodedbufbytes) {
             copybytes = idata->decodedbufbytes;
         }
@@ -467,105 +469,102 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
         idata->decodedbufbytes -= copybytes;
         bytes -= copybytes;
+        writtenbytes += copybytes;
     }
-
-    while (bytes > 0) {
-        //read undecoded data for FFmpeg into the buffer:
-        while (idata->bufbytes + idata->bufoffset < DECODEBUFUSESIZE) {
-            int i = idata->source->read(idata->source, (char*)idata->buf + idata->bufbytes + idata->bufoffset, DECODEBUFUSESIZE - (idata->bufbytes + idata->bufoffset));
-            if (i < 0) { // read error
-                audiosourceffmpeg_FatalError(source);
-                return -1;
-            }
-            if (i == 0) {break;} // EOF
-            idata->bufbytes += i; // read was successful, continue if required
+    while (bytes > 0 && !idata->packetseof) {
+        int packetsize = -1;
+        if (!idata->packetseof) {
+            packetsize = ffmpeg_av_read_frame(idata->formatcontext, &idata->packet);
         }
-        if (idata->bufbytes <= 0) {break;} // we haven't read anything new
+        if (packetsize >= 0) {
+            //prepare packet
+            //idata->packet.size = idata->bufbytes;
+            //idata->packet.data = (unsigned char*)idata->buf + idata->bufoffset;
+            //idata->buf[DECODEBUFSIZE-1] = 0; //apparently required to avoid MPEG overshooting buffer
 
-        //prepare packet
-        idata->packet.size = idata->bufbytes;
-        idata->packet.data = (unsigned char*)idata->buf + idata->bufoffset;
-        idata->buf[DECODEBUFSIZE-1] = 0; //apparently required to avoid MPEG overshooting buffer
-
-        //decode with FFmpeg:
-        //decode_audio3 (old, current variant):
-        if (!idata->tempbuf) {
-            idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
-        }
-        char* outputbuf __attribute__ ((aligned(16))) = idata->tempbuf;
-        int bufsize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-        int gotframe = 0;
-        int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)outputbuf, &bufsize, &idata->packet);
-        if (len > 0) {gotframe = 1;}
-
-        //decode_audio4 (new, upcoming variant):
-        //int gotframe;
-        //int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
-
-        if (len < 0) {
-            //A decode error occured:
-#ifdef FFMPEGDEBUG
-            char errbuf[512] = "Unknown";
-            ffmpeg_av_strerror(len, errbuf, sizeof(errbuf)-1);
-            errbuf[sizeof(errbuf)-1] = 0;
-            printwarning("[FFmpeg-debug] avcodec_decode_audio3 error: %s",errbuf);
-#endif
-            audiosourceffmpeg_FatalError(source);
-            return -1;
-        }else{
-            idata->bufoffset += len;
-            idata->bufbytes -= len;
-        }
-
-        //return data if we have some
-        if (gotframe) {
+            //decode with FFmpeg:
             //decode_audio3 (old, current variant):
-            int framesize = len;
-            const char* p = outputbuf;
+            if (!idata->tempbuf) {
+                idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+            }
+            char* outputbuf __attribute__ ((aligned(16))) = idata->tempbuf;
+            int bufsize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+            int gotframe = 0;
+            int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)outputbuf, &bufsize, &idata->packet);
+            if (len > 0) {gotframe = 1;}
 
             //decode_audio4 (new, upcoming variant):
-            //int framesize = ffmpeg_av_samples_get_buffer_size(NULL, idata->codeccontext->channels, idata->decodedframe->nb_samples, idata->codeccontext->sample_fmt, 1);
-            //const char* p = (char*)idata->decodedframe->data[0];
+            //int gotframe;
+            //int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
 
-            //first, export as much as we can
-            if (bytes > 0) {
-                //ideally, we would copy the whole frame:
-                unsigned int copybytes = framesize;
-
-                //practically, we don't want more than specified in 'bytes':
-                if (copybytes > bytes) {copybytes = bytes;}
-
-                //copy the bytes, move the buffers accordingly:
-                memcpy(buffer, p, copybytes);
-                buffer += copybytes;
-                bytes -= copybytes;
-                framesize -= copybytes;
-                p += copybytes;
-                writtenbytes += copybytes;
+            if (len < 0) {
+                //A decode error occured:
+    #ifdef FFMPEGDEBUG
+                char errbuf[512] = "Unknown";
+                ffmpeg_av_strerror(len, errbuf, sizeof(errbuf)-1);
+                errbuf[sizeof(errbuf)-1] = 0;
+                printwarning("[FFmpeg-debug] avcodec_decode_audio3 error: %s",errbuf);
+    #endif
+                audiosourceffmpeg_FatalError(source);
+                return -1;
+            }else{
+                if (len == 0) {
+                    idata->packetseof = 1;
+                }
             }
 
-            //maximal preserval size:
-            if (framesize > DECODEDBUFSIZE) {
-                //we will simply crop the frame.
-                //evil but the show must go on
-                framesize = DECODEDBUFSIZE;
-            }
+            //return data if we have some
+            if (gotframe) {
+                //decode_audio3 (old, current variant):
+                int framesize = len;
+                const char* p = outputbuf;
 
-            //if we have any bytes left, preserve them now:
-            if (framesize > 0) {
-                memcpy(idata->decodedbuf, p, framesize);
-                idata->decodedbufbytes = framesize;
+                //decode_audio4 (new, upcoming variant):
+                //int framesize = ffmpeg_av_samples_get_buffer_size(NULL, idata->codeccontext->channels, idata->decodedframe->nb_samples, idata->codeccontext->sample_fmt, 1);
+                //const char* p = (char*)idata->decodedframe->data[0];
+
+                //first, export as much as we can
+                if (bytes > 0) {
+                    //ideally, we would copy the whole frame:
+                    unsigned int copybytes = framesize;
+
+                    //practically, we don't want more than specified in 'bytes':
+                    if (copybytes > bytes) {copybytes = bytes;}
+
+                    //copy the bytes, move the buffers accordingly:
+                    memcpy(buffer, p, copybytes);
+                    buffer += copybytes;
+                    bytes -= copybytes;
+                    framesize -= copybytes;
+                    p += copybytes;
+                    writtenbytes += copybytes;
+                }
+
+                //maximal preserval size:
+                if (framesize > DECODEDBUFSIZE) {
+                    //we will simply crop the frame.
+                    //evil but the show must go on
+                    framesize = DECODEDBUFSIZE;
+                }
+
+                //if we have any bytes left, preserve them now:
+                if (framesize > 0) {
+                    memcpy(idata->decodedbuf, p, framesize);
+                    idata->decodedbufbytes = framesize;
+                }
             }
+        }else{
+            //EOF or error: 
+            idata->packetseof = 1;
         }
-        //ffmpeg_av_free_packet(idata->packet);
+    //ffmpeg_av_free_packet(idata->packet);
 
         //check if we want to memmove
-        if (idata->bufoffset > DECODEBUFMEMMOVETHRESHOLD) {
+        /*if (idata->bufoffset > DECODEBUFMEMMOVETHRESHOLD) {
             memmove(idata->buf, idata->buf + idata->bufoffset, DECODEBUFSIZE - idata->bufoffset);
             idata->bufoffset = 0;
-        }
+        }*/
     }
-    printf("ffmpeg: %d bytes read\n",writtenbytes);
     return writtenbytes;
 }
 
@@ -606,7 +605,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
         if (source) {source->close(source);}
         return NULL;
     }
-    memset(a,0,sizeof(*a));
+    memset(a, 0, sizeof(*a));
 
     //allocate internal data struct:
     a->internaldata = malloc(sizeof(struct audiosourceffmpeg_internaldata));
