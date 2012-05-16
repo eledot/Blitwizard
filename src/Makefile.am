@@ -16,5 +16,4 @@ AM_CXXFLAGS = $(FINAL_INCLUDE_FLAGS) $(STATICSTDCXX) -fno-PIC -O2 -Wall -Wextra 
 
 all-local: mytarget
 mytarget: blitwizard$(EXEEXT)
-	-mv ./blitwizard ../bin/
-	-mv ./blitwizard.exe ../bin/
+	sh ../scripts/copybin.sh
