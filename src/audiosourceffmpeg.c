@@ -57,6 +57,7 @@ void audiosourceffmpeg_DisableFFmpeg() {
 }
 
 int audiosourceffmpeg_LoadFFmpeg() {
+    printinfo("[FFmpeg] FFmpeg is not available because this Blitwizard build was compiled without FFmpeg support");
     return 0; //return failure
 }
 
@@ -192,7 +193,6 @@ static int audiosourceffmpeg_InitFFmpeg() {
 void audiosourceffmpeg_DisableFFmpeg() {
     if (ffmpegopened != 0) {return;}
     ffmpegopened = -1;
-    printinfo("[FFmpeg] Use of FFmpeg has been disabled.");
 }
 
 int audiosourceffmpeg_LoadFFmpeg() {
