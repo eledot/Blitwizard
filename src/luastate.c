@@ -21,6 +21,7 @@
 
 */
 
+#include "os.h"
 #include "luaheader.h"
 #include "luastate.h"
 #include "luafuncs.h"

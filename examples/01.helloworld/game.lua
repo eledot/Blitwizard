@@ -101,13 +101,19 @@ function blitwiz.on_step()
 	-- movements or calculations of any sort that are part
 	-- of your continuously running game simulation.
 
-	-- For this example, we just want to quit after 10 seconds
+	-- For this example, we could e.g. quit after 10 seconds -
+	-- see below for an explanation on how to achieve that:
 	
-	if preloadedTime == nil then
-		preloadedTime = blitwiz.time.getTime()
+    -- Remember the time when we started up:
+	if startupTime == nil then -- Check if we already remembered the time
+        -- We didn't, therefore set it:
+		startupTime = blitwiz.time.getTime()
 	end
-	if blitwiz.time.getTime() > preloadedTime + 10000 then
-		os.exit(0)
+
+    -- Check when 10 seconds have expired:
+	if blitwiz.time.getTime() > startupTime + 10000 then
+		-- Remove leading -- from next line to enable quitting after 10s:
+        --os.exit(0)
 	end
 end
 
