@@ -87,4 +87,17 @@
 #define HAVE_SDL
 #endif
 
+//Detect 32/64bit compilation (doesn't necessarily apply to system's 32/64bit):
+#ifdef WINDOWS
+#if defined(_WIN64)
+#define _64BIT
+#endif
+#else
+//gcc check:
+#if (defined(_LP64) || defined(__LP64__))
+#define _64BIT
+#endif
+#endif
+
+
 #endif //ifndef _BLITWIZARD_OS_H

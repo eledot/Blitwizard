@@ -172,6 +172,13 @@ void* library_LoadSearch(const char* name) {
     library_SearchDir("/usr/lib", name, &ptr);
     library_SearchDir("/lib", name, &ptr);
     library_SearchDir("/usr/local/lib", name, &ptr);
+#ifdef _64BIT
+    library_SearchDir("/usr/lib64", name, &ptr);
+    library_SearchDir("/usr/local/lib64", name, &ptr);
+#else
+    library_SearchDir("/usr/lib32", name, &ptr);
+    library_SearchDIr("/usr/local/lib32", &name, &ptr);
+#endif
     if (ptr) {
         return ptr;
     }

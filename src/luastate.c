@@ -503,7 +503,11 @@ static lua_State* luastate_New() {
     lua_pop(l, 1);
 
     char vstr[512];
-    snprintf(vstr, sizeof(vstr), "Blitwizard %s based on Lua 5.2", VERSION);
+    char is64bit[] = " (64-bit binary)";
+#ifndef _64BIT
+    strcpy(is64bit, "");
+#endif
+    snprintf(vstr, sizeof(vstr), "Blitwizard %s based on Lua 5.2%s", VERSION, is64bit);
     lua_pushstring(l, vstr);
     lua_setglobal(l, "_VERSION");
 
