@@ -205,11 +205,11 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
     struct audiosource* decodesource = audiosourceogg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
     if (!decodesource) {
         //try flac format:
-        decodesource = audiosourceflac_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
+        decodesource = audiosourceformatconvert_Create(audiosourceflac_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path))), AUDIOSOURCEFORMAT_F32LE);
 
         if (!decodesource) {
             //try FFmpeg:
-            decodesource = audiosourceffmpeg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
+            decodesource = audiosourceformatconvert_Create(audiosourceffmpeg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path))), AUDIOSOURCEFORMAT_F32LE);
             if (!decodesource) {
                 //unsupported audio format
                 audio_UnlockAudioThread();
@@ -219,7 +219,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
     }
 
     //wrap up the decoded audio into the resampler and fade/pan/vol modifier
-    channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(audiosourceresample_Create(decodesource, 48000));
+    channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(decodesource);//audiosourceresample_Create(decodesource, 48000));
 
     if (!channels[slot].fadepanvolsource) {
         audio_UnlockAudioThread();

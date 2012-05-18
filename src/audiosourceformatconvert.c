@@ -22,8 +22,13 @@
 */
 
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
 
+#include "audiosource.h"
 #include "audiosourceformatconvert.h"
+#include "mathhelpers.h"
 
 #define CONVERTBUFSIZE 32
 
@@ -69,7 +74,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
 
     //If we have previously converted bytes, return them:
     if (idata->convertbufbytes > 0 && bytes > 0) {
-        int amount = idata->convertbufbytes;
+        unsigned int amount = idata->convertbufbytes;
         if (amount > bytes) {amount = bytes;}
         
         //copy bytes:
@@ -93,10 +98,10 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         
         //check how many bytes we want:
         int wantbytes = 0;
-        if (idata->source->format == AUDIOSOURCEFORMAT_S16) {
+        if (idata->source->format == AUDIOSOURCEFORMAT_S16LE) {
             wantbytes = 2;
         }
-        if (idata->source->format == AUDIOSOURCEFORMAT_F32) {
+        if (idata->source->format == AUDIOSOURCEFORMAT_F32LE) {
             wantbytes = 4;
         }
 
@@ -113,16 +118,38 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         }
 
         //convert:
-        if (idata->source->format == AUDIOSOURCEFORMAT_S16 &&
-        idata->targetformat == AUDIOSOURCEFORMAT_F32) {
-            int16_t old = *((int16_t*)bytebuf);
-            float new = ((double)old * 2.0f / (double)INT_MAX)-1.0f;
+        double intmax_big = 32768;
+        double intmax_small = 32767;
+        if (idata->source->format == AUDIOSOURCEFORMAT_S16LE &&
+        idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
+            //convert s16le > f32le
+            int16_t old = *(int16_t*)((int16_t*)bytebuf);
+            double convert = old;
+            convert /= intmax_big;
+            float new = convert;
+
+            //copy the result into our buffer
             memcpy(idata->convertbuf, &new, sizeof(new));
+            idata->convertbufbytes += sizeof(new);
+        }
+        if (idata->source->format == AUDIOSOURCEFORMAT_F32LE &&
+        idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
+            //convert f32le > s16le
+            float old = *((float*)bytebuf);
+            double convert = old;
+            convert *= intmax_small;
+            int16_t new = (int16_t)fastdoubletoint32(convert);
+
+            //copy the result into our buffer
+            memcpy(idata->convertbuf, &new, sizeof(new));
+            idata->convertbufbytes += sizeof(new);
         }
 
         //return converted bytes;
-        int amount = idata->convertbufbytes;
-        if (amount > bytes) {amount = bytes;}
+        unsigned int amount = idata->convertbufbytes;
+        if (amount > bytes) {
+            amount = bytes;
+        }
         memcpy(buffer, idata->convertbuf, amount);
         writtenbytes += amount;
         buffer += amount;
@@ -169,9 +196,19 @@ static unsigned int audiosourceformatconvert_Peek(struct audiosource* source) {
 
 struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, unsigned int newformat) {
     //Check some obvious cases
-    if (newformat == AUDIOSOURCEFORMAT_UNKNOWN) {return NULL;}
-    if (!source || source->format == AUDIOSOURCEFORMAT_UNKNOWN) {return NULL;}
-    if (source->format == newformat) {return source;}
+    if (newformat == AUDIOSOURCEFORMAT_UNKNOWN) {
+        printf("boiling out #1\n");
+        return NULL;
+    }
+    if (!source || source->format == AUDIOSOURCEFORMAT_UNKNOWN || source->samplerate == 0) {
+        printf("boiling out #2\n");
+        return NULL;
+    }
+    if (source->format == newformat) {
+        printf("boiling out #3\n");
+        return source;
+    }
+    printf("Continuing...\n");
    
     //Allocate audio source struct 
     struct audiosource* a = malloc(sizeof(*a));
@@ -188,12 +225,15 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
         source->close(source);
         return NULL;
     }
-    struct audiosourceformat_internaldata* idata = a->internaldata;
+    struct audiosourceformatconvert_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));    
 
     //Remember some internal info:
     idata->source = source;
     idata->targetformat = newformat;
+    a->format = newformat;
+    a->channels = source->channels;
+    a->samplerate = source->samplerate;
 
     //Set callbacks:
     a->read = &audiosourceformatconvert_Read;

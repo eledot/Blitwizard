@@ -77,8 +77,7 @@ struct audiosourceffmpeg_internaldata {
     int returnerroroneof;
     int packetseof;
 
-    unsigned char* aviobuf;
-    unsigned char* buf __attribute__ ((aligned(16)));
+    unsigned char* aviobuf __attribute__ ((aligned(16)));
     unsigned int bufbytes;
     unsigned int bufoffset;
     char* decodedbuf __attribute__ ((aligned(16)));
@@ -301,11 +300,6 @@ static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
         ffmpeg_av_free(idata->iocontext);
         idata->iocontext = NULL;
     }
-    if (idata->buf) {
-        ffmpeg_av_free(idata->buf);
-        idata->buf = NULL;
-        idata->bufbytes = 0;
-    }
     if (idata->decodedframe) {
         ffmpeg_av_free(idata->decodedframe);
         idata->decodedframe = NULL;
@@ -413,13 +407,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             return -1;
         }
 
-        //Allocate actual decoding buf
-        idata->buf = ffmpeg_av_malloc(DECODEBUFSIZE);
-        if (!idata->buf) {
-            audiosourceffmpeg_FatalError(source);
-            return -1;
-        }
-
+        //Allocate buffer for finished, decoded data
         idata->decodedbuf = ffmpeg_av_malloc(DECODEDBUFSIZE);
         if (!idata->decodedbuf) {
             audiosourceffmpeg_FatalError(source);
@@ -429,7 +417,20 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         //Remember format data
         source->channels = c->channels;
         source->samplerate = c->sample_rate;
-
+        switch (c->sample_fmt) {
+        case AV_SAMPLE_FMT_U8:
+            source->format = AUDIOSOURCEFORMAT_U8LE;
+            break;
+        case AV_SAMPLE_FMT_S16:
+            source->format = AUDIOSOURCEFORMAT_S16LE;
+            break;
+        case AV_SAMPLE_FMT_FLT:
+            source->format = AUDIOSOURCEFORMAT_F32LE;
+            break;
+        default:
+            audiosourceffmpeg_FatalError(source);
+            return -1;
+        }
         if (source->channels <= 0 || source->samplerate <= 0) {
 #ifdef FFMPEGDEBUG
             printwarning("[FFmpeg-debug] format probing failed: channels or sample rate unknown");
@@ -469,20 +470,15 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         writtenbytes += copybytes;
     }
     while (bytes > 0 && !idata->packetseof) {
-        int packetsize = -1;
-        if (!idata->packetseof) {
-            packetsize = ffmpeg_av_read_frame(idata->formatcontext, &idata->packet);
+        int packetresult = -1;
+        if (!idata->packetseof) { //fetch new packet
+            packetresult = ffmpeg_av_read_frame(idata->formatcontext, &idata->packet);
         }
-        if (packetsize >= 0) {
-            //prepare packet
-            //idata->packet.size = idata->bufbytes;
-            //idata->packet.data = (unsigned char*)idata->buf + idata->bufoffset;
-            //idata->buf[DECODEBUFSIZE-1] = 0; //apparently required to avoid MPEG overshooting buffer
-
+        if (packetresult == 0) {
             //decode with FFmpeg:
-            //decode_audio3 (old, current variant):
+            //   old variant: decode_audio3:
             if (!idata->tempbuf) {
-                idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
+                idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE + 32);
             }
             char* outputbuf __attribute__ ((aligned(16))) = idata->tempbuf;
             int bufsize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
@@ -490,9 +486,10 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)outputbuf, &bufsize, &idata->packet);
             if (len > 0) {gotframe = 1;}
 
-            //decode_audio4 (new, upcoming variant):
-            //int gotframe;
-            //int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
+            //   new variant: decode_audio4:
+            /*int gotframe;
+            int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
+            */
 
             if (len < 0) {
                 //A decode error occured:
@@ -512,13 +509,14 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
             //return data if we have some
             if (gotframe) {
-                //decode_audio3 (old, current variant):
+                //   old variant: decode_audio3:
                 int framesize = len;
                 const char* p = outputbuf;
 
-                //decode_audio4 (new, upcoming variant):
-                //int framesize = ffmpeg_av_samples_get_buffer_size(NULL, idata->codeccontext->channels, idata->decodedframe->nb_samples, idata->codeccontext->sample_fmt, 1);
-                //const char* p = (char*)idata->decodedframe->data[0];
+                //   new variant: decode_audio4:
+                /*int framesize = ffmpeg_av_samples_get_buffer_size(NULL, idata->codeccontext->channels, idata->decodedframe->nb_samples, idata->codeccontext->sample_fmt, 1);
+                const char* p = (char*)idata->decodedframe->data[0];
+                */
 
                 //first, export as much as we can
                 if (bytes > 0) {
@@ -554,13 +552,6 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             //EOF or error: 
             idata->packetseof = 1;
         }
-    //ffmpeg_av_free_packet(idata->packet);
-
-        //check if we want to memmove
-        /*if (idata->bufoffset > DECODEBUFMEMMOVETHRESHOLD) {
-            memmove(idata->buf, idata->buf + idata->bufoffset, DECODEBUFSIZE - idata->bufoffset);
-            idata->bufoffset = 0;
-        }*/
     }
     return writtenbytes;
 }
@@ -628,7 +619,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
         return NULL;
     }
 
-    a->format = AUDIOSOURCEFORMAT_S16;
+    a->format = AUDIOSOURCEFORMAT_S16LE;
     a->read = &audiosourceffmpeg_Read;
     a->close = &audiosourceffmpeg_Close;
     a->rewind = &audiosourceffmpeg_Rewind;
