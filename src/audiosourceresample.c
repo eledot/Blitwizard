@@ -87,12 +87,15 @@ static void audiosourceresample_Rewind(struct audiosource* source) {
 }
 
 static void audiosourceresample_AppendResampled(struct audiosource* source, char* buffer, int size) {
+    //Append resampled data to the final buffer to be returned when reading
+    //from this audio source.
     struct audiosourceresample_internaldata* idata = source->internaldata;
     memcpy(idata->processedbuf + idata->processedbytes, buffer, size);
     idata->processedbytes += size;
 }
 
 static unsigned int audiosourceresample_GetResampleSpace(struct audiosource* source) {
+    //Find out how much resampled data we can still buffer
     struct audiosourceresample_internaldata* idata = source->internaldata;
     return sizeof(idata->processedbuf) - idata->processedbytes;
 }

@@ -430,9 +430,6 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         source->channels = c->channels;
         source->samplerate = c->sample_rate;
 
-        //Rewind the audio source:
-        idata->source->rewind(idata->source); //XXX: DO WE WANT THIS?!
-
         if (source->channels <= 0 || source->samplerate <= 0) {
 #ifdef FFMPEGDEBUG
             printwarning("[FFmpeg-debug] format probing failed: channels or sample rate unknown");
@@ -631,9 +628,11 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
         return NULL;
     }
 
+    a->format = AUDIOSOURCEFORMAT_S16;
     a->read = &audiosourceffmpeg_Read;
     a->close = &audiosourceffmpeg_Close;
     a->rewind = &audiosourceffmpeg_Rewind;
+    a->seek = NULL;
 #ifdef NOTHREADEDSDLRW
     a->closemainthread = &audiosourceffmpeg_CloseMainthread;
 #endif

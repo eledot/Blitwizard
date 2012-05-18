@@ -23,6 +23,10 @@
 
 #include "os.h"
 
+#define AUDIOSOURCEFORMAT_UNKNOWN 0
+#define AUDIOSOURCEFORMAT_S16 1
+#define AUDIOSOURCEFORMAT_F32 2
+
 struct audiosource {
 	//Read data:
 	int (*read)(struct audiosource* source, char* buffer, unsigned int bytes);
@@ -35,12 +39,23 @@ struct audiosource {
 	//An ugly hack needed as part of the workaround for SDL bug #1422.
 	int (*readmainthread)(struct audiosource* source, char* buffer, unsigned int bytes);
 #endif
+
+    //Seek:
+    int (*seek)(struct audiosource* source, unsigned int pos);
+    //Seek to the given sample position.
+    //Note this function may be NULL! Not all sources support seeking.
+    //Returns 0 when seeking fails, 1 when seeking succeeds.
 	
 	//Rewind:
 	void (*rewind)(struct audiosource* source);
 	//Rewind and start over from the beginning.
 	//This can be used any time as long as read has never returned an error (-1).
-	
+
+    //Peek at length:
+    unsigned int (*peek)(struct audiosource* source);
+	//Peek at total song length. Returns length in total samples.
+	//Returns 0 if peeking at length is not supported or length is unknown.
+
 	//Close audio source:
 	void (*close)(struct audiosource* source);
 	//Closes the audio source and frees this struct and all data.
@@ -59,6 +74,11 @@ struct audiosource {
 	//Channels:
 	unsigned int channels;
 	//This is set to the audio channels. Set to 0 for unknown or encoded (ogg) formats
+
+    //Audio sample format:
+    unsigned int format;
+    //This is set to the sample format.
 	
 	void* internaldata; //DON'T TOUCH, used for internal purposes.
 };
+
