@@ -42,10 +42,6 @@ struct audiosourceogg_internaldata {
     int returnerroroneof;
     char decodedbuf[512];
     unsigned int decodedbytes;
-#ifdef NOTHREADEDSDLRW
-    int rwmainthreadhack;
-    int nohackonrewind;
-#endif
 
     int vorbisopened;
     OggVorbis_File vorbisfile;
@@ -69,9 +65,6 @@ static void audiosourceogg_Rewind(struct audiosource* source) {
         idata->fetchedbytes = 0;
         idata->decodedbytes = 0;
         idata->vorbiseof = 0;
-#ifdef NOTHREADEDSDLRW
-        idata->nohackonrewind = 1;
-#endif
     }
 }
 
@@ -90,15 +83,7 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
     if (idata->fetchedbytes < sizeof(idata->fetchedbuf)) {
         if (!idata->filesourceeof) {
             int i;
-#ifdef NOTHREADEDSDLRW
-            if (idata->rwmainthreadhack) {
-                i = idata->filesource->readmainthread(idata->filesource, idata->fetchedbuf + idata->fetchedbytes, sizeof(idata->fetchedbuf) - idata->fetchedbytes);
-            }else{
-#endif
             i = idata->filesource->read(idata->filesource, idata->fetchedbuf + idata->fetchedbytes, sizeof(idata->fetchedbuf) - idata->fetchedbytes);
-#ifdef NOTHREADEDSDLRW
-            }
-#endif
             if (i <= 0) {
                 idata->filesourceeof = 1;
                 if (i < 0) {
@@ -224,12 +209,12 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
     while (bytes > 0) {
         //see how much we want to decode now
         unsigned int decodeamount = bytes;
-        if (decodeamount > sizeof(idata->decodedbuf)-idata->decodedbytes) {
-            decodeamount = sizeof(idata->decodedbuf)-idata->decodedbytes;
+        if (decodeamount > sizeof(idata->decodedbuf) - idata->decodedbytes) {
+            decodeamount = sizeof(idata->decodedbuf) - idata->decodedbytes;
         }
 
         //decode from encoded fetched bytes
-        unsigned int decodesamples = decodeamount/(source->channels * sizeof(float));
+        unsigned int decodesamples = decodeamount/(source->channels * sizeof(float)) - 1;
         if (
             decodesamples * (source->channels * sizeof(float)) < decodeamount &&
             (decodesamples+1) * (source->channels * sizeof(float)) <= (sizeof(idata->decodedbuf) - idata->decodedbytes)

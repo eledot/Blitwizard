@@ -218,6 +218,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
         }
     }
 
+#if (1 == 2)
     //wrap up the decoded audio into the resampler and fade/pan/vol modifier
     channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(audiosourceresample_Create(decodesource, 48000));
 
@@ -246,6 +247,14 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 
     //remember that loop audio source as final processed audio
     channels[slot].mixsource = channels[slot].loopsource;
+
+#else
+    channels[slot].fadepanvolsource = NULL;
+    channels[slot].loopsource = NULL;
+    channels[slot].mixsource = decodesource;
+//    channels[slot].mixsource = audiosourceresample_Create(decodesource, 48000);
+
+#endif
 
     audio_UnlockAudioThread();
     return id;

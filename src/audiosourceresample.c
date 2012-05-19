@@ -77,7 +77,7 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
     as->length = &audiosourceresample_Length;
     as->seek = &audiosourceresample_Seek;
 
-    return source;
+    return as;
 }
 
 #else
@@ -96,7 +96,7 @@ struct audiosourceresample_internaldata {
     char unprocessedbuf[512];
     unsigned int unprocessedbytes;
 
-    char processedbuf[4096];
+    char processedbuf[2048];
     unsigned int processedbytes;
 };
 
@@ -144,7 +144,11 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 
     if (!idata->st) {
         int error;
-        idata->st = speex_resampler_init(idata->source->channels, idata->source->samplerate, source->samplerate, 3, &error);
+#ifdef ANDROID
+        idata->st = speex_resampler_init(idata->source->channels, idata->source->samplerate, source->samplerate, 2, &error);
+#else
+        idata->st = speex_resampler_init(idata->source->channels, idata->source->samplerate, source->samplerate, 8, &error);
+#endif
         if (!idata->st) {
             idata->eof = 1;
             idata->returnerroroneof = 1;
@@ -171,8 +175,8 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 
     //Fetch new resampled content:
     while (bytes > 0) {
-        unsigned int wantbytes = idata->source->samplerate / 1000;
-        unsigned int outbytes = source->samplerate / 1000;
+        unsigned int wantbytes = idata->source->samplerate / 100;
+        unsigned int outbytes = (source->samplerate / 100) * 2; //doubled to avoid possible speex float bug on output limitation
 
         //fetch new source data if required
         if (idata->unprocessedbytes < wantbytes) {
@@ -197,8 +201,21 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
         //resample the data we have now:
         unsigned int in = idata->unprocessedbytes;
         unsigned int out = outbytes - idata->processedbytes;
-        int error = speex_resampler_process_interleaved_float(idata->st, (const float*)idata->unprocessedbuf, &in, (float*)idata->processedbuf + idata->processedbytes, &out);
+
+        //We want to have this in nice full channel samples:
+        while (in > 0 && in % (sizeof(float) * source->channels) != 0) {in--;}
+        while (out > 0 && out % (sizeof(float) * source->channels) != 0) {out--;}
+        //printf("in, out: %u, %u\n",in,out);
+        unsigned int insamples = in/(sizeof(float)*source->channels);
+        unsigned int outsamples = out/(sizeof(float)*source->channels);
+        //printf("in samples, out samples: %u, %u\n", insamples,outsamples);
+
+        memset(idata->processedbuf + idata->processedbytes, 0, out);
+        int error = speex_resampler_process_interleaved_float(idata->st, (const float*)idata->unprocessedbuf, &insamples, (float*)idata->processedbuf + idata->processedbytes, &outsamples);
         if (error == 0) {
+            out = outsamples * sizeof(float) * source->channels;
+            in = insamples * sizeof(float) * source->channels;
+            //printf("result: in, out: %u(%u), %u(%u)\n", in, insamples, out, outsamples);
             //resampling was successful:
             idata->processedbytes += out;
             idata->unprocessedbytes -= in;
