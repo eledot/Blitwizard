@@ -29,16 +29,16 @@
 #define AUDIOSOURCEFORMAT_F32LE 3
 
 struct audiosource {
-	//Read data:
-	int (*read)(struct audiosource* source, char* buffer, unsigned int bytes);
-	//Writes 0 to bytes to the buffer pointer. Returns the amount of bytes written.
-	//When -1 is returned, an error occured (the buffer is left untouched).
-	//When 0 is returned, the end of the source is reached.
-	//In case of 0/-1, you should close the audio resource.
+    //Read data:
+    int (*read)(struct audiosource* source, char* buffer, unsigned int bytes);
+    //Writes 0 to bytes to the buffer pointer. Returns the amount of bytes written.
+    //When -1 is returned, an error occured (the buffer is left untouched).
+    //When 0 is returned, the end of the source is reached.
+    //In case of 0/-1, you should close the audio resource.
 
 #ifdef NOTHREADEDSDLRW
-	//An ugly hack needed as part of the workaround for SDL bug #1422.
-	int (*readmainthread)(struct audiosource* source, char* buffer, unsigned int bytes);
+    //An ugly hack needed as part of the workaround for SDL bug #1422.
+    int (*readmainthread)(struct audiosource* source, char* buffer, unsigned int bytes);
 #endif
 
     //Seek:
@@ -50,42 +50,42 @@ struct audiosource {
 
     //Pos:
     unsigned int (*position)(struct audiosource* source);
-    //Get the current playback position	in the stream in samples.
+    //Get the current playback position in the stream in samples.
 
-	//Rewind:
-	void (*rewind)(struct audiosource* source);
-	//Rewind and start over from the beginning.
-	//This can be used any time as long as read has never returned an error (-1).
+    //Rewind:
+    void (*rewind)(struct audiosource* source);
+    //Rewind and start over from the beginning.
+    //This can be used any time as long as read has never returned an error (-1).
     //Some streams will support rewind, whereas seeking is not supported.
 
     //Query stream length:
     unsigned int (*length)(struct audiosource* source);
-	//Query the total song length. Returns length in total samples.
-	//Returns 0 if peeking at length is not supported or length is unknown.
+    //Query the total song length. Returns length in total samples.
+    //Returns 0 if peeking at length is not supported or length is unknown.
 
-	//Close audio source:
-	void (*close)(struct audiosource* source);
-	//Closes the audio source and frees this struct and all data.
+    //Close audio source:
+    void (*close)(struct audiosource* source);
+    //Closes the audio source and frees this struct and all data.
 
 #ifdef NOTHREADEDSDLRW
-	//Another ugly hack for SDL bug #1422
-	void (*closemainthread)(struct audiosource* source);
+    //Another ugly hack for SDL bug #1422
+    void (*closemainthread)(struct audiosource* source);
 #endif
-	
-	//Audio sample rate:
-	unsigned int samplerate;
-	//This is set to the audio sample rate. Format is always 32bit signed float stereo if not
-	//specified.
-	//Set to 0 for unknown or encoded (ogg) formats
-	
-	//Channels:
-	unsigned int channels;
-	//This is set to the audio channels. Set to 0 for unknown or encoded (ogg) formats
+    
+    //Audio sample rate:
+    unsigned int samplerate;
+    //This is set to the audio sample rate. Format is always 32bit signed float stereo if not
+    //specified.
+    //Set to 0 for unknown or encoded (ogg) formats
+    
+    //Channels:
+    unsigned int channels;
+    //This is set to the audio channels. Set to 0 for unknown or encoded (ogg) formats
 
     //Audio sample format:
     unsigned int format;
     //This is set to the sample format.
-	
-	void* internaldata; //DON'T TOUCH, used for internal purposes.
+    
+    void* internaldata; //DON'T TOUCH, used for internal purposes.
 };
 
