@@ -507,11 +507,6 @@ void connections_SleepWait(int timeoutms) {
     so_SelectWait(timeoutms);
 }
 
-//Change linebuffered state:
-void connections_SetLineBuffered(struct connection* c, int linebuffered) {
-    c->linebuffered = linebuffered;
-}
-
 //Initialise the given connection struct and open the connection
 void connections_Init(struct connection* c, const char* target, int port, int linebuffered, int lowdelay, int canautoclose, void (*autoclosecallback)(struct connection* c), void* userdata) {
     int oldluaref = c->luarefcount;
