@@ -44,17 +44,23 @@ struct audiosource {
     //Seek:
     int (*seek)(struct audiosource* source, unsigned int pos);
     //Seek to the given sample position.
+    //(Seek only in multiples of channels! E.g. 2,4,6,.. for stereo streams)
     //Note this function may be NULL! Not all sources support seeking.
     //Returns 0 when seeking fails, 1 when seeking succeeds.
-	
+
+    //Pos:
+    unsigned int (*position)(struct audiosource* source);
+    //Get the current playback position	in the stream in samples.
+
 	//Rewind:
 	void (*rewind)(struct audiosource* source);
 	//Rewind and start over from the beginning.
 	//This can be used any time as long as read has never returned an error (-1).
+    //Some streams will support rewind, whereas seeking is not supported.
 
-    //Peek at length:
-    unsigned int (*peek)(struct audiosource* source);
-	//Peek at total song length. Returns length in total samples.
+    //Query stream length:
+    unsigned int (*length)(struct audiosource* source);
+	//Query the total song length. Returns length in total samples.
 	//Returns 0 if peeking at length is not supported or length is unknown.
 
 	//Close audio source:
