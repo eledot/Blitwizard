@@ -53,10 +53,6 @@ extern int drawingallowed; //stored in luafuncs.c
 #include "physics.h"
 #include "connections.h"
 #include "listeners.h"
-#ifdef NOTHREADEDSDLRW
-#include "SDL.h"
-#include "threading.h"
-#endif
 #ifdef USE_SDL_GRAPHICS
 #include "SDL.h"
 #endif
@@ -353,135 +349,6 @@ static void imgloaded(int success, const char* texture) {
 }
 
 
-
-#ifdef NOTHREADEDSDLRW
-SDL_RWops* rwread_rwops = NULL;
-void* rwread_buffer;
-size_t rwread_readsize;
-unsigned int rwread_readbytes;
-int rwread_result = 0;
-void* rwclose_handle = NULL;
-char* rwopen_path = NULL;
-void* rwopen_result = NULL;
-mutex* rwread_querymutex = NULL; //only one thread may pose a query at once
-mutex* rwread_executemutex = NULL; //the main thread locks this during execution of the query
-
-void main_NoThreadedRWopsClose(void* rwops) {
-    //get permission to pose a query
-    mutex_Lock(rwread_querymutex);
-
-    //make sure main thread is not doing anything
-    mutex_Lock(rwread_executemutex);
-
-    //pose query:
-    rwclose_handle = rwops;
-
-    //wait for query to be completed:
-    mutex_Release(rwread_executemutex);
-    while (1) {
-        time_Sleep(10);
-        mutex_Lock(rwread_executemutex);
-        if (rwclose_handle == NULL) {break;}
-        mutex_Release(rwread_executemutex);
-    }
-
-    //we are done!
-    mutex_Release(rwread_executemutex);
-    mutex_Release(rwread_querymutex);
-}
-
-void* main_NoThreadedRWopsOpen(const char* path) {
-    //get permission to pose a query
-    mutex_Lock(rwread_querymutex);
-
-    //make sure main thread is not doing anything
-    mutex_Lock(rwread_executemutex);
-
-    //pose query:
-    rwopen_path = strdup(path);
-    rwopen_result = NULL;
-
-    //wait for query to be completed:
-    mutex_Release(rwread_executemutex);
-    while (1) {
-        time_Sleep(10);
-        mutex_Lock(rwread_executemutex);
-        if (rwopen_result) {break;}
-        mutex_Release(rwread_executemutex);
-    }
-
-    void* handleresult = rwopen_result;
-    rwopen_result = NULL;
-
-    //we are done!
-    mutex_Release(rwread_executemutex);
-    mutex_Release(rwread_querymutex);
-    return handleresult;
-}
-
-int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned int bytes) {
-    //get permission to pose a query
-    mutex_Lock(rwread_querymutex);
-
-    //make sure main thread is not doing anything
-    mutex_Lock(rwread_executemutex);
-
-    //pose query:
-    rwread_rwops = (SDL_RWops*)rwops;
-    rwread_readsize = size;
-    rwread_readbytes = bytes;
-    rwread_buffer = buffer;
-    rwread_result = -2;
-
-    //wait for query to finish
-    mutex_Release(rwread_executemutex);
-    while (1) {
-        time_Sleep(10);
-        mutex_Lock(rwread_executemutex);
-        if (rwread_result > -2) {break;}
-        mutex_Release(rwread_executemutex);
-    }
-
-    //we are done!
-    int r = rwread_result;
-    rwread_result = 0;
-    mutex_Release(rwread_executemutex);
-    mutex_Release(rwread_querymutex);
-    return r;
-}
-int main_ProcessNoThreadedReading() {
-    int querydone = 0;
-    mutex_Lock(rwread_executemutex);
-    if (rwread_result == -2) {
-        //we should read something
-        rwread_result = rwread_rwops->read(rwread_rwops, rwread_buffer, rwread_readsize, rwread_readbytes);
-        if (rwread_result < -1) {
-            rwread_result = -1;
-        }
-        querydone = 1;
-    }
-    if (rwclose_handle) {
-        //we should close something
-        ((SDL_RWops*)rwclose_handle)->close(rwclose_handle);
-        rwclose_handle = NULL;
-    }
-    if (rwopen_path) {
-        //we should open something
-        rwopen_result = SDL_RWFromFile(rwopen_path, "rb");
-        free(rwopen_path);
-        rwopen_path = NULL;
-    }
-    mutex_Release(rwread_executemutex);
-    //make sure to wait until the query has been fully processed by
-    //the requesting thread:
-    mutex_Lock(rwread_querymutex);
-    mutex_Release(rwread_querymutex);
-    //This should improve the possibility that another thread poses
-    //a new request right now and we can process it immediately.
-    return querydone;
-}
-#endif
-
 int luafuncs_ProcessNetEvents();
 
 #if (defined(__ANDROID__) || defined(ANDROID))
@@ -492,11 +359,6 @@ int CALLBACK WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 #else
 int main(int argc, char** argv) {
 #endif
-#endif
-
-#ifdef NOTHREADEDSDLRW
-    rwread_querymutex = mutex_Create();
-    rwread_executemutex = mutex_Create();
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
@@ -716,10 +578,6 @@ int main(int argc, char** argv) {
             uint64_t time = time_GetMilliseconds();
 
             //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
-#ifdef NOTHREADEDSDLRW
-            uint64_t start = time_GetMilliseconds();
-            while (main_ProcessNoThreadedReading() && start + 20 > time_GetMilliseconds()) { }
-#endif
 
 #ifdef USE_AUDIO
             //simulate audio
@@ -863,11 +721,7 @@ int main(int argc, char** argv) {
 #ifdef USE_GRAPHICS
             //be very sleepy if in background
             if (appinbackground) {
-#ifndef NOTHREADEDSDLRW
-                time_Sleep(100);
-#else
                 time_Sleep(20);
-#endif
             }
 #endif
 
