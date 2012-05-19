@@ -224,13 +224,16 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
     while (bytes > 0) {
         //see how much we want to decode now
         unsigned int decodeamount = bytes;
-        if (decodeamount > sizeof(idata->decodedbuf)) {
-            decodeamount = sizeof(idata->decodedbuf);
+        if (decodeamount > sizeof(idata->decodedbuf)-idata->decodedbytes) {
+            decodeamount = sizeof(idata->decodedbuf)-idata->decodedbytes;
         }
 
         //decode from encoded fetched bytes
         unsigned int decodesamples = decodeamount/(source->channels * sizeof(float));
-        if (decodesamples * (source->channels * sizeof(float)) < decodeamount && decodesamples * (source->channels * sizeof(float)) <= (sizeof(idata->decodedbuf) - sizeof(float) * source->channels)) {
+        if (
+            decodesamples * (source->channels * sizeof(float)) < decodeamount &&
+            (decodesamples+1) * (source->channels * sizeof(float)) <= (sizeof(idata->decodedbuf) - idata->decodedbytes)
+            ) {
             //make sure we cover all desired bytes even for half-sample requests or something
             decodesamples++;
         }
@@ -363,6 +366,9 @@ struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
     struct audiosourceogg_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->filesource = filesource;
+
+    //Ogg always returns f32
+    a->format = AUDIOSOURCEFORMAT_F32LE;
 
     //function pointers
     a->read = &audiosourceogg_Read;
