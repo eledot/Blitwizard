@@ -564,10 +564,12 @@ int main(int argc, char** argv) {
         main_InitAudio();
 
         //If we failed to initialise audio, we want to simulate it
+#ifdef USE_AUDIO
         uint64_t simulateaudiotime = 0;
         if (simulateaudio) {
             simulateaudiotime = time_GetMilliseconds();
         }
+#endif
 
         uint64_t logictimestamp = time_GetMilliseconds();
         uint64_t lastdrawingtime = 0;

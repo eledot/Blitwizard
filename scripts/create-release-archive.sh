@@ -16,7 +16,7 @@ CROSSCCHOST="i686-pc-mingw32"
 # -- End of options --
 
 
-useversion=`grep AC_INIT ../configure.ac | sed -e "s/AC_INIT[(][[]blitwizard[]], [[]//g" | sed -e "s/[]])//g"`
+useversion=`sh ./echoversion.sh`
 
 #Output some explanations
 echo "This is a release script that builds a blitwizard release tarball."

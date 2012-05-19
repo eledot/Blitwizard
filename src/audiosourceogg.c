@@ -214,6 +214,11 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
         }
 
         //decode from encoded fetched bytes
+        if (source->channels == 0) { //this is invalid
+            idata->returnerroroneof = 1;
+            idata->eof = 1;
+            return -1;
+        }
         unsigned int decodesamples = decodeamount/(source->channels * sizeof(float)) - 1;
         if (
             decodesamples * (source->channels * sizeof(float)) < decodeamount &&

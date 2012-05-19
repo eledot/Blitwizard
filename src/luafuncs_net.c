@@ -347,6 +347,7 @@ static void luafuncs_parsestreamsettings(lua_State* l, int stackindex, int argnu
         const char* p = lua_tostring(l, -1);
         if (!p) {
             haveluaerror(l, badargument2, argnumber, functionname, "the settings table doesn't contain a valid target server name");
+            return;
         }
         *servername = strdup(p);
         lua_pop(l, 1); //pop server name string again
@@ -710,6 +711,7 @@ static int errorevents(struct connection* c, int error) {
 
 int luafuncs_ProcessNetEvents() {
     int result = listeners_CheckForConnections(&connectionevents);
+    if (!result) {return 0;}
     result = connections_CheckAll(&connectedevents, &readevents, &errorevents);
     return result;
 }

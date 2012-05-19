@@ -44,9 +44,9 @@ void audiosourceresample_Rewind(struct audiosource* source) {
     internalsource->rewind(internalsource);
 }
 
-int audiosourceresample_Read(struct audiosource* source) {
+int audiosourceresample_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
     struct audiosource* internalsource = source->internaldata;
-    return internalsource->read(internalsource);
+    return internalsource->read(internalsource, buffer, bytes);
 }
 
 unsigned int audiosourceresample_Position(struct audiosource* source) {

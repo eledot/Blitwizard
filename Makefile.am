@@ -10,3 +10,7 @@ install:
 	@echo "where you wish to use blitwizard, and run it with bin/blitwizard."
 	@echo "If you are on Microsoft Windows, copy Run-blitwizard aswell and"
 	@echo "use that to run blitwizard."
+cppcheck:
+	cppcheck --enable=all -q -f src/*.c src/*.h
+clanganalyze:
+	cd src && clang --analyze $(CFLAGS) -DVERSION=$(VERSION) ./*.c
