@@ -156,6 +156,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
         return -1;
     }
 
+
     //open up ogg file if we don't have one yet
     if (!idata->vorbisopened) {
 #ifdef NOTHREADEDSDLRW
@@ -219,9 +220,17 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
             idata->eof = 1;
             return -1;
         }
-        unsigned int decodesamples = decodeamount/(source->channels * sizeof(float)) - 1;
-        if (
-            decodesamples * (source->channels * sizeof(float)) < decodeamount &&
+        unsigned int decodesamples = decodeamount/(source->channels * sizeof(float));
+        if (decodesamples > 0) {
+            //because of possible divison rounding issues,
+            //try one less sample. we will add more in the next check
+            //if not all bytes requested are covered
+            decodesamples--;
+        }
+
+        while (
+            decodesamples * (source->channels * sizeof(float)) < decodeamount
+             &&
             (decodesamples+1) * (source->channels * sizeof(float)) <= (sizeof(idata->decodedbuf) - idata->decodedbytes)
             ) {
             //make sure we cover all desired bytes even for half-sample requests or something
