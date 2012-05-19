@@ -89,7 +89,7 @@ struct audiosourceffmpeg_internaldata {
     AVCodec* audiocodec;
     AVPacket packet;
     AVFrame* decodedframe;
-};
+}  __attribute__ ((aligned(16)));
 
 static int ffmpegopened = 0;
 static void* avformatptr;
@@ -169,11 +169,8 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
     struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
     if (idata->sourceeof) {return 0;}
 
-    printf("Requested: %d\n", buf_size);
-
     if (idata->source) {
         int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size);
-        printinfo("ffmpegreader: read bytes: %d", i);
         errno = 0;
         if (i < 0) {
             idata->returnerroroneof = 1;
