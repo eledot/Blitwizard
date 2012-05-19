@@ -170,10 +170,11 @@ void main_InitAudio() {
 #ifdef USE_AUDIO
     if (audioinitialised) {return;}
     audioinitialised = 1;
-    char* error;
 
     //get audio backend
+#ifdef USE_SDL_AUDIO
     char* p = luastate_GetPreferredAudioBackend();
+#endif
 
     //load FFmpeg if we happen to want it
     if (luastate_GetWantFFmpeg()) {
@@ -183,6 +184,8 @@ void main_InitAudio() {
     }
 
 #ifdef USE_SDL_AUDIO
+    char* error;
+
     //initialise audio - try 32bit first
     s16mixmode = 0;
 #ifndef FORCES16AUDIO

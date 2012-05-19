@@ -118,10 +118,9 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         }
 
         //convert:
-        double intmax_big = 32768;
-        double intmax_small = 32767;
         if (idata->source->format == AUDIOSOURCEFORMAT_S16LE &&
         idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
+            double intmax_big = 32768;
             //convert s16le > f32le
             int16_t old = *(int16_t*)((int16_t*)bytebuf);
             double convert = old;
@@ -134,6 +133,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         }
         if (idata->source->format == AUDIOSOURCEFORMAT_F32LE &&
         idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
+            double intmax_small = 32767;
             //convert f32le > s16le
             float old = *((float*)bytebuf);
             double convert = old;
@@ -156,7 +156,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         bytes -= amount;
         idata->convertbufbytes -= amount;
         //we served all requested bytes:
-        if (bytes <= 0) {
+        if (bytes == 0) {
             //are some bytes left in buffer?
             if (idata->convertbufbytes > 0) {
                 //move them up to the beginning

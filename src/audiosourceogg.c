@@ -198,7 +198,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
     }
 
     //if no bytes were requested, don't do anything
-    if (bytes <= 0) {
+    if (bytes == 0) {
         return 0;
     }
 
@@ -222,7 +222,7 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
             //make sure we cover all desired bytes even for half-sample requests or something
             decodesamples++;
         }
-        while (!idata->vorbiseof && decodesamples > 0 && !idata->vorbiseof) {
+        while (!idata->vorbiseof && decodesamples > 0) {
             float **pcm;
 
             long ret = ov_read_float(&idata->vorbisfile, &pcm, decodesamples, &idata->vbitstream);
@@ -263,8 +263,8 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
         }
 
         //see vorbis end of file
-        if (amount <= 0) {
-            if (byteswritten <= 0) {
+        if (amount == 0) {
+            if (byteswritten == 0) {
                 idata->eof = 1;
                 if (idata->returnerroroneof) {
                     return -1;

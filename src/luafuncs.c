@@ -138,7 +138,7 @@ static char printlinebuf[1024 * 50] = "";
 static int luafuncs_printline() {
     //print a line from the printlinebuf
     unsigned int len = strlen(printlinebuf);
-    if (len <= 0) {
+    if (len == 0) {
         return 0;
     }
     unsigned int i = 0;
@@ -471,7 +471,7 @@ int luafuncs_split(lua_State* l) {
             return 1;
         }
     }
-    if (len2 <= 0) {
+    if (len2 == 0) {
         lua_pushlstring(l, src1, len1);
         return 1;
     }

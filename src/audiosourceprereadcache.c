@@ -104,7 +104,7 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
                 idata->prereadcachebytes -= readbytes;
             }else{
                 //we were not able to get new cached bytes -> End of Stream
-                if (writtenbytes <= 0) {
+                if (writtenbytes == 0) {
                     idata->eof = 1;
                 }
                 return writtenbytes;

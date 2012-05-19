@@ -396,7 +396,7 @@ void* audiomixer_GetBuffer(unsigned int len) { //SOUND THREAD
         if (amount > filledbytes) {
             amount = filledbytes;
         }
-        if (amount <= 0) {break;}
+        if (amount == 0) {break;}
 
         //copy the amount of bytes we have
         memcpy(p, mixbuf, amount);

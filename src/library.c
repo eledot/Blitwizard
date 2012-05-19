@@ -63,7 +63,7 @@ void* library_Load(const char* libname) {
     int dot = -1;
     unsigned int k = 0;
     while (k < strlen(libname)) {
-        if (libname[k] == '.' && k < strlen(libname) - 1) {
+        if (k < strlen(libname) - 1 && libname[k] == '.') {
             if (dot < 0 || dot == ((int)k)-1) {
                 dot = k;
             }

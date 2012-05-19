@@ -215,7 +215,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
 
     //set target dimensinos
     dest.x = x; dest.y = y;
-    if (drawwidth <= 0 || drawheight <= 0) {
+    if (drawwidth == 0 || drawheight == 0) {
         dest.w = src.w;dest.h = src.h;
     }else{
         dest.w = drawwidth; dest.h = drawheight;

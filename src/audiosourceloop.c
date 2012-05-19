@@ -78,7 +78,7 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
                     idata->returnerroroneof = 1;
                 }
                 idata->sourceeof = 1;
-                if (byteswritten <= 0) {
+                if (byteswritten == 0) {
                     idata->eof = 1;
                     if (idata->returnerroroneof) {
                         return -1;

@@ -142,8 +142,8 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
         if (returnbytes > idata->processedsamplesbytes) {
             returnbytes = idata->processedsamplesbytes;
         }
-        if (returnbytes <= 0) {
-            if (byteswritten <= 0) {
+        if (returnbytes == 0) {
+            if (byteswritten == 0) {
                 idata->eof = 1;
                 if (idata->returnerroroneof) {
                     return -1;
