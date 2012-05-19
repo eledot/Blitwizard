@@ -197,18 +197,14 @@ static unsigned int audiosourceformatconvert_Peek(struct audiosource* source) {
 struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, unsigned int newformat) {
     //Check some obvious cases
     if (newformat == AUDIOSOURCEFORMAT_UNKNOWN) {
-        printf("boiling out #1\n");
         return NULL;
     }
     if (!source || source->format == AUDIOSOURCEFORMAT_UNKNOWN || source->samplerate == 0) {
-        printf("boiling out #2\n");
         return NULL;
     }
     if (source->format == newformat) {
-        printf("boiling out #3\n");
         return source;
     }
-    printf("Continuing...\n");
    
     //Allocate audio source struct 
     struct audiosource* a = malloc(sizeof(*a));
