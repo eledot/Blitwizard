@@ -84,27 +84,10 @@ int audiomixer_NoSoundsPlaying() {
     return 1;
 }
 
-#ifdef NOTHREADEDSDLRW
-//Cancel channel, but with the knowledge of being in the main thread
-static void audiomixer_CancelChannelHack(int slot) {
-    if (channels[slot].mixsource) {
-        channels[slot].mixsource->close(channels[slot].mixsource);
-        channels[slot].mixsource = NULL;
-        channels[slot].loopsource = NULL;
-        channels[slot].fadepanvolsource = NULL;
-        channels[slot].id = 0;
-    }
-}
-#endif
-
 //Cancel channel, we are in the sound thread
 static void audiomixer_CancelChannel(int slot) {
     if (channels[slot].mixsource) {
-#ifdef NOTHREADEDSDLRW
-        channels[slot].mixsource->closemainthread(channels[slot].mixsource);
-#else
         channels[slot].mixsource->close(channels[slot].mixsource);
-#endif
         channels[slot].mixsource = NULL;
         channels[slot].loopsource = NULL;
         channels[slot].fadepanvolsource = NULL;
@@ -184,7 +167,7 @@ void audiomixer_StopSound(int id) {
 void audiomixer_AdjustSound(int id, float volume, float panning) {
     audio_LockAudioThread();
     int slot = audiomixer_GetChannelSlotById(id);
-    if (slot >= 0) {
+    if (slot >= 0 && channels[slot].fadepanvolsource) {
         audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning);
     }
     audio_UnlockAudioThread();
@@ -203,7 +186,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 
     //try ogg format:
     struct audiosource* decodesource = audiosourceogg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
-    if (!decodesource) {
+   if (!decodesource) {
         //try flac format:
         decodesource = audiosourceformatconvert_Create(audiosourceflac_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path))), AUDIOSOURCEFORMAT_F32LE);
 
@@ -220,7 +203,6 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 
     //wrap up the decoded audio into the resampler and fade/pan/vol modifier
     channels[slot].fadepanvolsource = audiosourcefadepanvol_Create(audiosourceresample_Create(decodesource, 48000));
-
     if (!channels[slot].fadepanvolsource) {
         audio_UnlockAudioThread();
         return -1;

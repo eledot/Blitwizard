@@ -123,8 +123,8 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
             }
 
             //apply volume
-            leftchannel = (leftchannel+1)*idata->vol - 1;
-            rightchannel = (rightchannel+1)*idata->vol - 1;
+            leftchannel *= idata->vol;
+            rightchannel *= idata->vol;
 
             //calculate panning
             leftchannel *= (idata->pan+1)/2;
@@ -237,16 +237,15 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
     struct audiosourcefadepanvol_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->source = source;
+    idata->vol = 1; //run at full volume if not changed
     a->samplerate = source->samplerate;
     a->channels = source->channels;
+    a->format = source->format;
 
     //function pointers
     a->read = &audiosourcefadepanvol_Read;
     a->close = &audiosourcefadepanvol_Close;
     a->rewind = &audiosourcefadepanvol_Rewind;
-#ifdef NOTHREADEDSDLRW
-    a->closemainthread = &audiosourcefadepanvol_CloseMainthread;
-#endif
 
     return a;
 }

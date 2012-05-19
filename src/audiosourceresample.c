@@ -261,14 +261,21 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 
 struct audiosource* audiosourceresample_Create(struct audiosource* source, unsigned int targetrate) {
     //check for a correct source and usable sample rates
-    if (!source || source->format != AUDIOSOURCEFORMAT_F32LE) {return NULL;}
+    if (!source || source->format != AUDIOSOURCEFORMAT_F32LE) {
+        if (source) {
+            source->close(source);
+        }
+        return NULL;
+    }
     if ((source->samplerate < 1000 || source->samplerate > 100000) &&
         (targetrate < 1000 || targetrate > 100000)) {
         //possibly bogus values
         source->close(source);
         return NULL;
     }
-    if (source->samplerate == targetrate) {return source;}
+    if (source->samplerate == targetrate) {
+        return source;
+    }
 
     //amount of channels must be known
     if (source->channels <= 0) {
