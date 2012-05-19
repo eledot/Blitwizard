@@ -187,11 +187,18 @@ static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned in
     return idata->source->seek(idata->source, pos);
 }
 
-static unsigned int audiosourceformatconvert_Peek(struct audiosource* source) {
-    //Forward the peek to our audio source:
+static unsigned int audiosourceformatconvert_Position(struct audiosource* source) {
+    //Forward the position query to our audio source:
+    struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
+
+    return idata->source->position(idata->source);
+}
+
+static unsigned int audiosourceformatconvert_Length(struct audiosource* source) {
+    //Forward the length query to our audio source:
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;    
 
-    return idata->source->peek(idata->source);
+    return idata->source->length(idata->source);
 }
 
 struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, unsigned int newformat) {
@@ -233,7 +240,8 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
 
     //Set callbacks:
     a->read = &audiosourceformatconvert_Read;
-    a->peek = &audiosourceformatconvert_Peek;
+    a->length = &audiosourceformatconvert_Length;
+    a->position = &audiosourceformatconvert_Position;
     a->close = &audiosourceformatconvert_Close;
     a->seek = &audiosourceformatconvert_Seek;
     a->rewind = &audiosourceformatconvert_Rewind;
