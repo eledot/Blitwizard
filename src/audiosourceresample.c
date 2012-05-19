@@ -195,7 +195,6 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
         }
 
         //resample the data we have now:
-        char tmpbuf[512];
         unsigned int in = idata->unprocessedbytes;
         unsigned int out = outbytes - idata->processedbytes;
         int error = speex_resampler_process_interleaved_float(idata->st, (const float*)idata->unprocessedbuf, &in, (float*)idata->processedbuf + idata->processedbytes, &out);
@@ -244,8 +243,8 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 
 
 struct audiosource* audiosourceresample_Create(struct audiosource* source, unsigned int targetrate) {
-    //check if we got a source and if source samplerate + target rate are supported by our limited implementation
-    if (!source) {return NULL;}
+    //check for a correct source and usable sample rates
+    if (!source || source->format != AUDIOSOURCEFORMAT_F32LE) {return NULL;}
     if ((source->samplerate < 1000 || source->samplerate > 100000) &&
         (targetrate < 1000 || targetrate > 100000)) {
         //possibly bogus values
@@ -281,8 +280,9 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
     memset(idata, 0, sizeof(*idata));
     idata->source = source;
     idata->targetrate = targetrate;
-    a->samplerate = source->samplerate;
+    a->samplerate = targetrate;
     a->channels = source->channels;
+    a->format = source->format;
 
     //set function pointers
     a->read = &audiosourceresample_Read;
