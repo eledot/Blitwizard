@@ -53,11 +53,6 @@ AR=`cat scripts/.buildinfo | grep AR | sed -e 's/^.*\=//'`
 HOST=`cat scripts/.buildinfo | grep HOST | sed -e 's/^.*\=//'`
 MACBUILD=`cat scripts/.buildinfo | grep MACBUILD | sed -e 's/^.*\=//'`
 
-if [ "$MACBUILD" = "yes" ]; then
-    # Enforce darwin gcc since llvm-gcc hates libvorbis
-    CC="clang"
-fi
-
 export CC="$CC"
 export AR="$AR"
 
@@ -111,7 +106,7 @@ if [ ! -e libs/libblitwizardogg.a ]; then
     if [ -n "`echo $static_libs_use | grep ogg`" ]; then
         echo "Compiling libogg..."
         # Build ogg
-        cd src/ogg && ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
+        cd src/ogg && CC="$CC" ./configure --host="$HOST" --disable-shared --enable-static && make clean && make || { echo "Failed to compile libogg"; exit 1; }
         cd "$dir"
     fi
 fi
@@ -136,10 +131,10 @@ if [ ! -e libs/libblitwizardFLAC.a ]; then
             # Build flac and tell it where ogg is
             oggincludedir="`pwd`/src/ogg/include/"
             ogglibrarydir="`pwd`/src/ogg/src/.libs/"
-            cd src/flac && ./configure --host="$HOST" $asmoption --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
+            cd src/flac && CC="$CC" ./configure --host="$HOST" $asmoption --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
         else
             # Build flac and let it guess where ogg is
-            cd src/flac && ./configure --host="$HOST" $asmoption --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
+            cd src/flac && CC="$CC" ./configure --host="$HOST" $asmoption --enable-static --disable-shared --disable-thorough-tests --disable-xmms-plugin --disable-cpplibs --disable-doxygen-docs && make clean && make || { echo "Failed to compile libFLAC"; exit 1; }
         fi
         cd "$dir"
     fi
@@ -164,12 +159,12 @@ if [ ! -e libs/libblitwizardspeex.a ]; then
             if [ -z "$HOST" ]; then
                 hostoption=""
             fi
-            configureline="./configure $hostoption --with-ogg-libraries=\"$ogglibrarydir\" --with-ogg-includes=\"$oggincludedir\" --disable-oggtest --disable-shared --enable-static && make clean && make"
+            configureline="CC=\"$CC\" ./configure $hostoption --with-ogg-libraries=\"$ogglibrarydir\" --with-ogg-includes=\"$oggincludedir\" --disable-oggtest --disable-shared --enable-static && make clean && make"
             echo "Speex configure line: $configureline"
             cd src/speex && eval $configureline || { echo "Failed to compile libspeex"; exit 1; }
         else
             # Build speex
-            cd src/speex && ./configure --host="$HOST" --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libspeex"; exit 1; }
+            cd src/speex && CC="$CC" ./configure --host="$HOST" --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libspeex"; exit 1; }
         fi
         cd "$dir"
     fi
@@ -204,16 +199,16 @@ if [ "$NOVORBIS" = "yes" ]; then
             oggincludedir="`pwd`/src/ogg/include/"
             ogglibrarydir="`pwd`/src/ogg/src/.libs/"
             if [ "$MACBUILD" != "yes" ]; then
-                cd src/vorbis && ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+                cd src/vorbis && CC="$CC" ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
             else
-                cd src/vorbis && ./configure --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+                cd src/vorbis && CC="$CC" ./configure --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
             fi
         else
             # Build vorbis and let's hope it finds the system ogg
             if [ "$MACBUILD" != "yes" ]; then
-                cd src/vorbis && ./configure --host="$HOST" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+                cd src/vorbis && CC="$CC" ./configure --host="$HOST" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
             else
-                cd src/vorbis && ./configure --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
+                cd src/vorbis && CC="$CC" ./configure --disable-oggtest --disable-docs --disable-examples --disable-oggtest --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
             fi
         fi
         cd "$dir"
@@ -271,10 +266,10 @@ if [ ! -e libs/libblitwizardSDL.a ]; then
         # Build SDL 2
         if [ "$MACBUILD" != "yes" ]; then
             rm -r src/sdl/.hg/
-            cd src/sdl && ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
+            cd src/sdl && CC="$CC" ./configure --host="$HOST" --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
         else
             rm -r src/sdl/.hg/
-            cd src/sdl && ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-mmx --disable-3dnow --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
+            cd src/sdl && CC="$CC" ./configure --enable-assertions=release --enable-ssemath --disable-pulseaudio --enable-sse2 --disable-mmx --disable-3dnow --disable-shared --enable-static || { echo "Failed to compile SDL2"; exit 1; }
         fi
         cd "$dir"
         cd src/sdl && make clean || { echo "Failed to compile SDL2"; exit 1; }

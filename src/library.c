@@ -178,7 +178,7 @@ void* library_LoadSearch(const char* name) {
 
     //try a more interesting search:
 #ifndef WINDOWS
-#ifndef APPLE
+#ifndef MAC
     library_SearchDir("/usr/lib", name, &ptr);
     library_SearchDir("/lib", name, &ptr);
     library_SearchDir("/usr/local/lib", name, &ptr);
@@ -191,6 +191,73 @@ void* library_LoadSearch(const char* name) {
 #endif
     if (ptr) {
         return ptr;
+    }
+#else
+    //Apple:
+    if (strcasecmp(name, "ffmpegsumo") == 0) {
+        //Reference: /Applications/Google Chrome.app/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
+        const char* chromepath = Mac_getPathForApplication("Google Chrome");
+        if (chromepath && strlen(chromepath) > 0) {
+            //Find out the version folder:
+            struct filelistcontext* fctx = filelist_Create(chromepath);
+            char versionfolder[512];
+            int isdir = 0;
+            while (filelist_GetNextFile(fctx, versionfolder, sizeof(versionfolder), &isdir) == 1) {
+                if (isdir) {break;}
+            }
+            if (!isdir) {
+                //No fitting sub folder found
+#ifdef FFMPEGLOCATEDEBUG
+                printwarning("Warning: [FFmpeg-locate] Failed to find version sub folder of Google Chrome");
+#endif
+            }else{
+                //Compose final path:
+                char pathbuf[512];
+                char sep[2] = "/";
+                char sep2[2] = "/";
+                if (chromepath[strlen(chromepath)-1] == '/') {
+                    strcpy(sep, "");
+                }
+                if (strlen(versionfolder) > 0 && versionfolder[strlen(versionfolder)-1] == '/') {
+                    strcpy(sep2, "");
+                }
+                snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/Versions/%s/Google Chrome Framework.framework/Libraries/ffmpegsumo.so", pathbuf, sep, versionfolder, sep2);
+
+                //Attempt to load the lib now:
+                ptr = library_Load(pathbuf);
+                if (ptr) {return ptr;}
+#ifdef FFMPEGLOCATEDEBUG
+                printinfo("[FFmpeg-locate] Failed to load FFmpeg from Google Chrome (Path: \"%s\")", pathbuf);
+#endif
+            }
+        }else{
+#ifdef FFMPEGLOCATEDEBUG
+            printwarning("Warning: [FFmpeg-locate] Google chrome not found");
+#endif
+        }
+
+        //Reference: /Applications/Steam.app/Contents/MacOS/osx32/
+        const char* steampath = Mac_getPathForApplication("Steam");
+        if (steampath && strlen(steampath) > 0) {
+            //Compose final path:
+            char pathbuf[512];
+            char sep[2] = "/";
+            if (steampath[strlen(steampath)-1] == '/') {
+                strcpy(sep, "");
+            }
+            snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/MacOS/osx32/ffmpegsumo.so", steampath, sep);
+
+            //Attempt to load the lib now:
+            ptr = library_Load(pathbuf);
+            if (ptr) {return ptr;}
+#ifdef FFMPEGLOCATEDEBUG
+            printinfo("[FFmpeg-locate] Failed to load FFmpeg from Valve Steam (Path: \"%s\")", pathbuf);
+#endif 
+        }else{
+#ifdef FFMPEGLOCATEDEBUG
+            printwarning("Warning: [FFmpeg-locate] Valve Steam not found");
+#endif
+        }
     }
 #endif
 #endif
