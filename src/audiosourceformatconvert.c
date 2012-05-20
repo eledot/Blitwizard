@@ -111,6 +111,8 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         if (result < wantbytes) {
             if (result < 0) {
                 idata->erroroneof = 1;
+                idata->eof = 1;
+                return -1;
             }else{
                 idata->sourceeof = 1;
                 break;

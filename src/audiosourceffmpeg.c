@@ -23,7 +23,7 @@
 
 #ifdef USE_AUDIO
 
-#define FFMPEGDEBUG
+//#define FFMPEGDEBUG
 
 #ifdef USE_FFMPEG_AUDIO
 #include "libavcodec/avcodec.h"
@@ -167,6 +167,7 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
     errno = 0;
     struct audiosource* source = data;
     struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
+    if (idata->returnerroroneof) {return -1;}
     if (idata->sourceeof) {return 0;}
 
     if (idata->source) {
@@ -174,6 +175,7 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
         errno = 0;
         if (i < 0) {
             idata->returnerroroneof = 1;
+            idata->sourceeof = 1;
         }
         if (i == 0) {
             idata->sourceeof = 1;
@@ -437,7 +439,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             return -1;
         }
 #ifdef FFMPEGDEBUG
-        printinfo("[FFmpeg-debug] audiostream initialised: rate: %d, channels: %d", source->samplerate, source->channels);
+        printinfo("[FFmpeg-debug] audiostream initialised: rate: %d, channels: %d, format: %d", source->samplerate, source->channels, source->format);
 #endif
     }
 
@@ -466,6 +468,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         bytes -= copybytes;
         writtenbytes += copybytes;
     }
+
     while (bytes > 0 && !idata->packetseof) {
         int packetresult = -1;
         if (!idata->packetseof) { //fetch new packet
@@ -478,7 +481,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
                 idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE + 32);
             }
             char* outputbuf __attribute__ ((aligned(16))) = idata->tempbuf;
-            int bufsize = AVCODEC_MAX_AUDIO_FRAME_SIZE;
+            int bufsize = AVCODEC_MAX_AUDIO_FRAME_SIZE + 16;
             int gotframe = 0;
             int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)outputbuf, &bufsize, &idata->packet);
             if (len > 0) {gotframe = 1;}
@@ -490,16 +493,17 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
             if (len < 0) {
                 //A decode error occured:
-    #ifdef FFMPEGDEBUG
+#ifdef FFMPEGDEBUG
                 char errbuf[512] = "Unknown";
                 ffmpeg_av_strerror(len, errbuf, sizeof(errbuf)-1);
                 errbuf[sizeof(errbuf)-1] = 0;
                 printwarning("[FFmpeg-debug] avcodec_decode_audio3 error: %s",errbuf);
-    #endif
+#endif
                 audiosourceffmpeg_FatalError(source);
                 return -1;
             }else{
                 if (len == 0) {
+                    printf("Zero length packet\n");
                     idata->packetseof = 1;
                 }
             }
@@ -507,7 +511,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             //return data if we have some
             if (gotframe) {
                 //   old variant: decode_audio3:
-                int framesize = len;
+                int framesize = bufsize;
                 const char* p = outputbuf;
 
                 //   new variant: decode_audio4:
@@ -541,13 +545,14 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
                 //if we have any bytes left, preserve them now:
                 if (framesize > 0) {
-                    memcpy(idata->decodedbuf, p, framesize);
-                    idata->decodedbufbytes = framesize;
+                    memcpy(idata->decodedbuf + idata->decodedbufbytes, p, framesize);
+                    idata->decodedbufbytes += framesize;
                 }
             }
         }else{
             //EOF or error: 
             idata->packetseof = 1;
+            printf("EOF.\n");
         }
     }
     return writtenbytes;
