@@ -1,6 +1,7 @@
 Blitwizard Credits:
 
 Project lead/Programmer: Jonas Thiem
+Code contributors: Nicolas Haunold
 Mac builds and porting assistance: Nicolas Haunold
 Debian/ARM build testing: Francesco Ariis
 

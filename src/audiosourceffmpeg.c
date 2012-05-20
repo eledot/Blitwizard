@@ -23,7 +23,7 @@
 
 #ifdef USE_AUDIO
 
-//#define FFMPEGDEBUG
+#define FFMPEGDEBUG
 
 #ifdef USE_FFMPEG_AUDIO
 #include "libavcodec/avcodec.h"
@@ -280,6 +280,19 @@ static void audiosourceffmpeg_Rewind(struct audiosource* source) {
     }
     idata->sourceeof = 0;
     idata->packetseof = 0;
+    if (idata->codeccontext) {
+        ffmpeg_av_free(idata->codeccontext);
+        idata->codeccontext = NULL;
+    }
+    if (idata->formatcontext) {
+        ffmpeg_av_free(idata->formatcontext);
+        idata->formatcontext = NULL;
+    }
+    if (idata->iocontext) {
+        ffmpeg_av_free(idata->iocontext);
+        idata->iocontext = NULL;
+        idata->aviobuf = NULL; //FFmpeg seems to implicitely free that one too
+    }
 }
 
 static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
@@ -347,11 +360,13 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         //av_dict_set(&codec_opts, "request_channels", "2", 0);
         //opts = setup_find_stream_info_opts(ic, codec_opts);
 
-        //Get IO context
-        idata->aviobuf = ffmpeg_av_malloc(AVIOBUFSIZE);
+        //Get IO context and buffers
         if (!idata->aviobuf) {
-            audiosourceffmpeg_FatalError(source);
-            return -1;
+            idata->aviobuf = ffmpeg_av_malloc(AVIOBUFSIZE);
+            if (!idata->aviobuf) {
+                audiosourceffmpeg_FatalError(source);
+                return -1;
+            }
         }
         idata->iocontext = ffmpeg_avio_alloc_context(idata->aviobuf, AVIOBUFSIZE, 0, source, ffmpegreader, NULL, NULL);
         if (!idata->iocontext) {
@@ -407,10 +422,12 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         }
 
         //Allocate buffer for finished, decoded data
-        idata->decodedbuf = ffmpeg_av_malloc(DECODEDBUFSIZE);
         if (!idata->decodedbuf) {
-            audiosourceffmpeg_FatalError(source);
-            return -1;
+            idata->decodedbuf = ffmpeg_av_malloc(DECODEDBUFSIZE);
+            if (!idata->decodedbuf) {
+                audiosourceffmpeg_FatalError(source);
+                return -1;
+            }
         }
 
         //Remember format data
@@ -499,11 +516,18 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
                 errbuf[sizeof(errbuf)-1] = 0;
                 printwarning("[FFmpeg-debug] avcodec_decode_audio3 error: %s",errbuf);
 #endif
+                if (ffmpeg_av_read_frame(idata->formatcontext, &idata->packet) < 0) {
+                    //buggy FFmpeg EOF
+#ifdef FFMPEGDEBUG
+                    printwarning("[FFmpeg-debug] buggy FFmpeg EOF");
+#endif
+                    idata->packetseof = 1;
+                    return writtenbytes;
+                }
                 audiosourceffmpeg_FatalError(source);
                 return -1;
             }else{
                 if (len == 0) {
-                    printf("Zero length packet\n");
                     idata->packetseof = 1;
                 }
             }
@@ -552,7 +576,6 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         }else{
             //EOF or error: 
             idata->packetseof = 1;
-            printf("EOF.\n");
         }
     }
     return writtenbytes;
