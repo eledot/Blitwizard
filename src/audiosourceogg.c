@@ -74,7 +74,7 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
     }
 
     //move buffer back if required
-    if (idata->fetchedbufreadoffset > 0) {
+    if (idata->fetchedbufreadoffset > sizeof(idata->fetchedbuf)/4) {
         memmove(idata->fetchedbuf, idata->fetchedbuf + idata->fetchedbufreadoffset, idata->fetchedbytes);
         idata->fetchedbufreadoffset = 0;
     }
@@ -83,7 +83,7 @@ static void audiosourceogg_ReadUndecoded(struct audiosourceogg_internaldata* ida
     if (idata->fetchedbytes < sizeof(idata->fetchedbuf)) {
         if (!idata->filesourceeof) {
             int i;
-            i = idata->filesource->read(idata->filesource, idata->fetchedbuf + idata->fetchedbytes, sizeof(idata->fetchedbuf) - idata->fetchedbytes);
+            i = idata->filesource->read(idata->filesource, idata->fetchedbuf + idata->fetchedbytes + idata->fetchedbufreadoffset, sizeof(idata->fetchedbuf) - (idata->fetchedbytes + idata->fetchedbufreadoffset));
             if (i <= 0) {
                 idata->filesourceeof = 1;
                 if (i < 0) {
@@ -150,7 +150,7 @@ static int audiosourceogg_InitOgg(struct audiosource* source) {
     return 1;
 }
 
-static int audiosourceogg_Read2(struct audiosource* source, char* buffer, unsigned int bytes) {
+static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
     struct audiosourceogg_internaldata* idata = source->internaldata;
     if (idata->eof) {
         return -1;
@@ -233,11 +233,13 @@ static int audiosourceogg_Read2(struct audiosource* source, char* buffer, unsign
             }else{
                 if (ret > 0) {
                     //success
+                    //We will walk through all bytes now:
+                    //(unavoidable since we need to interleave them)
                     unsigned int i = 0;
                     while (i < (unsigned int)ret) {
                         unsigned int j = 0;
                         while (j < source->channels) {
-                            memcpy(idata->decodedbuf + idata->decodedbytes, &pcm[j][0], sizeof(float));
+                            memcpy(idata->decodedbuf + idata->decodedbytes, &pcm[j][i], sizeof(float));
                             idata->decodedbytes += sizeof(float);
                             j++;
                         }
@@ -275,34 +277,15 @@ static int audiosourceogg_Read2(struct audiosource* source, char* buffer, unsign
         memcpy(buffer, idata->decodedbuf, amount);
         byteswritten += amount;
         buffer += amount;
-
-        //empty our decode buffer
-        memmove(idata->decodedbuf, idata->decodedbuf + amount, sizeof(idata->decodedbuf) - amount);
         idata->decodedbytes -= amount;
         bytes -= amount;
+
+        //move remaining contents in our decode buffer
+        if (amount > 0 && idata->decodedbytes > 0) {
+            memmove(idata->decodedbuf, idata->decodedbuf + amount, sizeof(idata->decodedbuf) - amount);
+        }
     }
     return byteswritten;
-}
-
-static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
-    if (bytes == 0) {return audiosourceogg_Read2(source, buffer, 0);}
-    int wbytes = 0;
-    int r;
-    while (bytes > 8) {
-        r = audiosourceogg_Read2(source, buffer, 8);
-        if (r <= 0) {return r;}
-        bytes -= r;
-        wbytes += r;
-        buffer += r;
-    }
-    while (bytes > 0) {
-        r = audiosourceogg_Read2(source, buffer, bytes);
-        if (r <= 0) {return r;}
-        bytes -= r;
-        wbytes += r;
-        buffer += r;
-    }
-    return wbytes;
 }
 
 static void audiosourceogg_Close(struct audiosource* source) {
