@@ -175,8 +175,8 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 
     //Fetch new resampled content:
     while (bytes > 0) {
-        unsigned int wantbytes = idata->source->samplerate / 100;
-        unsigned int outbytes = (source->samplerate / 100) * 2; //doubled to avoid possible speex float bug on output limitation
+        unsigned int wantbytes = idata->source->samplerate / 1000;
+        unsigned int outbytes = (source->samplerate / 1000) * 2; //doubled to avoid possible speex float bug on output limitation
 
         //fetch new source data if required
         if (idata->unprocessedbytes < wantbytes) {
