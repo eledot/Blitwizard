@@ -307,12 +307,22 @@ static void audiomixer_RequestMix(unsigned int bytes) { //SOUND THREAD
                 unsigned int r = 0;
                 while (r < mixsamples) {
                     float sourcevalue = *mixsource;
-                    sourcevalue = (sourcevalue + 1)/2;
                     float targetvalue = *mixtarget;
-                    targetvalue = (targetvalue + 1)/2;
 
-                    float result = -(targetvalue * sourcevalue) + (targetvalue + sourcevalue);
-                    result = (result * 2) - 1;
+                    float result;
+                    if ((targetvalue < 0 && sourcevalue >= 0) || (targetvalue > 0 && sourcevalue <= 0)) {
+                        //different sign -> simply add
+                        result = sourcevalue + targetvalue;
+                    }else{
+                        //same sign -> do intelligent mix thing:
+                        float reversed = 1;
+                        if (sourcevalue < 0 || targetvalue < 0) {
+                            reversed = -1;
+                            sourcevalue = -sourcevalue;
+                            targetvalue = -targetvalue;
+                        }
+                        result = reversed * ((targetvalue + sourcevalue) - (targetvalue * sourcevalue));
+                    }
                     *mixtarget = (MIXTYPE)result;
                     r++;
                     mixsource++;

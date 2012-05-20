@@ -145,9 +145,9 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
     if (!idata->st) {
         int error;
 #ifdef ANDROID
-        idata->st = speex_resampler_init(idata->source->channels, idata->source->samplerate, source->samplerate, 2, &error);
+        idata->st = speex_resampler_init(idata->source->channels, idata->source->samplerate, source->samplerate, 1, &error);
 #else
-        idata->st = speex_resampler_init(idata->source->channels, idata->source->samplerate, source->samplerate, 8, &error);
+        idata->st = speex_resampler_init(idata->source->channels, idata->source->samplerate, source->samplerate, 2, &error);
 #endif
         if (!idata->st) {
             idata->eof = 1;
