@@ -644,6 +644,8 @@ AS_IF([test -z "$maybeos"],[
     MACTEST=`uname -a | grep Darwin`
     AS_IF([test -z "$MACTEST"],[
         # Non-Mac Unix:
+        macapppaths=""
+        AC_SUBST(macapppaths)
         LIBS="-pthread -ldl -lm -lrt"
         WRITELINE="\nluatarget=posix\nCXX=$CXX\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no"
     ],[
@@ -654,6 +656,8 @@ AS_IF([test -z "$maybeos"],[
         # Also, we want to compile a 32bit bin so we can load FFmpeg
 
         # Various other flags:
+        macapppaths="macappaths.m"
+        AC_SUBST(macapppaths)
         LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
         WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCXX=$CXX\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes"
     ])
@@ -691,6 +695,8 @@ AS_IF([test -z "$maybeos"],[
 
     TGHOST="$host_alias"
     AC_SUBST(TGHOST)
+    macapppaths=""
+    AC_SUBST(macapppaths)
     
     WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCXX=$CXX\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no"
     echo -e "$WRITELINE" > scripts/.buildinfo
