@@ -60,21 +60,31 @@ void* library_Load(const char* libname) {
     unsigned int ignoreextbytes = 0;
 #ifndef WINDOWS
 #ifndef MAC
+    //identify the .so.NUMBER.NUMBER stuff linux has,
+    //and store the length of that NUMBER mess we don't care about
+    //in "ignoreextbytes"
     int dot = -1;
     unsigned int k = 0;
+    //we want to locate the last dot preceded by non-numeric things:
     while (k < strlen(libname)) {
         if (k < strlen(libname) - 1 && libname[k] == '.') {
+            //find a dot
             if (dot < 0 || dot == ((int)k)-1) {
                 dot = k;
             }
         }else{
+            //if a dot is found, remember it if we just come
+            //across NUMBER.NUMBER.... trash:
             if (libname[k] < '0' || libname[k] > '9') {
+                //if not numeric, this is no NUMBER ending
+                //-> forget about this dot
                 dot = -1;
             }
         }
         k++;
     }
     if (dot >= 0) {
+        //the difference between full length and dot is what we want to ignore
         ignoreextbytes = strlen(libname) - (unsigned int)dot;
     }
 #endif

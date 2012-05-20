@@ -23,7 +23,7 @@
 
 #ifdef USE_AUDIO
 
-#define FFMPEGDEBUG
+//#define FFMPEGDEBUG
 
 #ifdef USE_FFMPEG_AUDIO
 #include "libavcodec/avcodec.h"
@@ -57,7 +57,9 @@ void audiosourceffmpeg_DisableFFmpeg() {
 }
 
 int audiosourceffmpeg_LoadFFmpeg() {
-    printinfo("[FFmpeg] FFmpeg is not available because this Blitwizard build was compiled without FFmpeg support");
+#ifdef FFMPEGDEBUG
+    printinfo("[FFmpeg-debug] FFmpeg is not available because this Blitwizard build was compiled without FFmpeg support");
+#endif
     return 0; //return failure
 }
 
@@ -121,6 +123,7 @@ static void (*ffmpeg_av_init_packet)(AVPacket* pkt);
 static int (*ffmpeg_av_strerror)(int errnum, char* errbuf, size_t errbuf_size);
 static AVCodec* (*ffmpeg_avcodec_find_decoder)(enum CodecID id);
 static int (*ffmpeg_av_samples_get_buffer_size)(int*, int, int, enum AVSampleFormat, int);
+static void (*ffmpeg_av_log_set_level)(int level);
 
 static int loadorfailstate = 0;
 static void loadorfail(void** ptr, void* lib, const char* name) {
@@ -128,7 +131,9 @@ static void loadorfail(void** ptr, void* lib, const char* name) {
     *ptr = library_GetSymbol(lib, name);
 
     if (!*ptr) {
-        printwarning("Warning: [FFmpeg] Failed to load symbol: %s",name);
+#ifdef FFMPEGDEBUG
+        printwarning("Warning: [FFmpeg-debug] Failed to load symbol: %s",name);
+#endif
         loadorfailstate = 1;
         return;
     }
@@ -152,6 +157,7 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
     loadorfail((void**)(&ffmpeg_av_strerror), avutilptr, "av_strerror");
     loadorfail((void**)(&ffmpeg_avcodec_find_decoder), avcodecptr, "avcodec_find_decoder");
     loadorfail((void**)(&ffmpeg_avcodec_alloc_frame), avcodecptr, "avcodec_alloc_frame");
+    loadorfail((void**)(&ffmpeg_av_log_set_level), avutilptr, "av_log_set_level");
 
     //decode_audio4 (new, unused variant):
     //loadorfail((void**)(&ffmpeg_avcodec_decode_audio4), avcodecptr, "avcodec_decode_audio4");
@@ -189,6 +195,13 @@ static int audiosourceffmpeg_InitFFmpeg() {
     //Register all available codecs
     ffmpeg_av_register_all();
 
+    //Set appropriate log level
+#ifndef FFMPEGDEBUG
+    ffmpeg_av_log_set_level(AV_LOG_PANIC);
+#else
+    ffmpeg_av_log_set_level(AV_LOG_ERROR);
+#endif
+
     return 1;
 }
 
@@ -206,11 +219,21 @@ int audiosourceffmpeg_LoadFFmpeg() {
     }
 
     //Load libraries
-#ifndef WIN
+#ifndef WINDOWS
+#ifndef MAC
+    //Unix/Linux
     avutilptr = library_LoadSearch("libavutil");
     avcodecptr = library_LoadSearch("libavcodec");
     avformatptr = library_LoadSearch("libavformat");
 #else
+    //Mac
+    void* ffmpegptr = library_LoadSearch("ffmpegsumo");
+    avutilptr = ffmpegptr;
+    avcodecptr = ffmpegptr;
+    avformatptr = ffmpegptr;
+#endif
+#else
+    //Windows
     avutilptr = library_LoadSearch("avutil");
     avcodecptr = library_LoadSearch("avcodec");
     avformatptr = library_Loadsearch("avformat");
@@ -229,21 +252,27 @@ int audiosourceffmpeg_LoadFFmpeg() {
 #endif
         }
         if (avformatptr) {
+#ifndef MAC
             library_Close(avformatptr);
+#endif
         }else{
 #ifdef FFMPEGDEBUG
             printinfo("[FFmpeg-debug] avformatptr NOT present");
 #endif
         }
         if (avutilptr) {
+#ifndef MAC
             library_Close(avutilptr);
+#endif
         }else{
 #ifdef FFMPEGDEBUG
             printinfo("[FFmpeg-debug] avutilptr NOT present");
 #endif
         }
 
-        printinfo("[FFmpeg] Library not found or cannot be loaded, FFmpeg support will be unavailable");
+#ifdef FFMPEGDEBUG
+        printinfo("[FFmpeg-debug] Library not found or cannot be loaded, FFmpeg support will be unavailable");
+#endif
         ffmpegopened = -1;
         return 0;
     }
@@ -252,7 +281,9 @@ int audiosourceffmpeg_LoadFFmpeg() {
     if (!audiosourceffmpeg_LoadFFmpegFunctions()) {
         library_Close(avcodecptr);
         library_Close(avformatptr);
-        printinfo("[FFmpeg] Library misses one or more expected symbols. FFmpeg support will be unavailable");
+#ifdef FFMPEGDEBUG
+        printinfo("[FFmpeg-debug] Library misses one or more expected symbols. FFmpeg support will be unavailable");
+#endif
         ffmpegopened = -1;
         return 0;
     }
@@ -261,12 +292,16 @@ int audiosourceffmpeg_LoadFFmpeg() {
     if (!audiosourceffmpeg_InitFFmpeg()) {
         library_Close(avcodecptr);
         library_Close(avformatptr);
-        printinfo("[FFmpeg] Library initialisation failed. FFmpeg support will be unavailable");
+#ifdef FFMPEGDEBUG
+        printinfo("[FFmpeg-debug] Library initialisation failed. FFmpeg support will be unavailable");
+#endif
         ffmpegopened = -1;
         return 0;
     }
 
-    printinfo("[FFmpeg] Library successfully loaded.");
+#ifdef FFMPEGDEBUG
+    printinfo("[FFmpeg-debug] Library successfully loaded.");
+#endif
     ffmpegopened = 1;
     return 1;
 }
