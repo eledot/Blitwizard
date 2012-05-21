@@ -13,7 +13,7 @@ AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_MAKE_SET
 MACTEST=`uname -a | grep Darwin`
-AS_IF([test -z "$MACTEST"],[
+AS_IF([test -n "$MACTEST"],[
 AC_PROG_OBJC
 _AM_DEPENDENCIES(OBJC)
 ])
