@@ -12,11 +12,11 @@ AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_MAKE_SET
-MACTEST=`uname -a | grep Darwin`
-AS_IF([test -n "$MACTEST"],[
+#MACTEST=`uname -a | grep Darwin`
+#AS_IF([test -n "$MACTEST"],[
 AC_PROG_OBJC
-_AM_DEPENDENCIES(OBJC)
-])
+#_AM_DEPENDENCIES(OBJC)
+#])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
 
