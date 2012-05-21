@@ -12,6 +12,10 @@ AM_INIT_AUTOMAKE([foreign])
 AC_PROG_CC
 AC_PROG_CXX
 AC_PROG_MAKE_SET
+MACTEST=`uname -a | grep Darwin`
+AS_IF([test -z "$MACTEST"],[
+AC_PROG_OBJC
+])
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
 
@@ -644,8 +648,8 @@ AS_IF([test -z "$maybeos"],[
     MACTEST=`uname -a | grep Darwin`
     AS_IF([test -z "$MACTEST"],[
         # Non-Mac Unix:
-        macapppaths=""
-        AC_SUBST(macapppaths)
+
+        AM_CONDITIONAL([MAC_APP_PATHS], [test 0 = 1])
         LIBS="-pthread -ldl -lm -lrt"
         WRITELINE="\nluatarget=posix\nCXX=$CXX\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no"
     ],[
@@ -656,8 +660,7 @@ AS_IF([test -z "$maybeos"],[
         # Also, we want to compile a 32bit bin so we can load FFmpeg
 
         # Various other flags:
-        macapppaths="macappaths.m"
-        AC_SUBST(macapppaths)
+        AM_CONDITIONAL([MAC_APP_PATHS], [test 1 = 1])
         LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
         WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCXX=$CXX\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes"
     ])
@@ -687,6 +690,8 @@ AS_IF([test -z "$maybeos"],[
     AC_MSG_NOTICE([Attempting to compile for a Windows target.]) 
     # >> Windows
 
+    AM_CONDITIONAL([MAC_APP_PATHS], [test 0 = 1])
+
     # - check compiler first
     compileros=`echo $CC | grep mingw`
     AS_IF([test -z "$compileros"], [
@@ -695,8 +700,6 @@ AS_IF([test -z "$maybeos"],[
 
     TGHOST="$host_alias"
     AC_SUBST(TGHOST)
-    macapppaths=""
-    AC_SUBST(macapppaths)
     
     WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCXX=$CXX\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no"
     echo -e "$WRITELINE" > scripts/.buildinfo
