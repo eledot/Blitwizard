@@ -572,6 +572,8 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
         fixtureDef.friction = context->friction;
         fixtureDef.density = 0;
         context->obj->body->CreateFixture(&fixtureDef);
+
+        delete varray;
     }
     struct physicsobject* obj = context->obj;
     
