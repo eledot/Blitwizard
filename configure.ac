@@ -658,6 +658,7 @@ AS_IF([test -z "$maybeos"],[
 
         # Use this compiler since the default one hates libvorbis:
         CC="clang -arch i386 -arch i386 "
+        CXX="$CXX -arch i386"
         # Also, we want to compile a 32bit bin so we can load FFmpeg
 
         # Various other flags:
