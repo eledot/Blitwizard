@@ -507,7 +507,7 @@ struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecont
         }
 
         int varraysize = e->adjacentcount+1;
-        b2Vec2 varray[varraysize];
+        b2Vec2* varray = new b2Vec2[varraysize];
         b2ChainShape chain;
         e->processed = 1;
 
