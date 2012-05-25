@@ -192,8 +192,8 @@ void* library_LoadSearch(const char* name) {
     if (ptr) {
         return ptr;
     }
-#else
-    //Apple:
+#else //ifndef MAC
+    //Apple/Mac:
     if (strcasecmp(name, "ffmpegsumo") == 0) {
         //Reference: /Applications/Google Chrome.app/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
         const char* chromepath = Mac_getPathForApplication("Google Chrome");
@@ -260,6 +260,9 @@ void* library_LoadSearch(const char* name) {
         }
     }
 #endif
+#else //ifndef WINDOWS
+    //Windows
+
 #endif
     return NULL;
 }

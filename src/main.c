@@ -351,6 +351,8 @@ static void imgloaded(int success, const char* texture) {
 
 int luafuncs_ProcessNetEvents();
 
+#define MAXSCRIPTARGS 1024
+
 #if (defined(__ANDROID__) || defined(ANDROID))
 int SDL_main(int argc, char** argv) {
 #else
@@ -378,28 +380,46 @@ int main(int argc, char** argv) {
     char** argv = __argv;
 #endif
 
+    //we want to store the script arguments so we can pass them to lua:
+    char** scriptargs = malloc(sizeof(char*) * MAXSCRIPTARGS);
+    if (!scriptargs) {
+        printerror("Error: failed to allocate script args space");
+        return 1;
+    }
+    int scriptargcount = 0;
+
+    //parse command line arguments:
     while (i < argc) {
-        if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
-            if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
-            || strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
-            || strcasecmp(argv[i],"-h") == 0) {
-                printf("blitwizard %s\n",VERSION);
-                printf("Usage: blitwizard [options] [lua script]\n");
-                printf("   -changedir: Change working directory to script dir\n");
-                printf("   -help: Show this help text and quit\n");
-                return 0;
-            }
-            if (strcasecmp(argv[i],"-changedir") == 0) {
-                option_changedir = 1;
-                i++;
-                continue;
-            }
-            printerror("Error: Unknown option: %s",argv[i]);
-            return -1;
-        }else{
-            if (!scriptargfound) {
+        if (!scriptargfound) {
+            //pre-scriptname arguments
+            if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
+                if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
+                || strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
+                || strcasecmp(argv[i],"-h") == 0) {
+                    printf("blitwizard %s\n",VERSION);
+                    printf("Usage: blitwizard [blitwizard options] [lua script] [script options]\n");
+                    printf("The script options are passed through to the script.\n");
+                    printf("The available blitwizard options are those:\n");
+                    printf("   -changedir: Change working directory to script dir\n");
+                    printf("   -help: Show this help text and quit\n");
+                    return 0;
+                }
+                if (strcasecmp(argv[i],"-changedir") == 0) {
+                    option_changedir = 1;
+                    i++;
+                    continue;
+                }
+                printerror("Error: Unknown option: %s",argv[i]);
+                return -1;
+            }else{
                 scriptargfound = 1;
                 script = argv[i];
+            }
+        }else{
+            //post-scriptname arguments -> store them for Lua
+            if (scriptargcount < MAXSCRIPTARGS) {
+                scriptargs[scriptargcount] = strdup(argv[i]);
+                scriptargcount++;
             }
         }
         i++;
@@ -418,12 +438,6 @@ int main(int argc, char** argv) {
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: locating lua start script...");
 #endif
-
-    //check if a folder:
-    if (file_IsDirectory(script)) {
-        filenamebuf = file_AddComponentToPath(script, "game.lua");
-        script = filenamebuf;
-    }
 
     //check if we want to change directory to the provided path:
     if (option_changedir) {
@@ -447,6 +461,12 @@ int main(int argc, char** argv) {
             return -1;
         }
         free(p);
+        script = filenamebuf;
+    }
+
+    //check if a folder:
+    if (file_IsDirectory(script)) {
+        filenamebuf = file_AddComponentToPath(script, "game.lua");
         script = filenamebuf;
     }
 
