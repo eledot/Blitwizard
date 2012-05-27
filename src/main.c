@@ -410,8 +410,7 @@ int main(int argc, char** argv) {
                     i++;
                     continue;
                 }
-                printerror("Error: Unknown option: %s",argv[i]);
-                return -1;
+                printwarning("Warning: Unknown Blitwizard option: %s", argv[i]);
             }else{
                 scriptargfound = 1;
                 script = argv[i];
