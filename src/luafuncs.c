@@ -241,19 +241,25 @@ int luafuncs_dofile(lua_State* l) {
         return haveluaerror(l, badargument1, 1, "loadfile", "string", lua_strtype(l, 1));
     }
 
-    //pop all additional arguments we might have received
-    int i = lua_gettop(l);
-    while (i > 1) {
-        lua_pop(l,1);
-        i--;
-    }
+    //check additional arguments we might have received
+    int additionalargs = lua_gettop(l)-1;
 
     //load function and call it
     lua_getglobal(l, "loadfile"); //first, push function
     lua_pushvalue(l, 1); //then push given file name as argument
+
     lua_call(l, 1, 1); //call loadfile
-    int previoustop = lua_gettop(l)-1; //minus the function on the stack which lua_pcall() removes
-    lua_call(l, 0, LUA_MULTRET); //call returned function by loadfile
+
+    //the stack should now look like this:
+    //  [additional arg 1] ... [additional arg n] [loaded function]
+
+    //if we have additional args on the stack, move the function in front:
+    if (additionalargs > 0) {
+        lua_insert(l, -(additionalargs+1));
+    }
+
+    int previoustop = lua_gettop(l)-(1+additionalargs); //minus the function on the stack which lua_call() removes and all the args to it
+    lua_call(l, additionalargs, LUA_MULTRET); //call returned function by loadfile
 
     //return all values the function has left for us on the stack
     return lua_gettop(l)-previoustop;

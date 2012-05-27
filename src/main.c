@@ -369,7 +369,6 @@ int main(int argc, char** argv) {
 
     //evaluate command line arguments:
     const char* script = "game.lua";
-    int i = 1;
     int scriptargfound = 0;
     int option_changedir = 0;
     int gcframecount = 0;
@@ -389,6 +388,7 @@ int main(int argc, char** argv) {
     int scriptargcount = 0;
 
     //parse command line arguments:
+    int i = 1;
     while (i < argc) {
         if (!scriptargfound) {
             //pre-scriptname arguments
@@ -397,10 +397,11 @@ int main(int argc, char** argv) {
                 || strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
                 || strcasecmp(argv[i],"-h") == 0) {
                     printf("blitwizard %s\n",VERSION);
-                    printf("Usage: blitwizard [blitwizard options] [lua script] [script options]\n");
-                    printf("The script options are passed through to the script.\n");
-                    printf("The available blitwizard options are those:\n");
-                    printf("   -changedir: Change working directory to script dir\n");
+                    printf("Usage: blitwizard [blitwizard options] [lua script] [script options]\n\n");
+                    printf("The lua script should be a .lua file containing Lua source code.\n\n");
+                    printf("The script options (optional) are passed through to the script.\n\n");
+                    printf("The blitwizard options (optional) can be some of those:\n");
+                    printf("   -changedir: Change working directory to directory of lua script path\n");
                     printf("   -help: Show this help text and quit\n");
                     return 0;
                 }
@@ -516,7 +517,7 @@ int main(int argc, char** argv) {
     }
     if (exists) {
 #endif
-        if (!luastate_DoInitialFile("templates/init.lua", &error)) {
+        if (!luastate_DoInitialFile("templates/init.lua", 0, &error)) {
             if (error == NULL) {
                 error = outofmem;
             }
@@ -533,8 +534,24 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: Executing lua start script...");
 #endif
 
-    //open and run provided file
-    if (!luastate_DoInitialFile(script, &error)) {
+    //push command line arguments into script state:
+    i = 0;
+    int pushfailure = 0;
+    while (i < scriptargcount) {
+        if (!luastate_PushFunctionArgumentToMainstate_String(scriptargs[i])) {
+            pushfailure = 1;
+            break;
+        }
+        i++;
+    }
+    if (pushfailure) {
+        printerror("Error: Couldn't push all script arguments into script state");
+        main_Quit(1);
+        return 1;
+    }
+
+    //open and run provided script file and pass the command line arguments:
+    if (!luastate_DoInitialFile(script, scriptargcount, &error)) {
         if (error == NULL) {
             error = outofmem;
         }
@@ -544,6 +561,7 @@ int main(int argc, char** argv) {
         }
         fatalscripterror();
         main_Quit(1);
+        return 1;
     }
 
 #if defined(ANDROID) || defined(__ANDROID__)

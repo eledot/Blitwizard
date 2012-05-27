@@ -23,7 +23,7 @@
 
 //Run script:
 
-int luastate_DoInitialFile(const char* file, char** error);
+int luastate_DoInitialFile(const char* file, int argcount, char** error);
 
 //Misc:
 

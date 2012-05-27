@@ -90,7 +90,7 @@ void luastate_PrintStackDebug() {
                 }
                 break;
             case LUA_TUSERDATA:
-                printf("0x%x", (unsigned int)lua_touserdata(scriptstate, i));
+                printf("<userdata %p>", lua_touserdata(scriptstate, i));
                 break;
             case LUA_TFUNCTION:
                 printf("<function>");
@@ -515,12 +515,22 @@ static lua_State* luastate_New() {
     return l;
 }
 
-static int luastate_DoFile(lua_State* l, const char* file, char** error) {
+static int luastate_DoFile(lua_State* l, int argcount, const char* file, char** error) {
     int previoustop = lua_gettop(l);
     lua_pushcfunction(l, &gettraceback);
     lua_getglobal(l, "dofile"); //first, push function
     lua_pushstring(l, file); //then push file name as argument
-    int ret = lua_pcall(l, 1, 0, -3); //call returned function by loadfile
+
+    //in case of additional user-passed arguments, we need them too:
+    if (argcount > 0) {
+        //move file name argument in front of all arguments:
+        lua_insert(l, -(argcount+2));
+
+        //move function in front of all arguments (including file name):
+        lua_insert(l, -(argcount+2));
+    }
+
+    int ret = lua_pcall(l, 1+argcount, 0, -3); //call returned function by loadfile
 
     int returnvalue = 1;
     //process errors
@@ -533,7 +543,7 @@ static int luastate_DoFile(lua_State* l, const char* file, char** error) {
         returnvalue = 0;
     }
 
-    //clean up stack
+    //clean up stack (e.g. from return values or so)
     if (lua_gettop(scriptstate) > previoustop) {
         lua_pop(scriptstate, lua_gettop(scriptstate) - previoustop);
     }
@@ -541,7 +551,7 @@ static int luastate_DoFile(lua_State* l, const char* file, char** error) {
     return returnvalue;
 }
 
-int luastate_DoInitialFile(const char* file, char** error) {
+int luastate_DoInitialFile(const char* file, int argcount, char** error) {
     if (!scriptstate) {
         scriptstate = luastate_New();
         if (!scriptstate) {
@@ -549,7 +559,7 @@ int luastate_DoInitialFile(const char* file, char** error) {
             return 0;
         }
     }
-    return luastate_DoFile(scriptstate, file, error);
+    return luastate_DoFile(scriptstate, argcount, file, error);
 }
 
 int luastate_PushFunctionArgumentToMainstate_Bool(int yesno) {
@@ -558,6 +568,12 @@ int luastate_PushFunctionArgumentToMainstate_Bool(int yesno) {
 }
 
 int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
+    if (!scriptstate) {
+        scriptstate = luastate_New();
+        if (!scriptstate) {
+            return 0;
+        }
+    }
     lua_pushstring(scriptstate, string);
     return 1;
 }
