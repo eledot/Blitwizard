@@ -439,6 +439,12 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: locating lua start script...");
 #endif
 
+    //check if a folder:
+    if (file_IsDirectory(script)) {
+        filenamebuf = file_AddComponentToPath(script, "game.lua");
+        script = filenamebuf;
+    }
+
     //check if we want to change directory to the provided path:
     if (option_changedir) {
         char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
@@ -461,12 +467,6 @@ int main(int argc, char** argv) {
             return -1;
         }
         free(p);
-        script = filenamebuf;
-    }
-
-    //check if a folder:
-    if (file_IsDirectory(script)) {
-        filenamebuf = file_AddComponentToPath(script, "game.lua");
         script = filenamebuf;
     }
 
