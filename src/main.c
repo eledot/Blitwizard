@@ -576,7 +576,7 @@ int main(int argc, char** argv) {
         fatalscripterror();
         main_Quit(1);
     }
-    printf("g\n");
+    
     //when graphics or audio is open, run the main loop
 #ifdef USE_GRAPHICS
 #ifdef USE_AUDIO
