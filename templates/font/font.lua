@@ -137,5 +137,5 @@ function blitwiz.font.addToString(str, line, maxlinelength, maxlinecount)
     return str
 end
 
-blitwiz.font.register("templates/font/default.png", "default", 7, 14, 32, "iso-8859-15")
+blitwiz.font.register("font/default.png", "default", 7, 14, 32, "iso-8859-15")
 

@@ -371,6 +371,9 @@ int main(int argc, char** argv) {
     const char* script = "game.lua";
     int scriptargfound = 0;
     int option_changedir = 0;
+    char* option_templatepath = NULL;
+    int option_templatepathset = 0;
+    int nextoptionistemplatepath = 0;
     int gcframecount = 0;
 
 #ifdef WINDOWS
@@ -390,8 +393,23 @@ int main(int argc, char** argv) {
     //parse command line arguments:
     int i = 1;
     while (i < argc) {
-        if (!scriptargfound) {
-            //pre-scriptname arguments
+        if (!scriptargfound) { //pre-scriptname arguments
+            //process template path option parameter:
+            if (nextoptionistemplatepath) {
+                nextoptionistemplatepath = 0;
+                option_templatepath = strdup(argv[i]);
+                if (!option_templatepath) {
+                    printerror("Error: failed to strdup() template path argument");
+                    main_Quit(1);
+                    return 1;
+                }
+                option_templatepathset = 1;
+                file_MakeSlashesNative(option_templatepath);
+                i++;
+                continue;
+            }
+
+            //various options:
             if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
                 if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
                 || strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
@@ -401,12 +419,18 @@ int main(int argc, char** argv) {
                     printf("The lua script should be a .lua file containing Lua source code.\n\n");
                     printf("The script options (optional) are passed through to the script.\n\n");
                     printf("The blitwizard options (optional) can be some of those:\n");
-                    printf("   -changedir: Change working directory to directory of lua script path\n");
-                    printf("   -help: Show this help text and quit\n");
+                    printf("   -changedir             Change working directory to the dir of the lua script path\n");
+                    printf("   -help                  Show this help text and quit\n");
+                    printf("   -templatepath [path]   Check another place for templates, not \"templates/\"\n");
                     return 0;
                 }
                 if (strcasecmp(argv[i],"-changedir") == 0) {
                     option_changedir = 1;
+                    i++;
+                    continue;
+                }
+                if (strcasecmp(argv[i],"-templatepath") == 0) {
+                    nextoptionistemplatepath = 1;
                     i++;
                     continue;
                 }
@@ -439,24 +463,42 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: locating lua start script...");
 #endif
 
-    //check if a folder:
+    //if no template path was provided, default to "templates/"
+    if (!option_templatepath) {
+        option_templatepath = strdup("templates/");
+        if (!option_templatepath) {
+            printerror("Error: failed to allocate initial template path");
+            main_Quit(1);
+            return 1;
+        }
+        file_MakeSlashesNative(option_templatepath);
+    }
+
+    //check if provided script path is a folder:
     if (file_IsDirectory(script)) {
         filenamebuf = file_AddComponentToPath(script, "game.lua");
+        if (!filenamebuf) {
+            printerror("Error: failed to add component to template path");
+            main_Quit(1);
+            return 1;
+        }
         script = filenamebuf;
     }
     
-    //check if we want to change directory to the provided path:
+    //check if we want to change directory to the provided script path:
     if (option_changedir) {
         char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
         if (!p) {
             printerror("Error: NULL returned for absolute directory");
-            return -1;
+            main_Quit(1);
+            return 1;
         }
         char* newfilenamebuf = file_GetFileNameFromFilePath(script);
         if (!newfilenamebuf) {
             free(p);
             printerror("Error: NULL returned for file name");
-            return -1;
+            main_Quit(1);
+            return 1;
         }
         if (filenamebuf) {free(filenamebuf);}
         filenamebuf = newfilenamebuf;
@@ -464,7 +506,8 @@ int main(int argc, char** argv) {
             free(filenamebuf);
             printerror("Error: Cannot cd to \"%s\"",p);
             free(p);
-            return -1;
+            main_Quit(1);
+            return 1;
         }
         free(p);
         script = filenamebuf;
@@ -481,6 +524,7 @@ int main(int argc, char** argv) {
         free(error);
         fatalscripterror();
         main_Quit(1);
+        return 1;
     }
     sdlinitialised = 1;
 #endif
@@ -496,18 +540,41 @@ int main(int argc, char** argv) {
         printerror("Error: Failed to initialise Box2D physics");
         fatalscripterror();
         main_Quit(1);
+        return 1;
     }
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Reading templates if present...");
 #endif
-    
-    //run templates first if we can find them
-#if !defined(ANDROID) && !defined(__ANDROID__)
-    if (file_DoesFileExist("templates/init.lua")) {
+
+    //Search & run templates. Separate code for desktop/android due to
+    //android having the templates in embedded resources (where cwd'ing to
+    //isn't supported), while for the desktop it is a regular folder.
+#if !defined(ANDROID)
+    //remember current directory:
+    char* currentworkingdir = file_GetCwd();
+    if (!currentworkingdir) {
+        printerror("Error: failed to change current working directory");
+        main_Quit(1);
+        return 1;
+    }
+
+    //see if there is a template directory & file:
+    if (file_DoesFileExist(option_templatepath) && file_IsDirectory(option_templatepath)) {
+
+        //change working directory to template folder:
+        int cwdfailed = 0;
+        if (!file_Cwd(option_templatepath) && option_templatepathset) {
+            printwarning("Warning: failed to change working directory to template path \"%s\"", option_templatepath);
+            cwdfailed = 1;
+        }
+
+        //now run template file:
+        if (!cwdfailed && file_DoesFileExist("init.lua") && !luastate_DoInitialFile("init.lua", 0, &error)) {
 #else
-    //on Android, see if we can read the file:
+    //on Android, we only allow templates/init.lua.
+    //see if we can read the file:
     int exists = 0;
     SDL_RWops* rwops = SDL_RWFromFile("templates/init.lua", "rb");
     if (rwops) {
@@ -515,19 +582,26 @@ int main(int argc, char** argv) {
         rwops->close(rwops);
     }
     if (exists) {
-#endif
+        //run the template file:
         if (!luastate_DoInitialFile("templates/init.lua", 0, &error)) {
+#endif
             if (error == NULL) {
                 error = outofmem;
             }
-            printerror("Error: An error occured when running \"templates/init.lua\": %s", error);
+            printerror("Error: An error occured when running templates init.lua: %s", error);
             if (error != outofmem) {
                 free(error);
             }
             fatalscripterror();
             main_Quit(1);
+            return 1;
         }
     }
+
+    //now since templates are loaded, return to old working dir:
+#if !defined(ANDROID)
+    file_Cwd(currentworkingdir);
+#endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Executing lua start script...");
@@ -575,6 +649,7 @@ int main(int argc, char** argv) {
         }
         fatalscripterror();
         main_Quit(1);
+        return 1;
     }
     
     //when graphics or audio is open, run the main loop
