@@ -19,9 +19,15 @@ HOW TO USE:
   Run on Windows:
     Double-click "Run-blitwizard.bat"
   Run on Linux/BSD/Mac:
-    Open a terminal
-    Change directory to the blitwizard directory
-    Type: cd bin/ && ./blitwizard
+    When using a local compiled copy (e.g. the linux build from the website):
+      Open a terminal
+      Change directory to the extracted blitwizard main directory:
+        cd /path/to/blitwizard/files/
+      Then type this to run: cd bin/ && ./blitwizard
+    When using a system-wide installation (possible with an own source build
+    and "sudo make install" after completing the "make" step):
+      Open a terminal
+      Type: blitwizard
 
   If you don't have a binary release, you need to build blitwizard first.
   Please check out README-build.txt for this.

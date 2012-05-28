@@ -5,6 +5,7 @@
 
 This is the README for building blitwizard.
 
+If you compile for Windows or want a static build:
 Please consult README-deps.txt first for getting the
 required dependencies.
 
@@ -32,26 +33,42 @@ to get into that folder.
 
 == Configuration step ==
 
-Type ./configure into your Unix bash or MSYS shell.
+Type "./configure" (without the quotations)  into your Unix bash or MSYS shell.
 If you use the git code (not an official release), you will need to
-type sh ./autogen.sh FIRST before doing that.
+type "sh ./autogen.sh" FIRST before doing that.
 
-If you get an autoreconf: no such file error during sh ./autogen.sh,
-then you miss autotools. On Windows, install MinGW/MSYS again and make
-sure to tick all the MSYS stuff you can find so you end up with
-autotools. On Linux, search autotools or autoconf in your package
-manager. On Mac, install mac ports and search for autotools or
-autoconf.
+If you get an autoreconf: no such file error during "sh ./autogen.sh",
+then you miss autotools:
+  - On Windows, install MinGW/MSYS again and make sure to tick all
+    the MSYS stuff you can find so you end up with autotools.
+  - On Linux, search autotools or autoconf in your package manager.
+  - On Mac, install mac ports and search for autotools or autoconf.
 
 Please note there are options you can change if you want to do so,
-type ./configure --help to view them (you don't need to however).
+type "./configure --help" to view them (you don't need to however).
 If you aren't sure what they mean, just leave them alone :-)
+
+== Configure feature output ==
+
+IMPORTANT: When configure finishes, it will print a large summary of all
+features available and libraries used for Blitwizard.
+
+Please check if that summary contains audio/video/physics or whatever
+you might want to use!
+
+If any feature you want is unavailable, you need to either install
+the library system-wide (Linux) or consult README-deps.txt on how to
+properly provide it (Windows or static builds in general).
 
 == Compilation step ==
 
-Type make into your Unix bash or MSYS shell to compile.
+Type "make" (without quotations)  into your Unix bash or MSYS shell to
+compile.
 You should now have a blitwizard binary in your bin directory in
 the blitwizard folder. Have fun!
+
+You might want to install Blitwizard system-wide so simply typing
+"blitwizard" will run it. To do that, type "sudo make install" now.
 
 == Guide for FFmpeg support ==
 
@@ -64,10 +81,10 @@ configure step or it won't have FFmpeg support at runtime.
 Put the contents of a recent FFmpeg tarball (check http://ffmpeg.org/)
 into src/ffmpeg/ - the tarball has a main folder named "ffmpeg-XX"
 inside in which the contents are located. Extract the contents directly,
-without the ffmpeg-XX folder around them.
+without the ffmpeg-XX folder being parent of them, into src/ffmpeg/.
 
 Please note the FFmpeg version you use at this point is NOT that
-important. If you pick another (e.g. more recent) FFmpeg version for
-the runtime binaries you pass along with blitwizard, it shouldn't
-make any difference.
+important. If the FFmpeg version used at runtime differs, it usually
+doesn't make any difference. If it ever does for you, please drop us
+a note so we can add information about it here!
 

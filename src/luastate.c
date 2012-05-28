@@ -524,13 +524,16 @@ static int luastate_DoFile(lua_State* l, int argcount, const char* file, char** 
     //in case of additional user-passed arguments, we need them too:
     if (argcount > 0) {
         //move file name argument in front of all arguments:
-        lua_insert(l, -(argcount+2));
+        lua_insert(l, -(argcount+3));
 
         //move function in front of all arguments (including file name):
-        lua_insert(l, -(argcount+2));
+        lua_insert(l, -(argcount+3));
+
+        //move error function in front of all arguments:
+        lua_insert(l, -(argcount+3));
     }
 
-    int ret = lua_pcall(l, 1+argcount, 0, -3); //call returned function by loadfile
+    int ret = lua_pcall(l, 1+argcount, 0, -(argcount+3)); //call returned function by loadfile
 
     int returnvalue = 1;
     //process errors

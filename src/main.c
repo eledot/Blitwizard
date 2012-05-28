@@ -429,7 +429,7 @@ int main(int argc, char** argv) {
     //This needs to be done at some point before we actually initialise audio
     audiomixer_Init();
 #endif
-
+    
     //check the provided path:
     char outofmem[] = "Out of memory";
     char* error;
@@ -444,7 +444,7 @@ int main(int argc, char** argv) {
         filenamebuf = file_AddComponentToPath(script, "game.lua");
         script = filenamebuf;
     }
-
+    
     //check if we want to change directory to the provided path:
     if (option_changedir) {
         char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
@@ -502,7 +502,7 @@ int main(int argc, char** argv) {
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Reading templates if present...");
 #endif
-
+    
     //run templates first if we can find them
 #if !defined(ANDROID) && !defined(__ANDROID__)
     if (file_DoesFileExist("templates/init.lua")) {
@@ -532,7 +532,7 @@ int main(int argc, char** argv) {
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Executing lua start script...");
 #endif
-
+    
     //push command line arguments into script state:
     i = 0;
     int pushfailure = 0;
@@ -576,7 +576,7 @@ int main(int argc, char** argv) {
         fatalscripterror();
         main_Quit(1);
     }
-
+    printf("g\n");
     //when graphics or audio is open, run the main loop
 #ifdef USE_GRAPHICS
 #ifdef USE_AUDIO
