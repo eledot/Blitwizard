@@ -348,6 +348,23 @@ static void imgloaded(int success, const char* texture) {
     }
 }
 
+void attemptTemplateLoad(const char* path) {
+    char outofmem[] = "Out of memory";
+    char* error;
+    if (!luastate_DoInitialFile(path, 0, &error)) {
+        if (error == NULL) {
+            error = outofmem;
+        }
+        printerror("Error: An error occured when running templates init.lua: %s", error);
+        if (error != outofmem) {
+            free(error);
+        }
+        fatalscripterror();
+        main_Quit(1);
+        return;
+    }
+}
+
 
 int luafuncs_ProcessNetEvents();
 
@@ -559,9 +576,11 @@ int main(int argc, char** argv) {
         main_Quit(1);
         return 1;
     }
-
+   
+    int checksystemwidetemplate = 1; 
     //see if there is a template directory & file:
     if (file_DoesFileExist(option_templatepath) && file_IsDirectory(option_templatepath)) {
+        checksystemwidetemplate = 0;
 
         //change working directory to template folder:
         int cwdfailed = 0;
@@ -571,8 +590,22 @@ int main(int argc, char** argv) {
         }
 
         //now run template file:
-        if (!cwdfailed && file_DoesFileExist("init.lua") && !luastate_DoInitialFile("init.lua", 0, &error)) {
-#else
+        if (!cwdfailed && file_DoesFileExist("init.lua")) {
+            attemptTemplateLoad("init.lua");
+        }else{
+            checksystemwidetemplate = 1;
+        }
+    }
+#if defined(SYSTEM_TEMPLATE_PATH)
+    if (checksystemwidetemplate) {
+        if (file_Cwd(SYSTEM_TEMPLATE_PATH)) {
+            if (file_DoesFileExist("init.lua")) {
+                attemptTemplateLoad("init.lua");
+            }
+        }
+    }
+#endif
+#else //if !defined(ANDROID)
     //on Android, we only allow templates/init.lua.
     //see if we can read the file:
     int exists = 0;
@@ -584,19 +617,10 @@ int main(int argc, char** argv) {
     if (exists) {
         //run the template file:
         if (!luastate_DoInitialFile("templates/init.lua", 0, &error)) {
-#endif
-            if (error == NULL) {
-                error = outofmem;
-            }
-            printerror("Error: An error occured when running templates init.lua: %s", error);
-            if (error != outofmem) {
-                free(error);
-            }
-            fatalscripterror();
-            main_Quit(1);
-            return 1;
+            attemptTemplateLoad("templates/init.lua");
         }
     }
+#endif
 
     //now since templates are loaded, return to old working dir:
 #if !defined(ANDROID)

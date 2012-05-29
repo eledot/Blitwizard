@@ -13,7 +13,7 @@ if MAC_APP_PATHS
 blitwizard_SOURCES += macapppaths.m
 endif
 
-AM_CFLAGS = $(FINAL_INCLUDE_FLAGS) -fno-PIC -O3 -fno-strict-aliasing -Wall -Wextra -g -fomit-frame-pointer -L../libs/ $(FINAL_USE_LIB_FLAGS)
+AM_CFLAGS = $(FINAL_INCLUDE_FLAGS) -fno-PIC -O3 -DSYSTEM_TEMPLATE_PATH=\"${datadir}/blitwizard/templates/\" -fno-strict-aliasing -Wall -Wextra -g -fomit-frame-pointer -L../libs/ $(FINAL_USE_LIB_FLAGS)
 AM_CXXFLAGS = $(FINAL_INCLUDE_FLAGS) $(STATICSTDCXX) -fno-PIC -O3 -fno-strict-aliasing -Wall -Wextra -g -fno-exceptions -fomit-frame-pointer -L ../libs/ $(FINAL_USE_LIB_FLAGS)
 AM_OBJCFLAGS = -fno-PIC -O3 -g -fno-exceptions -fomit-frame-pointer
 
@@ -22,3 +22,9 @@ AM_OBJCFLAGS = -fno-PIC -O3 -g -fno-exceptions -fomit-frame-pointer
 all-local: mytarget
 mytarget: blitwizard$(EXEEXT)
 	sh ../scripts/copybin.sh
+install:
+	mkdir -p ${datadir}/blitwizard
+	rm -rf ${datadir}/blitwizard/templates/
+	cp -R ../templates/ ${datadir}/blitwizard/templates/
+	cp ../bin/blitwizard${EXEEXT} ${bindir}
+
