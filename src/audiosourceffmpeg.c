@@ -236,7 +236,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
     //Windows
     avutilptr = library_LoadSearch("avutil");
     avcodecptr = library_LoadSearch("avcodec");
-    avformatptr = library_Loadsearch("avformat");
+    avformatptr = library_LoadSearch("avformat");
 #endif
 
     //Check library load state

@@ -21,19 +21,24 @@
 
 */
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <windows.h>
+#include "os.h"
+#include "file.h"
 
 static char* queryregstring(HKEY key, const char* path, const char* name) {
     //the windows registry knows where Steam is:
-    char* data[256] = "";
-    int datalen = sizeof(data)-1;
+    char data[256] = "";
+    unsigned int datalen = sizeof(data)-1;
     HKEY khandle;
-    if (RegOpenKey(key, path, 0, &khandle) != ERROR_SUCCESS) {return NULL;}
-    if (RegQueryValueEx(khandle, name, 0, 0, data, &datalen) != ERROR_SUCCESS) {RegCloseKey(khandle); return NULL;}
+    if (RegOpenKeyEx(key, path, 0, KEY_QUERY_VALUE, &khandle) != ERROR_SUCCESS) {return NULL;}
+    if (RegQueryValueEx(khandle, name, 0, 0, (LPBYTE)data, (DWORD*)&datalen) != ERROR_SUCCESS) {RegCloseKey(khandle); return NULL;}
     
     //null terminate the queried value properly:
     if (datalen >= sizeof(data)) {datalen = sizeof(data)-1;}
     data[datalen] = 0;
+    RegCloseKey(khandle);
 
     return strdup(data);
 }
@@ -50,7 +55,7 @@ const char* Win32_GetPathForSteam() {
     file_MakeSlashesNative(path);
 
     //copy and remember the path:
-    int copylen = strlen(path);
+    unsigned int copylen = strlen(path);
     if (copylen >= sizeof(steampath)) {copylen = sizeof(steampath)-1;}
     memcpy(steampath, path, copylen);
     steampath[copylen] = 0;
@@ -69,11 +74,11 @@ const char* Win32_GetPathForChrome() {
     char* path = queryregstring(HKEY_CURRENT_USER, "Software\\\\Google\\\\Update", "path");
     if (!path) {return NULL;} 
     file_MakeSlashesNative(path); //now: C:\Users\Jonas\AppData\Local\Google\Update\GoogleUpdate.exe
-    char* p2 = file_GetDirectoryPathFromFilePath(path); //now: C:\Users\Jonas\AppData\Local\Google\Update\
+    char* p2 = file_GetDirectoryPathFromFilePath(path); //now: C:\Users\Jonas\AppData\Local\Google\Update
     free(path);
     if (!p2) {return NULL;}
     path = p2;
-    file_StripComponentFromPath(path); //now: C:\Users\Jonas\AppData\Local\Google\
+    file_StripComponentFromPath(path); //now: C:\Users\Jonas\AppData\Local\Google
     char sep[] = "/";
     if (strlen(path) > 0 && path[strlen(path)-1] != '/' && path[strlen(path)-1] != '\\') {
         sep[0] = 0;
