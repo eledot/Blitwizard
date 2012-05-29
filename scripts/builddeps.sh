@@ -202,8 +202,6 @@ if [ "$NOVORBIS" = "yes" ]; then
             # Build vorbis and remember to tell it where ogg is
             oggincludedir="`pwd`/src/ogg/include/"
             ogglibrarydir="`pwd`/src/ogg/src/.libs/"
-            echo "oggincludedir: $oggincludedir"
-            echo "ogglibrarydir: $ogglibrarydir"
             if [ "$MACBUILD" != "yes" ]; then
                 cd src/vorbis && CC="$CC" PKG_CONFIG_PATH="`pwd`/src/ogg/" ./configure --host="$HOST" --with-ogg-libraries="$ogglibrarydir" --with-ogg-includes="$oggincludedir" --disable-oggtest --disable-docs --disable-examples --disable-shared --enable-static && make clean && make || { echo "Failed to compile libvorbis"; exit 1; }
             else
