@@ -677,198 +677,187 @@ int main(int argc, char** argv) {
     }
     
     //when graphics or audio is open, run the main loop
-#ifdef USE_GRAPHICS
-#ifdef USE_AUDIO
-    if (graphics_AreGraphicsRunning() || (audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen()|| listeners_HaveActiveListeners()) {
-#else
-    if (graphics_AreGraphicsRunning() || !connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
-#endif
-#else
-#ifdef USE_AUDIO
-    if ((audioinitialised && !audiomixer_NoSoundsPlaying()) || !connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
-#else
-    if (!connections_NoConnectionsOpen() || listeners_HaveActiveListeners()) {
-#endif
-#endif
-        int blitwizonstepworked = 0;
-        int blitwizondrawworked = 0;
+    int blitwizonstepworked = 0;
+    int blitwizondrawworked = 0;
 #if defined(ANDROID) || defined(__ANDROID__)
-        printinfo("Blitwizard startup: Entering main loop...");
+    printinfo("Blitwizard startup: Entering main loop...");
 #endif
 
-        //Initialise audio when it isn't
-        main_InitAudio();
+    //Initialise audio when it isn't
+    main_InitAudio();
 
-        //If we failed to initialise audio, we want to simulate it
+    //If we failed to initialise audio, we want to simulate it
 #ifdef USE_AUDIO
-        uint64_t simulateaudiotime = 0;
+    uint64_t simulateaudiotime = 0;
+    if (simulateaudio) {
+        simulateaudiotime = time_GetMilliseconds();
+    }
+#endif
+
+    uint64_t logictimestamp = time_GetMilliseconds();
+    uint64_t lastdrawingtime = 0;
+    uint64_t physicstimestamp = time_GetMilliseconds();
+    while (!wantquit) {
+        blitwizonstepworked = 1;
+        blitwizondrawworked = 0;
+        uint64_t time = time_GetMilliseconds();
+
+        //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
+
+#ifdef USE_AUDIO
+        //simulate audio
         if (simulateaudio) {
-            simulateaudiotime = time_GetMilliseconds();
+            while (simulateaudiotime < time_GetMilliseconds()) {
+                audiomixer_GetBuffer(48 * 4 * 2);
+                simulateaudiotime += 1; // 48 * 1000 times * 4 bytes * 2 channels per second = simulated 48kHz 32bit stereo audio
+            }
+        }
+#endif //ifdef USE_AUDIO
+
+        //slow sleep: check if we can safe some cpu by waiting longer
+        unsigned int deltaspan = 16;
+#ifndef USE_GRAPHICS
+        int nodraw = 1;
+#else
+        int nodraw = 1;
+        if (graphics_AreGraphicsRunning()) {nodraw = 0;}
+#endif
+        uint64_t delta = time_GetMilliseconds()-lastdrawingtime;
+        if (nodraw) {
+            //we can sleep as long as our timeste allows us to
+            deltaspan = ((double)TIMESTEP)/2.1f;
+        }
+
+        //sleep/limit FPS as much as we can
+        if (delta < deltaspan) {
+            if (connections_NoConnectionsOpen() && !listeners_HaveActiveListeners()) {
+                time_Sleep(deltaspan-delta);
+                connections_SleepWait(0);
+            }else{
+                connections_SleepWait(deltaspan-delta);
+            }
+        }else{
+            connections_SleepWait(0);
+        }
+
+        //Remember drawing time and process net events
+        lastdrawingtime = time_GetMilliseconds();
+        if (!luafuncs_ProcessNetEvents()) {
+            //there was an error processing the events
+            main_Quit(1);
+        }
+
+#ifdef USE_GRAPHICS
+        //check and trigger all sort of input events
+        graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
+#endif
+
+        //call the step function and advance physics
+        int iterations = 0;
+        while ((logictimestamp < time || physicstimestamp < time) && iterations < MAXLOGICITERATIONS) {
+            if (logictimestamp < time && logictimestamp <= physicstimestamp) {
+                int onstepdoesntexist = 0;
+                if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error, &onstepdoesntexist)) {
+                    printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
+                    if (error) {free(error);}
+                    fatalscripterror();
+                    main_Quit(1);
+                    blitwizonstepworked = 0;
+                }else{
+                    if (onstepdoesntexist) {
+                        blitwizonstepworked = 0;
+                    }
+                }
+                logictimestamp += TIMESTEP;
+            }
+#ifdef USE_PHYSICS
+            if (physicstimestamp < time && physicstimestamp <= logictimestamp) {
+                int psteps = ((float)TIMESTEP/(float)physics_GetStepSize(physicsdefaultworld));
+                if (psteps < 1) {psteps = 1;}
+                while (psteps > 0) {
+                    physics_Step(physicsdefaultworld);
+                    physicstimestamp += physics_GetStepSize(physicsdefaultworld);
+                    psteps--;
+                }
+            }
+#endif
+            iterations++;
+        }
+
+        //check if we ran out of iterations:
+        if (iterations >= MAXLOGICITERATIONS) {
+            if (
+#ifdef USE_PHYSICS
+                    physicstimestamp < time ||
+#endif
+                 logictimestamp < time) {
+                //we got a problem: we aren't finished,
+                //but we hit the iteration limit
+                if (physicstimestamp < time || logictimestamp < time) {
+                    physicstimestamp = time_GetMilliseconds();
+                    logictimestamp = time_GetMilliseconds();
+                    printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
+                }
+            }else{
+                //we don't need to iterate anymore -> everything is fine
+            }
+        }
+
+#ifdef USE_GRAPHICS
+        //check for image loading progress
+        if (!appinbackground) {
+            graphics_CheckTextureLoading(&imgloaded);
         }
 #endif
 
-        uint64_t logictimestamp = time_GetMilliseconds();
-        uint64_t lastdrawingtime = 0;
-        uint64_t physicstimestamp = time_GetMilliseconds();
-        while (!wantquit) {
-            blitwizonstepworked = 0;
-            blitwizondrawworked = 0;
-            uint64_t time = time_GetMilliseconds();
-
-            //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
-
-#ifdef USE_AUDIO
-            //simulate audio
-            if (simulateaudio) {
-                while (simulateaudiotime < time_GetMilliseconds()) {
-                    audiomixer_GetBuffer(48 * 4 * 2);
-                    simulateaudiotime += 1; // 48 * 1000 times * 4 bytes * 2 channels per second = simulated 48kHz 32bit stereo audio
-                }
-            }
-#endif //ifdef USE_AUDIO
-
-            //slow sleep: check if we can safe some cpu by waiting longer
-            unsigned int deltaspan = 16;
-#ifndef USE_GRAPHICS
-            int nodraw = 1;
-#else
-            int nodraw = 1;
-            if (graphics_AreGraphicsRunning()) {nodraw = 0;}
-#endif
-            uint64_t delta = time_GetMilliseconds()-lastdrawingtime;
-            if (nodraw) {
-                //we can sleep as long as our timeste allows us to
-                deltaspan = ((double)TIMESTEP)/2.1f;
-            }
-
-            //sleep/limit FPS as much as we can
-            if (delta < deltaspan) {
-                if (connections_NoConnectionsOpen() && !listeners_HaveActiveListeners()) {
-                    time_Sleep(deltaspan-delta);
-                    connections_SleepWait(0);
-                }else{
-                    connections_SleepWait(deltaspan-delta);
-                }
-            }else{
-                connections_SleepWait(0);
-            }
-
-            //Remember drawing time and process net events
-            lastdrawingtime = time_GetMilliseconds();
-            if (!luafuncs_ProcessNetEvents()) {
-                //there was an error processing the events
-                main_Quit(1);
-            }
-
 #ifdef USE_GRAPHICS
-            //check and trigger all sort of input events
-            graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
-#endif
-
-            //call the step function and advance physics
-            int iterations = 0;
-            while ((logictimestamp < time || physicstimestamp < time) && iterations < MAXLOGICITERATIONS) {
-                if (logictimestamp < time && logictimestamp <= physicstimestamp) {
-                    int onstepdoesntexist = 0;
-                    if (!luastate_CallFunctionInMainstate("blitwiz.on_step", 0, 1, 1, &error, &onstepdoesntexist)) {
-                        printerror("Error: An error occured when calling blitwiz.on_step: %s", error);
-                        if (error) {free(error);}
-                        fatalscripterror();
-                        main_Quit(1);
-                    }else{
-                        if (!onstepdoesntexist) {blitwizonstepworked = 1;}
-                    }
-                    logictimestamp += TIMESTEP;
-                }
-#ifdef USE_PHYSICS
-                if (physicstimestamp < time && physicstimestamp <= logictimestamp) {
-                    int psteps = ((float)TIMESTEP/(float)physics_GetStepSize(physicsdefaultworld));
-                    if (psteps < 1) {psteps = 1;}
-                    while (psteps > 0) {
-                        physics_Step(physicsdefaultworld);
-                        physicstimestamp += physics_GetStepSize(physicsdefaultworld);
-                        psteps--;
-                    }
-                }
-#endif
-                iterations++;
-            }
-
-            //check if we ran out of iterations:
-            if (iterations >= MAXLOGICITERATIONS) {
-                if (
-#ifdef USE_PHYSICS
-                        physicstimestamp < time ||
-#endif
-                     logictimestamp < time) {
-                    //we got a problem: we aren't finished,
-                    //but we hit the iteration limit
-                    if (physicstimestamp < time || logictimestamp < time) {
-                        physicstimestamp = time_GetMilliseconds();
-                        logictimestamp = time_GetMilliseconds();
-                        printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
-                    }
-                }else{
-                    //we don't need to iterate anymore -> everything is fine
-                }
-            }
-
-#ifdef USE_GRAPHICS
-            //check for image loading progress
+        if (graphics_AreGraphicsRunning()) {
             if (!appinbackground) {
-                graphics_CheckTextureLoading(&imgloaded);
-            }
-#endif
+                //start drawing
+                drawingallowed = 1;
+                graphics_StartFrame();
 
-#ifdef USE_GRAPHICS
-            if (graphics_AreGraphicsRunning()) {
-                if (!appinbackground) {
-                    //start drawing
-                    drawingallowed = 1;
-                    graphics_StartFrame();
-
-                    //call the drawing function
-                    int ondrawdoesntexist = 0;
-                    if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error, &ondrawdoesntexist)) {
-                    printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
-                        if (error) {free(error);}
-                        fatalscripterror();
-                        main_Quit(1);
-                    }else{
-                        if (!ondrawdoesntexist) {blitwizondrawworked = 1;}
-                    }
-
-                    //complete the drawing
-                    drawingallowed = 0;
-                    graphics_CompleteFrame();
+                //call the drawing function
+                int ondrawdoesntexist = 0;
+                if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error, &ondrawdoesntexist)) {
+                printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
+                    if (error) {free(error);}
+                    fatalscripterror();
+                    main_Quit(1);
                 }else{
-                    blitwizondrawworked = 1;
+                    if (!ondrawdoesntexist) {blitwizondrawworked = 1;}
                 }
+
+                //complete the drawing
+                drawingallowed = 0;
+                graphics_CompleteFrame();
+            }else{
+                blitwizondrawworked = 1;
             }
+        }
 #endif
 
-            //we might want to quit if there is nothing else to do
+        //we might want to quit if there is nothing else to do
 #ifdef USE_AUDIO
-            if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners() && audiomixer_NoSoundsPlaying()) {
+        if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners() && audiomixer_NoSoundsPlaying()) {
 #else
-            if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners()) {
+        if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners()) {
 #endif
-                main_Quit(1);
-            }
+            main_Quit(1);
+        }
 
 #ifdef USE_GRAPHICS
-            //be very sleepy if in background
-            if (appinbackground) {
-                time_Sleep(20);
-            }
+        //be very sleepy if in background
+        if (appinbackground) {
+            time_Sleep(20);
+        }
 #endif
 
-            //do some garbage collection:
-            gcframecount++;
-            if (gcframecount > 100) {
-                //do a gc step once in a while
-                luastate_GCCollect();
-            }
+        //do some garbage collection:
+        gcframecount++;
+        if (gcframecount > 100) {
+            //do a gc step once in a while
+            luastate_GCCollect();
         }
     }
     main_Quit(0);
