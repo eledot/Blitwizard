@@ -645,6 +645,7 @@ cd ..
 AS_IF([test -z "$maybeos"],[
     AC_MSG_NOTICE([Trying to compile for a Unix target.]) 
     # >> Unix
+    AM_CONDITIONAL([WIN_APP_PATHS], [test 0 = 1])
 
     MACTEST=`uname -a | grep Darwin`
     AS_IF([test -z "$MACTEST"],[
@@ -692,7 +693,7 @@ AS_IF([test -z "$maybeos"],[
 ],[
     AC_MSG_NOTICE([Attempting to compile for a Windows target.]) 
     # >> Windows
-
+    AM_CONDITIONAL([WIN_APP_PATHS], [test 1 = 1])
     AM_CONDITIONAL([MAC_APP_PATHS], [test 0 = 1])
 
     # - check compiler first

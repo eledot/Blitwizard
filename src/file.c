@@ -215,6 +215,19 @@ char* file_AddComponentToPath(const char* path, const char* component) {
     return newpath;
 }
 
+void file_StripComponentFromPath(char* path) {
+    file_MakeSlashesNative(path);
+
+    if (strlen(path) > 0) {
+        int slashpos = file_LatestSlash(path);
+        if (slashpos > 0) {
+            path[slashpos] = 0;
+        }else{
+            path[0] = 0;
+        }
+    }
+}
+
 char* file_GetAbsolutePathFromRelativePath(const char* path) {
     //cancel for absolute paths
     if (!file_IsPathRelative(path)) {

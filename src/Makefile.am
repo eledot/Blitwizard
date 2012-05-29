@@ -12,6 +12,9 @@ blitwizard_LDFLAGS = $(FINAL_LD_FLAGS)
 if MAC_APP_PATHS
 blitwizard_SOURCES += macapppaths.m
 endif
+if WIN_APP_PATHS
+blitwizard_SOURCES += win32apppaths.c
+endif
 
 AM_CFLAGS = $(FINAL_INCLUDE_FLAGS) -fno-PIC -O3 -DSYSTEM_TEMPLATE_PATH=\"${datadir}/blitwizard/templates/\" -fno-strict-aliasing -Wall -Wextra -g -fomit-frame-pointer -L../libs/ $(FINAL_USE_LIB_FLAGS)
 AM_CXXFLAGS = $(FINAL_INCLUDE_FLAGS) $(STATICSTDCXX) -fno-PIC -O3 -fno-strict-aliasing -Wall -Wextra -g -fno-exceptions -fomit-frame-pointer -L ../libs/ $(FINAL_USE_LIB_FLAGS)

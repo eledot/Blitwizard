@@ -21,6 +21,6 @@
 
 */
 
-const char* Mac_getPathForApplication(const char* app);
+const char* Mac_GetPathForApplication(const char* app);
 
 

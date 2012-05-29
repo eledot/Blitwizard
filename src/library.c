@@ -177,8 +177,7 @@ void* library_LoadSearch(const char* name) {
     }
 
     //try a more interesting search:
-#ifndef WINDOWS
-#ifndef MAC
+#if !defined(MAC) && !defined(WINDOWS) && !defined(ANDROID)
     library_SearchDir("/usr/lib", name, &ptr);
     library_SearchDir("/lib", name, &ptr);
     library_SearchDir("/usr/local/lib", name, &ptr);
@@ -192,18 +191,33 @@ void* library_LoadSearch(const char* name) {
     if (ptr) {
         return ptr;
     }
-#else //ifndef MAC
-    //Apple/Mac:
-    if (strcasecmp(name, "ffmpegsumo") == 0) {
-        //Reference: /Applications/Google Chrome.app/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
-        const char* chromepath = Mac_getPathForApplication("Google Chrome");
+#endif
+   
+    //For Mac OS X/Windows, we will attempt to obtain FFmpeg from Chrome or Steam:
+#if defined(WINDOWS) || defined(MAC)
+    if (
+#ifdef MAC
+strcasecmp(name, "ffmpegsumo") == 0
+#else
+strcasecmp(name, "avformat.dll") == 0 || strcasecmp(name, "avcodec.dll") == 0 || strcasecmp(name, "avutil.dll") == 0
+#endif
+) {
+        //Reference (mac os x): [/Applications/Google Chrome.app]/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
+        //Reference (windows): [app path]/19.0.1084.52/avcodec-54.dll
+#ifdef MAC
+        const char* chromepath = Mac_GetPathForApplication("Google Chrome");
+#else
+        const char* chromepath = Win32_GetPathForChrome();
+#endif
         if (chromepath && strlen(chromepath) > 0) {
             //Find out the version folder:
             struct filelistcontext* fctx = filelist_Create(chromepath);
             char versionfolder[512];
             int isdir = 0;
             while (filelist_GetNextFile(fctx, versionfolder, sizeof(versionfolder), &isdir) == 1) {
-                if (isdir) {break;}
+                if (isdir && (versionfolder[0] >= '0' && versionfolder[0] <= '9')) {
+                    break;
+                }
             }
             if (!isdir) {
                 //No fitting sub folder found
@@ -221,7 +235,11 @@ void* library_LoadSearch(const char* name) {
                 if (strlen(versionfolder) > 0 && versionfolder[strlen(versionfolder)-1] == '/') {
                     strcpy(sep2, "");
                 }
+#ifdef MAC
                 snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/Versions/%s/Google Chrome Framework.framework/Libraries/ffmpegsumo.so", pathbuf, sep, versionfolder, sep2);
+#else
+                
+#endif
 
                 //Attempt to load the lib now:
                 ptr = library_Load(pathbuf);
@@ -236,8 +254,13 @@ void* library_LoadSearch(const char* name) {
 #endif
         }
 
-        //Reference: /Applications/Steam.app/Contents/MacOS/osx32/
-        const char* steampath = Mac_getPathForApplication("Steam");
+        //Reference (mac os x): [/Applications/Steam.app]/Contents/MacOS/osx32/ffmpegsumo.so
+        //Reference (windows): [app path]/bin/avcodec-53.dll
+#ifdef MAC
+        const char* steampath = Mac_GetPathForApplication("Steam");
+#else
+        const char* steampath = Win32_GetPathForSteam();
+#endif
         if (steampath && strlen(steampath) > 0) {
             //Compose final path:
             char pathbuf[512];
@@ -245,7 +268,11 @@ void* library_LoadSearch(const char* name) {
             if (steampath[strlen(steampath)-1] == '/') {
                 strcpy(sep, "");
             }
+#ifdef MAC
             snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/MacOS/osx32/ffmpegsumo.so", steampath, sep);
+#else
+
+#endif
 
             //Attempt to load the lib now:
             ptr = library_Load(pathbuf);
@@ -259,11 +286,7 @@ void* library_LoadSearch(const char* name) {
 #endif
         }
     }
-#endif
-#else //ifndef WINDOWS
-    //Windows
-
-#endif
+#endif //if defined(MAC) || defined(WINDOWS)
     return NULL;
 }
 

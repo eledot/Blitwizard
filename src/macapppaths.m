@@ -24,7 +24,7 @@
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-const char* Mac_getPathForApplication(const char* app) {
+const char* Mac_GetPathForApplication(const char* app) {
   return [[[NSWorkspace sharedWorkspace] fullPathForApplication:[NSString stringWithUTF8String:app]] UTF8String];
 }
 
