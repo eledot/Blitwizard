@@ -34,6 +34,15 @@
 #include "library.h"
 #include "filelist.h"
 #include "file.h"
+#include "logging.h"
+#ifdef MAC
+#include "macapppaths.h"
+#endif
+#ifdef WINDOWS
+#include "win32apppaths.h"
+#endif
+
+//#define FFMPEGLOCATEDEBUG
 
 char fileext[10] = "";
 
@@ -170,6 +179,27 @@ static void library_SearchDir(const char* dir, const char* name, void** ptr) {
     filelist_Free(fctx);
 }
 
+static char* finddllname(const char* path, const char* name) {
+    //find the given dll <name>-<number>.dll in the folder pointed to by <path>
+    char fstr[512];
+    struct filelistcontext* fctx = filelist_Create(path);
+    if (!fctx) {
+        return NULL;
+    }
+    int isdir;
+    while (filelist_GetNextFile(fctx, fstr, sizeof(fstr), &isdir) == 1) {
+        if (!isdir && strlen(fstr) >= strlen(name) + strlen(".dll")) {
+            if (memcmp(fstr, name, strlen(name)) == 0 &&
+            memcmp(fstr + strlen(fstr) - strlen(".dll"), ".dll", strlen(".dll")) == 0) {
+                filelist_Free(fctx);
+                return strdup(fstr);
+            }
+        }
+    }
+    filelist_Free(fctx);
+    return NULL;
+}
+
 void* library_LoadSearch(const char* name) {
     void* ptr = library_Load(name);
     if (ptr) {
@@ -199,7 +229,7 @@ void* library_LoadSearch(const char* name) {
 #ifdef MAC
 strcasecmp(name, "ffmpegsumo") == 0
 #else
-strcasecmp(name, "avformat.dll") == 0 || strcasecmp(name, "avcodec.dll") == 0 || strcasecmp(name, "avutil.dll") == 0
+strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcasecmp(name, "avutil") == 0
 #endif
 ) {
         //Reference (mac os x): [/Applications/Google Chrome.app]/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
@@ -214,15 +244,18 @@ strcasecmp(name, "avformat.dll") == 0 || strcasecmp(name, "avcodec.dll") == 0 ||
             struct filelistcontext* fctx = filelist_Create(chromepath);
             char versionfolder[512];
             int isdir = 0;
-            while (filelist_GetNextFile(fctx, versionfolder, sizeof(versionfolder), &isdir) == 1) {
-                if (isdir && (versionfolder[0] >= '0' && versionfolder[0] <= '9')) {
-                    break;
+            if (fctx) {
+                while (filelist_GetNextFile(fctx, versionfolder, sizeof(versionfolder), &isdir) == 1) {
+                    if (isdir && (versionfolder[0] >= '0' && versionfolder[0] <= '9')) {
+                        break;
+                    }
                 }
+                filelist_Free(fctx);
             }
             if (!isdir) {
                 //No fitting sub folder found
 #ifdef FFMPEGLOCATEDEBUG
-                printwarning("Warning: [FFmpeg-locate] Failed to find version sub folder of Google Chrome");
+                printwarning("Warning: [FFmpeg-locate] Failed to find version sub folder of Google Chrome in \"%s\"", chromepath);
 #endif
             }else{
                 //Compose final path:
@@ -236,17 +269,33 @@ strcasecmp(name, "avformat.dll") == 0 || strcasecmp(name, "avcodec.dll") == 0 ||
                     strcpy(sep2, "");
                 }
 #ifdef MAC
-                snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/Versions/%s/Google Chrome Framework.framework/Libraries/ffmpegsumo.so", pathbuf, sep, versionfolder, sep2);
+                //For Mac, we already know where the lib is:
+                snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/Versions/%s/Google Chrome Framework.framework/Libraries/ffmpegsumo.so", chromepath, sep, versionfolder, sep2);
 #else
-                
+                //For Windows, we need to search the proper dll first:
+                snprintf(pathbuf, sizeof(pathbuf), "%s%s%s", chromepath, sep, versionfolder);
+                file_MakeSlashesNative(pathbuf);
+                char* p = finddllname(pathbuf, name);
+                if (!p) {
+#ifdef FFMPEGLOCATEDEBUG
+                    printwarning("Warning: [FFmpeg-locate] %s.dll not found in \"%s\" (Chrome)", name, pathbuf);
+#endif
+                    pathbuf[0] = 0;
+                }else{
+                    //Now we have the final dll path:
+                    snprintf(pathbuf, sizeof(pathbuf), "%s%s%s%s%s", chromepath, sep, versionfolder, sep2, p);
+                    free(p); 
+                }
 #endif
 
                 //Attempt to load the lib now:
-                ptr = library_Load(pathbuf);
-                if (ptr) {return ptr;}
+                if (strlen(pathbuf) > 0) {
+                    ptr = library_Load(pathbuf);
+                    if (ptr) {return ptr;}
 #ifdef FFMPEGLOCATEDEBUG
-                printinfo("[FFmpeg-locate] Failed to load FFmpeg from Google Chrome (Path: \"%s\")", pathbuf);
+                    printinfo("[FFmpeg-locate] Failed to load FFmpeg from Google Chrome (Path: \"%s\")", pathbuf);
 #endif
+                }
             }
         }else{
 #ifdef FFMPEGLOCATEDEBUG
@@ -265,21 +314,37 @@ strcasecmp(name, "avformat.dll") == 0 || strcasecmp(name, "avcodec.dll") == 0 ||
             //Compose final path:
             char pathbuf[512];
             char sep[2] = "/";
-            if (steampath[strlen(steampath)-1] == '/') {
+            if (steampath[strlen(steampath)-1] == '/' || steampath[strlen(steampath)-1] == '\\') {
                 strcpy(sep, "");
             }
 #ifdef MAC
+            //For Mac, we already know where the lib is:
             snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/MacOS/osx32/ffmpegsumo.so", steampath, sep);
 #else
-
+            //For Windows, we need to search the proper dll first:
+            snprintf(pathbuf, sizeof(pathbuf), "%s%sbin/", steampath, sep);
+            file_MakeSlashesNative(pathbuf);
+            char* p = finddllname(pathbuf, name);
+            if (!p) {
+#ifdef FFMPEGLOCATEDEBUG
+                printwarning("Warning: [FFmpeg-locate] %s.dll not found in \"%s\" (steam)", name, pathbuf);
+#endif
+                pathbuf[0] = 0;
+            }else{
+                //Now we have the final dll path:
+                snprintf(pathbuf, sizeof(pathbuf), "%s%sbin/%s", steampath, sep, p);
+                free(p);
+            }
 #endif
 
             //Attempt to load the lib now:
-            ptr = library_Load(pathbuf);
-            if (ptr) {return ptr;}
+            if (strlen(pathbuf) > 0) {
+                ptr = library_Load(pathbuf);
+                if (ptr) {return ptr;}
 #ifdef FFMPEGLOCATEDEBUG
-            printinfo("[FFmpeg-locate] Failed to load FFmpeg from Valve Steam (Path: \"%s\")", pathbuf);
-#endif 
+                printinfo("[FFmpeg-locate] Failed to load FFmpeg from Valve Steam (Path: \"%s\")", pathbuf);
+#endif
+            }
         }else{
 #ifdef FFMPEGLOCATEDEBUG
             printwarning("Warning: [FFmpeg-locate] Valve Steam not found");

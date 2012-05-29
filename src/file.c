@@ -218,12 +218,19 @@ char* file_AddComponentToPath(const char* path, const char* component) {
 void file_StripComponentFromPath(char* path) {
     file_MakeSlashesNative(path);
 
-    if (strlen(path) > 0) {
-        int slashpos = file_LatestSlash(path);
-        if (slashpos > 0) {
-            path[slashpos] = 0;
-        }else{
-            path[0] = 0;
+    int repeat = 1;
+    while (repeat) {
+        repeat = 0;
+        if (strlen(path) > 0) {
+            unsigned int slashpos = file_LatestSlash(path);
+            if (slashpos > 0) {
+                if (slashpos >= strlen(path)-1) {
+                    repeat = 1;
+                }
+                path[slashpos] = 0;
+            }else{
+                path[0] = 0;
+            }
         }
     }
 }

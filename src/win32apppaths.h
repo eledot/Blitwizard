@@ -22,3 +22,6 @@
 
 */
 
+const char* Win32_GetPathForSteam();
+const char* Win32_GetPathForChrome();
+

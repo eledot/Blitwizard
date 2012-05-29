@@ -80,7 +80,7 @@ const char* Win32_GetPathForChrome() {
     path = p2;
     file_StripComponentFromPath(path); //now: C:\Users\Jonas\AppData\Local\Google
     char sep[] = "/";
-    if (strlen(path) > 0 && path[strlen(path)-1] != '/' && path[strlen(path)-1] != '\\') {
+    if (strlen(path) > 0 && (path[strlen(path)-1] == '/' || path[strlen(path)-1] == '\\')) {
         sep[0] = 0;
     }
     snprintf(chromepath, sizeof(chromepath), "%s%sChrome/Application", path, sep); //now: C:\Users\Jonas\AppData\Local\Google\Chrome\Application

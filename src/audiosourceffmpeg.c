@@ -143,9 +143,9 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
     loadorfail((void**)(&ffmpeg_av_register_all), avformatptr, "av_register_all");
     loadorfail((void**)(&ffmpeg_avformat_alloc_context), avformatptr, "avformat_alloc_context");
     loadorfail((void**)(&ffmpeg_avcodec_alloc_context3), avcodecptr, "avcodec_alloc_context3");
-    loadorfail((void**)(&ffmpeg_av_free), avcodecptr, "av_free");
+    loadorfail((void**)(&ffmpeg_av_free), avutilptr, "av_free");
     loadorfail((void**)(&ffmpeg_avio_alloc_context), avformatptr, "avio_alloc_context");
-    loadorfail((void**)(&ffmpeg_av_malloc), avformatptr, "av_malloc");
+    loadorfail((void**)(&ffmpeg_av_malloc), avutilptr, "av_malloc");
     loadorfail((void**)(&ffmpeg_av_find_stream_info), avformatptr, "av_find_stream_info");
     loadorfail((void**)(&ffmpeg_av_find_best_stream), avformatptr, "av_find_best_stream");
     loadorfail((void**)(&ffmpeg_avcodec_open2), avcodecptr, "avcodec_open2");

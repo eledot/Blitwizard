@@ -30,6 +30,7 @@
 #endif
 
 #include "win32console.h"
+#include "logging.h"
 
 static int consoleopen = 0;
 
@@ -44,9 +45,15 @@ void win32console_Launch() {
     FILE* outfile = _fdopen(outfhandle, "w");
     setvbuf(outfile, NULL, _IONBF, 1);
     *stdout = *outfile;
+    *stderr = *outfile;
 
 #endif
     consoleopen = 1;
+
+    //now print all the log that is still kept in memory:
+    if (memorylogbuf) {
+        printf("%s", memorylogbuf);
+    }
 }
 
 void win32console_Close() {
