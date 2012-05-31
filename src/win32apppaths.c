@@ -44,7 +44,7 @@ static char* queryregstring(HKEY key, const char* path, const char* name) {
 }
 
 char steampath[512] = "";
-const char* Win32_GetPathForSteam() {
+const char* win32_GetPathForSteam() {
     if (steampath[0] != '\0') {
         return steampath;
     }
@@ -65,7 +65,7 @@ const char* Win32_GetPathForSteam() {
 }
 
 char chromepath[512] = "";
-const char* Win32_GetPathForChrome() {
+const char* win32_GetPathForChrome() {
     if (chromepath[0] != '\0') {
         return chromepath;
     }

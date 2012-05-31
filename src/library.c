@@ -235,9 +235,9 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
         //Reference (mac os x): [/Applications/Google Chrome.app]/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
         //Reference (windows): [app path]/19.0.1084.52/avcodec-54.dll
 #ifdef MAC
-        const char* chromepath = Mac_GetPathForApplication("Google Chrome");
+        const char* chromepath = mac_GetPathForApplication("Google Chrome");
 #else
-        const char* chromepath = Win32_GetPathForChrome();
+        const char* chromepath = win32_GetPathForChrome();
 #endif
         if (chromepath && strlen(chromepath) > 0) {
             //Find out the version folder:
@@ -306,9 +306,9 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
         //Reference (mac os x): [/Applications/Steam.app]/Contents/MacOS/osx32/ffmpegsumo.so
         //Reference (windows): [app path]/bin/avcodec-53.dll
 #ifdef MAC
-        const char* steampath = Mac_GetPathForApplication("Steam");
+        const char* steampath = mac_GetPathForApplication("Steam");
 #else
-        const char* steampath = Win32_GetPathForSteam();
+        const char* steampath = win32_GetPathForSteam();
 #endif
         if (steampath && strlen(steampath) > 0) {
             //Compose final path:
