@@ -82,10 +82,6 @@ Required for graphics, audio:
  - drop the contents of a source tarball of a recent SDL 2 into
     src/sdl/
    see http://www.libsdl.org/hg.php
-   WARNING: Blitwizard uses a patched SDL for rotation/flipping support.
-     I expect SDL to adopt this natively, but at this point,
-     you will have to patch this in manually.
-     Check out the .patch inside src/sdl/ in deps.zip
 
 Required for additional FLAC audio format support (if not using FFmpeg):
  - drop the contents of a source tarball of a recent libFLAC release into

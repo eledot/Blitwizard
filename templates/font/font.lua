@@ -26,13 +26,13 @@ function loadfontimage(path)
 end
 
 function blitwiz.font.register(path, name, charwidth, charheight, charsperline, charset)
-	blitwiz.font.fonts[name] = {
-		path,
-		charwidth,
-		charheight,
-		charsperline,
-		charset
-	}
+    blitwiz.font.fonts[name] = {
+        path,
+        charwidth,
+        charheight,
+        charsperline,
+        charset
+    }
     result = pcall(loadfontimage, path)
     if result == false then
         -- We cannot load the font as it seems
@@ -41,58 +41,58 @@ function blitwiz.font.register(path, name, charwidth, charheight, charsperline, 
 end
 
 local function drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
-	-- check for invalid slot:
-	if slot < 1 or slot > 32*8 then
-		return
-	end	
+    -- check for invalid slot:
+    if slot < 1 or slot > 32*8 then
+        return
+    end 
 
-	-- do we need to draw at all?
-	if blitwiz.graphics.isImageLoaded(font[1]) ~= true then
-		return
-	end
-	if clipx ~= nil and clipy ~= nil then
-		if clipx >= posx + font[2] or clipy >= posy + font[3] then
-			return
-		end
-		if clipw ~= nil and cliph ~= nil then
-			if clipx + clipw < posx or clipy + cliph < posy then
-				return
-			end
-		end
-	end
-	
-	-- Find out row
-	local row = 1
-	while slot > font[4] do
-		row = row + 1
-		slot = slot - font[4]
-	end
-	
-	-- Draw
-	local cutx = 0
-	local cuty = 0
-	local cutw = font[2]
-	local cuth = font[3]
-	if clipx ~= nil and clipy ~= nil then
-		cutx = math.max(0, clipx - posx)
-		cuty = math.max(0, clipy - posy)
-		if clipw ~= nil and cliph ~= nil then
-			cutw = math.max(0, clipw + (clipx - posx))
-			cuth = math.max(0, cliph + (clipy - posy))
-		end
-	end
-	if cutw + cutx > font[2] then
-		cutw = font[2] - cutx
-	end
-	if cuth + cuty > font[3] then
-		cuth = font[3] - cuty
-	end
-	blitwiz.graphics.drawImage(font[1], {x=posx, y=posy, alpha=a, cutx=cutx + (slot-1) * font[2], cuty=cuty + (row-1) * font[3], cutwidth=cutw, cutheight=cuth, red=r, green=g, blue=b})
+    -- do we need to draw at all?
+    if blitwiz.graphics.isImageLoaded(font[1]) ~= true then
+        return
+    end
+    if clipx ~= nil and clipy ~= nil then
+        if clipx >= posx + font[2] or clipy >= posy + font[3] then
+            return
+        end
+        if clipw ~= nil and cliph ~= nil then
+            if clipx + clipw < posx or clipy + cliph < posy then
+                return
+            end
+        end
+    end
+    
+    -- Find out row
+    local row = 1
+    while slot > font[4] do
+        row = row + 1
+        slot = slot - font[4]
+    end
+    
+    -- Draw
+    local cutx = 0
+    local cuty = 0
+    local cutw = font[2]
+    local cuth = font[3]
+    if clipx ~= nil and clipy ~= nil then
+        cutx = math.max(0, clipx - posx)
+        cuty = math.max(0, clipy - posy)
+        if clipw ~= nil and cliph ~= nil then
+            cutw = math.max(0, clipw + (clipx - posx))
+            cuth = math.max(0, cliph + (clipy - posy))
+        end
+    end
+    if cutw + cutx > font[2] then
+        cutw = font[2] - cutx
+    end
+    if cuth + cuty > font[3] then
+        cuth = font[3] - cuty
+    end
+    blitwiz.graphics.drawImage(font[1], {x=posx, y=posy, alpha=a, cutx=cutx + (slot-1) * font[2], cuty=cuty + (row-1) * font[3], cutwidth=cutw, cutheight=cuth, red=r, green=g, blue=b})
 end
 
 function blitwiz.font.draw(name, text, posx, posy, r, g, b, a, wrapwidth, clipx, clipy, clipw, cliph)
-	local origposx = posx
-	local font = blitwiz.font.fonts[name]
+    local origposx = posx
+    local font = blitwiz.font.fonts[name]
     if font == nil then
         error ("Font \"" .. name .. "\" is not loaded")
     end
@@ -105,35 +105,37 @@ function blitwiz.font.draw(name, text, posx, posy, r, g, b, a, wrapwidth, clipx,
         end
     end
     -- draw the font char by char
-	local i = 1
+    local i = 1
     local charsperline = 0
-	while i <= #text do
-		local character = string.byte(string.sub(text, i, i))
-		if character == string.byte("\n") then
+    while i <= #text do
+        local character = string.byte(string.sub(text, i, i))
+        if character == string.byte("\n") then
             -- user defined line breaks should be possible:
-			posx = origposx
-			posy = posy + font[3]
+            posx = origposx
+            posy = posy + font[3]
             charsperline = 0
-		else 
+        else 
             -- adhere to maximum line length
             local linefull = false
             if maxperline then
                 if charsperline >= maxperline then
-                    charsperline = 0
+                    charsperline = -1
                     linefull = true
+                    posx = origposx
+                    posy = posy + font[3]
                     i = i - 1 -- revoke later skipping of current char
                 end
             end
             -- draw char:
             if not linefull then
-			    local slot = (character - string.byte(" "))+1
-			    drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
-			    posx = posx + font[2]
+                local slot = (character - string.byte(" "))+1
+                drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
+                posx = posx + font[2]
             end
-		end
-		i = i + 1
+        end
+        i = i + 1
         charsperline = charsperline + 1
-	end
+    end
 end
 
 function blitwiz.font.addToString_inner(str, line, maxlinelength, maxlinecount)

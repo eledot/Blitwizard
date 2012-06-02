@@ -50,6 +50,18 @@ struct physicsobject {
     void* userdata;
 };
 
+class mycontactlistener : public b2ContactListener {
+    void BeginContact(b2Contact* contact) {
+        b2Body* b1 = contact->GetFixtureA()->GetBody();
+        b2Body* b2 = contact->GetFixtureB()->GetBody();
+    }
+  
+    void EndContact(b2Contact* contact) {
+        b2Body* b1 = contact->GetFixtureA()->GetBody();
+        b2Body* b2 = contact->GetFixtureB()->GetBody();
+    }
+};
+
 struct physicsworld* physics_CreateWorld() {
     struct physicsworld* world = (struct physicsworld*)malloc(sizeof(*world));
     if (!world) {
