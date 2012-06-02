@@ -90,24 +90,49 @@ local function drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, cl
 	blitwiz.graphics.drawImage(font[1], {x=posx, y=posy, alpha=a, cutx=cutx + (slot-1) * font[2], cuty=cuty + (row-1) * font[3], cutwidth=cutw, cutheight=cuth, red=r, green=g, blue=b})
 end
 
-function blitwiz.font.draw(name, text, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
+function blitwiz.font.draw(name, text, posx, posy, r, g, b, a, wrapwidth, clipx, clipy, clipw, cliph)
 	local origposx = posx
 	local font = blitwiz.font.fonts[name]
     if font == nil then
         error ("Font \"" .. name .. "\" is not loaded")
     end
+    -- calculate wrap width:
+    local maxperline = nil
+    if wrapwidth ~= nil then
+        maxperline = math.floor(wrapwidth/font[2])
+        if maxperline < 1 then
+            maxperline = 1
+        end
+    end
+    -- draw the font char by char
 	local i = 1
+    local charsperline = 0
 	while i <= #text do
 		local character = string.byte(string.sub(text, i, i))
 		if character == string.byte("\n") then
+            -- user defined line breaks should be possible:
 			posx = origposx
 			posy = posy + font[3]
+            charsperline = 0
 		else 
-			local slot = (character - string.byte(" "))+1
-			drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
-			posx = posx + font[2]
+            -- adhere to maximum line length
+            local linefull = false
+            if maxperline then
+                if charsperline >= maxperline then
+                    charsperline = 0
+                    linefull = true
+                    i = i - 1 -- revoke later skipping of current char
+                end
+            end
+            -- draw char:
+            if not linefull then
+			    local slot = (character - string.byte(" "))+1
+			    drawfontslot(font, slot, posx, posy, r, g, b, a, clipx, clipy, clipw, cliph)
+			    posx = posx + font[2]
+            end
 		end
 		i = i + 1
+        charsperline = charsperline + 1
 	end
 end
 

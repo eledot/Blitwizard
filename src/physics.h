@@ -29,13 +29,14 @@ extern "C" {
 
 //create and destroy worlds;
 struct physicsworld;
+struct physicsobject;
 struct physicsworld* physics_CreateWorld();
 void physics_DestroyWorld(struct physicsworld* world);
 void physics_Step(struct physicsworld* world);
 int physics_GetStepSize(struct physicsworld* world);
+void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(struct physicsobject* a, struct physicsobject* b, double x, double y));
 
 //create and destroy objects;
-struct physicsobject;
 struct physicsobject* physics_CreateObjectRectangle(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height);
 struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height);
 void physics_DestroyObject(struct physicsobject* object);
