@@ -201,7 +201,7 @@ static struct physicsobject* createobj(struct physicsworld* world, void* userdat
         bodyDef.type = b2_dynamicBody;
     }
     object->movable = movable;
-    bodyDef.userData = (void*)object;
+    bodyDef.userData = (void*)pdata;
     object->userdata = pdata;
     object->body = world->w->CreateBody(&bodyDef);
     object->body->SetFixedRotation(false);
