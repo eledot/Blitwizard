@@ -36,7 +36,10 @@
 
 extern "C" {
 
+class mycontactlistener;
+
 struct physicsworld {
+    mycontactlistener* listener;
     b2World* w;
     double gravityx,gravityy;
 };
@@ -82,10 +85,13 @@ struct physicsworld* physics_CreateWorld() {
     world->w->SetAllowSleeping(true);
     world->gravityx = 0;
     world->gravityy = 10;
+    world->listener = new mycontactlistener();
+    world->w->SetContactListener(world->listener);
     return world;
 }
 
 void physics_DestroyWorld(struct physicsworld* world) {
+    delete world->listener;
     delete world->w;
     free(world);
 }
