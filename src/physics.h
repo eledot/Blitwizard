@@ -40,13 +40,13 @@ void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(s
 struct physicsobject* physics_CreateObjectRectangle(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height);
 struct physicsobject* physics_CreateObjectOval(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height);
 void physics_DestroyObject(struct physicsobject* object);
+void* physics_GetObjectUserdata(struct physicsobject* object);
 
 //create an edge list object:
 struct physicsobjectedgecontext;
 struct physicsobjectedgecontext* physics_CreateObjectEdges_Begin(struct physicsworld* world, void* userdata, int movable, double friction);
 void physics_CreateObjectEdges_Do(struct physicsobjectedgecontext* context, double x1, double y1, double x2, double y2);
 struct physicsobject* physics_CreateObjectEdges_End(struct physicsobjectedgecontext* context);
-void physics_DestroyObject(struct physicsobject* obj);
 
 //get/set various properties
 void physics_SetMass(struct physicsobject* obj, double mass);

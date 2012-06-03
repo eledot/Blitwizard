@@ -50,15 +50,24 @@ struct physicsobject {
     void* userdata;
 };
 
+struct bodyuserdata {
+    void* userdata;
+    struct physicsobject* pobj;
+};
+
+void* physics_GetObjectUserdata(struct physicsobject* object) {
+    return ((struct bodyuserdata*)object->body->GetUserData())->userdata;
+}
+
 class mycontactlistener : public b2ContactListener {
     void BeginContact(b2Contact* contact) {
-        b2Body* b1 = contact->GetFixtureA()->GetBody();
-        b2Body* b2 = contact->GetFixtureB()->GetBody();
+        struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
+        struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
     }
   
     void EndContact(b2Contact* contact) {
-        b2Body* b1 = contact->GetFixtureA()->GetBody();
-        b2Body* b2 = contact->GetFixtureB()->GetBody();
+        struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
+        struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
     }
 };
 
@@ -97,7 +106,7 @@ void physics_Step(struct physicsworld* world) {
         double forcefactor = (1.0/(1000.0f/physics_GetStepSize(world)))*2;
         b2Body* b = world->w->GetBodyList();
         while (b) {
-            struct physicsobject* obj = (struct physicsobject*)b->GetUserData();
+            struct physicsobject* obj = ((struct bodyuserdata*)b->GetUserData())->pobj;
             if (obj) {
                 if (obj->gravityset) {
                     b->ApplyLinearImpulse(b2Vec2(obj->gravityx * forcefactor, obj->gravityy * forcefactor), b2Vec2(b->GetPosition().x, b->GetPosition().y));
@@ -145,7 +154,7 @@ int physics_Ray(struct physicsworld* world, double startx, double starty, double
     if (callbackobj->closestcollidedbody) {
         *hitpointx = callbackobj->closestcollidedposition.x;
         *hitpointy = callbackobj->closestcollidedposition.y;
-        *hitobject = ((struct physicsobject*)callbackobj->closestcollidedbody->GetUserData());
+        *hitobject = ((struct bodyuserdata*)callbackobj->closestcollidedbody->GetUserData())->pobj;
         *hitnormalx = callbackobj->closestcollidednormal.x;
         *hitnormaly = callbackobj->closestcollidednormal.y;
         delete callbackobj;
@@ -177,17 +186,31 @@ static struct physicsobject* createobj(struct physicsworld* world, void* userdat
     struct physicsobject* object = (struct physicsobject*)malloc(sizeof(*object));
     if (!object) {return NULL;}
     memset(object, 0, sizeof(*object));
+
+    struct bodyuserdata* pdata = (struct bodyuserdata*)malloc(sizeof(*pdata));
+    if (!pdata) {
+        free(object);
+        return NULL;
+    }
+    memset(pdata, 0, sizeof(*pdata));
+    pdata->userdata = userdata;
+    pdata->pobj = object;
+
     b2BodyDef bodyDef;
     if (movable) {
         bodyDef.type = b2_dynamicBody;
     }
     object->movable = movable;
     bodyDef.userData = (void*)object;
-    object->userdata = userdata;
+    object->userdata = pdata;
     object->body = world->w->CreateBody(&bodyDef);
     object->body->SetFixedRotation(false);
     object->world = world->w;
-    if (!object->body) {free(object);return NULL;}
+    if (!object->body) {
+        free(object);
+        free(pdata);
+        return NULL;
+    }
     return object;
 }
 

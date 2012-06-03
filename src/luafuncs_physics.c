@@ -500,6 +500,7 @@ int luafuncs_setShapeOval(lua_State* l) {
     struct physicsobject* oldobject = obj->object;
     obj->object = physics_CreateObjectOval(main_DefaultPhysicsPtr(), obj, obj->movable, obj->friction, width, height);
     if (!obj->object) {
+        obj->object = oldobject;
         lua_pushstring(l, "Failed to allocate shape");
         return lua_error(l);
     }
