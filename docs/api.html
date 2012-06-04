@@ -279,7 +279,7 @@ blitwiz.graphics.drawRectangle(0, 0, w, h, 0, 0.5, 1)
 <p>
 Get the current display mode of the desktop. Simply returns the fullscreen video mode if you have a fullscreen window opened.
 </p>
-<p>Parameters: None</p>
+<p>Parameters: none</p>
 <p>Return values: width <i>(number)</i>, height <i>(number)</i></p>
 <p>Example:
 </p>
@@ -293,7 +293,7 @@ print("Current display mode of the desktop: " .. w .. "x" .. h)
 <p>
 Get a table of display modes which are supported for fullscreen windows.
 </p>
-<p>Parameters: None</p>
+<p>Parameters: none</p>
 <p>Return values: table containing display modes (each display mode is itself a table containing two values representing width and height in pixels), the one that is believed to be the native screen resolution will come first</p>
 <p>Example:
 </p>
@@ -332,7 +332,7 @@ print("The size of mypicture.png is: " .. tostring(w) .. "," .. tostring(h))
 <p>
 Get the name of the currently used graphics renderer or nil if no window is open.
 </p>
-<p>Parameters: None</p>
+<p>Parameters: none</p>
 <p>Return values: renderer name <i>(string)</i> or nil. Check the <a href="#renderers">list of supported renderers</a></p>
 </li>
 
@@ -342,7 +342,7 @@ Returns the size of the currently open window (see <a href="#blitwiz.graphics.se
 Throws an error if no window is open.
 </p>
 <p>
-Parameters: None
+Parameters: none
 </p>
 <p>
 Return values: window width <i>(number)</i>, window height <i>(number)</i>
@@ -665,7 +665,7 @@ Parameters:
 <li>stream to be closed <a href="#network_stream"><i>(network stream)</i></a> &mdash; the network stream which should be closed</li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -752,7 +752,7 @@ Parameters:
     <li>data <i>(string)</i> &mdash; the data you want to send</li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -771,7 +771,7 @@ Parameters:
     <li>connection callback <i>(function(server, stream))</i> &mdash; the callback function which handles the new connections</li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -789,7 +789,7 @@ Parameters:
 <li>close callback <i>(function(stream,))</i> &mdash; close callback</li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -836,7 +836,7 @@ Use <a href="#blitwiz.physics.warp">blitwiz.physics.warp</a> to place the object
 </li>
 </ul>
 <p>
-Parameters: None
+Parameters: none
 </p>
 <p>
 Return value: movable <a href="#physics_object">physics object</a>
@@ -873,7 +873,7 @@ Set a shape with any of the blitwiz.physics.setShape* functions and then warp it
 Remember to use <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a> when you no longer want to use an object.
 </p>
 <p>
-Parameters: None
+Parameters: none
 </p>
 <p>
 Return value: static <a href="#physics_object">physics object</a>
@@ -940,7 +940,7 @@ impulse force y <i>(number)</i> &mdash; the y coordinate of the direction and st
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 <p>
 Example:
@@ -995,7 +995,7 @@ restrict <i>(boolean)</i> &mdash; a boolean whether you want to restrict it from
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -1017,7 +1017,7 @@ damping <i>(number)</i> &mdash; the angular damping you want to set which should
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 <li>
 
@@ -1025,8 +1025,33 @@ Return value: None
 <p>
 Set a collision callback function which gets called when this object collides with another.
 </p>
-<p>Callback parameters which your function will receive: collided object <i>(physics object)</i>, collision point x <i>(number)</i>, collision point y <i>(number)</i>, collision normal x <i>(number)</i>, collision normal y <i>(number)</i>, collision force <i>(number)</i>,
-<br>whereas the collided object is the physics object you collided with, the collision point x/y are the coordinates of the point in the center of the collision (the collision is usually an overlap, so this "point" is always an estimation), the collision normal x/y with the normal being the direction in which your object is pushed back as a result of the collision (NOT necessarily the normal of the surface you impacted on), and collision force being the strength of the impact force.</p>
+<p>Common uses for such a callback function would be to trigger impact sounds on heavy impact, calculate damage or to generate smoke/debris.</p>
+<p>
+Parameters:
+</p>
+<ul class="parameters">
+<li>
+physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the friction
+</li>
+<li>
+Callback function, with those parameters: collided object <i>(physics object)</i>, collision point x <i>(number)</i>, collision point y <i>(number)</i>, collision normal x <i>(number)</i>, collision normal y <i>(number)</i>, collision force <i>(number)</i>,
+<br>whereas the collided object is the physics object you collided with, the collision point x/y are the coordinates of the point in the center of the collision (the collision is usually an overlap, so this "point" is always an estimation), the collision normal x/y with the normal being the direction in which your object is pushed back as a result of the collision (NOT necessarily the normal of the surface you impacted on), and collision force being the strength of the impact force.
+</li>
+</ul>
+<p>
+Return value: none
+</p>
+<p>
+Example:
+<div class="code">-- Open the console on windows to be able to see the output
+os.openConsole()
+
+-- Set a collision callback
+<a href="#blitwiz.physics.setCollisionCallback">blitwiz.physics.setCollisionCallback</a>(object, function(collidedobject, cx, cy, nx, ny, f)
+    print("Collision happened. Impact strength: " .. f)
+end)
+</div>
+</p>
 </li>
 
 <li><h2><a name="blitwiz.physics.setFriction">blitwiz.physics.setFriction</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, friction <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
@@ -1045,7 +1070,7 @@ friction <i>(number)</i> &mdash; the friction you want to set which should be in
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 <li>
 
@@ -1070,7 +1095,7 @@ y gravity force <i>(number)</i> &mdash; the y coordinate of the force
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -1091,13 +1116,13 @@ damping <i>(number)</i> &mdash; the linear damping you want to set which should 
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 <li>
 
 <li><h2><a name="blitwiz.physics.setMass">blitwiz.physics.setMass</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, mass <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
 <p>
-Set the mass of a movable physics object (and optionally the mass center). It is intended to be in kilogram, but since the physics are a game-oriented (that means not a perfectly accurate) simulation it is recommended you simply experiment with values that suit you best. 0 is infinite mass. Please note that objects with a really huge mass can cause the physics to become unstable.
+Set the mass of a movable physics object (and optionally the mass center). It is intended to be in kilogram, but since the physics are a game-oriented simulation (that means not perfectly accurate) it is recommended you simply experiment with values that suit you best. 0 is infinite mass. Please note that objects with a really huge mass (or very tiny) can cause the physics to become unstable/less accurate - you'll see yourself if you play around with very heavy objects colliding with very light ones..
 </p>
 <p>
 Parameters:
@@ -1117,7 +1142,7 @@ mass center y coordinate <i>(number, optional)</i> &mdash; the y coordinate of t
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 <li>
 
@@ -1137,7 +1162,7 @@ restitution <i>(number)</i> &mdash; the restitution in a range from 0 to 1
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -1157,7 +1182,7 @@ radius <i>(number)</i> &mdash; the circle radius in physics units
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -1178,7 +1203,7 @@ edge list <i>(table)</i> &mdash; a table/array that contains all edges. Each edg
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 <p>
 Example:
@@ -1212,7 +1237,7 @@ oval height <i>(number)</i> &mdash; vertical size of the oval shape
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -1235,7 +1260,7 @@ rectangle height <i>(number)</i> &mdash; the height of the rectangle
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -1255,7 +1280,7 @@ world y gravity force <i>(number)</i> &mdash; the y coordinate of the force
 </li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -1276,7 +1301,7 @@ Parameters:
 <li>rotation angle <i>(number)</i> &mdash; the angle for the rotation. 90 is 90° clockwise, -90 is 90° ocounter-clockwise etc.</li>
 </ul>
 <p>
-Return value: None
+Return value: none
 </p>
 </li>
 
@@ -1293,14 +1318,14 @@ Return value: None
 <li>volume <i>(number)</i> &mdash; the volume, specified in a range from 0 (quiet) to 1 (full volume)</li>
 <li>panning <i>(number)</i> &mdash; panning for the sound in a range from 1 (left) to -1 (right)</li>
 </ul>
-<p>Return value: None</p>
+<p>Return value: none</p>
 </li>
 
 <li><h2><a name="blitwiz.sound.getBackendName">blitwiz.sound.getBackendName</a>()</h2>
 <p>
 Get the name of the currently active audio backend, which can be e.g. "directsound" or "waveout" on Windows, "alsa" or "oss" on Linux, or "coreaudio" for Mac.
 </p>
-<p>Parameters: None</p>
+<p>Parameters: none</p>
 <p>Return value: backend name <i>(string)</i></p>
 </li>
 
@@ -1368,7 +1393,7 @@ blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
 <ul>
 <li>sound <a href="#sound_handle"><i>(sound handle)</i></a> &mdash; the sound which should be stopped</li>
 </ul>
-<p>Return value: None</p>
+<p>Return value: none</p>
 </li>
 
 </ul>
@@ -1380,7 +1405,7 @@ blitwiz.sound.play("music.ogg", 0.8, 0, true, 50)
 Return the elapsed time in milliseconds from a fixed point in time (which might be application start or anything else) which blitwizard chooses at application start. If you call this function multiple times and then check the difference between the values it gave you, this difference will represent the elapsed time between the calls in milliseconds.
 </p>
 <p>
-Parameters: None
+Parameters: none
 </p>
 <p>Return value: the time elapsed in milliseconds since an unspecified fixed point in time <i>(number)</i></p>
 </li>
@@ -1396,7 +1421,7 @@ Stop the execution of the whole program for the specified amount of time. This f
 <ul>
 <li>milliseconds <i>(number)</i> &mdash; the amount of milliseconds you want execution to stop</li>
 </ul>
-<p>Return value: None</p>
+<p>Return value: none</p>
 </li>
 
 </ul>
@@ -1737,7 +1762,7 @@ Return value: <i>(boolean)</i> directory (true) or not (false)
 Obtains the current working directory.
 </p>
 <p>
-Paramaters: None
+Paramaters: none
 </p>
 <p>
 Return value: current working directory <i>(string)</i>
@@ -1793,10 +1818,10 @@ working stdout console output anyway, so this call is not required (and will
 simply do nothing on those platforms).
 </p>
 <p>
-Paramaters: None
+Paramaters: none
 </p>
 <p>
-Return value: None
+Return value: none
 </p>
 <p>Examples:</p>
 <div class="code">os.openConsole()</div>
@@ -1807,7 +1832,7 @@ Return value: None
 Return a string representing the system name.
 </p>
 <p>
-Parameters: None
+Parameters: none
 </p>
 <p>
 Return value: <i>(string)</i> the system name. Examples: "Windows", "Linux", "Android", "Mac OS X", "FreeBSD", "OpenBSD", ...
@@ -1819,7 +1844,7 @@ Return value: <i>(string)</i> the system name. Examples: "Windows", "Linux", "An
 Return a string representing the system version.
 </p>
 <p>
-Parameters: None
+Parameters: none
 </p>
 <p>
 Return value: <i>(string)</i> the system version.
