@@ -1021,6 +1021,14 @@ Return value: None
 </p>
 <li>
 
+<li><h2><a name="blitwiz.physics.setCollisionCallback">blitwiz.physics.setCollisionCallback</a>(physics object <a href="#physis_object"><i>(physics object)</i></a>, callback <i>(function)</i>)</h2>
+<p>
+Set a collision callback function which gets called when this object collides with another.
+</p>
+<p>Callback parameters which your function will receive: collided object <i>(physics object)</i>, collision point x <i>(number)</i>, collision point y <i>(number)</i>, collision normal x <i>(number)</i>, collision normal y <i>(number)</i>, collision force <i>(number)</i>,
+<br>whereas the collided object is the physics object you collided with, the collision point x/y are the coordinates of the point in the center of the collision (the collision is usually an overlap, so this "point" is always an estimation), the collision normal x/y with the normal being the direction in which your object is pushed back as a result of the collision (NOT necessarily the normal of the surface you impacted on), and collision force being the strength of the impact force.</p>
+</li>
+
 <li><h2><a name="blitwiz.physics.setFriction">blitwiz.physics.setFriction</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, friction <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
 <p>
 Set the friction of the physics object which is applied when it touches/collides with other objects. All objects with no friction set have 0 as default (no friction).
