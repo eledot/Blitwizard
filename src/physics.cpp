@@ -66,8 +66,29 @@ class mycontactlistener : public b2ContactListener {
     void BeginContact(b2Contact* contact) {
         struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
         struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
+
+        //get collision point (this is never really accurate, but mostly sufficient)
+        int n = contact->GetManifold()->pointCount;
+        b2WorldManifold wmanifold;
+        contact->GetWorldManifold(&wmanifold);
+        float collidex = wmanifold.points[0].x;
+        float collidey = wmanifold.points[0].y;
+        float divisor = 1;
+        int i = 1;
+        while (i < n) {
+            collidex += wmanifold.points[i].x;
+            collidey += wmanifold.points[i].y;
+            divisor += 1;
+            i++;
+        }
+        collidex /= divisor;
+        collidey /= divisor;
+
+        //get collision normal ("push out" direction)
+        float normalx = wmanifold.normal.x;
+        float normaly = wmanifold.normal.y;
     }
-  
+
     void EndContact(b2Contact* contact) {
         struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
         struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
