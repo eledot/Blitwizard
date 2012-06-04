@@ -42,7 +42,8 @@ struct physicsworld {
     mycontactlistener* listener;
     b2World* w;
     double gravityx,gravityy;
-    void (*callback)(struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
+    void* callbackuserdata;
+    void (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
 };
 
 struct physicsobject {
@@ -60,8 +61,9 @@ struct bodyuserdata {
     struct physicsobject* pobj;
 };
 
-void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force)) {
+void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force), void* userdata) {
     world->callback = callback;
+    world->callbackuserdata = userdata;
 }
 
 void* physics_GetObjectUserdata(struct physicsobject* object) {
@@ -102,7 +104,7 @@ class mycontactlistener : public b2ContactListener {
 
         //return the information through the callback
         if (w->callback) {
-            w->callback(obj1, obj2, collidex, collidey, normalx, normaly, impact);
+            w->callback(w->callbackuserdata, obj1, obj2, collidex, collidey, normalx, normaly, impact);
         }
     }
 };
