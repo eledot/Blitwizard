@@ -42,6 +42,7 @@ struct physicsworld {
     mycontactlistener* listener;
     b2World* w;
     double gravityx,gravityy;
+    void (*callback)(struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
 };
 
 struct physicsobject {
@@ -51,6 +52,7 @@ struct physicsobject {
     int gravityset;
     double gravityx,gravityy;
     void* userdata;
+    struct physicsworld* pworld;
 };
 
 struct bodyuserdata {
@@ -58,12 +60,16 @@ struct bodyuserdata {
     struct physicsobject* pobj;
 };
 
+void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force)) {
+    world->callback = callback;
+}
+
 void* physics_GetObjectUserdata(struct physicsobject* object) {
     return ((struct bodyuserdata*)object->body->GetUserData())->userdata;
 }
 
 class mycontactlistener : public b2ContactListener {
-    void BeginContact(b2Contact* contact) {
+    void PostSolve(b2Contact* contact, b2ContactImpulse* impulse) {
         struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
         struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
 
@@ -87,11 +93,17 @@ class mycontactlistener : public b2ContactListener {
         //get collision normal ("push out" direction)
         float normalx = wmanifold.normal.x;
         float normaly = wmanifold.normal.y;
-    }
 
-    void EndContact(b2Contact* contact) {
-        struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
-        struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
+        //impact force:
+        float impact = impulse->normalImpulses[0];
+
+        //find our current world
+        struct physicsworld* w = obj1->pworld;
+
+        //return the information through the callback
+        if (w->callback) {
+            w->callback(obj1, obj2, collidex, collidey, normalx, normaly, impact);
+        }
     }
 };
 
@@ -233,6 +245,7 @@ static struct physicsobject* createobj(struct physicsworld* world, void* userdat
     object->body = world->w->CreateBody(&bodyDef);
     object->body->SetFixedRotation(false);
     object->world = world->w;
+    object->pworld = world;
     if (!object->body) {
         free(object);
         free(pdata);
