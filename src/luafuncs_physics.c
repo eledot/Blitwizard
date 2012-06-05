@@ -49,11 +49,11 @@ static void luafuncs_trycollisioncallback(struct physicsobject* obj, struct phys
     lua_State* l = luastate_GetStatePtr();
     
     char funcname[200];
-    snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->object);
+    snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj);
     funcname[sizeof(funcname)-1] = 0;
 
     lua_pushstring(l, funcname);
-    lua_gettable(l, LUA_REGISTRYTABLE);
+    lua_gettable(l, LUA_REGISTRYINDEX);
 
     if (lua_type(l, -1) != LUA_TNIL) {
         //we got a collision callback for this object -> call it
@@ -546,7 +546,7 @@ int luafuncs_setCollisionCallback(lua_State* l) {
     }
 
     if (lua_gettop(l) > 2) {
-        lua_pop(l, lua_gettop(l)_2);
+        lua_pop(l, lua_gettop(l)-2);
     }    
 
     char funcname[200];

@@ -63,36 +63,22 @@ static struct luanetstream* toluanetstream(lua_State* l, int index) {
 }
 
 static void clearconnectioncallbacks(struct connection* c) {
-    void* p = c;
-    uint64_t cval = (uint64_t)(intptr_t)((void*)p);
     lua_State* l = (lua_State*)c->userdata;
     //close all the stored callback functions
     char regname[500];
-#ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "opencallback%I64u", cval);
-#else
-    snprintf(regname, sizeof(regname), "opencallback%llu", cval);
-#endif
+    snprintf(regname, sizeof(regname), "opencallback%p", c);
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
     lua_pushnil(l);
     lua_settable(l, LUA_REGISTRYINDEX);
 
-#ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "readcallback%I64u", cval);
-#else
-    snprintf(regname, sizeof(regname), "readcallback%llu", cval);
-#endif
+    snprintf(regname, sizeof(regname), "readcallback%p", c);
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
     lua_pushnil(l);
     lua_settable(l, LUA_REGISTRYINDEX);
 
-#ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "errorcallback%I64u", cval);
-#else
-    snprintf(regname, sizeof(regname), "errorcallback%llu", cval);
-#endif
+    snprintf(regname, sizeof(regname), "errorcallback%p", c);
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
     lua_pushnil(l);
@@ -137,7 +123,6 @@ static int garbagecollect_netstream(lua_State* l) {
 
             //close connection
             void* p = stream->c;
-            uint64_t cval = (uint64_t)(intptr_t)((void*)p);
             if (!donotclose) {
                 connections_Close(stream->c);
                 free(stream->c);
@@ -145,31 +130,19 @@ static int garbagecollect_netstream(lua_State* l) {
 
             //close all the stored callback functions
             char regname[500];
-#ifdef WINDOWS
-            snprintf(regname, sizeof(regname), "opencallback%I64u", cval);
-#else
-            snprintf(regname, sizeof(regname), "opencallback%llu", cval);
-#endif
+            snprintf(regname, sizeof(regname), "opencallback%p", stream->c);
             regname[sizeof(regname)-1] = 0;
             lua_pushstring(l, regname);
             lua_pushnil(l);
             lua_settable(l, LUA_REGISTRYINDEX);
 
-#ifdef WINDOWS
-            snprintf(regname, sizeof(regname), "readcallback%I64u", cval);
-#else
-            snprintf(regname, sizeof(regname), "readcallback%llu", cval);
-#endif
+            snprintf(regname, sizeof(regname), "readcallback%p", stream->c);
             regname[sizeof(regname)-1] = 0;
             lua_pushstring(l, regname);
             lua_pushnil(l);
             lua_settable(l, LUA_REGISTRYINDEX);
 
-#ifdef WINDOWS
-            snprintf(regname, sizeof(regname), "errorcallback%I64u", cval);
-#else
-            snprintf(regname, sizeof(regname), "errorcallback%llu", cval);
-#endif
+            snprintf(regname, sizeof(regname), "errorcallback%p", stream->c);
             regname[sizeof(regname)-1] = 0;
             lua_pushstring(l, regname);
             lua_pushnil(l);
@@ -254,36 +227,23 @@ static void luafuncs_checkcallbackparameters(lua_State* l, int startindex, const
 
 static void luafuncs_setcallbacks(lua_State* l, void* cptr, int stackindex, int haveconnect, int haveread, int haveerror) {
     //set the callbacks onto the metatable of our connection object:
-    uint64_t cval = (uint64_t)(intptr_t)((void*)cptr);
     char regname[500];
     if (haveconnect) {
-#ifdef WINDOWS
-        snprintf(regname, sizeof(regname), "opencallback%I64u", cval);
-#else
-        snprintf(regname, sizeof(regname), "opencallback%llu", cval);
-#endif
+        snprintf(regname, sizeof(regname), "opencallback%p", cptr);
         regname[sizeof(regname)-1] = 0;
         lua_pushstring(l, regname);
         lua_pushvalue(l, stackindex);
         lua_settable(l, LUA_REGISTRYINDEX);
     }
     if (haveread) {
-#ifdef WINDOWS
-        snprintf(regname, sizeof(regname), "readcallback%I64u", cval);
-#else
-        snprintf(regname, sizeof(regname), "readcallback%llu", cval);
-#endif
+        snprintf(regname, sizeof(regname), "readcallback%p", cptr);
         regname[sizeof(regname)-1] = 0;
         lua_pushstring(l, regname);
         lua_pushvalue(l, stackindex+1);
         lua_settable(l, LUA_REGISTRYINDEX);
     }
     if (haveerror) {
-#ifdef WINDOWS
-        snprintf(regname, sizeof(regname), "errorcallback%I64u", cval);
-#else
-        snprintf(regname, sizeof(regname), "errorcallback%llu", cval);
-#endif
+        snprintf(regname, sizeof(regname), "errorcallback%p", cptr);
         regname[sizeof(regname)-1] = 0;
         lua_pushstring(l, regname);
         lua_pushvalue(l, stackindex+2);
