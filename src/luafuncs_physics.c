@@ -45,6 +45,31 @@ struct luaphysicsobj {
     int rotationrestriction;
 };
 
+static void luafuncs_trycollisioncallback(struct physicsobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force) {
+    lua_State* l = luastate_GetStatePtr();
+    
+    char funcname[200];
+    snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->object);
+    funcname[sizeof(funcname)-1] = 0;
+
+    lua_pushstring(l, funcname);
+    lua_gettable(l, LUA_REGISTRYTABLE);
+
+    if (lua_type(l, -1) != LUA_TNIL) {
+        //we got a collision callback for this object -> call it
+        lua_pushcfunction(l, internaltracebackfunc);
+        lua_insert(l, -2);
+        
+        //stack now looks like this: <traceback> <callback>
+        
+    }
+}
+
+void luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force) {
+    luafuncs_trycollisioncallback(a, b, x, y, normalx, normaly, force);
+    luafuncs_trycollisioncallback(b, a, x, y, -normalx, -normaly, force);
+}
+
 static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
     char invalid[] = "Not a valid physics object reference";
     if (lua_type(l, index) != LUA_TUSERDATA) {
@@ -510,6 +535,27 @@ int luafuncs_setShapeOval(lua_State* l) {
         physics_DestroyObject(oldobject);
     }
     applyobjectsettings(obj);
+    return 0;
+}
+
+
+int luafuncs_setCollisionCallback(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TFUNCTION) {
+        return haveluaerror(l, badargument1, 2, "blitwiz.physics.setCollisionCallback", "function", lua_strtype(l, 2));
+    }
+
+    if (lua_gettop(l) > 2) {
+        lua_pop(l, lua_gettop(l)_2);
+    }    
+
+    char funcname[200];
+    snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->object);
+    funcname[sizeof(funcname)-1] = 0;
+    lua_pushstring(l, funcname);
+    lua_insert(l, -2);
+    lua_settable(l, LUA_REGISTRYINDEX);
+
     return 0;
 }
 
