@@ -140,6 +140,9 @@ static void luastate_CreatePhysicsTable(lua_State* l) {
     lua_pushstring(l, "setShapeEdges");
     lua_pushcfunction(l, &luafuncs_setShapeEdges);
     lua_settable(l, -3);
+    lua_pushstring(l, "setCollisionCallback");
+    lua_pushcfunction(l, &luafuncs_setCollisionCallback);
+    lua_settable(l, -3);
     lua_pushstring(l, "setMass");
     lua_pushcfunction(l, &luafuncs_setMass);
     lua_settable(l, -3);

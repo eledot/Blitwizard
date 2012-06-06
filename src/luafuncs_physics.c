@@ -82,6 +82,7 @@ static void luafuncs_trycollisioncallback(struct physicsobject* obj, struct phys
 }
 
 void luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force) {
+    printf("luafuncs_globalcollisioncallback_unprotected: %d, %d\n", x, y);
     luafuncs_trycollisioncallback(a, b, x, y, normalx, normaly, force);
     luafuncs_trycollisioncallback(b, a, x, y, -normalx, -normaly, force);
 }

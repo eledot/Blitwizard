@@ -62,6 +62,7 @@ struct bodyuserdata {
 };
 
 void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force), void* userdata) {
+    printf("physics_SetCollisionCallback: %p\n", callback);
     world->callback = callback;
     world->callbackuserdata = userdata;
 }
@@ -71,43 +72,52 @@ void* physics_GetObjectUserdata(struct physicsobject* object) {
 }
 
 class mycontactlistener : public b2ContactListener {
-    void PostSolve(b2Contact* contact, b2ContactImpulse* impulse) {
-        struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
-        struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
-
-        //get collision point (this is never really accurate, but mostly sufficient)
-        int n = contact->GetManifold()->pointCount;
-        b2WorldManifold wmanifold;
-        contact->GetWorldManifold(&wmanifold);
-        float collidex = wmanifold.points[0].x;
-        float collidey = wmanifold.points[0].y;
-        float divisor = 1;
-        int i = 1;
-        while (i < n) {
-            collidex += wmanifold.points[i].x;
-            collidey += wmanifold.points[i].y;
-            divisor += 1;
-            i++;
-        }
-        collidex /= divisor;
-        collidey /= divisor;
-
-        //get collision normal ("push out" direction)
-        float normalx = wmanifold.normal.x;
-        float normaly = wmanifold.normal.y;
-
-        //impact force:
-        float impact = impulse->normalImpulses[0];
-
-        //find our current world
-        struct physicsworld* w = obj1->pworld;
-
-        //return the information through the callback
-        if (w->callback) {
-            w->callback(w->callbackuserdata, obj1, obj2, collidex, collidey, normalx, normaly, impact);
-        }
-    }
+public:
+    mycontactlistener();
+    virtual void PostSolve(b2Contact* contact, b2ContactImpulse* impulse);
 };
+
+mycontactlistener::mycontactlistener() {
+    return;
+}
+
+void mycontactlistener::PostSolve(b2Contact* contact, b2ContactImpulse* impulse) {
+    printf("PostSolve\n");
+    struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
+    struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
+
+    //get collision point (this is never really accurate, but mostly sufficient)
+    int n = contact->GetManifold()->pointCount;
+    b2WorldManifold wmanifold;
+    contact->GetWorldManifold(&wmanifold);
+    float collidex = wmanifold.points[0].x;
+    float collidey = wmanifold.points[0].y;
+    float divisor = 1;
+    int i = 1;
+    while (i < n) {
+        collidex += wmanifold.points[i].x;
+        collidey += wmanifold.points[i].y;
+        divisor += 1;
+        i++;
+    }
+    collidex /= divisor;
+    collidey /= divisor;
+
+    //get collision normal ("push out" direction)
+    float normalx = wmanifold.normal.x;
+    float normaly = wmanifold.normal.y;
+
+    //impact force:
+    float impact = impulse->normalImpulses[0];
+
+    //find our current world
+    struct physicsworld* w = obj1->pworld;
+
+    //return the information through the callback
+    if (w->callback) {
+        w->callback(w->callbackuserdata, obj1, obj2, collidex, collidey, normalx, normaly, impact);
+    }
+}
 
 struct physicsworld* physics_CreateWorld() {
     struct physicsworld* world = (struct physicsworld*)malloc(sizeof(*world));
@@ -121,6 +131,7 @@ struct physicsworld* physics_CreateWorld() {
     world->gravityx = 0;
     world->gravityy = 10;
     world->listener = new mycontactlistener();
+    printf("listener.\n");
     world->w->SetContactListener(world->listener);
     return world;
 }

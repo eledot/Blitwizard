@@ -11,6 +11,7 @@ print("Physics example in blitwizard")
 -- Some global vars we want to use
 crates = {} -- a list of all crate objects
 balls = {} -- a list of all ball objects
+smokeobjs = {} -- a list of smoke particles
 pixelspermeter = 30 -- meter (physics unit) to pixels factor
 cratesize = 64/pixelspermeter -- size of a crate
 ballsize = 32/pixelspermeter -- size of a ball
@@ -37,6 +38,7 @@ function blitwiz.on_init()
 	blitwiz.graphics.loadImage("crate.png")
 	blitwiz.graphics.loadImage("shadows.png")
 	blitwiz.graphics.loadImage("ball.png")
+    blitwiz.graphics.loadImage("smoke.png")
 
 	-- Add base level collision (as seen in bg.png)
 	local x,y = bgimagepos()
@@ -104,6 +106,14 @@ function blitwiz.on_draw()
 	local x,y = bgimagepos()
 	blitwiz.graphics.drawImage("shadows.png", {x=x, y=y})
 
+    -- Draw smoke objects:
+    local imgw,imgh = blitwiz.graphics.getImageSize("smoke.png")
+    local i = 1
+    while i <= #smokeobjs do
+        blitwiz.graphics.drawImage("smoke.png", {x=smokeobjs[1] - imgw/2, y=smokeobjs[2] - imgh/2, rotationangle=smokeobjs[3]})
+        i = i + 1
+    end
+
 	-- Draw stats
 	blitwiz.font.draw("default", "Object stats:\nCrates: " .. tostring(#crates) .. ", balls: " .. tostring(#balls), 10, 10)
 end
@@ -156,6 +166,10 @@ function blitwiz.on_mousedown(button, x, y)
 		blitwiz.physics.setLinearDamping(crate, 0.3)
 
 		crates[#crates+1] = crate
+
+        blitwiz.physics.setCollisionCallback(crate, function(otherobj, x, y)
+            smokeobjs[#smokeobjs+1] = { x, y, 0 }
+        end)
 	else
 		objectposx,objectposy = limitballposition(objectposx, objectposy)
 
