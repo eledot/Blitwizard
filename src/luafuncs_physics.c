@@ -36,6 +36,7 @@
 
 
 struct luaphysicsobj {
+    int refcount;
     int movable;
     struct physicsobject* object;
     double friction;
@@ -57,11 +58,26 @@ static void luafuncs_trycollisioncallback(struct physicsobject* obj, struct phys
 
     if (lua_type(l, -1) != LUA_TNIL) {
         //we got a collision callback for this object -> call it
-        lua_pushcfunction(l, internaltracebackfunc);
+        lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc);
         lua_insert(l, -2);
         
         //stack now looks like this: <traceback> <callback>
+
+        //create a new physics object ref on the stack which
+        //references the object we collided with
+        struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
+        ((struct luaphysicsobj*)physics_GetObjectUserdata(otherobj))->refcount++;
+        memset(ref, 0, sizeof(*ref));
+        ref->magic = IDREF_MAGIC;
+        ref->type = IDREF_PHYSICS;
+        ref->ref.ptr = otherobj;
         
+        //push other information:
+        lua_pushnumber(l, x);
+        lua_pushnumber(l, y);
+        lua_pushnumber(l, normalx);
+        lua_pushnumber(l, normaly);
+        lua_pushnumber(l, force);
     }
 }
 
@@ -98,6 +114,11 @@ static int garbagecollect_physobj(lua_State* l) {
         //not a physics object!
         return 0;
     }
+    pobj->refcount--;
+    if (pobj->refcount > 0) {
+        //object is still referenced -> do not delete
+        return 0;
+    }
     if (pobj->object) {
         //Close the associated physics object
         physics_DestroyObject(pobj->object);
@@ -119,6 +140,7 @@ static struct luaidref* createphysicsobj(lua_State* l) {
     }
     //initialise structs:
     memset(obj, 0, sizeof(*obj));
+    obj->refcount = 1;
     memset(ref, 0, sizeof(*ref));
     ref->magic = IDREF_MAGIC;
     ref->type = IDREF_PHYSICS;
@@ -210,6 +232,7 @@ int luafuncs_ray(lua_State* l) {
     double normalx,normaly;
     if (physics_Ray(main_DefaultPhysicsPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly)) {
         struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
+        ((struct luaphysicsobj*)physics_GetObjectUserdata(obj))->refcount++;
         memset(ref, 0, sizeof(*ref));
         ref->magic = IDREF_MAGIC;
         ref->type = IDREF_PHYSICS;

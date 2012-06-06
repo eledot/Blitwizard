@@ -36,10 +36,14 @@ int luafuncs_setMass(lua_State* l);
 int luafuncs_setRestitution(lua_State* l);
 int luafuncs_setFriction(lua_State* l);
 int luafuncs_setAngularDamping(lua_State* l);
+int luafuncs_setCollisionCallback(lua_State* l);
 int luafuncs_setLinearDamping(lua_State* l);
 int luafuncs_getRotation(lua_State* l);
 int luafuncs_getPosition(lua_State* l);
 int luafuncs_warp(lua_State* l);
 int luafuncs_setGravity(lua_State* l);
+
+struct physicsobject;
+void luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
 
 #endif

@@ -36,11 +36,15 @@
 #include <android/log.h>
 #endif
 
-int wantquit = 0;
-int suppressfurthererrors = 0;
-int appinbackground = 0;
-static int sdlinitialised = 0;
-extern int drawingallowed; //stored in luafuncs.c
+//physics callback we will need later when setting up the physics simulation
+struct physicsobject;
+void luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
+
+int wantquit = 0; //set to 1 if there was a quit event
+int suppressfurthererrors = 0; //a critical error was shown, don't show more
+int appinbackground = 0; //app is in background (mobile/Android)
+static int sdlinitialised = 0; //sdl was initialised and needs to be quit
+extern int drawingallowed; //stored in luafuncs.c, checks if we come from an on_draw() event or not
 
 #include "luastate.h"
 #include "file.h"
@@ -493,6 +497,7 @@ int main(int argc, char** argv) {
         main_Quit(1);
         return 1;
     }
+    physics_SetCollisionCallback(physicsdefaultworld, &luafuncs_globalcollisioncallback_unprotected, NULL);
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
