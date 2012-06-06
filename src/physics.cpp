@@ -74,15 +74,15 @@ void* physics_GetObjectUserdata(struct physicsobject* object) {
 class mycontactlistener : public b2ContactListener {
 public:
     mycontactlistener();
-    virtual void PostSolve(b2Contact* contact, b2ContactImpulse* impulse);
+    ~mycontactlistener();
+private:
+    void PreSolve(b2Contact *contact, const b2Manifold *oldManifold);
 };
 
-mycontactlistener::mycontactlistener() {
-    return;
-}
+mycontactlistener::mycontactlistener() {return;}
+mycontactlistener::~mycontactlistener() {return;}
 
-void mycontactlistener::PostSolve(b2Contact* contact, b2ContactImpulse* impulse) {
-    printf("PostSolve\n");
+void mycontactlistener::PreSolve(b2Contact *contact, const b2Manifold *oldManifold) {
     struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
     struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
 
@@ -108,7 +108,7 @@ void mycontactlistener::PostSolve(b2Contact* contact, b2ContactImpulse* impulse)
     float normaly = wmanifold.normal.y;
 
     //impact force:
-    float impact = impulse->normalImpulses[0];
+    float impact = oldManifold->points[0].normalImpulse; //impulse->normalImpulses[0];
 
     //find our current world
     struct physicsworld* w = obj1->pworld;
