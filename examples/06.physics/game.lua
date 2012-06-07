@@ -110,7 +110,7 @@ function blitwiz.on_draw()
     local imgw,imgh = blitwiz.graphics.getImageSize("smoke.png")
     local i = 1
     while i <= #smokeobjs do
-        blitwiz.graphics.drawImage("smoke.png", {x=smokeobjs[i][1] - imgw/2, y=smokeobjs[i][2] - imgh/2, rotationangle=smokeobjs[i][3], alpha=smokeobjs[i][4]})
+        blitwiz.graphics.drawImage("smoke.png", {x=smokeobjs[i][1] - imgw/2, y=smokeobjs[i][2] - imgh/2, rotationangle=smokeobjs[i][3], alpha=smokeobjs[i][4], scalex=2, scaley=2})
         i = i + 1
     end
 
@@ -198,9 +198,18 @@ function blitwiz.on_step()
     -- animate smoke:
     local i = 1
     while i <= #smokeobjs do
+        -- adjust alpha:
         smokeobjs[i][4] = math.max(0, smokeobjs[i][4] - 0.004)
-        smokeobjs[i][3] = smokeobjs[i][3] + 2
-        i = i + 1
+
+        -- adjust rotation angle:
+        smokeobjs[i][3] = smokeobjs[i][3] + 1
+
+        -- remove from list when invisible:
+        if smokeobjs[i][4] <= 0.05 then
+            table.remove(smokeobjs, i)
+        else
+            i = i + 1
+        end
     end
 end
 

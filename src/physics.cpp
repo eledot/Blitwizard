@@ -62,7 +62,6 @@ struct bodyuserdata {
 };
 
 void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force), void* userdata) {
-    printf("physics_SetCollisionCallback: %p\n", callback);
     world->callback = callback;
     world->callbackuserdata = userdata;
 }
@@ -131,7 +130,6 @@ struct physicsworld* physics_CreateWorld() {
     world->gravityx = 0;
     world->gravityy = 10;
     world->listener = new mycontactlistener();
-    printf("listener.\n");
     world->w->SetContactListener(world->listener);
     return world;
 }

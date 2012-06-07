@@ -48,7 +48,6 @@ struct luaphysicsobj {
 
 static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force) {
     lua_State* l = luastate_GetStatePtr();
-    
     char funcname[200];
     snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj);
     funcname[sizeof(funcname)-1] = 0;
@@ -89,6 +88,8 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
             return 0;
         }
         lua_pop(l, 1); //pop error handling function
+    }else{
+        lua_pop(l, 1); //pop the nil value
     }
     return 1;
 }
