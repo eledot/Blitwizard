@@ -108,7 +108,7 @@ void mycontactlistener::PreSolve(b2Contact *contact, const b2Manifold *oldManifo
     float normaly = wmanifold.normal.y;
 
     //impact force:
-    float impact = oldManifold->points[0].normalImpulse; //impulse->normalImpulses[0];
+    float impact = contact->GetManifold()->points[0].normalImpulse; //oldManifold->points[0].normalImpulse; //impulse->normalImpulses[0];
 
     //find our current world
     struct physicsworld* w = obj1->pworld;

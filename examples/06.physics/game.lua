@@ -110,7 +110,7 @@ function blitwiz.on_draw()
     local imgw,imgh = blitwiz.graphics.getImageSize("smoke.png")
     local i = 1
     while i <= #smokeobjs do
-        blitwiz.graphics.drawImage("smoke.png", {x=smokeobjs[1] - imgw/2, y=smokeobjs[2] - imgh/2, rotationangle=smokeobjs[3]})
+        blitwiz.graphics.drawImage("smoke.png", {x=smokeobjs[i][1] - imgw/2, y=smokeobjs[i][2] - imgh/2, rotationangle=smokeobjs[i][3]})
         i = i + 1
     end
 
