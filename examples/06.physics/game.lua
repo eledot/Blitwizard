@@ -110,7 +110,7 @@ function blitwiz.on_draw()
     local imgw,imgh = blitwiz.graphics.getImageSize("smoke.png")
     local i = 1
     while i <= #smokeobjs do
-        blitwiz.graphics.drawImage("smoke.png", {x=smokeobjs[i][1] - imgw/2, y=smokeobjs[i][2] - imgh/2, rotationangle=smokeobjs[i][3]})
+        blitwiz.graphics.drawImage("smoke.png", {x=smokeobjs[i][1] - imgw/2, y=smokeobjs[i][2] - imgh/2, rotationangle=smokeobjs[i][3], alpha=smokeobjs[i][4]})
         i = i + 1
     end
 
@@ -167,8 +167,11 @@ function blitwiz.on_mousedown(button, x, y)
 
 		crates[#crates+1] = crate
 
-        blitwiz.physics.setCollisionCallback(crate, function(otherobj, x, y)
-            smokeobjs[#smokeobjs+1] = { x, y, 0 }
+        -- Set a collision callback for the smoke effect
+        blitwiz.physics.setCollisionCallback(crate, function(otherobj, x, y, nx, ny, force)
+            if force > 4 then
+                smokeobjs[#smokeobjs+1] = { x * pixelspermeter, y * pixelspermeter, math.random()*360, math.min(1, (force-4)/20) }
+            end
         end)
 	else
 		objectposx,objectposy = limitballposition(objectposx, objectposy)
@@ -192,6 +195,12 @@ function blitwiz.on_close()
 end
 
 function blitwiz.on_step()
-
+    -- animate smoke:
+    local i = 1
+    while i <= #smokeobjs do
+        smokeobjs[i][4] = math.max(0, smokeobjs[i][4] - 0.004)
+        smokeobjs[i][3] = smokeobjs[i][3] + 2
+        i = i + 1
+    end
 end
 

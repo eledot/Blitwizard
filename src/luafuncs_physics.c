@@ -58,7 +58,7 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
 
     if (lua_type(l, -1) != LUA_TNIL) {
         //we got a collision callback for this object -> call it
-        lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc);
+        lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc());
         lua_insert(l, -2);
         
         //stack now looks like this: <traceback> <callback>
@@ -94,9 +94,6 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
 }
 
 void luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force) {
-    if (force > 5) {
-        printf("luafuncs_globalcollisioncallback_unprotected: %f, %f, %f\n", x, y, force);
-    }
     if (!luafuncs_trycollisioncallback(a, b, x, y, normalx, normaly, force)) {
         main_Quit(1);
         return;

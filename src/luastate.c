@@ -532,7 +532,7 @@ static int luastate_DoFile(lua_State* l, int argcount, const char* file, char** 
         //move function in front of all arguments (including file name):
         lua_insert(l, -(argcount+3));
 
-        //move error function in front of all arguments:
+        //move error function in front of all arguments + function:
         lua_insert(l, -(argcount+3));
     }
 
