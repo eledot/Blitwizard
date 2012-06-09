@@ -36,11 +36,13 @@ void physics_Step(struct physicsworld* world);
 int physics_GetStepSize(struct physicsworld* world);
 
 //Set a collision callback:
-void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force), void* userdata);
+void physics_SetCollisionCallback(struct physicsworld* world, int (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force), void* userdata);
 //The callback receives your specified userdata, the collidion objects,
 //the position in the center of the collision/overlap,
 //the collision penetration normal pointing from object b to object a,
 //and the impact force's strength.
+//If the callback returns 0, the collision will be ignored.
+//If it returns 1, the collision will be processed.
 
 //create and destroy objects;
 struct physicsobject* physics_CreateObjectRectangle(struct physicsworld* world, void* userdata, int movable, double friction, double width, double height);

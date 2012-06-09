@@ -46,7 +46,7 @@ struct luaphysicsobj {
     int rotationrestriction;
 };
 
-static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force) {
+static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force, &enabled) {
     lua_State* l = luastate_GetStatePtr();
     char funcname[200];
     snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj);
@@ -81,12 +81,13 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
         //stack now looks like this: <traceback> <callback> <6 args>
 
         //Call the function:
-        int ret = lua_pcall(l, 6, 0, -8);
+        int ret = lua_pcall(l, 6, 1, -8);
         if (ret != 0) {
             printerror("Error: An error occured when running blitwiz.physics.setCollisionCallback callback: %s", lua_tostring(l, -1));
             lua_pop(l, 2); //pop error string, error handling function
             return 0;
-        }
+        }else{
+            //evaluate 
         lua_pop(l, 1); //pop error handling function
     }else{
         lua_pop(l, 1); //pop the nil value
@@ -94,15 +95,20 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
     return 1;
 }
 
-void luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force) {
-    if (!luafuncs_trycollisioncallback(a, b, x, y, normalx, normaly, force)) {
+int luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force) {
+    int enabled = 1;
+    if (!luafuncs_trycollisioncallback(a, b, x, y, normalx, normaly, force, &enabled)) {
         main_Quit(1);
-        return;
+        return 1;
     }
-    if (!luafuncs_trycollisioncallback(b, a, x, y, -normalx, -normaly, force)) {
+    if (!luafuncs_trycollisioncallback(b, a, x, y, -normalx, -normaly, force, &enabled)) {
         main_Quit(1);
-        return;
+        return 1;
     }
+    if (!enabled) {
+        return 0;
+    }
+    return 1;
 }
 
 static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {

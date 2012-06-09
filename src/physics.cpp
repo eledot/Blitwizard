@@ -43,7 +43,7 @@ struct physicsworld {
     b2World* w;
     double gravityx,gravityy;
     void* callbackuserdata;
-    void (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
+    int (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
 };
 
 struct physicsobject {
@@ -61,7 +61,7 @@ struct bodyuserdata {
     struct physicsobject* pobj;
 };
 
-void physics_SetCollisionCallback(struct physicsworld* world, void (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force), void* userdata) {
+void physics_SetCollisionCallback(struct physicsworld* world, int (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force), void* userdata) {
     world->callback = callback;
     world->callbackuserdata = userdata;
 }
@@ -114,7 +114,13 @@ void mycontactlistener::PreSolve(b2Contact *contact, const b2Manifold *oldManifo
 
     //return the information through the callback
     if (w->callback) {
-        w->callback(w->callbackuserdata, obj1, obj2, collidex, collidey, normalx, normaly, impact);
+        if (!w->callback(w->callbackuserdata, obj1, obj2, collidex, collidey, normalx, normaly, impact)) {
+            //contact should be disabled:
+            contact->SetEnabled(false);
+        }else{
+            //contact should remain enabled:
+            contact->SetEnabled(true);
+        }
     }
 }
 
