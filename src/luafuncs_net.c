@@ -428,6 +428,11 @@ int luafuncs_netset(lua_State* l) {
 static int connectedevents(struct connection* c) {
     lua_State* l = (lua_State*)c->userdata;
 
+    //ensure stack is large enough
+    if (!lua_checkstack(l, 10)) {
+        return haveluaerror(l, stackgrowfailure);
+    }
+
     //push error handling function
     lua_pushcfunction(l, internaltracebackfunc());
 
@@ -465,6 +470,11 @@ static int connectedevents(struct connection* c) {
 static int readevents(struct connection* c, char* data, unsigned int datalength) {
     lua_State* l = (lua_State*)c->userdata;
 
+    //attempt to grow stack first
+    if (!lua_checkstack(l, 10)) {
+        return haveluaerror(l, stackgrowfailure);
+    }
+
     //push error handling function
     lua_pushcfunction(l, internaltracebackfunc());
 
@@ -492,7 +502,7 @@ static int readevents(struct connection* c, char* data, unsigned int datalength)
     luaL_Buffer b;
     luaL_buffinit(l, &b);
     luaL_addlstring(&b, data, datalength);
-    luaL_pushresult(&b);
+    luaL_pushresult(&b); //FIXME: how much stack space does this need?
 
     //prompt callback:
     int result = lua_pcall(l, 2, 0, -4);
@@ -547,6 +557,10 @@ int luafuncs_netserver(lua_State* l) {
 int connectionevents(int port, int socket, const char* ip, void* sslptr, void* userdata) {
     lua_State* l = (lua_State*)userdata;
 
+    //ensure stack is large enough
+    if (!lua_checkstack(l, 10)) {
+        return haveluaerror(l, stackgrowfailure);
+    }
 
     //push the error handler:
     lua_pushcfunction(l, internaltracebackfunc());
@@ -611,6 +625,11 @@ int connectionevents(int port, int socket, const char* ip, void* sslptr, void* u
 
 static int errorevents(struct connection* c, int error) {
     lua_State* l = (lua_State*)c->userdata;
+
+    //ensure stack is large enough
+    if (!lua_checkstack(l, 10)) {
+        return haveluaerror(l, stackgrowfailure);
+    }
 
     //push error handling function
     lua_pushcfunction(l, internaltracebackfunc());
