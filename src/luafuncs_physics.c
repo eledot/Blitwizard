@@ -26,8 +26,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 #include "luaheader.h"
 
+#include "logging.h"
 #include "luaerror.h"
 #include "luastate.h"
 #include "luafuncs_physics.h"
@@ -46,7 +48,7 @@ struct luaphysicsobj {
     int rotationrestriction;
 };
 
-static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force, &enabled) {
+static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
     lua_State* l = luastate_GetStatePtr();
     char funcname[200];
     snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj);
@@ -87,8 +89,14 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
             lua_pop(l, 2); //pop error string, error handling function
             return 0;
         }else{
-            //evaluate 
-        lua_pop(l, 1); //pop error handling function
+            //evaluate return result...
+            if (!lua_toboolean(l, -1)) {
+                *enabled = 0;
+            }
+     
+            //pop error handling function and return value:
+            lua_pop(l, 2);
+        }
     }else{
         lua_pop(l, 1); //pop the nil value
     }

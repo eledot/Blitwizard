@@ -31,6 +31,7 @@
 
 char badargument1[] = "bad argument #%d to `%s` (%s expected, got %s)";
 char badargument2[] = "bad argument #%d to `%s`: %s";
+char stackgrowfailure[] = "Cannot grow stack size";
 
 int haveluaerror(lua_State* l, const char* fmt, ...) {
     char printline[2048];
