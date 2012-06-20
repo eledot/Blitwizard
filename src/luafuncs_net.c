@@ -365,7 +365,7 @@ int luafuncs_netclose(lua_State* l) {
         }else{
             //wipe the callback aswell
             char p[512];
-            snprintf(p, sizeof(p), "serverlistenercallback%d", lua_tointeger(l, 1));
+            snprintf(p, sizeof(p), "serverlistenercallback%d", (int)lua_tointeger(l, 1));
             lua_pushstring(l, p);
             lua_pushnil(l);
             lua_settable(l, LUA_REGISTRYINDEX);
@@ -438,11 +438,7 @@ static int connectedevents(struct connection* c) {
 
     //push connect callback function
     char regname[500];
-#ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "opencallback%I64u", (uint64_t)(intptr_t)c);
-#else
-    snprintf(regname, sizeof(regname), "opencallback%llu", (uint64_t)(intptr_t)c);
-#endif
+    snprintf(regname, sizeof(regname), "opencallback%p", c);
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
     lua_gettable(l, LUA_REGISTRYINDEX);
@@ -480,11 +476,7 @@ static int readevents(struct connection* c, char* data, unsigned int datalength)
 
     //read callback lua function
     char regname[500];
-#ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "readcallback%I64u", (uint64_t)(intptr_t)c);
-#else
-    snprintf(regname, sizeof(regname), "readcallback%llu", (uint64_t)(intptr_t)c);
-#endif
+    snprintf(regname, sizeof(regname), "readcallback%p", c);
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
     lua_gettable(l, LUA_REGISTRYINDEX);
@@ -593,6 +585,7 @@ int connectionevents(int port, int socket, const char* ip, void* sslptr, void* u
     c->lastreadtime = time_GetMilliseconds();
     c->error = -1;
     c->userdata = l;
+    c->autoclosecallback = &clearconnectioncallbacks;
     c->iptype = IPTYPE_IPV6;
     c->inbuf = malloc(CONNECTIONINBUFSIZE);
     c->inbufsize = CONNECTIONINBUFSIZE;
@@ -636,11 +629,7 @@ static int errorevents(struct connection* c, int error) {
 
     //read callback lua function
     char regname[500];
-#ifdef WINDOWS
-    snprintf(regname, sizeof(regname), "errorcallback%I64u", (uint64_t)(intptr_t)c);
-#else
-    snprintf(regname, sizeof(regname), "errorcallback%llu", (uint64_t)(intptr_t)c);
-#endif
+    snprintf(regname, sizeof(regname), "errorcallback%p", c);
     regname[sizeof(regname)-1] = 0;
     lua_pushstring(l, regname);
     lua_gettable(l, LUA_REGISTRYINDEX);

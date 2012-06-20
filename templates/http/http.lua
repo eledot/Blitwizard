@@ -122,17 +122,21 @@ blitwiz.net.http.get = function(url, callback, headers)
     end
 
     local streamdata = {}
+    print("Opening connection to " .. server_name .. ", " .. port)
     local stream = blitwiz.net.open({server=server_name, port=port},
     function(stream)
+        print("Connected")
         blitwiz.net.send(stream, final_headers .. "\n")
     end,
     function(stream, data)
+        print("data arrived: " .. #data)
         if streamdata["data"] == nil then
             streamdata["data"] = ""
         end
         streamdata["data"] = streamdata["data"] .. data
     end,
     function(stream, errormsg)
+        print("error:")
         if streamdata["data"] ~= nil then
             if #streamdata["data"] > 0 then
                 local data = {}
