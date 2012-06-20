@@ -30,16 +30,25 @@ blitwiz.net.http.get = function(url, callback, headers)
     --     )
     -- The function you provide gets a response object which is a
     -- table with the following members:
-    --    data.returncode    - contains the HTTP return code, so 200
-    --                          when everything went ok.
+    --    data.response_code - contains the HTTP response code, so
+    --                          200 when everything went fine.
     --                         There is also 404, which indicates
     --                          page not found,
     --                          and 403 for access forbidden, and more.
+    --                         Return code 999 means the connection failed
+    --                          for some reason and is a LOCAL error code,
+    --                          not something actually sent by the server.
     --    data.content       - the page content of the response,
     --                          containing HTML code, image data,
-    --                          or whatever you requested.
+    --                          or whatever you requested. For return code
+    --                          999, it contains the error message.
+    --    data.mime_type     - contains the content's mime type, e.g.
+    --                          "text/plain" for plain text, "text/html"
+    --                          for HTML or "audio/ogg" for ogg audio.
+    --    data.server_name   - contains a string containing the server's
+    --                          name, or nil if not told by the server.
     --    data.headers       - contains a string with all the response
-    --                          http headers.
+    --                          http headers sent by the server.
     -- IMPORTANT: Alternatively, the response object is simply nil
     -- when the request failed completely (network error or similar).
     --
@@ -117,33 +126,33 @@ blitwiz.net.http.get = function(url, callback, headers)
     ,
     headers
     )
+
     if not blitwiz.net.http._header_present(final_headers, "User-agent: ") then
         final_headers = final_headers .. "User-agent: " .. blitwiz.net.http._default_user_agent .. "\n"
     end
 
     local streamdata = {}
-    print("Opening connection to " .. server_name .. ", " .. port)
     local stream = blitwiz.net.open({server=server_name, port=port},
     function(stream)
-        print("Connected")
         blitwiz.net.send(stream, final_headers .. "\n")
     end,
     function(stream, data)
-        print("data arrived: " .. #data)
         if streamdata["data"] == nil then
             streamdata["data"] = ""
         end
         streamdata["data"] = streamdata["data"] .. data
+        --print("stream data: " .. data)
     end,
     function(stream, errormsg)
-        print("error:")
+        --print("Closed with errormsg: " .. errormsg)
         if streamdata["data"] ~= nil then
+            --print("blib")
             if #streamdata["data"] > 0 then
                 local data = {}
+                data["headers"] = ""
                 data["response_code"] = 200
                 --parse response code:
                 local datastr = streamdata["data"]
-                datastr = string.gsub(datastr, "\r\n", "\n")
                 if string.starts(datastr, "HTTP/") then
                     local blub,response_code = string.split(datastr, " ", 2)
                     if tostring(tonumber(response_code)) == response_code then
@@ -155,9 +164,15 @@ blitwiz.net.http.get = function(url, callback, headers)
                 end
 
                 -- it worked apparently! get us the data:
-                local header,body = string.split(datastr, "\n\n",1)
+                local header,body = string.split(datastr, "\n\n", 1)
                 data.content = body
                 data.headers = header
+                local header2,body2 = string.split(datastr, "\r\n\r\n", 1)
+                if #header2 < #data.headers then
+                    data.headers = header2
+                    data.content = body2
+                end
+                data.headers = string.gsub(data.headers, "\r\n", "\n") 
 
                 -- Make sure we have proper content and header (not nil)
                 if data.content == nil then
@@ -174,11 +189,100 @@ blitwiz.net.http.get = function(url, callback, headers)
                 if data.headers == nil then
                     data.headers = ""
                 end
+
+                -- separate headers
+                local headerstable = {string.split(data.headers, "\n")}
+                
+                -- parse for various options
+                local chunked = false
+                local i = 1
+                while i <= #headerstable do
+                    headerstable[i] = string.gsub(headerstable[i], " :", ":")
+                    headerstable[i] = string.gsub(headerstable[i], ": ", ":")
+                    
+                    -- chunked transfer encoding
+                    if string.starts(string.lower(headerstable[i]), "transfer-encoding:") then
+                        local v = ({string.split(string.lower(headerstable[i]), ":", 1)})[2]
+                        if v == "chunked" then
+                            chunked = true
+                        end
+                    end
+ 
+                    -- mime type
+                    if string.starts(string.lower(headerstable[i]), "content-type:") then
+                        data.mime_type = ({string.split(string.lower(headerstable[i]), ":", 1)})[2]
+                    end
+
+                    -- server name
+                    if string.starts(string.lower(headerstable[i]), "server:") then
+                        data.server_name = ({string.split(string.lower(headerstable[i]), ":", 1)})[2]
+                    end
+
+                    i = i + 1
+                end
+
+                -- parse chunks in data if chunked
+                if chunked == true then
+                    local dechunkeddata = ""
+                    while 1 do
+                        local newdata = ""
+
+                        -- Trim leading chunk size line break if any
+                        if string.starts(data.content, "\r") then
+                            data.content = string.sub(data.content, 2)
+                        end
+                        if string.starts(data.content, "\n") then
+                            data.content = string.sub(data.content, 2)
+                        end
+
+                        -- Invalid data if nothing is left:
+                        if #data.content <= 0 then
+                            data.response_code = 999
+                            data.headers = ""
+                            data.mime_type = "text/plain"
+                            data.content = "Invalid chunked data"
+                            break
+                        end
+
+                        local chunklengthstr,newdata = string.split(data.content, "\r\n", 1)
+                        data.content = newdata
+                        local chunklength = tonumber("0x" .. chunklengthstr)
+                        
+                        -- Stop splitting if final chunk
+                        if chunklength <= 0 then
+                            data.content = dechunkeddata
+                            break
+                        end
+
+                        -- Trim leading data line break:
+                        if string.starts(data.content, "\r") then
+                            data.content = string.sub(data.content, 1)
+                        end
+                        if string.starts(data.content, "\n") then
+                            data.content = string.sub(data.content, 1)
+                        end
+
+                        -- Invalid if remaining data is too short:
+                        if #data.content < chunklength then
+                            data.response_code = 999
+                            data.headers = ""
+                            data.mime_type = "text/plain"
+                            data.content = "Received data incomplete"
+                            break
+                        end
+
+                        -- Cut off chunk
+                        dechunkeddata = dechunkeddata .. string.sub(data.content, 1, chunklength)
+                        data.content = string.sub(data.content, chunklength + 1)
+                        
+                    end
+                end              
+  
                 callback(data)
                 return
             end
         end
-        callback(nil)
+        callback({response_code=999, headers="", mime_type="text/plain", content=errormsg})
     end
 ) 
 end
