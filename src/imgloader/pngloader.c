@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "png/png.h"
+#include "png.h"
 
 #include "pngloader.h"
 
