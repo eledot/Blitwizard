@@ -6,9 +6,9 @@ pcall(blitwiz.sound.play)
 if os.exists("samplebrowser/browser.lua") then
 	-- Templates are indeed one folder up, as it seems
 	local olddir = os.getcwd()
-	os.chdir("../")
+	os.chdir("../templates/")
 	local function calltemplates()
-		dofile("templates/init.lua")
+		dofile("init.lua")
 	end
 	calltemplates()
 	os.chdir(olddir)
