@@ -172,6 +172,7 @@ function blitwiz.on_mousedown(button, x, y)
             if force > 4 then
                 smokeobjs[#smokeobjs+1] = { x * pixelspermeter, y * pixelspermeter, math.random()*360, math.min(1, (force-4)/20) }
             end
+            return true
         end)
 	else
 		objectposx,objectposy = limitballposition(objectposx, objectposy)
