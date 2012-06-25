@@ -237,7 +237,7 @@ AS_IF([test ! -f "src/imgloader/png/png.c"],[
 AC_MSG_CHECKING([for static zlib library])
 AS_IF([test ! -f "src/imgloader/zlib/gzlib.c"],[
     AC_MSG_RESULT([no])
-    AC_CHECK_LIB([z], [inflateInit],[
+    AC_CHECK_LIB([dl], [dlopen],[
         #shared lib is there!
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   zlib: shared"
