@@ -466,7 +466,7 @@ AS_IF([test "x$enable_physics" = xyes],[
     ])
     AS_IF([test "x$HAVE_STATIC_BOX2D" = xno], [
         #check for shared lib
-        AC_CHECK_HEADERS([Box2D.h],[
+        AC_CHECK_HEADERS([Box2D/Box2D.h],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libbox2d: shared"
