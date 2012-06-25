@@ -466,7 +466,7 @@ AS_IF([test "x$enable_physics" = xyes],[
     ])
     AS_IF([test "x$HAVE_STATIC_BOX2D" = xno], [
         #check for shared lib
-        AC_CHECK_HEADERS([Box2D/Box2D.h],[
+        AC_CHECK_HEADERS([Box2D.h],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libbox2d: shared"
@@ -630,7 +630,7 @@ AS_IF([test "x$PHYSICS_FEATURE_ENABLED" = xyes],[
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lbox2d"
     ], [
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardbox2d"
-        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ibox2d/"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ibox2d/Box2D/"
     ])
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSICS"
 ])
