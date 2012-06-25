@@ -545,7 +545,7 @@ AS_IF([test "x$AUDIO_FEATURE_ENABLED" = xyes],[
 
 AS_IF([test "x$NULL_GRAPHICS_FEATURE_ENABLED" = xyes],[
     FINAL_LD_FLAGS="$FINAL_LD_FLAGS -limglib"
-    FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iimgloader/"
+    FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iimgloader/ -Iimgloader/png -Iimgloader/zlib"
     STATIC_LIBS_USE="$STATIC_LIBS_USE imgloader"
     statictest=`echo $STATIC_LIBS_USE | grep png`
     AS_IF([test -z "$statictest"],[
