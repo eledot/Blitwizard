@@ -466,7 +466,7 @@ AS_IF([test "x$enable_physics" = xyes],[
     ])
     AS_IF([test "x$HAVE_STATIC_BOX2D" = xno], [
         #check for shared lib
-        AC_LANG_PUSH([C++]);
+        AC_LANG_PUSH([C++])
         AC_CHECK_HEADERS([Box2D.h],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
@@ -477,7 +477,7 @@ AS_IF([test "x$enable_physics" = xyes],[
   libbox2d: no"
             PHYSICS_FEATURE_ENABLED="no, need libbox2d"
         ])
-        AC_LANG_POP([C++]);
+        AC_LANG_POP([C++])
     ],[
         #static lib is here
         STATIC_LIBS_USE="${STATIC_LIBS_USE} box2d"
