@@ -216,7 +216,7 @@ void* library_LoadSearch(const char* name) {
     library_SearchDir("/usr/local/lib64", name, &ptr);
 #else
     library_SearchDir("/usr/lib32", name, &ptr);
-    library_SearchDIr("/usr/local/lib32", &name, &ptr);
+    library_SearchDir("/usr/local/lib32", &name, &ptr);
 #endif
     if (ptr) {
         return ptr;
