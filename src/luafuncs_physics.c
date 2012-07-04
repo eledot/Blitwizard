@@ -58,14 +58,14 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
     lua_gettable(l, LUA_REGISTRYINDEX);
 
     if (lua_type(l, -1) != LUA_TNIL) {
-        //we got a collision callback for this object -> call it
+        // we got a collision callback for this object -> call it
         lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc());
         lua_insert(l, -2);
 
-        //stack now looks like this: <traceback> <callback>
+        // stack now looks like this: <traceback> <callback>
 
-        //create a new physics object ref on the stack which
-        //references the object we collided with
+        // create a new physics object ref on the stack which
+        // references the object we collided with
         struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
         ((struct luaphysicsobj*)physics_GetObjectUserdata(otherobj))->refcount++;
         memset(ref, 0, sizeof(*ref));
@@ -73,32 +73,32 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
         ref->type = IDREF_PHYSICS;
         ref->ref.ptr = otherobj;
 
-        //push other information:
+        // push other information:
         lua_pushnumber(l, x);
         lua_pushnumber(l, y);
         lua_pushnumber(l, normalx);
         lua_pushnumber(l, normaly);
         lua_pushnumber(l, force);
 
-        //stack now looks like this: <traceback> <callback> <6 args>
+        // stack now looks like this: <traceback> <callback> <6 args>
 
-        //Call the function:
+        // Call the function:
         int ret = lua_pcall(l, 6, 1, -8);
         if (ret != 0) {
             printerror("Error: An error occured when running blitwiz.physics.setCollisionCallback callback: %s", lua_tostring(l, -1));
-            lua_pop(l, 2); //pop error string, error handling function
+            lua_pop(l, 2); // pop error string, error handling function
             return 0;
         }else{
-            //evaluate return result...
+            // evaluate return result...
             if (!lua_toboolean(l, -1)) {
                 *enabled = 0;
             }
 
-            //pop error handling function and return value:
+            // pop error handling function and return value:
             lua_pop(l, 2);
         }
     }else{
-        lua_pop(l, 1); //pop the nil value
+        lua_pop(l, 1); // pop the nil value
     }
     return 1;
 }
@@ -144,25 +144,25 @@ static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
 static int garbagecollect_physobj(lua_State* l) {
     struct luaphysicsobj* pobj = toluaphysicsobj(l, -1);
     if (!pobj) {
-        //not a physics object!
+        // not a physics object!
         return 0;
     }
     pobj->refcount--;
     if (pobj->refcount > 0) {
-        //object is still referenced -> do not delete
+        // object is still referenced -> do not delete
         return 0;
     }
     if (pobj->object) {
-        //Close the associated physics object
+        // Close the associated physics object
         physics_DestroyObject(pobj->object);
     }
-    //free the physics object itself
+    // free the physics object itself
     free(pobj);
     return 0;
 }
 
 static struct luaidref* createphysicsobj(lua_State* l) {
-    //Create a luaidref userdata struct which points to a luaphysicsobj:
+    // Create a luaidref userdata struct which points to a luaphysicsobj:
     struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
     struct luaphysicsobj* obj = malloc(sizeof(*obj));
     if (!obj) {
@@ -171,14 +171,14 @@ static struct luaidref* createphysicsobj(lua_State* l) {
         lua_error(l);
         return NULL;
     }
-    //initialise structs:
+    // initialise structs:
     memset(obj, 0, sizeof(*obj));
     obj->refcount = 1;
     memset(ref, 0, sizeof(*ref));
     ref->magic = IDREF_MAGIC;
     ref->type = IDREF_PHYSICS;
     ref->ref.ptr = obj;
-    //make sure it gets garbage collected lateron:
+    // make sure it gets garbage collected lateron:
     luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
     return ref;
 }
@@ -199,7 +199,7 @@ int luafuncs_destroyObject(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     obj->refcount--;
     if (obj->refcount <= 0) {
-        // no references left, we can delete the object
+        //  no references left, we can delete the object
 
     }
     return 0;

@@ -60,18 +60,18 @@ uint64_t time_GetMilliseconds() {
 #else
     uint64_t i = GetTickCount();
 #endif
-    i += timeoffset; //add an offset we might have set
+    i += timeoffset; // add an offset we might have set
     if (i > oldtime) {
-        //normal time difference
+        // normal time difference
         oldtime = i;
     }else{
-        //we wrapped around. set a time offset to avoid the wrap
+        // we wrapped around. set a time offset to avoid the wrap
         timeoffset = (oldtime-i)+1;
         i += timeoffset;
     }
-#else //ifdef HAVE_SDL
+#else // ifdef HAVE_SDL
 #ifdef MAC
-    //MAC NO-SDL TIME
+    // MAC NO-SDL TIME
     if (!startinitialised) {
         lastunixtime = mach_absolute_time();
         startinitialised = 1;
@@ -80,8 +80,8 @@ uint64_t time_GetMilliseconds() {
     uint64_t elapsed = mach_absolute_time() - lastunixtime;
     Nanoseconds ns = AbsoluteToNanoseconds(*(AbsoluteTime*)&elapsed);
     return *(uint64_t)&ns;
-#else //ifdef MAC
-    //UNIX/LINUX NO-SDL TIME
+#else // ifdef MAC
+    // UNIX/LINUX NO-SDL TIME
     if (!startinitialised) {
         clock_gettime(CLOCK_MONOTONIC, &lastunixtime);
         startinitialised = 1;
@@ -100,8 +100,8 @@ uint64_t time_GetMilliseconds() {
     }else{
         i += oldtimestamp;
     }
-#endif //ifdef MAC
-#endif //ifdef HAVE_SDL
+#endif // ifdef MAC
+#endif // ifdef HAVE_SDL
     return i;
 }
 
@@ -116,3 +116,4 @@ void time_Sleep(uint32_t milliseconds) {
 #endif
 #endif
 }
+

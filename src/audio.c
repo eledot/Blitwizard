@@ -41,7 +41,7 @@ void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
     memset(stream, 0, (size_t)len);
     if (!samplecallbackptr) {return;}
     SDL_MixAudio(stream, samplecallbackptr((unsigned int)len), (unsigned int)len, SDL_MIX_MAXVOLUME);
-    //memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
+    // memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
 }
 
 const char* audio_GetCurrentBackendName() {
@@ -75,7 +75,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
     }
 #endif
     if (soundenabled) {
-        //quit old sound first
+        // quit old sound first
         SDL_PauseAudio(1);
         SDL_AudioQuit();
         soundenabled = 0;
@@ -143,15 +143,15 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
         snprintf(errbuf,sizeof(errbuf),"Failed to open SDL audio: %s", SDL_GetError());
         errbuf[sizeof(errbuf)-1] = 0;
         *error = strdup(errbuf);
-        //FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
-        //SDL_AudioQuit();
+        // FIXME: this is a workaround for http:// bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
+        // SDL_AudioQuit();
         return 0;
     }
 
     if (actualfmt.channels != 2 || actualfmt.freq != 48000 || (s16 && actualfmt.format != AUDIO_S16) || (!s16 && actualfmt.format != AUDIO_F32SYS)) {
         *error = strdup("SDL audio delivered wrong/unusable format");
-        //FIXME: this is a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
-        //SDL_AudioQuit();
+        // FIXME: this is a workaround for http:// bugzilla.libsdl.org/show_bug.cgi?id=1343 (will cause a memory leak!)
+        // SDL_AudioQuit();
         return 0;
     }
 
@@ -168,12 +168,12 @@ void audio_UnlockAudioThread() {
     SDL_UnlockAudio();
 }
 
-#else //USE_SDL_AUDIO
+#else // USE_SDL_AUDIO
 
 const char* audio_GetCurrentBackendName() {
     return NULL;
 }
 
-#endif //USE_SDL_AUDIO
-#endif //USE_AUDIO
+#endif // USE_SDL_AUDIO
+#endif // USE_AUDIO
 

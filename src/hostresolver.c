@@ -43,12 +43,12 @@
 #define REQUESTTYPE_LOOKUP 2
 struct requestinfo {
     int type;
-    int wantipv6; //only used for lookups
+    int wantipv6; // only used for lookups
 #ifdef WINDOWS
-    //windows threads stuff
+    // windows threads stuff
     HANDLE threadhandle;
 #else
-    //pthreads for unix
+    // pthreads for unix
     pthread_t threadhandle;
     pthread_mutex_t threadeventmutex;
     int threadeventobject;
@@ -95,7 +95,7 @@ void* resolvethread(void* data) {
 #endif
 }
 void* hostresolv_internal_NewRequest(int type, const char* requestvalue, int wantipv6) {
-    //do either a reverse lookup or normal lookup request
+    // do either a reverse lookup or normal lookup request
     struct requestinfo i;
     memset(&i,0,sizeof(i));
     i.requestvalue = malloc(strlen(requestvalue)+1);
@@ -105,7 +105,7 @@ void* hostresolv_internal_NewRequest(int type, const char* requestvalue, int wan
     void* entry = malloc(sizeof(i));
     if (!entry) {free(i.requestvalue);return NULL;}
     memcpy(entry, &i, sizeof(i));
-    //now fire off our thread
+    // now fire off our thread
     struct requestinfo* ri = entry;
     ri->wantipv6 = wantipv6;
 #ifdef WINDOWS

@@ -48,19 +48,19 @@
 #endif
 
 
-/* start sockets */
+// start sockets
 int so_Startup(); // initialize socket system
 
-/* basic socket creation & handling */
+// basic socket creation & handling
 int so_CreateSocket(int addToSelect, int iptype);
 int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip);
 int so_ConnectSocketToIP(int socket, const char* ip, unsigned int port);
 void so_CloseSocket(int socket);
 
-/* the maximum length of a buffer that can hold all ips in string representation */
+// the maximum length of a buffer that can hold all ips in string representation
 int so_GetIPLen();
 
-/* === select() things === */
+// === select() things ===
 
 void so_ManageSocketWithSelect(int socket);
    // Mark a socket to be managed by select(). so_SelectWait() will then
@@ -114,22 +114,22 @@ void so_SelectWantWrite(int socket, int enabled);
    // you'll run in a lot of ugly polling. Therefore set to 0 if all writing is
    // done.
 
-/* === accept new connections, connect and send/recv data === */
+// === accept new connections, connect and send/recv data ===
 int so_AcceptConnection(int socket, int iptype, char* writeip, int* writesocket); // 0: failure, 1: success
 int so_ConnectSocketToIP(int socket, const char* ip, unsigned int port);
 int so_CheckIfConnected(int socket, void** sslptr); // 0: not connected, 1: connected
 int so_SendData(int sock,const char* buf, int len);
 int so_ReceiveData(int socket, char* buf, int len); // >0: amonut of bytes read, -1: temp failure (retry later), 2: failure (connection dead)
 
-/* === DNS === */
+// === DNS ===
 int so_ReverseResolveBlocking(const char* ip, char* hostbuf, int hostbuflen); // 0: resolve failure, 1: worked
 int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen); // 0: resolve failure: 1 worked
 
-/* === SSL initialization === */
+// === SSL initialization ===
 int so_StartupWithSSL(const char* pathtocertificate, const char* pathtokey); // initialize with SSL
 const char* so_SSLNotAvailable(); // if not NULL, then this contains an error message why there is no SSL
 
-/* === SSL socket handling === */
+// === SSL socket handling ===
 // NOTE: all those functions perfectly work on normal sockets if you simply
 // don't provide an sslptr (just set NULL for the sslptr parameters)
 

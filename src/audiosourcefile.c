@@ -48,7 +48,7 @@ static void audiosourcefile_Rewind(struct audiosource* source) {
     idata->eof = 0;
     if (idata->file) {
 #ifdef SDLRW
-        //Close the file. it will be reopened on next read
+        // Close the file. it will be reopened on next read
         idata->file->close(idata->file);
 #else
         fclose(idata->file);
@@ -102,7 +102,7 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 static void audiosourcefile_Close(struct audiosource* source) {
     struct audiosourcefile_internaldata* idata = source->internaldata;
     if (!idata) {return;}
-    //close file we might have opened
+    // close file we might have opened
 #ifdef SDLRW
     if (idata->file) {
         idata->file->close(idata->file);
@@ -113,7 +113,7 @@ static void audiosourcefile_Close(struct audiosource* source) {
         fclose(r);
     }
 #endif
-    //free all structs & strings
+    // free all structs & strings
     if (idata->path) {
         free(idata->path);
     }

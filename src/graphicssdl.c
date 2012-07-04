@@ -25,7 +25,7 @@
 
 #ifdef USE_SDL_GRAPHICS
 
-// various standard headers
+//  various standard headers
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -71,7 +71,7 @@ void graphics_DestroyHWTexture(struct graphicstexture* gt) {
 
 static int graphics_InitVideoSubsystem(char** error) {
     char errormsg[512];
-    //initialize SDL video if not done yet
+    // initialize SDL video if not done yet
     if (!sdlvideoinit) {
         if (SDL_VideoInit(NULL) < 0) {
             snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL video: %s", SDL_GetError());
@@ -87,10 +87,10 @@ static int graphics_InitVideoSubsystem(char** error) {
 int graphics_Init(char** error) {
     char errormsg[512];
 
-    //set scaling settings
+    // set scaling settings
     SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_NORMAL);
 
-    //initialize SDL
+    // initialize SDL
     if (SDL_Init(SDL_INIT_TIMER) < 0) {
         snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL: %s", SDL_GetError());
         errormsg[sizeof(errormsg)-1] = 0;
@@ -103,14 +103,14 @@ int graphics_Init(char** error) {
 int graphics_TextureToHW(struct graphicstexture* gt) {
     if (gt->tex || gt->threadingptr || !gt->name) {return 1;}
 
-    //create texture
+    // create texture
     SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
     if (!t) {
         printwarning("Warning: SDL failed to create texture: %s\n",SDL_GetError());
         return 0;
     }
 
-    //lock texture
+    // lock texture
     void* pixels; int pitch;
     if (SDL_LockTexture(t, NULL, &pixels, &pitch) != 0) {
         printwarning("Warning: SDL failed to lock texture: %s\n",SDL_GetError());
@@ -118,18 +118,18 @@ int graphics_TextureToHW(struct graphicstexture* gt) {
         return 0;
     }
 
-    //copy pixels into texture
+    // copy pixels into texture
     memcpy(pixels, gt->pixels, gt->width * gt->height * 4);
 
-    //unlock texture
+    // unlock texture
     SDL_UnlockTexture(t);
 
-    //set blend mode
+    // set blend mode
     if (SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND) < 0) {
         printf("Warning: Blend mode SDL_BLENDMODE_BLEND not applied: %s\n",SDL_GetError());
     }
 
-    //if on the desktop, discard texture
+    // if on the desktop, discard texture
 #if !defined(ANDROID)
     free(gt->pixels);
     gt->pixels = NULL;
@@ -145,7 +145,7 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
     if (!gt->pixels) {
         gt->pixels = malloc(gt->width * gt->height * 4);
         if (!gt->pixels) {
-            //wipe this texture
+            // wipe this texture
             SDL_DestroyTexture(gt->tex);
             gt->tex = NULL;
             graphicstexturelist_RemoveTextureFromHashmap(gt);
@@ -154,18 +154,18 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
             return;
         }
 
-        //Lock SDL Texture
+        // Lock SDL Texture
         void* pixels;int pitch;
         if (SDL_LockTexture(gt->tex, NULL, &pixels, &pitch) != 0) {
-            //success, the texture is now officially garbage.
-            //can/should we do anything about this? (a purely visual problem)
+            // success, the texture is now officially garbage.
+            // can/should we do anything about this? (a purely visual problem)
             printf("Warning: SDL_LockTexture() failed\n");
         }else{
 
-            //Copy texture
+            // Copy texture
             memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
 
-            //unlock texture again
+            // unlock texture again
             SDL_UnlockTexture(gt->tex);
 
         }
@@ -197,7 +197,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
     if (alpha <= 0) {return 1;}
     if (alpha > 1) {alpha = 1;}
 
-    //calculate source dimensions
+    // calculate source dimensions
     SDL_Rect src,dest;
     src.x = sourcex;
     src.y = sourcey;
@@ -213,7 +213,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
         src.h = gt->height;
     }
 
-    //set target dimensinos
+    // set target dimensinos
     dest.x = x; dest.y = y;
     if (drawwidth == 0 || drawheight == 0) {
         dest.w = src.w;dest.h = src.h;
@@ -221,7 +221,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
         dest.w = drawwidth; dest.h = drawheight;
     }
 
-    //render
+    // render
     int i = (int)((float)255.0f * alpha);
     if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
         printwarning("Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
@@ -275,15 +275,15 @@ void graphics_Close(int preservetextures) {
 
 #ifdef ANDROID
 void graphics_ReopenForAndroid() {
-    //throw away hardware textures:
+    // throw away hardware textures:
     graphicstexturelist_InvalidateSDLTextures();
 
-    //preserve old window size:
+    // preserve old window size:
     int w,h;
     w = 0;h = 0;
     graphics_GetWindowDimensions(&w, &h);
 
-    //preserve renderer:
+    // preserve renderer:
     char renderer[512];
     const char* p = graphics_GetCurrentRendererName();
     int len = strlen(p)+1;
@@ -291,7 +291,7 @@ void graphics_ReopenForAndroid() {
     memcpy(renderer, p, len);
     renderer[sizeof(renderer)-1] = 0;
 
-    //preserve window title:
+    // preserve window title:
     char title[512];
     p = graphics_GetWindowTitle();
     len = strlen(p)+1;
@@ -299,14 +299,14 @@ void graphics_ReopenForAndroid() {
     memcpy(title, p, len);
     title[sizeof(title)-1] = 0;
 
-    //close window:
+    // close window:
     graphics_Close(0);
 
-    //reopen:
+    // reopen:
     char* e;
     graphics_SetMode(w, h, 1, 0, title, renderer, &e);
 
-    //transfer textures back to hardware:
+    // transfer textures back to hardware:
     graphicstexturelist_TransferTexturesToHW();
 }
 #endif
@@ -334,9 +334,9 @@ const char* graphics_GetCurrentRendererName() {
     SDL_GetRendererInfo(mainrenderer, &info);
 #if defined(ANDROID)
     if (strcasecmp(info.name, "opengles") == 0) {
-        //we return "opengl" here aswell, since we want "opengl" to represent
-        //the best opengl renderer consistently across all platforms, which is
-        //in fact opengles on Android (and opengl for normal desktop platforms).
+        // we return "opengl" here aswell, since we want "opengl" to represent
+        // the best opengl renderer consistently across all platforms, which is
+        // in fact opengles on Android (and opengl for normal desktop platforms).
         return openglstaticname;
     }
 #endif
@@ -347,7 +347,7 @@ int* videomodesx = NULL;
 int* videomodesy = NULL;
 
 static void graphics_ReadVideoModes() {
-    //free old video mode data
+    // free old video mode data
     if (videomodesx) {
         free(videomodesx);
         videomodesx = 0;
@@ -357,7 +357,7 @@ static void graphics_ReadVideoModes() {
         videomodesy = 0;
     }
 
-    //allocate space for video modes
+    // allocate space for video modes
     int d = SDL_GetNumVideoDisplays();
     if (d < 1) {return;}
     int c = SDL_GetNumDisplayModes(0);
@@ -372,13 +372,13 @@ static void graphics_ReadVideoModes() {
     memset(videomodesx, 0, (c+1) * sizeof(int));
     memset(videomodesy, 0, (c+1) * sizeof(int));
 
-    //read video modes
+    // read video modes
     int lastusedindex = -1;
     while (i < c) {
         SDL_DisplayMode m;
         if (SDL_GetDisplayMode(0, i, &m) == 0) {
             if (m.w > 0 && m.h > 0) {
-                //first, check for duplicates
+                // first, check for duplicates
                 int isduplicate = 0;
                 int j = 0;
                 while (j <= lastusedindex && videomodesx[j] > 0 && videomodesy[j] > 0) {
@@ -390,7 +390,7 @@ static void graphics_ReadVideoModes() {
                 }
                 if (isduplicate) {i++;continue;}
 
-                //add mode
+                // add mode
                 lastusedindex++;
                 videomodesx[lastusedindex] = m.w;
                 videomodesy[lastusedindex] = m.h;
@@ -484,7 +484,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 
 #if defined(ANDROID)
     if (!fullscreen) {
-        //do not use windowed on Android
+        // do not use windowed on Android
         *error = strdup("Windowed mode is not supported on Android");
         return 0;
     }
@@ -492,12 +492,12 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 
     char errormsg[512];
 
-    //initialize SDL video if not done yet
+    // initialize SDL video if not done yet
     if (!graphics_InitVideoSubsystem(error)) {
         return 0;
     }
 
-    //think about the renderer we want
+    // think about the renderer we want
 #ifndef WINDOWS
 #ifdef ANDROID
     char preferredrenderer[20] = "opengles";
@@ -511,7 +511,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
     if (renderer) {
         if (strcasecmp(renderer, "software") == 0) {
 #ifdef ANDROID
-            //we don't want software rendering on Android
+            // we don't want software rendering on Android
 #else
             softwarerendering = 1;
             strcpy(preferredrenderer, "software");
@@ -519,15 +519,15 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         }else{
             if (strcasecmp(renderer, "opengl") == 0) {
 #ifdef ANDROID
-                //opengles is the opengl we want for android :-)
+                // opengles is the opengl we want for android :-)
                 strcpy(preferredrenderer, "opengles");
 #else
-                //regular opengl on desktop platforms
+                // regular opengl on desktop platforms
                 strcpy(preferredrenderer, "opengl");
 #endif
             }
 #ifdef WINDOWS
-            //only windows knows direct3d obviously
+            // only windows knows direct3d obviously
             if (strcasecmp(renderer,"direct3d") == 0) {
                 strcpy(preferredrenderer, "direct3d");
             }
@@ -535,7 +535,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         }
     }
 
-    //get renderer index
+    // get renderer index
     int rendererindex = -1;
     if (strlen(preferredrenderer) > 0 && !softwarerendering) {
         int count = SDL_GetNumRenderDrivers();
@@ -553,7 +553,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         }
     }
 
-    //see if anything changes at all
+    //  see if anything changes at all
     unsigned int oldw = 0;
     unsigned int oldh = 0;
     graphics_GetWindowDimensions(&oldw,&oldh);
@@ -561,11 +561,11 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         SDL_RendererInfo info;
         SDL_GetRendererInfo(mainrenderer, &info);
         if (strcasecmp(preferredrenderer, info.name) == 0) {
-            //same renderer and resolution
+            //  same renderer and resolution
             if (strcmp(SDL_GetWindowTitle(mainwindow), title) != 0) {
                 SDL_SetWindowTitle(mainwindow, title);
             }
-            //toggle fullscreen if desired
+            //  toggle fullscreen if desired
             if (graphics_IsFullscreen() != fullscreen) {
                 graphics_ToggleFullscreen();
             }
@@ -573,11 +573,11 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         }
     }
 
-    //Check if we support the video mode for fullscreen -
-    //  This is done to avoid SDL allowing impossible modes and
-    //  giving us a fake resized/padded/whatever output we don't want.
+    //  Check if we support the video mode for fullscreen -
+    //   This is done to avoid SDL allowing impossible modes and
+    //   giving us a fake resized/padded/whatever output we don't want.
     if (fullscreen) {
-        //check all video modes in the list SDL returns for us
+        //  check all video modes in the list SDL returns for us
         int count = graphics_GetNumberOfVideoModes();
         int i = 0;
         int supportedmode = 0;
@@ -591,7 +591,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
             i++;
         }
         if (!supportedmode) {
-            //check for desktop video mode aswell
+            //  check for desktop video mode aswell
             int w,h;
             graphics_GetDesktopVideoMode(&w,&h);
             if (w == 0 || h == 0 || width != w || height != h) {
@@ -601,13 +601,13 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         }
     }
 
-    //preserve textures by managing them on our own for now
+    //  preserve textures by managing them on our own for now
     graphicstexturelist_TransferTexturesFromHW();
 
-    //destroy old window/renderer if we got one
+    //  destroy old window/renderer if we got one
     graphics_Close(1);
 
-    //create window
+    //  create window
     if (fullscreen) {
         mainwindow = SDL_CreateWindow(title, 0,0, width, height, SDL_WINDOW_FULLSCREEN);
         mainwindowfullscreen = 1;
@@ -622,7 +622,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         return 0;
     }
 
-    //Create renderer
+    // Create renderer
     if (!softwarerendering) {
         mainrenderer = SDL_CreateRenderer(mainwindow, rendererindex, SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC);
         if (!mainrenderer) {
@@ -653,7 +653,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         SDL_GetRendererInfo(mainrenderer, &info);
     }
 
-    //Transfer textures back to SDL
+    // Transfer textures back to SDL
     if (!graphicstexturelist_TransferTexturesToHW()) {
         SDL_RendererInfo info;
         SDL_GetRendererInfo(mainrenderer, &info);
@@ -690,14 +690,14 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
         }
 #ifdef ANDROID
         if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_MINIMIZED || e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)) {
-            //app was put into background
+            // app was put into background
             if (!inbackground) {
                 putinbackground(1);
                 inbackground = 1;
             }
         }
         if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_RESTORED || e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)) {
-            //app is pulled back into foreground
+            // app is pulled back into foreground
             if (inbackground) {
                 putinbackground(0);
                 inbackground = 0;
@@ -714,18 +714,18 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
             int release = 0;
             int x,y;
             if (e.type == SDL_FINGERUP) {
-                //take fingerdown coordinates on fingerup
+                // take fingerdown coordinates on fingerup
                 x = lastfingerdownx;
                 y = lastfingerdowny;
                 release = 1;
             }else{
-                //remember coordinates on fingerdown
+                // remember coordinates on fingerdown
                 x = e.tfinger.x;
                 y = e.tfinger.y;
                 lastfingerdownx = x;
                 lastfingerdowny = y;
             }
-            //swap coordinates for landscape mode
+            // swap coordinates for landscape mode
             int temp = x;
             x = y;
             y = temp;
@@ -739,8 +739,8 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
             if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
 #ifndef WINDOWS
 #ifdef LINUX
-                //if we are a fullscreen window, ensure we are fullscreened
-                //FIXME: just a workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1349
+                // if we are a fullscreen window, ensure we are fullscreened
+                // FIXME: just a workaround for http:// bugzilla.libsdl.org/show_bug.cgi?id=1349
                 if (mainwindowfullscreen) {
                     SDL_SetWindowFullscreen(mainwindow, SDL_FALSE);
                     SDL_SetWindowFullscreen(mainwindow, SDL_TRUE);
@@ -793,4 +793,5 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
     }
 }
 
-#endif //ifdef USE_SDL_GRAPHICS
+#endif // ifdef USE_SDL_GRAPHICS
+

@@ -42,7 +42,7 @@ void* luastate_GetStatePtr() {
 }
 
 void luastate_PrintStackDebug() {
-    //print the contents of the Lua stack
+    // print the contents of the Lua stack
     printf("Debug stack:\n");
     int m = lua_gettop(scriptstate);
     int i = 1;
@@ -101,14 +101,14 @@ void luastate_PrintStackDebug() {
     }
 }
 
-//table must be on stack to which you want to set this function
+// table must be on stack to which you want to set this function
 void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)(void*)) {
     lua_State* l = luastate;
     lua_newtable(l);
     lua_pushstring(l, "__gc");
     lua_pushcfunction(l, (lua_CFunction)callback);
     lua_rawset(l, -3);
-    if (tablestackindex < 0) {tablestackindex--;} //metatable is now at the top
+    if (tablestackindex < 0) {tablestackindex--;} // metatable is now at the top
     lua_setmetatable(l, tablestackindex);
     if (tablestackindex < 0) {tablestackindex++;}
 }
@@ -303,7 +303,7 @@ int luastate_GetWantFFmpeg() {
 static int gettraceback(lua_State* l) {
     char errormsg[2048] = "";
 
-    //obtain the error first:
+    // obtain the error first:
     const char* p = lua_tostring(l, -1);
     if (p) {
         unsigned int i = strlen(p);
@@ -313,22 +313,22 @@ static int gettraceback(lua_State* l) {
     }
     lua_pop(l, 1);
 
-    //add a line break if we can
+    // add a line break if we can
     if (strlen(errormsg) + strlen("\n") < sizeof(errormsg)) {
         strcat(errormsg,"\n");
     }
 
-    //call the original debug.traceback
+    // call the original debug.traceback
     lua_pushstring(l, "debug_traceback_preserved");
     lua_gettable(l, LUA_REGISTRYINDEX);
-    if (lua_type(l, -1) != LUA_TFUNCTION) { //make sure it is valid
-        //oops.
+    if (lua_type(l, -1) != LUA_TFUNCTION) { // make sure it is valid
+        // oops.
         char invaliddebugtraceback[] = "OOPS: The debug traceback couldn't be generated:\n  Traceback function is not present or invalid (lua type is '";
         if (strlen(errormsg) + strlen(invaliddebugtraceback) < sizeof(errormsg)) {
             strcat(errormsg, invaliddebugtraceback);
         }
 
-        //clarify on the invalid type of the function (which is not a func):
+        // clarify on the invalid type of the function (which is not a func):
         char typebuf[64] = "";
         luatypetoname(lua_type(l, -1), typebuf, 16);
         strcat(typebuf, "')");
@@ -336,13 +336,13 @@ static int gettraceback(lua_State* l) {
             strcat(errormsg, typebuf);
         }
 
-        //push error:
+        // push error:
         lua_pushstring(l, errormsg);
         return 1;
     }
     lua_call(l, 0, 1);
 
-    //add the traceback as much as we can
+    // add the traceback as much as we can
     p = lua_tostring(l, -1);
     if (p) {
         int len = strlen(p);
@@ -355,9 +355,9 @@ static int gettraceback(lua_State* l) {
             errormsg[offset + len] = 0;
         }
     }
-    lua_pop(l, 1); //pop traceback
+    lua_pop(l, 1); // pop traceback
 
-    //push the whole result
+    // push the whole result
     lua_pushstring(l, errormsg);
     return 1;
 }
@@ -367,27 +367,27 @@ void* internaltracebackfunc() {
 }
 
 void luastate_RememberTracebackFunc(lua_State* l) {
-    lua_pushstring(l, "debug_traceback_preserved"); //push table index
+    lua_pushstring(l, "debug_traceback_preserved"); // push table index
 
-    //obtain debug.traceback
+    // obtain debug.traceback
     lua_getglobal(l, "debug");
     lua_pushstring(l, "traceback");
     lua_gettable(l, -2);
 
-    //get rid of the table on the stack (position -2)
+    // get rid of the table on the stack (position -2)
     lua_insert(l, -2);
     lua_pop(l, 1);
 
-    //set it to the registry table
+    // set it to the registry table
     lua_settable(l, LUA_REGISTRYINDEX);
 }
 
 static void luastate_VoidDebug(lua_State* l) {
-    //void debug table
+    // void debug table
     lua_pushnil(l);
     lua_setglobal(l, "debug");
 
-    //void debug library from package.loaded
+    // void debug library from package.loaded
     lua_getglobal(l, "package");
     lua_pushstring(l, "loaded");
     lua_gettable(l, -2);
@@ -395,7 +395,7 @@ static void luastate_VoidDebug(lua_State* l) {
     lua_pushnil(l);
     lua_settable(l, -3);
 
-    //should we void binary loaders to avoid loading a debug.so?
+    // should we void binary loaders to avoid loading a debug.so?
 }
 
 static lua_State* luastate_New() {
@@ -404,13 +404,13 @@ static lua_State* luastate_New() {
     lua_gc(l, LUA_GCSETPAUSE, 110);
     lua_gc(l, LUA_GCSETSTEPMUL, 300);
 
-    //standard libs
+    // standard libs
     luaL_openlibs(l);
     luastate_RememberTracebackFunc(l);
     luastate_VoidDebug(l);
     luastate_AddBlitwizFuncs(l);
 
-    //own dofile/loadfile/print
+    // own dofile/loadfile/print
     lua_pushcfunction(l, &luafuncs_loadfile);
     lua_setglobal(l, "loadfile");
     lua_pushcfunction(l, &luafuncs_dofile);
@@ -418,15 +418,15 @@ static lua_State* luastate_New() {
     lua_pushcfunction(l, &luafuncs_print);
     lua_setglobal(l, "print");
 
-    //obtain the blitwiz lib
+    // obtain the blitwiz lib
     lua_getglobal(l, "blitwiz");
 
-    //blitwiz.setStep:
+    // blitwiz.setStep:
     lua_pushstring(l, "setStep");
     lua_pushcfunction(l, &luafuncs_setstep);
     lua_settable(l, -3);
 
-    //blitwiz namespaces
+    // blitwiz namespaces
     lua_pushstring(l, "graphics");
     luastate_CreateGraphicsTable(l);
     lua_settable(l, -3);
@@ -454,13 +454,13 @@ static lua_State* luastate_New() {
     luastate_CreatePhysicsTable(l);
     lua_settable(l, -3);
 
-    //we still have the module "blitwiz" on the stack here
+    // we still have the module "blitwiz" on the stack here
     lua_pop(l, 1);
 
-    //obtain os table
+    // obtain os table
     lua_getglobal(l, "os");
 
-    //os namespace extensions
+    // os namespace extensions
     lua_pushstring(l, "exit");
     lua_pushcfunction(l, &luafuncs_exit);
     lua_settable(l, -3);
@@ -489,13 +489,13 @@ static lua_State* luastate_New() {
     lua_pushcfunction(l, &luafuncs_sysversion);
     lua_settable(l, -3);
 
-    //throw table "os" off the stack
+    // throw table "os" off the stack
     lua_pop(l, 1);
 
-    //get "string" table for custom string functions
+    // get "string" table for custom string functions
     lua_getglobal(l, "string");
 
-    //set custom string functions
+    // set custom string functions
     lua_pushstring(l, "starts");
     lua_pushcfunction(l, &luafuncs_startswith);
     lua_settable(l, -3);
@@ -506,7 +506,7 @@ static lua_State* luastate_New() {
     lua_pushcfunction(l, &luafuncs_split);
     lua_settable(l, -3);
 
-    //throw table "string" off the stack
+    // throw table "string" off the stack
     lua_pop(l, 1);
 
     char vstr[512];
@@ -524,25 +524,25 @@ static lua_State* luastate_New() {
 static int luastate_DoFile(lua_State* l, int argcount, const char* file, char** error) {
     int previoustop = lua_gettop(l);
     lua_pushcfunction(l, &gettraceback);
-    lua_getglobal(l, "dofile"); //first, push function
-    lua_pushstring(l, file); //then push file name as argument
+    lua_getglobal(l, "dofile"); // first, push function
+    lua_pushstring(l, file); // then push file name as argument
 
-    //in case of additional user-passed arguments, we need them too:
+    // in case of additional user-passed arguments, we need them too:
     if (argcount > 0) {
-        //move file name argument in front of all arguments:
+        // move file name argument in front of all arguments:
         lua_insert(l, -(argcount+3));
 
-        //move function in front of all arguments (including file name):
+        // move function in front of all arguments (including file name):
         lua_insert(l, -(argcount+3));
 
-        //move error function in front of all arguments + function:
+        // move error function in front of all arguments + function:
         lua_insert(l, -(argcount+3));
     }
 
-    int ret = lua_pcall(l, 1+argcount, 0, -(argcount+3)); //call returned function by loadfile
+    int ret = lua_pcall(l, 1+argcount, 0, -(argcount+3)); // call returned function by loadfile
 
     int returnvalue = 1;
-    //process errors
+    // process errors
     if (ret != 0) {
         const char* e = lua_tostring(l,-1);
         *error = NULL;
@@ -552,7 +552,7 @@ static int luastate_DoFile(lua_State* l, int argcount, const char* file, char** 
         returnvalue = 0;
     }
 
-    //clean up stack (e.g. from return values or so)
+    // clean up stack (e.g. from return values or so)
     if (lua_gettop(scriptstate) > previoustop) {
         lua_pop(scriptstate, lua_gettop(scriptstate) - previoustop);
     }
@@ -593,13 +593,13 @@ int luastate_PushFunctionArgumentToMainstate_Double(double i) {
 }
 
 int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetables, int allownil, char** error, int* functiondidnotexist) {
-    //push error function
+    // push error function
     lua_pushcfunction(scriptstate, &gettraceback);
     if (args > 0) {
         lua_insert(scriptstate, -(args+1));
     }
 
-    //look up table components of our function name (e.g. namespace.func())
+    // look up table components of our function name (e.g. namespace.func())
     int tablerecursion = 0;
     while (recursivetables && tablerecursion < 5) {
         unsigned int r = 0;
@@ -607,15 +607,15 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
         while (r < strlen(function)) {
             if (function[r] == '.') {
                 recursed = 1;
-                //extract the component
+                // extract the component
                 char* fp = malloc(r+1);
                 if (!fp) {
                     *error = NULL;
-                    //clean up stack again:
-                    lua_pop(scriptstate, 1); //error func
+                    // clean up stack again:
+                    lua_pop(scriptstate, 1); // error func
                     lua_pop(scriptstate, args);
                     if (recursivetables > 0) {
-                        //clean up recursive table left on stack
+                        // clean up recursive table left on stack
                         lua_pop(scriptstate, 1);
                     }
                     return 0;
@@ -626,17 +626,17 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
                 function += r+1;
                 free(fp);
 
-                //lookup
+                // lookup
                 if (tablerecursion == 0) {
-                    //lookup on global table
+                    // lookup on global table
                     lua_getglobal(scriptstate, lua_tostring(scriptstate, -1));
                     lua_insert(scriptstate, -2);
                     lua_pop(scriptstate, 1);
                 }else{
-                    //lookup nested on previous table
+                    // lookup nested on previous table
                     lua_gettable(scriptstate, -2);
 
-                    //dispose of previous table
+                    // dispose of previous table
                     lua_insert(scriptstate, -2);
                     lua_pop(scriptstate, 1);
                 }
@@ -651,45 +651,45 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
         }
     }
 
-    //lookup function normally if there was no recursion lookup:
+    // lookup function normally if there was no recursion lookup:
     if (tablerecursion <= 0) {
         lua_getglobal(scriptstate, function);
     }else{
-        //get the function from our recursive lookup
+        // get the function from our recursive lookup
         lua_pushstring(scriptstate, function);
         lua_gettable(scriptstate, -2);
-        //wipe out the table we got it from
+        // wipe out the table we got it from
         lua_insert(scriptstate,-2);
         lua_pop(scriptstate, 1);
     }
 
-    //quit sanely if function is nil and we allowed this
+    // quit sanely if function is nil and we allowed this
     if (allownil && lua_type(scriptstate, -1) == LUA_TNIL) {
-        //clean up stack again:
-        lua_pop(scriptstate, 1); //error func
+        // clean up stack again:
+        lua_pop(scriptstate, 1); // error func
         lua_pop(scriptstate, args);
         if (recursivetables > 0) {
-            //clean up recursive origin table left on stack
+            // clean up recursive origin table left on stack
             lua_pop(scriptstate, 1);
         }
-        //give back the info that it did not exist:
+        // give back the info that it did not exist:
         if (functiondidnotexist) {
             *functiondidnotexist = 1;
         }
         return 1;
     }
 
-    //function needs to be first, then arguments. -> correct order
+    // function needs to be first, then arguments. -> correct order
     if (args > 0) {
         lua_insert(scriptstate, -(args+1));
     }
 
     int previoustop = lua_gettop(scriptstate)-(args+2); // 2 = 1 (error func) + 1 (called func)
 
-    //call function
+    // call function
     int i = lua_pcall(scriptstate, args, 0, -(args+2));
 
-    //process errors
+    // process errors
     int returnvalue = 1;
     if (i != 0) {
         *error = NULL;
@@ -709,7 +709,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
         returnvalue = 0;
     }
 
-    //clean up stack
+    // clean up stack
     if (lua_gettop(scriptstate) > previoustop) {
         lua_pop(scriptstate, lua_gettop(scriptstate) - previoustop);
     }
@@ -720,3 +720,4 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 void luastate_GCCollect() {
     lua_gc(scriptstate, LUA_GCSTEP, 0);
 }
+

@@ -46,21 +46,21 @@ void memorylog(const char* str) {
         currlen = strlen(memorylogbuf);
     }
 
-    //if the memory buffer is full, enlarge:
+    // if the memory buffer is full, enlarge:
     if (currlen + newlen >= memorylogbufsize) {
-        //check on new size
+        // check on new size
         int newsize = memorylogbufsize;
         while (currlen + newlen >= newsize) {
             newsize += MEMORYLOGBUFCHUNK;
         }
         char* p = realloc(memorylogbuf, newsize);
-        //out of memory.. nothing we could sensefully do
+        // out of memory.. nothing we could sensefully do
         if (!p) {return;}
-        //resizing complete:
+        // resizing complete:
         memorylogbuf = p;
         memorylogbufsize = newsize;
     }
-    //append new log data:
+    // append new log data:
     memcpy(memorylogbuf + currlen, str, newlen);
     memorylogbuf[currlen+newlen] = 0;
 }
@@ -81,15 +81,15 @@ void printerror(const char* fmt, ...) {
     memorylog("\n");
 #endif
 #ifdef WINDOWS
-    //we want graphical error messages for windows
+    // we want graphical error messages for windows
     if (!suppressfurthererrors || 1 == 1) {
-        //minimize drawing window if fullscreen
+        // minimize drawing window if fullscreen
 #ifdef USE_GRAPHICS
         if (graphics_AreGraphicsRunning() && graphics_IsFullscreen()) {
             graphics_MinimizeWindow();
         }
 #endif
-        //show error msg
+        // show error msg
         char printerror[4096];
         snprintf(printerror, sizeof(printerror)-1,
         "The application cannot continue due to a fatal error:\n\n%s",

@@ -36,7 +36,7 @@
 #endif
 #include "graphicstexture.h"
 #ifdef WINDOWS
-#include <windows.h> //needed for HWND in graphics.h
+#include <windows.h> // needed for HWND in graphics.h
 #endif
 #include "graphics.h"
 #include "timefuncs.h"
@@ -51,14 +51,14 @@
 #include "logging.h"
 
 #if defined(ANDROID) || defined(__ANDROID__)
-//required for RWops file loading for Android
+// required for RWops file loading for Android
 #include "SDL.h"
 #endif
 
 int drawingallowed = 0;
 
 #if defined(ANDROID) || defined(__ANDROID__)
-//the lua chunk reader for Android
+// the lua chunk reader for Android
 SDL_RWops* loadfilerwops = NULL;
 struct luachunkreaderinfo {
     SDL_RWops* rwops;
@@ -82,7 +82,7 @@ int luafuncs_loadfile(lua_State* l) {
         return haveluaerror(l, badargument1, 1, "loadfile", "string", lua_strtype(l, 1));
     }
 #if defined(ANDROID) || defined(__ANDROID__)
-    //special Android file loading
+    // special Android file loading
     struct luachunkreaderinfo* info = malloc(sizeof(*info));
     if (!info) {
         lua_pushstring(l, "malloc failed");
@@ -112,7 +112,7 @@ int luafuncs_loadfile(lua_State* l) {
     }
     return 1;
 #else
-    //regular file loading done by Lua
+    // regular file loading done by Lua
     int r = luaL_loadfile(l, p);
     if (r != 0) {
         char errormsg[512];
@@ -136,7 +136,7 @@ int luafuncs_loadfile(lua_State* l) {
 
 static char printlinebuf[1024 * 50] = "";
 static int luafuncs_printline() {
-    //print a line from the printlinebuf
+    // print a line from the printlinebuf
     unsigned int len = strlen(printlinebuf);
     if (len == 0) {
         return 0;
@@ -156,20 +156,20 @@ static int luafuncs_printline() {
     memmove(printlinebuf, printlinebuf+(i+1), sizeof(printlinebuf)-(i+1));
     return 1;
 }
-int luafuncs_print(lua_State* l) { //not threadsafe
+int luafuncs_print(lua_State* l) { // not threadsafe
     int args = lua_gettop(l);
     int i = 1;
     while (i <= args) {
         switch (lua_type(l, i)) {
             case LUA_TSTRING: {
-                //add a space char first
+                // add a space char first
                 if (strlen(printlinebuf) > 0) {
                     if (strlen(printlinebuf) < sizeof(printlinebuf)-1) {
                         strcat(printlinebuf, " ");
                     }
                 }
 
-                //add string
+                // add string
                 unsigned int plen = strlen(printlinebuf);
                 unsigned int len = (sizeof(printlinebuf)-1) - plen;
                 const char* p = lua_tostring(l, i);
@@ -183,14 +183,14 @@ int luafuncs_print(lua_State* l) { //not threadsafe
                 break;
             }
             case LUA_TNUMBER: {
-                //add a space char first
+                // add a space char first
                 if (strlen(printlinebuf) > 0) {
                     if (strlen(printlinebuf) < sizeof(printlinebuf)-1) {
                         strcat(printlinebuf, " ");
                     }
                 }
 
-                //add number
+                // add number
                 unsigned int plen = strlen(printlinebuf);
                 unsigned int len = (sizeof(printlinebuf)-1) - plen;
                 char number[50];
@@ -212,7 +212,7 @@ int luafuncs_print(lua_State* l) { //not threadsafe
         i++;
     }
 
-    //add a line break
+    // add a line break
     if (strlen(printlinebuf) > 0) {
         if (strlen(printlinebuf) < sizeof(printlinebuf)-1) {
             strcat(printlinebuf, "\n");
@@ -235,33 +235,33 @@ int luafuncs_sysversion(lua_State* l) {
 }
 
 int luafuncs_dofile(lua_State* l) {
-    //obtain function name argument
+    // obtain function name argument
     const char* p = lua_tostring(l,1);
     if (!p) {
         return haveluaerror(l, badargument1, 1, "loadfile", "string", lua_strtype(l, 1));
     }
 
-    //check additional arguments we might have received
+    // check additional arguments we might have received
     int additionalargs = lua_gettop(l)-1;
 
-    //load function and call it
-    lua_getglobal(l, "loadfile"); //first, push function
-    lua_pushvalue(l, 1); //then push given file name as argument
+    // load function and call it
+    lua_getglobal(l, "loadfile"); // first, push function
+    lua_pushvalue(l, 1); // then push given file name as argument
 
-    lua_call(l, 1, 1); //call loadfile
+    lua_call(l, 1, 1); // call loadfile
 
-    //the stack should now look like this:
-    //  [additional arg 1] ... [additional arg n] [loaded function]
+    // the stack should now look like this:
+    //   [additional arg 1] ... [additional arg n] [loaded function]
 
-    //if we have additional args on the stack, move the function in front:
+    // if we have additional args on the stack, move the function in front:
     if (additionalargs > 0) {
         lua_insert(l, -(additionalargs+1));
     }
 
-    int previoustop = lua_gettop(l)-(1+additionalargs); //minus the function on the stack which lua_call() removes and all the args to it
-    lua_call(l, additionalargs, LUA_MULTRET); //call returned function by loadfile
+    int previoustop = lua_gettop(l)-(1+additionalargs); // minus the function on the stack which lua_call() removes and all the args to it
+    lua_call(l, additionalargs, LUA_MULTRET); // call returned function by loadfile
 
-    //return all values the function has left for us on the stack
+    // return all values the function has left for us on the stack
     return lua_gettop(l)-previoustop;
 }
 
@@ -314,10 +314,10 @@ int luafuncs_ls(lua_State* l) {
         return lua_error(l);
     }
 
-    //create file listing table
+    // create file listing table
     lua_newtable(l);
 
-    //add all files/folders to file listing table
+    // add all files/folders to file listing table
     char filenamebuf[500];
     int isdir;
     int returnvalue;
@@ -329,12 +329,12 @@ int luafuncs_ls(lua_State* l) {
         lua_settable(l, -3);
     }
 
-    //free file list
+    // free file list
     filelist_Free(ctx);
 
-    //process error during listing
+    // process error during listing
     if (returnvalue < 0) {
-        lua_pop(l, 1); //remove file listing table
+        lua_pop(l, 1); // remove file listing table
 
         char errmsg[500];
         snprintf(errmsg, sizeof(errmsg), "Error while processing ls in folder: %s", p);
@@ -343,7 +343,7 @@ int luafuncs_ls(lua_State* l) {
         return lua_error(l);
     }
 
-    //return file list
+    // return file list
     return 1;
 }
 
@@ -392,7 +392,7 @@ int luafuncs_setWindow(lua_State* l) {
         return lua_error(l);
     }
     return 0;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -411,7 +411,7 @@ int luafuncs_isImageLoaded(lua_State* l) {
         lua_pushboolean(l, 0);
     }
     return 1;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -435,7 +435,7 @@ int luafuncs_loadImage(lua_State* l) {
         return lua_error(l);
     }
     return 0;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -458,7 +458,7 @@ int luafuncs_loadImageAsync(lua_State* l) {
         return lua_error(l);
     }
     return 0;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -482,13 +482,13 @@ int luafuncs_split(lua_State* l) {
         return 1;
     }
     unsigned int returncount = 0;
-    //split off as often as we can:
+    // split off as often as we can:
     while ((maxsplits > 0 || maxsplits < 0) && len1 >= len2) {
         unsigned int i = 0;
         int match = 0;
         while (i <= len1 - len2) {
             if (memcmp(src1 + i, src2, len2) == 0) {
-                //found a delimeter match!
+                // found a delimeter match!
                 lua_pushlstring(l, src1, i);
                 src1 += i + len2;
                 len1 -= i + len2;
@@ -510,7 +510,7 @@ int luafuncs_split(lua_State* l) {
             break;
         }
     }
-    //return remaining string:
+    // return remaining string:
     lua_pushlstring(l, src1, len1);
     return returncount + 1;
 }
@@ -578,7 +578,7 @@ int luafuncs_getImageSize(lua_State* l) {
     lua_pushnumber(l, w);
     lua_pushnumber(l, h);
     return 2;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -594,7 +594,7 @@ int luafuncs_getWindowSize(lua_State* l) {
     lua_pushnumber(l, w);
     lua_pushnumber(l, h);
     return 2;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -607,7 +607,7 @@ int luafuncs_drawRectangle(lua_State* l) {
         return lua_error(l);
     }
 
-    //rectangle position
+    // rectangle position
     int x,y;
     float alpha = 1;
     if (lua_type(l, 1) != LUA_TNUMBER) {
@@ -621,7 +621,7 @@ int luafuncs_drawRectangle(lua_State* l) {
     x = (int)((float)lua_tonumber(l, 1)+0.5f);
     y = (int)((float)lua_tonumber(l, 2)+0.5f);
 
-    //rectangle widths
+    // rectangle widths
     int width,height;
     if (lua_type(l, 3) != LUA_TNUMBER) {
         lua_pushstring(l, "Third parameter is not a valid width number");
@@ -634,11 +634,11 @@ int luafuncs_drawRectangle(lua_State* l) {
     width = (int)((float)lua_tonumber(l, 3)+0.5f);
     height = (int)((float)lua_tonumber(l, 4)+0.5f);
 
-    //see if we are on screen anyway
+    // see if we are on screen anyway
     if (width <= 0 || height <= 0) {return 0;}
     if (x + width < 0 || y + height < 0) {return 0;}
 
-    //read rectangle colors
+    // read rectangle colors
     float r,g,b;
     if (lua_type(l, 5) != LUA_TNUMBER) {
         lua_pushstring(l, "Fifth parameter is not a valid red color number");
@@ -662,7 +662,7 @@ int luafuncs_drawRectangle(lua_State* l) {
     if (b < 0) {b = 0;}
     if (b > 1) {b = 1;}
 
-    //obtain alpha if given
+    // obtain alpha if given
     if (lua_gettop(l) >= 8) {
         if (lua_type(l, 8) != LUA_TNUMBER) {
             lua_pushstring(l, "Eighth parameter is not a valid alpha number");
@@ -675,7 +675,7 @@ int luafuncs_drawRectangle(lua_State* l) {
 
     graphics_DrawRectangle(x, y, width, height, r, g, b, alpha);
     return 0;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -690,22 +690,22 @@ void luafuncs_pushnosuchtex(lua_State* l, const char* tex) {
 }
 #endif
 
-//Helper function to obtain a setting on a settings table at stack pos -1
-//and to check the setting for the proper lua type.
+// Helper function to obtain a setting on a settings table at stack pos -1
+// and to check the setting for the proper lua type.
 static int gettablesetting(lua_State* l, const char* name, int type) {
-    //obtain a setting from a settings table at stack -1 and check its type
+    // obtain a setting from a settings table at stack -1 and check its type
     lua_pushstring(l, name);
     lua_gettable(l, -2);
 
-    //get the string name of the desired type of the setting:
+    // get the string name of the desired type of the setting:
     char buf[64];
     luatypetoname(type, buf, sizeof(buf));
 
     if (lua_type(l, -1) != LUA_TNIL) {
-        //the setting is either not nil, or nil is not allowed
-        //compare with desired type:
+        // the setting is either not nil, or nil is not allowed
+        // compare with desired type:
         if (lua_type(l, -1) != type) {
-            //setting has a wrong type, compose and emit error:
+            // setting has a wrong type, compose and emit error:
             char msg[512];
             snprintf(msg, sizeof(msg), "setting '%s' is of type '%s', but expected '%s'", name, lua_strtype(l, -1), buf);
             msg[sizeof(msg)-1] = 0;
@@ -735,10 +735,10 @@ int luafuncs_drawImage(lua_State* l) {
         return haveluaerror(l, badargument1, 2, "blitwiz.graphics.drawImage", "table", lua_strtype(l, 2));
     }
 
-    //drop other unrequired parameters:
+    // drop other unrequired parameters:
     if (lua_gettop(l) > 2) {lua_pop(l, lua_gettop(l)-2);}
 
-    //get position parameters
+    // get position parameters
     int x = 0;
     int y = 0;
     if (gettablesetting(l, "x", LUA_TNUMBER)) {
@@ -750,7 +750,7 @@ int luafuncs_drawImage(lua_State* l) {
     }
     lua_pop(l, 1);
 
-    //read alpha value
+    // read alpha value
     float alpha = 1;
     if (gettablesetting(l, "alpha", LUA_TNUMBER)) {
         alpha = lua_tonumber(l, -1);
@@ -759,7 +759,7 @@ int luafuncs_drawImage(lua_State* l) {
     }
     lua_pop(l, 1);
 
-    //read cut rectangle parameters
+    // read cut rectangle parameters
     int cutx = 0;
     int cuty = 0;
     int cutwidth = -1;
@@ -781,7 +781,7 @@ int luafuncs_drawImage(lua_State* l) {
     }
     lua_pop(l, 1);
 
-    //obtain scale parameters
+    // obtain scale parameters
     float scalex = 1;
     float scaley = 1;
     if (gettablesetting(l, "scalex", LUA_TNUMBER)) {
@@ -795,17 +795,17 @@ int luafuncs_drawImage(lua_State* l) {
     }
     lua_pop(l, 1);
 
-    //obtain rotation parameters
+    // obtain rotation parameters
     double rotationangle = 0;
     int rotationcenterx = 0;
     int rotationcentery = 0;
-    //make rotation center default to image center
+    // make rotation center default to image center
     unsigned int imgw,imgh;
     if (graphics_GetTextureDimensions(p, &imgw, &imgh)) {
         rotationcenterx = imgw/2;
         rotationcentery = imgh/2;
     }
-    //get supplied rotation info
+    // get supplied rotation info
     if (gettablesetting(l, "rotationangle", LUA_TNUMBER)) {
         rotationangle = lua_tonumber(l, -1);
     }
@@ -819,14 +819,14 @@ int luafuncs_drawImage(lua_State* l) {
     }
     lua_pop(l, 1);
 
-    //get flipping info
+    // get flipping info
     int horiflipped = 0;
     if (gettablesetting(l, "flipped", LUA_TBOOLEAN)) {
         horiflipped = lua_toboolean(l, -1);
     }
     lua_pop(l, 1);
 
-    //get color info
+    // get color info
     double red = 1;
     double green = 1;
     double blue = 1;
@@ -843,20 +843,20 @@ int luafuncs_drawImage(lua_State* l) {
     }
     lua_pop(l, 1);
 
-    //process negative cut positions and adjust output position accordingly
+    // process negative cut positions and adjust output position accordingly
     if (cutx < 0) {
-        if (cutwidth > 0) { //decrease draw width accordingly
+        if (cutwidth > 0) { // decrease draw width accordingly
             cutwidth += cutx;
             if (cutwidth < 0) {
                 cutwidth = 0;
             }
         }
-        //move position to the right
+        // move position to the right
         cutx = 0;
         x -= cutx;
     }
     if (cuty < 0) {
-        if (cutheight < 0) { //decrease draw height accordingly
+        if (cutheight < 0) { // decrease draw height accordingly
             cutheight += cuty;
             if (cutheight < 0) {
                 cutheight = 0;
@@ -866,7 +866,7 @@ int luafuncs_drawImage(lua_State* l) {
         x -= cuty;
     }
 
-    //empty draw calls aren't possible, but we will "emulate" it to provide an error on a missing texture anyway
+    // empty draw calls aren't possible, but we will "emulate" it to provide an error on a missing texture anyway
     if (scalex <= 0 || scaley <= 0 || cutwidth == 0 || cutheight == 0) {
         if (!graphics_IsTextureLoaded(p)) {
             luafuncs_pushnosuchtex(l, p);
@@ -890,13 +890,13 @@ int luafuncs_drawImage(lua_State* l) {
     unsigned int drawwidth = (unsigned int)((float)(imgdraww) * scalex + 0.5f);
     unsigned int drawheight = (unsigned int)((float)(imgdrawh) * scaley + 0.5f);
 
-    //draw:
+    // draw:
     if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle, horiflipped, red, green, blue)) {
         luafuncs_pushnosuchtex(l, p);
         return lua_error(l);
     }
     return 0;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -935,7 +935,7 @@ int luafuncs_getRendererName(lua_State* l) {
         lua_pushstring(l, p);
         return 1;
     }
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -951,7 +951,7 @@ int luafuncs_getBackendName(lua_State* l) {
         lua_pushstring(l, "null driver");
     }
     return 1;
-#else //ifdef USE_AUDIO
+#else // ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
@@ -988,7 +988,7 @@ int luafuncs_stop(lua_State* l) {
     }
     audiomixer_StopSound(id);
     return 0;
-#else //ifdef USE_AUDIO
+#else // ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
@@ -1008,7 +1008,7 @@ int luafuncs_playing(lua_State* l) {
         lua_pushboolean(l, 0);
     }
     return 1;
-#else //ifdef USE_AUDIO
+#else // ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
@@ -1039,7 +1039,7 @@ int luafuncs_adjust(lua_State* l) {
 
     audiomixer_AdjustSound(id, volume, panning);
     return 0;
-#else //ifdef USE_AUDIO
+#else // ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
@@ -1117,7 +1117,7 @@ int luafuncs_play(lua_State* l) {
         return lua_error(l);
     }
     return 1;
-#else //ifdef USE_AUDIO
+#else // ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
@@ -1130,7 +1130,7 @@ int luafuncs_getDesktopDisplayMode(lua_State* l) {
     lua_pushnumber(l, w);
     lua_pushnumber(l, h);
     return 2;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif
@@ -1141,11 +1141,11 @@ int luafuncs_getDisplayModes(lua_State* l) {
     int c = graphics_GetNumberOfVideoModes();
     lua_createtable(l, 1, 0);
 
-    //first, add desktop mode
+    // first, add desktop mode
     int desktopw,desktoph;
     graphics_GetDesktopVideoMode(&desktopw, &desktoph);
 
-    //resolution table with desktop width, height
+    // resolution table with desktop width, height
     lua_createtable(l, 2, 0);
     lua_pushnumber(l, 1);
     lua_pushnumber(l, desktopw);
@@ -1154,7 +1154,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
     lua_pushnumber(l, desktoph);
     lua_settable(l, -3);
 
-    //add table into our list
+    // add table into our list
     lua_pushnumber(l, 1);
     lua_insert(l, -2);
     lua_settable(l, -3);
@@ -1162,17 +1162,17 @@ int luafuncs_getDisplayModes(lua_State* l) {
     int i = 1;
     int index = 2;
     while (i <= c) {
-        //add all supported video modes...
+        // add all supported video modes...
         int w,h;
         graphics_GetVideoMode(i, &w, &h);
 
-        //...but not the desktop mode twice
+        // ...but not the desktop mode twice
         if (w == desktopw && h == desktoph) {
             i++;
             continue;
         }
 
-        //table containing the resolution width, height
+        // table containing the resolution width, height
         lua_createtable(l, 2, 0);
         lua_pushnumber(l, 1);
         lua_pushnumber(l, w);
@@ -1181,7 +1181,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
         lua_pushnumber(l, h);
         lua_settable(l, -3);
 
-        //add the table into our list
+        // add the table into our list
         lua_pushnumber(l, index);
         lua_insert(l, -2);
         lua_settable(l, -3);
@@ -1189,7 +1189,7 @@ int luafuncs_getDisplayModes(lua_State* l) {
         i++;
     }
     return 1;
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
     return lua_error(l);
 #endif

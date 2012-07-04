@@ -84,8 +84,8 @@ void graphics_DrawRectangle(int x, int y, int width, int height, float r, float 
 }
 
 int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
-    //while we cannot truly draw with the null device,
-    //ensure the texture is at least valid and loaded from disk:
+    // while we cannot truly draw with the null device,
+    // ensure the texture is at least valid and loaded from disk:
 
     struct graphicstexture* gt = graphicstexturelist_GetTextureByName(texname);
     if (!gt || gt->threadingptr) {
@@ -180,7 +180,7 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 
 #if defined(ANDROID)
     if (!fullscreen) {
-        //do not use windowed on Android
+        // do not use windowed on Android
         *error = strdup("Windowed mode is not supported on Android");
         return 0;
     }
@@ -220,4 +220,5 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
     return;
 }
 
-#endif //ifdef USE_GRAPHICS
+#endif // ifdef USE_GRAPHICS
+

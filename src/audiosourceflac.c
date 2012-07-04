@@ -42,14 +42,14 @@
 
 #ifndef USE_FLAC_AUDIO
 
-// No FLAC support!
+//  No FLAC support!
 
 struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     if (source) {source->close(source);}
     return NULL;
 }
 
-#else //ifdef USE_FLAC_AUDIO
+#else // ifdef USE_FLAC_AUDIO
 
 
 struct audiosourceffmpeg_internaldata {
@@ -135,9 +135,9 @@ static int audiosourceffmpeg_LoadFFmpegFunctions() {
     loadorfail((void**)(&ffmpeg_avcodec_find_decoder), avcodecptr, "avcodec_find_decoder");
     loadorfail((void**)(&ffmpeg_avcodec_alloc_frame), avcodecptr, "avcodec_alloc_frame");
 
-    //decode_audio4 (new, unused variant):
-    //loadorfail((void**)(&ffmpeg_avcodec_decode_audio4), avcodecptr, "avcodec_decode_audio4");
-    //loadorfail((void**)(&ffmpeg_av_samples_get_buffer_size), avutilptr, "av_samples_get_buffer_size");
+    // decode_audio4 (new, unused variant):
+    // loadorfail((void**)(&ffmpeg_avcodec_decode_audio4), avcodecptr, "avcodec_decode_audio4");
+    // loadorfail((void**)(&ffmpeg_av_samples_get_buffer_size), avutilptr, "av_samples_get_buffer_size");
 
     if (loadorfailstate) {
         return 0;
@@ -166,7 +166,7 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
 }
 
 static int audiosourceffmpeg_InitFFmpeg() {
-    //Register all available codecs
+    // Register all available codecs
     ffmpeg_av_register_all();
 
     return 1;
@@ -186,7 +186,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
         return 0;
     }
 
-    //Load libraries
+    // Load libraries
 #ifndef WIN
     avutilptr = library_LoadSearch("libavutil");
     avcodecptr = library_LoadSearch("libavcodec");
@@ -197,7 +197,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
     avformatptr = library_Loadsearch("avformat");
 #endif
 
-    //Check library load state
+    // Check library load state
     if (!avcodecptr || !avformatptr || !avutilptr) {
 #ifdef FFMPEGDEBUG
         printinfo("[FFmpeg-debug] A FFmpeg lib pointer is not present");
@@ -229,7 +229,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
         return 0;
     }
 
-    //Load functions
+    // Load functions
     if (!audiosourceffmpeg_LoadFFmpegFunctions()) {
         library_Close(avcodecptr);
         library_Close(avformatptr);
@@ -238,7 +238,7 @@ int audiosourceffmpeg_LoadFFmpeg() {
         return 0;
     }
 
-    //Initialise FFmpeg
+    // Initialise FFmpeg
     if (!audiosourceffmpeg_InitFFmpeg()) {
         library_Close(avcodecptr);
         library_Close(avformatptr);
@@ -296,10 +296,6 @@ static void audiosourceffmpeg_FreeFFmpegData(struct audiosource* source) {
         ffmpeg_av_free(idata->tempbuf);
         idata->tempbuf = NULL;
     }
-    /*if (idata->aviobuf) { //it appears this is handled by the iocontext
-        ffmpeg_av_free(idata->aviobuf);
-        idata->aviobuf = NULL;
-    }*/
 }
 
 static void audiosourceffmpeg_FatalError(struct audiosource* source) {
@@ -322,17 +318,17 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
     }
 
     if (!idata->codeccontext) {
-        //Get format context
+        // Get format context
         idata->formatcontext = ffmpeg_avformat_alloc_context();
         if (!idata->formatcontext) {
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
 
-        //av_dict_set(&codec_opts, "request_channels", "2", 0);
-        //opts = setup_find_stream_info_opts(ic, codec_opts);
+        // av_dict_set(&codec_opts, "request_channels", "2", 0);
+        // opts = setup_find_stream_info_opts(ic, codec_opts);
 
-        //Get IO context
+        // Get IO context
         idata->aviobuf = ffmpeg_av_malloc(AVIOBUFSIZE);
         if (!idata->aviobuf) {
             audiosourceffmpeg_FatalError(source);
@@ -346,52 +342,52 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         idata->formatcontext->pb = idata->iocontext;
         idata->formatcontext->iformat = NULL;
 
-        //Read format
+        // Read format
         if (ffmpeg_avformat_open_input(&idata->formatcontext, "", NULL, NULL) != 0) {
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
 
-        //Read detailed stream info
+        // Read detailed stream info
         if (ffmpeg_av_find_stream_info(idata->formatcontext, NULL) < 0) {
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
 
-        //Find best stream
+        // Find best stream
         int stream = ffmpeg_av_find_best_stream(idata->formatcontext, AVMEDIA_TYPE_AUDIO, -1, -1, &idata->audiocodec, 0);
         if (stream < 0) {
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
 
-        //Get codec context
+        // Get codec context
         struct AVCodecContext* c = idata->formatcontext->streams[stream]->codec;
 
-        //Find best codec, we don't trust av_find_best_stream on this for now
+        // Find best codec, we don't trust av_find_best_stream on this for now
         idata->audiocodec = ffmpeg_avcodec_find_decoder(c->codec_id);
         if (!idata->audiocodec) {
-            //Format is recognised, but codec unsupported
+            // Format is recognised, but codec unsupported
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
 
-        //If this isn't an audio stream, we don't want it:
+        // If this isn't an audio stream, we don't want it:
         if (c->codec_type != AVMEDIA_TYPE_AUDIO) {
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
 
-        //Get our actual codec context:
+        // Get our actual codec context:
         idata->codeccontext = ffmpeg_avcodec_alloc_context3(idata->audiocodec);
 
-        //Initialise codec. XXX avcodec_open2 is not thread-safe!
+        // Initialise codec. XXX avcodec_open2 is not thread-safe!
         if (ffmpeg_avcodec_open2(idata->codeccontext, idata->audiocodec, NULL) < 0) {
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
 
-        //Allocate actual decoding buf
+        // Allocate actual decoding buf
         idata->buf = ffmpeg_av_malloc(DECODEBUFSIZE);
         if (!idata->buf) {
             audiosourceffmpeg_FatalError(source);
@@ -404,22 +400,22 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             return -1;
         }
 
-        //Remember format data
+        // Remember format data
         source->channels = c->channels;
         source->samplerate = c->sample_rate;
 
-        //Forget about the format context again (we only needed it to probe the format):
+        // Forget about the format context again (we only needed it to probe the format):
         ffmpeg_av_free(idata->formatcontext);
         idata->formatcontext = NULL;
 
-        //Rewind the audio source:
-        idata->source->rewind(idata->source); //XXX: DO WE WANT THIS?!
+        // Rewind the audio source:
+        idata->source->rewind(idata->source); // XXX: DO WE WANT THIS?!
 
         if (source->channels <= 0 || source->samplerate <= 0) {
 #ifdef FFMPEGDEBUG
             printwarning("[FFmpeg-debug] format probing failed: channels or sample rate unknown");
 #endif
-            //not a known format apparently
+            // not a known format apparently
             audiosourceffmpeg_FatalError(source);
             return -1;
         }
@@ -428,22 +424,22 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 #endif
     }
 
-    //we need to return how many bytes we read, so remember it here:
+    // we need to return how many bytes we read, so remember it here:
     int writtenbytes = 0;
 
-    //we might have some decoded bytes left:
+    // we might have some decoded bytes left:
     if (idata->decodedbufbytes > 0 && bytes > 0) {
-        //see how many we want to copy and how many we can actually copy:
+        // see how many we want to copy and how many we can actually copy:
         int copybytes = bytes;
         if (copybytes > idata->decodedbufbytes) {
             copybytes = idata->decodedbufbytes;
         }
 
-        //copy bytes to passed buffer:
+        // copy bytes to passed buffer:
         memcpy(buffer, idata->decodedbuf, copybytes);
         buffer += copybytes;
 
-        //trim copied bytes from our internal buffer of decoded data:
+        // trim copied bytes from our internal buffer of decoded data:
         if (copybytes < idata->decodedbufbytes) {
             memmove(idata->decodedbuf, idata->decodedbuf + copybytes, DECODEDBUFSIZE - copybytes);
         }
@@ -453,25 +449,25 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
     }
 
     while (bytes > 0) {
-        //read undecoded data for FFmpeg into the buffer:
+        // read undecoded data for FFmpeg into the buffer:
         while (idata->bufbytes + idata->bufoffset < DECODEBUFUSESIZE) {
             int i = idata->source->read(idata->source, (char*)idata->buf + idata->bufbytes + idata->bufoffset, DECODEBUFUSESIZE - (idata->bufbytes + idata->bufoffset));
-            if (i < 0) { // read error
+            if (i < 0) { //  read error
                 audiosourceffmpeg_FatalError(source);
                 return -1;
             }
-            if (i == 0) {break;} // EOF
-            idata->bufbytes += i; // read was successful, continue if required
+            if (i == 0) {break;} //  EOF
+            idata->bufbytes += i; //  read was successful, continue if required
         }
-        if (idata->bufbytes <= 0) {break;} // we haven't read anything new
+        if (idata->bufbytes <= 0) {break;} //  we haven't read anything new
 
-        //prepare packet
+        // prepare packet
         idata->packet.size = idata->bufbytes;
         idata->packet.data = (unsigned char*)idata->buf + idata->bufoffset;
-        idata->buf[DECODEBUFSIZE-1] = 0; //apparently required to avoid MPEG overshooting buffer
+        idata->buf[DECODEBUFSIZE-1] = 0; // apparently required to avoid MPEG overshooting buffer
 
-        //decode with FFmpeg:
-        //decode_audio3 (old, current variant):
+        // decode with FFmpeg:
+        // decode_audio3 (old, current variant):
         if (!idata->tempbuf) {
             idata->tempbuf = ffmpeg_av_malloc(AVCODEC_MAX_AUDIO_FRAME_SIZE);
         }
@@ -481,12 +477,12 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)outputbuf, &bufsize, &idata->packet);
         if (len > 0) {gotframe = 1;}
 
-        //decode_audio4 (new, upcoming variant):
-        //int gotframe;
-        //int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
+        // decode_audio4 (new, upcoming variant):
+        // int gotframe;
+        // int len = ffmpeg_avcodec_decode_audio4(idata->codeccontext, idata->decodedframe, &gotframe, &idata->packet);
 
         if (len < 0) {
-            //A decode error occured:
+            // A decode error occured:
 #ifdef FFMPEGDEBUG
             char errbuf[512] = "Unknown";
             ffmpeg_av_strerror(len, errbuf, sizeof(errbuf)-1);
@@ -500,25 +496,25 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             idata->bufbytes -= len;
         }
 
-        //return data if we have some
+        // return data if we have some
         if (gotframe) {
-            //decode_audio3 (old, current variant):
+            // decode_audio3 (old, current variant):
             int framesize = len;
             const char* p = outputbuf;
 
-            //decode_audio4 (new, upcoming variant):
-            //int framesize = ffmpeg_av_samples_get_buffer_size(NULL, idata->codeccontext->channels, idata->decodedframe->nb_samples, idata->codeccontext->sample_fmt, 1);
-            //const char* p = (char*)idata->decodedframe->data[0];
+            // decode_audio4 (new, upcoming variant):
+            // int framesize = ffmpeg_av_samples_get_buffer_size(NULL, idata->codeccontext->channels, idata->decodedframe->nb_samples, idata->codeccontext->sample_fmt, 1);
+            // const char* p = (char*)idata->decodedframe->data[0];
 
-            //first, export as much as we can
+            // first, export as much as we can
             if (bytes > 0) {
-                //ideally, we would copy the whole frame:
+                // ideally, we would copy the whole frame:
                 unsigned int copybytes = framesize;
 
-                //practically, we don't want more than specified in 'bytes':
+                // practically, we don't want more than specified in 'bytes':
                 if (copybytes > bytes) {copybytes = bytes;}
 
-                //copy the bytes, move the buffers accordingly:
+                // copy the bytes, move the buffers accordingly:
                 memcpy(buffer, p, copybytes);
                 buffer += copybytes;
                 bytes -= copybytes;
@@ -527,22 +523,22 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
                 writtenbytes += copybytes;
             }
 
-            //maximal preserval size:
+            // maximal preserval size:
             if (framesize > DECODEDBUFSIZE) {
-                //we will simply crop the frame.
-                //evil but the show must go on
+                // we will simply crop the frame.
+                // evil but the show must go on
                 framesize = DECODEDBUFSIZE;
             }
 
-            //if we have any bytes left, preserve them now:
+            // if we have any bytes left, preserve them now:
             if (framesize > 0) {
                 memcpy(idata->decodedbuf, p, framesize);
                 idata->decodedbufbytes = framesize;
             }
         }
-        //ffmpeg_av_free_packet(idata->packet);
+        // ffmpeg_av_free_packet(idata->packet);
 
-        //check if we want to memmove
+        // check if we want to memmove
         if (idata->bufoffset > DECODEBUFMEMMOVETHRESHOLD) {
             memmove(idata->buf, idata->buf + idata->bufoffset, DECODEBUFSIZE - idata->bufoffset);
             idata->bufoffset = 0;
@@ -554,13 +550,13 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 static void audiosourceffmpeg_Close(struct audiosource* source) {
     struct audiosourceffmpeg_internaldata* idata = source->internaldata;
-    //close audio source we might have opened
+    // close audio source we might have opened
     if (idata && idata->source) {
         idata->source->close(idata->source);
     }
-    //close FFmpeg stuff
+    // close FFmpeg stuff
     audiosourceffmpeg_FreeFFmpegData(source);
-    //free all structs & strings
+    // free all structs & strings
     if (idata) {
         free(idata);
     }
@@ -570,7 +566,7 @@ static void audiosourceffmpeg_Close(struct audiosource* source) {
 #ifdef NOTHREADEDSDLRW
 static void audiosourceffmpeg_CloseMainthread(struct audiosource* source) {
     struct audiosourceffmpeg_internaldata* idata = source->internaldata;
-    //close audio source we might have opened
+    // close audio source we might have opened
     if (idata && idata->source) {
         idata->source->close(idata->source);
         idata->source = NULL;
@@ -580,10 +576,10 @@ static void audiosourceffmpeg_CloseMainthread(struct audiosource* source) {
 #endif
 
 struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
-    //without an audio source we can't do anything senseful
+    // without an audio source we can't do anything senseful
     if (!source) {return NULL;}
 
-    //allocate main data struct:
+    // allocate main data struct:
     struct audiosource* a = malloc(sizeof(*a));
     if (!a) {
         if (source) {source->close(source);}
@@ -591,7 +587,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     }
     memset(a,0,sizeof(*a));
 
-    //allocate internal data struct:
+    // allocate internal data struct:
     a->internaldata = malloc(sizeof(struct audiosourceffmpeg_internaldata));
     if (!a->internaldata) {
         free(a);
@@ -599,7 +595,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
         return NULL;
     }
 
-    //prepare internal data:
+    // prepare internal data:
     struct audiosourceffmpeg_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->source = source;
@@ -608,7 +604,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
         idata->decodedframe = ffmpeg_avcodec_alloc_frame();
     }
 
-    //without packet data we cannot continue:
+    // without packet data we cannot continue:
     if (!idata->decodedframe) {
         free(idata);
         free(a);
@@ -622,10 +618,10 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     a->closemainthread = &audiosourceffmpeg_CloseMainthread;
 #endif
 
-    //ensure proper initialisation of sample rate + channels variables
+    // ensure proper initialisation of sample rate + channels variables
     audiosourceffmpeg_Read(a, NULL, 0);
     if (idata->eof && idata->returnerroroneof) {
-        //There was an error reading this ogg file - probably not ogg (or broken ogg)
+        // There was an error reading this ogg file - probably not ogg (or broken ogg)
 #ifdef NOTHREADEDSDLRW
         audiosourceffmpeg_CloseMainthread(a);
 #else
@@ -637,6 +633,6 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     return a;
 }
 
-#endif //ifdef USE_FFMPEG_AUDIO
+#endif // ifdef USE_FFMPEG_AUDIO
 
-#endif //ifdef USE_AUDIO
+#endif // ifdef USE_AUDIO

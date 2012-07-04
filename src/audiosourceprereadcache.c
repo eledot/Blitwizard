@@ -33,9 +33,6 @@ struct audiosourceprereadcache_internaldata {
     unsigned int prereadcachesize;
     char* prereadcache;
     unsigned int prereadcachebytes;
-#ifdef NOTHREADEDSDLRW
-    int frommainthread;
-#endif
     int eof;
     int sourceeof;
     char* path;
@@ -53,7 +50,7 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
     struct audiosourceprereadcache_internaldata* idata = source->internaldata;
     if (idata->eof) {return -1;}
     if (idata->prereadcachesize == 0) {
-        //cache was not initialised yet - initialise with standard size
+        // cache was not initialised yet - initialise with standard size
         idata->prereadcachesize = (1024 * 20);
         idata->prereadcache = malloc(idata->prereadcachesize);
         if (!idata->prereadcache) {
@@ -64,18 +61,10 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
 
     unsigned int writtenbytes = 0;
     while (bytes > 0) {
-        //first, refill our cache if it cannot satisfy the demands
+        // first, refill our cache if it cannot satisfy the demands
         if (bytes > idata->prereadcachebytes && idata->prereadcachebytes < idata->prereadcachesize/4 && !idata->sourceeof) {
             int i;
-#ifndef NOTHREADEDSDLRW
             i = idata->source->read(idata->source, idata->prereadcache + idata->prereadcachebytes, idata->prereadcachesize - idata->prereadcachebytes);
-#else
-            if (idata->frommainthread) {
-                i = idata->source->readmainthread(idata->source, idata->prereadcache + idata->prereadcachebytes, idata->prereadcachesize - idata->prereadcachebytes);
-            }else{
-                i = idata->source->read(idata->source, idata->prereadcache + idata->prereadcachebytes, idata->prereadcachesize - idata->prereadcachebytes);
-            }
-#endif
             if (i > 0) {
                 idata->prereadcachebytes += i;
             }else{
@@ -89,7 +78,7 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
 
         if (bytes > 0) {
             if (idata->prereadcachebytes > 0) {
-                //we have some cached bytes - return them
+                // we have some cached bytes - return them
                 unsigned int readbytes = idata->prereadcachebytes;
                 if (readbytes > bytes) {readbytes = bytes;}
                 memcpy(buffer, idata->prereadcache, readbytes);
@@ -97,13 +86,13 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
                 bytes -= readbytes;
                 writtenbytes += readbytes;
 
-                //trim data in cache buffer
+                // trim data in cache buffer
                 if (readbytes < idata->prereadcachebytes) {
                     memmove(idata->prereadcache, idata->prereadcache + readbytes, idata->prereadcachebytes - readbytes);
                 }
                 idata->prereadcachebytes -= readbytes;
             }else{
-                //we were not able to get new cached bytes -> End of Stream
+                // we were not able to get new cached bytes -> End of Stream
                 if (writtenbytes == 0) {
                     idata->eof = 1;
                 }
@@ -113,16 +102,6 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
     }
     return writtenbytes;
 }
-
-#ifdef NOTHREADEDSDLRW
-static int audiosourceprereadcache_ReadMainthread(struct audiosource* source, char* buffer, unsigned int bytes) {
-    struct audiosourceprereadcache_internaldata* idata = source->internaldata;
-    idata->frommainthread = 1;
-    int i = audiosourceprereadcache_Read(source, buffer, bytes);
-    idata->frommainthread = 0;
-    return i;
-}
-#endif
 
 static void audiosourceprereadcache_Close(struct audiosource* source) {
     struct audiosourceprereadcache_internaldata* idata = source->internaldata;
@@ -153,9 +132,6 @@ struct audiosource* audiosourceprereadcache_Create(struct audiosource* source) {
     a->read = &audiosourceprereadcache_Read;
     a->close = &audiosourceprereadcache_Close;
     a->rewind = &audiosourceprereadcache_Rewind;
-#ifdef NOTHREADEDSDLRW
-    a->readmainthread = &audiosourceprereadcache_ReadMainthread;
-#endif
 
     return a;
 }

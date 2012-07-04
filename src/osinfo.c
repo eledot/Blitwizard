@@ -126,14 +126,14 @@ static const char* osinfo_GetDistributionName() {
         strcpy(distribuf, "SUSE");
     }
     if (file_DoesFileExist("/etc/debian_version")) {
-        //check for derivates:
+        // check for derivates:
         if (filecontains("/etc/lsb-release", "Ubuntu")) {
             strcpy(distribuf, "Ubuntu");
         }
         if (filecontains("/etc/lsb-release", "Mint")) {
             strcpy(distribuf, "LinuxMint");
         }
-        //otherwise, assume debian
+        // otherwise, assume debian
         if (strlen(distribuf) <= 0) {
             strcpy(distribuf, "Debian");
         }
@@ -149,10 +149,10 @@ static const char* osinfo_GetDistributionName() {
 #endif
 
 const char* osinfo_GetSystemVersion() {
-    //print out detailed system version
+    // print out detailed system version
     if (strlen(versionbuf) > 0) {return versionbuf;}
 #ifdef MAC
-    //Mac OS X:
+    // Mac OS X:
     SInt32 majorVersion,minorVersion,bugfixVersion;
 
     Gestalt(gestaltSystemVersionMajor, &majorVersion);
@@ -164,7 +164,7 @@ const char* osinfo_GetSystemVersion() {
     return versionbuf;
 #endif
 #ifdef LINUX
-    //Linux:
+    // Linux:
     struct utsname b;
     memset(&b, 0, sizeof(b));
     if (uname(&b) != 0) {
@@ -177,11 +177,11 @@ const char* osinfo_GetSystemVersion() {
     return versionbuf;
 #endif
 #ifdef ANDROID
-    //Android:
+    // Android:
     strcpy(versionbuf,"Unknown system version");
     return versionbuf;
 #endif
-    //All others:
+    // All others:
     strcpy(versionbuf,"Unknown system version");
     return versionbuf;
 }

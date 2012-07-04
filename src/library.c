@@ -42,7 +42,7 @@
 #include "win32apppaths.h"
 #endif
 
-//#define FFMPEGLOCATEDEBUG
+// #define FFMPEGLOCATEDEBUG
 
 char fileext[10] = "";
 
@@ -65,41 +65,41 @@ const char* library_GetFileExtension() {
 }
 
 void* library_Load(const char* libname) {
-    //ignore .<number> endings for the extension check on linux/bsd
+    // ignore .<number> endings for the extension check on linux/bsd
     unsigned int ignoreextbytes = 0;
 #ifndef WINDOWS
 #ifndef MAC
-    //identify the .so.NUMBER.NUMBER stuff linux has,
-    //and store the length of that NUMBER mess we don't care about
-    //in "ignoreextbytes"
+    // identify the .so.NUMBER.NUMBER stuff linux has,
+    // and store the length of that NUMBER mess we don't care about
+    // in "ignoreextbytes"
     int dot = -1;
     unsigned int k = 0;
-    //we want to locate the last dot preceded by non-numeric things:
+    // we want to locate the last dot preceded by non-numeric things:
     while (k < strlen(libname)) {
         if (k < strlen(libname) - 1 && libname[k] == '.') {
-            //find a dot
+            // find a dot
             if (dot < 0 || dot == ((int)k)-1) {
                 dot = k;
             }
         }else{
-            //if a dot is found, remember it if we just come
-            //across NUMBER.NUMBER.... trash:
+            // if a dot is found, remember it if we just come
+            // across NUMBER.NUMBER.... trash:
             if (libname[k] < '0' || libname[k] > '9') {
-                //if not numeric, this is no NUMBER ending
-                //-> forget about this dot
+                // if not numeric, this is no NUMBER ending
+                // -> forget about this dot
                 dot = -1;
             }
         }
         k++;
     }
     if (dot >= 0) {
-        //the difference between full length and dot is what we want to ignore
+        // the difference between full length and dot is what we want to ignore
         ignoreextbytes = strlen(libname) - (unsigned int)dot;
     }
 #endif
 #endif
 
-    //Check if name ends with library extension
+    // Check if name ends with library extension
     const char* ext = library_GetFileExtension();
     unsigned int i = strlen(libname)-strlen(ext)-ignoreextbytes;
     unsigned int istart = i;
@@ -112,10 +112,10 @@ void* library_Load(const char* libname) {
         i++;
     }
 
-    //Append extension if we don't have it
+    // Append extension if we don't have it
     char* freename = NULL;
     if (!matches) {
-        //Compose new name
+        // Compose new name
         freename = malloc(strlen(libname) + strlen(ext) + 1);
         if (!freename) {
             return NULL;
@@ -124,18 +124,18 @@ void* library_Load(const char* libname) {
         memcpy(freename + strlen(libname), ext, strlen(ext));
         freename[strlen(libname) + strlen(ext)] = 0;
 
-        //Set it as name
+        // Set it as name
         libname = (const char*)freename;
     }
 
-    //Load library
+    // Load library
     #ifdef WINDOWS
     void* ptr = (void*)LoadLibrary(libname);
     #else
     void* ptr = dlopen(libname, RTLD_LAZY|RTLD_LOCAL);
     #endif
 
-    //Clean up and return pointer
+    // Clean up and return pointer
     if (freename) {
         free(freename);
     }
@@ -144,7 +144,7 @@ void* library_Load(const char* libname) {
 
 static void library_SearchDir(const char* dir, const char* name, void** ptr) {
     if (*ptr) {
-        //library has already been found successfully
+        // library has already been found successfully
         return;
     }
 
@@ -157,12 +157,12 @@ static void library_SearchDir(const char* dir, const char* name, void** ptr) {
     int isdir;
     while (filelist_GetNextFile(fctx, namebuf, sizeof(namebuf), &isdir) == 1) {
         if (!isdir) {
-            //it is a file. does it start with our name + .so?
+            // it is a file. does it start with our name + .so?
             if (strlen(namebuf) >= strlen(name) + 3 && memcmp(namebuf, name, strlen(name)) == 0) {
                 if (memcmp(namebuf + strlen(name), ".so", 3) == 0) {
-                    //does it end after .so or continue with a dot?
+                    // does it end after .so or continue with a dot?
                     if (strlen(namebuf) == strlen(name) + 3 || namebuf[strlen(name) + 3] == '.') {
-                        //yes! so let's attempt to load this
+                        // yes! so let's attempt to load this
                         char* p = file_AddComponentToPath(dir, namebuf);
                         if (p) {
                             *ptr = library_Load(p);
@@ -180,7 +180,7 @@ static void library_SearchDir(const char* dir, const char* name, void** ptr) {
 }
 
 static char* finddllname(const char* path, const char* name) {
-    //find the given dll <name>-<number>.dll in the folder pointed to by <path>
+    // find the given dll <name>-<number>.dll in the folder pointed to by <path>
     char fstr[512];
     struct filelistcontext* fctx = filelist_Create(path);
     if (!fctx) {
@@ -206,7 +206,7 @@ void* library_LoadSearch(const char* name) {
         return ptr;
     }
 
-    //try a more interesting search:
+    // try a more interesting search:
 #if !defined(MAC) && !defined(WINDOWS) && !defined(ANDROID)
     library_SearchDir("/usr/lib", name, &ptr);
     library_SearchDir("/lib", name, &ptr);
@@ -223,7 +223,7 @@ void* library_LoadSearch(const char* name) {
     }
 #endif
 
-    //For Mac OS X/Windows, we will attempt to obtain FFmpeg from Chrome or Steam:
+    // For Mac OS X/Windows, we will attempt to obtain FFmpeg from Chrome or Steam:
 #if defined(WINDOWS) || defined(MAC)
     if (
 #ifdef MAC
@@ -232,15 +232,15 @@ strcasecmp(name, "ffmpegsumo") == 0
 strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcasecmp(name, "avutil") == 0
 #endif
 ) {
-        //Reference (mac os x): [/Applications/Google Chrome.app]/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
-        //Reference (windows): [app path]/19.0.1084.52/avcodec-54.dll
+        // Reference (mac os x): [/Applications/Google Chrome.app]/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
+        // Reference (windows): [app path]/19.0.1084.52/avcodec-54.dll
 #ifdef MAC
         const char* chromepath = mac_GetPathForApplication("Google Chrome");
 #else
         const char* chromepath = win32_GetPathForChrome();
 #endif
         if (chromepath && strlen(chromepath) > 0) {
-            //Find out the version folder:
+            // Find out the version folder:
             struct filelistcontext* fctx = filelist_Create(chromepath);
             char versionfolder[512];
             int isdir = 0;
@@ -253,12 +253,12 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
                 filelist_Free(fctx);
             }
             if (!isdir) {
-                //No fitting sub folder found
+                // No fitting sub folder found
 #ifdef FFMPEGLOCATEDEBUG
                 printwarning("Warning: [FFmpeg-locate] Failed to find version sub folder of Google Chrome in \"%s\"", chromepath);
 #endif
             }else{
-                //Compose final path:
+                // Compose final path:
                 char pathbuf[512];
                 char sep[2] = "/";
                 char sep2[2] = "/";
@@ -269,10 +269,10 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
                     strcpy(sep2, "");
                 }
 #ifdef MAC
-                //For Mac, we already know where the lib is:
+                // For Mac, we already know where the lib is:
                 snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/Versions/%s/Google Chrome Framework.framework/Libraries/ffmpegsumo.so", chromepath, sep, versionfolder, sep2);
 #else
-                //For Windows, we need to search the proper dll first:
+                // For Windows, we need to search the proper dll first:
                 snprintf(pathbuf, sizeof(pathbuf), "%s%s%s", chromepath, sep, versionfolder);
                 file_MakeSlashesNative(pathbuf);
                 char* p = finddllname(pathbuf, name);
@@ -282,13 +282,13 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
 #endif
                     pathbuf[0] = 0;
                 }else{
-                    //Now we have the final dll path:
+                    // Now we have the final dll path:
                     snprintf(pathbuf, sizeof(pathbuf), "%s%s%s%s%s", chromepath, sep, versionfolder, sep2, p);
                     free(p);
                 }
 #endif
 
-                //Attempt to load the lib now:
+                // Attempt to load the lib now:
                 if (strlen(pathbuf) > 0) {
                     ptr = library_Load(pathbuf);
                     if (ptr) {return ptr;}
@@ -303,25 +303,25 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
 #endif
         }
 
-        //Reference (mac os x): [/Applications/Steam.app]/Contents/MacOS/osx32/ffmpegsumo.so
-        //Reference (windows): [app path]/bin/avcodec-53.dll
+        // Reference (mac os x): [/Applications/Steam.app]/Contents/MacOS/osx32/ffmpegsumo.so
+        // Reference (windows): [app path]/bin/avcodec-53.dll
 #ifdef MAC
         const char* steampath = mac_GetPathForApplication("Steam");
 #else
         const char* steampath = win32_GetPathForSteam();
 #endif
         if (steampath && strlen(steampath) > 0) {
-            //Compose final path:
+            // Compose final path:
             char pathbuf[512];
             char sep[2] = "/";
             if (steampath[strlen(steampath)-1] == '/' || steampath[strlen(steampath)-1] == '\\') {
                 strcpy(sep, "");
             }
 #ifdef MAC
-            //For Mac, we already know where the lib is:
+            // For Mac, we already know where the lib is:
             snprintf(pathbuf, sizeof(pathbuf), "%s%sContents/MacOS/osx32/ffmpegsumo.so", steampath, sep);
 #else
-            //For Windows, we need to search the proper dll first:
+            // For Windows, we need to search the proper dll first:
             snprintf(pathbuf, sizeof(pathbuf), "%s%sbin/", steampath, sep);
             file_MakeSlashesNative(pathbuf);
             char* p = finddllname(pathbuf, name);
@@ -331,13 +331,13 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
 #endif
                 pathbuf[0] = 0;
             }else{
-                //Now we have the final dll path:
+                // Now we have the final dll path:
                 snprintf(pathbuf, sizeof(pathbuf), "%s%sbin/%s", steampath, sep, p);
                 free(p);
             }
 #endif
 
-            //Attempt to load the lib now:
+            // Attempt to load the lib now:
             if (strlen(pathbuf) > 0) {
                 ptr = library_Load(pathbuf);
                 if (ptr) {return ptr;}
@@ -351,7 +351,7 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
 #endif
         }
     }
-#endif //if defined(MAC) || defined(WINDOWS)
+#endif // if defined(MAC) || defined(WINDOWS)
     return NULL;
 }
 

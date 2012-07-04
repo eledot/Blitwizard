@@ -64,40 +64,40 @@
 #endif
 
 #ifdef USESSL
-SSL_CTX* ctx = NULL; //our used SSL context
+SSL_CTX* ctx = NULL; // our used SSL context
 struct sslinfo {
     SSL* sslhandle;
     int state_accepted;
-    int managedbyselect; //1 yes, -1 no, 0: unknown
-    int ssl_settosend; //was originally not on writelist, but now is due to SSL
-    int ssl_requiresend; //is explicitely on writelist, but needs to stay there on removal due to SSL
-    int ssl_writewantstoreceive; //the SSL_write() does want to receive! so SSL_read() shouldn't unset us because it just wants to write
+    int managedbyselect; // 1 yes, -1 no, 0: unknown
+    int ssl_settosend; // was originally not on writelist, but now is due to SSL
+    int ssl_requiresend; // is explicitely on writelist, but needs to stay there on removal due to SSL
+    int ssl_writewantstoreceive; // the SSL_write() does want to receive! so SSL_read() shouldn't unset us because it just wants to write
 };
 #endif
 
-//our set of select sets:
+// our set of select sets:
 fd_set weircdselectset_readers;
 fd_set weircdselectset_writers;
-fd_set* readset = NULL; //we use that one just for reading
-fd_set* writeset = NULL; //we use that one just for writing
+fd_set* readset = NULL; // we use that one just for reading
+fd_set* writeset = NULL; // we use that one just for writing
 int fdnr = 0;
 
 #ifdef USESSL
 static char staticsslmemoryerror[] = "Error message allocation error";
-static int sslerror_memoryerror = 0; //1 if we had issues to allocate the error message
+static int sslerror_memoryerror = 0; // set to 1 if we had issues to allocate the error message
 static char* sslerror = NULL;
 
 static void promptsslerror(const char* str) {
     if (sslerror_memoryerror == 0) {
-        //only free if not static buffer
+        // only free if not static buffer
         if (sslerror) {free(sslerror);}
     }
     sslerror_memoryerror = 0;
-    sslerror = malloc(strlen(str)+1); //allocate error buffer
+    sslerror = malloc(strlen(str)+1); // allocate error buffer
     if (sslerror) {
         strcpy(sslerror,str);
     }else{
-        //unable to allocate error message -> static buffer
+        // unable to allocate error message -> static buffer
         sslerror = staticsslmemoryerror;
         sslerror_memoryerror = 1;
     }
@@ -110,14 +110,14 @@ static int soinitfunc(const char* cert, const char* key) {
     FD_ZERO(&weircdselectset_readers);
     FD_ZERO(&weircdselectset_writers);
 #ifdef WINDOWS
-    //Launch WSA sockets on Windows
+    // Launch WSA sockets on Windows
     WSADATA wsa;
     long r = WSAStartup(MAKEWORD(2,0),&wsa);
     if (r != 0) {
         return 0;
     }
 #else
-    //deactivate SIGPIPE on Unix
+    // deactivate SIGPIPE on Unix
     struct sigaction signalst;
     if (sigaction(SIGPIPE, NULL, &signalst) == 0) {
         signalst.sa_handler = SIG_IGN;
@@ -140,7 +140,8 @@ static int soinitfunc(const char* cert, const char* key) {
     }
     FD_ZERO(writeset);FD_ZERO(readset);
 #ifdef USESSL
-    if (cert && key) {
+    if (cert && key)
+    {
         SSL_library_init();
         SSL_load_error_strings();
 
@@ -152,7 +153,7 @@ static int soinitfunc(const char* cert, const char* key) {
             so_sysinited = 1;
             return 1;
         }else{
-            if (!SSL_CTX_check_private_key(ctx)) { //private key and public key don't match
+            if (!SSL_CTX_check_private_key(ctx)) { // private key and public key don't match
                 promptsslerror("Private key and public certificate do not match");
                 SSL_CTX_free(ctx);
                 so_sysinited = 1;
@@ -217,7 +218,7 @@ int so_ReverseResolveBlocking(const char* ip, char* hostbuf, int hostbuflen) {
     int iptype = IPTYPE_IPV4;
     unsigned int r = 0;
     while (r < strlen(ip)) {
-        if (ip[r] == '.') {break;}//is ipv4
+        if (ip[r] == '.') {break;} // is ipv4
         if (ip[r] == ':') {iptype = IPTYPE_IPV6;break;}
         r++;
     }
@@ -253,14 +254,14 @@ int so_ReverseResolveBlocking(const char* ip, char* hostbuf, int hostbuflen) {
     if (returnvalue != 0) {
         return 0;
     }
-    hostbuf[hostbuflen-1] = 0; //make sure it's always nullterminated even if truncated
+    hostbuf[hostbuflen-1] = 0; // make sure it's always nullterminated even if truncated
     if (strlen(hostbuf) <= 0) {return 0;}
     return 1;
 }
 
-//Resolve a host to an ip (blocking but reentrant/thread-safe):
+// Resolve a host to an ip (blocking but reentrant/thread-safe):
 int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) {
-    //prepare structs:
+    // Prepare structs:
     struct addrinfo hints;
     memset(&hints,0,sizeof(hints));
     hints.ai_family = AF_INET;
@@ -268,9 +269,9 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
         hints.ai_family = AF_INET6;
     }
     struct addrinfo *result = NULL;
-    //attempt to resolve:
+    // Attempt to resolve:
     if (getaddrinfo(host, NULL, &hints, &result) != 0) {return 0;}
-    //convert first result to an ipv4 address:
+    // Convert first result to an ipv4 address:
     if (result && iptype == IPTYPE_IPV4) {
         struct sockaddr_in  *sockaddr_ipv4;
         sockaddr_ipv4 = (struct sockaddr_in *)result->ai_addr;
@@ -280,7 +281,7 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
         if (strlen(ipbuf) <= 0) {return 0;}
         return 1;
     }
-    //convert first result to an ipv6 address:
+    // Convert first result to an ipv6 address:
     if (result && iptype == IPTYPE_IPV6) {
         #ifdef WINDOWS
         struct sockaddr* sockaddr;
@@ -310,7 +311,7 @@ void so_ManageSocketWithSelect(int socket) {
     return;
 }
 
-//Mark a socket for writing so so_SelectWait will notify us when it's ready
+// Mark a socket for writing so so_SelectWait will notify us when it's ready
 void so_SelectWantWrite(int socket, int enabled) {
     if (so_sysinited == 0) {return;}
     if (enabled == 1) {
@@ -324,23 +325,23 @@ void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {
     if (so_sysinited == 0) {return;}
 #ifdef USESSL
     if (sslptr == NULL || *sslptr == NULL) {
-        //Use the normal more simple variant for connections without SSL:
+        // Use the normal more simple variant for connections without SSL:
         so_SelectWantWrite(socket,enabled);
         return;
     }
     struct sslinfo* i = *sslptr;
-    if (enabled == 1) { //marking for writing is requested
+    if (enabled == 1) { // marking for writing is requested
         FD_SET(socket,&weircdselectset_writers);
-        if (i->ssl_settosend == 1) { //mark SSL wants to keep this when we remove it
+        if (i->ssl_settosend == 1) { // mark SSL wants to keep this when we remove it
             i->ssl_settosend = 0;
-            i->ssl_requiresend = 1; //ssl also requires this -> remember
+            i->ssl_requiresend = 1; // ssl also requires this -> remember
         }
-    }else{ //unmarking from writing is requested
-        if (i->ssl_requiresend == 1) { //if SSL wanted it originally, remember it
+    }else{ // unmarking from writing is requested
+        if (i->ssl_requiresend == 1) { // if SSL wanted it originally, remember it
             i->ssl_requiresend = 0;
-            i->ssl_settosend = 1; //it is only still set for ssl now -> remember
+            i->ssl_settosend = 1; // it is only still set for ssl now -> remember
         }
-        if (i->ssl_settosend == 1) {return;} //SSL still needs it -> keep
+        if (i->ssl_settosend == 1) {return;} // SSL still needs it -> keep
         FD_CLR(socket,&weircdselectset_writers);
     }
 #else
@@ -348,11 +349,11 @@ void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {
 #endif
 }
 
-//Create a new socket with the given iptype (IPTYPE_IPV4, IPTYPE_IPV6)
+// Create a new socket with the given iptype (IPTYPE_IPV4, IPTYPE_IPV6)
 int so_CreateSocket(int addToSelect, int iptype) {
-    if (so_sysinited == 0) {return -1;} //socket system needs to work!
+    if (so_sysinited == 0) {return -1;} // socket system needs to work!
     int newsock = -1;
-    //Get the socket:
+    // Get the socket:
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
         newsock = socket(AF_INET6, SOCK_STREAM, 0);
@@ -361,11 +362,11 @@ int so_CreateSocket(int addToSelect, int iptype) {
     if (iptype == IPTYPE_IPV4) {
         newsock = socket(AF_INET, SOCK_STREAM, 0);
     }
-    //Return failure if we didn't obtain a socket:
+    // Return failure if we didn't obtain a socket:
     if (newsock < 0) {return -1;}
-    //Set socket nonblocking (we use nonblocking sockets purely!)
+    // Set socket nonblocking (we use nonblocking sockets purely!)
     so_SetSocketNonblocking(newsock);
-    //Manage socket with our select facility if the user wants it:
+    // Manage socket with our select facility if the user wants it:
     if (addToSelect == 1) {so_ManageSocketWithSelect(newsock);}
     return newsock;
 }
@@ -389,8 +390,8 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
     }
     // ( 2 ) --- get the ip specified in "bindip" into the address struct
     if (strcasecmp(bindip,"any") != 0) {
-        //2.1- now bind depending on operating system and ip family (ipv4 or ipv6)
-        /* LINUX/UNIX */
+        // 2.1- now bind depending on operating system and ip family (ipv4 or ipv6)
+        // LINUX/UNIX
 #ifndef WINDOWS
         if (iptype == IPTYPE_IPV6) {
         #ifdef IPV6
@@ -402,7 +403,7 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
             inet_pton(AF_INET, bindip, &(addressstruct4.sin_addr.s_addr));
         }
 #endif
-        /* WINDOWS */
+        // WINDOWS
 #ifdef WINDOWS
         if (iptype == IPTYPE_IPV6) {
         #ifdef IPV6
@@ -418,7 +419,7 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
         }
 #endif
 
-        //2.2- check if binding worked
+        // 2.2- check if binding worked
 
         if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
@@ -478,12 +479,12 @@ int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
     return 1;
 }
 int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
-    //Get pointers for later use:
+    // Get pointers for later use:
 #ifdef IPV6
     struct sockaddr_in6* addressstruct6 = structptr;
 #endif
     struct sockaddr_in* addressstruct4 = structptr;
-    //Prepare struct by zero'ing and setting the right address family:
+    // Prepare struct by zero'ing and setting the right address family:
     if (iptype == IPTYPE_IPV6) {
         #ifdef IPV6
         memset(addressstruct6, 0, sizeof(*addressstruct6));
@@ -495,10 +496,10 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
         memset(addressstruct4, 0, sizeof(*addressstruct4));
         addressstruct4->sin_family = AF_INET;
     }
-    //Now set the ip to the struct:
+    // Now set the ip to the struct:
     if (strcasecmp(addr,"any") != 0) {
         // 1 - extract ip to struct depending on OS and ipv4/ipv6
-        /* LINUX/UNIX */
+        // LINUX/UNIX
 #ifndef WINDOWS
         if (iptype == IPTYPE_IPV6) {
         #ifdef IPV6
@@ -514,7 +515,7 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
             }
         }
 #endif
-        /* WINDOWS */
+        // WINDOWS
 #ifdef WINDOWS
         if (iptype == IPTYPE_IPV6) {
         #ifdef IPV6
@@ -546,7 +547,7 @@ int so_AddressToStruct(const char* addr, int iptype, void* structptr) {
             }
         }
     }else{
-        //address is "any", so bind to any:
+        // address is "any", so bind to any:
         if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
             addressstruct6->sin6_addr = in6addr_any;
@@ -565,13 +566,22 @@ int so_ConnectSocketToIP(int socket, const char* ip, unsigned int port) {
 }
 
 int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void** sslptr) {
-    //Connect a socket to a given IP:
-    if (so_sysinited == 0) {return 0;} //we need the socket system, obviously
+    // Connect a socket to a given IP:
+    if (so_sysinited == 0) {
+        // we need the socket system, obviously
+        return 0;
+    }
 
 #ifndef USESSL
-    if (sslptr) {return 0;} //user wants SSL, but we don't support it!
+    if (sslptr) {
+        // user wants SSL, but we don't support it!
+        return 0;
+    }
 #else
-    if (sslptr && sslerror) {return 0;} //user wants SSL, but there was an error with it!
+    if (sslptr && sslerror) {
+        // user wants SSL, but there was an error with it!
+        return 0;
+    }
 #endif
 
     // ( 1 ) --- prepare address struct
@@ -589,7 +599,7 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
 #ifdef IPV6
         if (!so_AddressToStruct(ip, iptype, &addressstruct6)) {return 0;}
 #else
-        return 0; //ipv6 is not supported.
+        return 0; // ipv6 is not supported.
 #endif
     }else{
         if (!so_AddressToStruct(ip, iptype, &addressstruct4)) {return 0;}
@@ -607,7 +617,7 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
     // ( 3b ) -- initialize SSL
 #ifdef USESSL
     if (sslptr != NULL && !sslerror && !*sslptr) {
-        //initialize SSL thing
+        // initialize SSL thing
         *sslptr = malloc(sizeof(struct sslinfo));
         if (!(*sslptr)) {return 0;}
         memset(*sslptr,0,sizeof(struct sslinfo));
@@ -635,7 +645,7 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
     }
     if (r == 0) {return 1;}
 
-    //check for async error code
+    // check for async error code
     #ifdef WINDOWS
     int err = WSAGetLastError();
     if (err == WSAEWOULDBLOCK || err == WSAEINPROGRESS) {return 1;}
@@ -652,7 +662,6 @@ int so_SelectWait(int maximumsleeptime) {
     memcpy(readset,&weircdselectset_readers,sizeof(weircdselectset_readers));
     memcpy(writeset,&weircdselectset_writers,sizeof(weircdselectset_writers));
     int r;
-    //printf("DEBUG: select(): Call... (wantsend: %d)\n",wantsend);
     r = select(fdnr,readset,writeset,NULL,&t);
     if (r <= 0) {
         FD_ZERO(readset);FD_ZERO(writeset);
@@ -702,7 +711,7 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
         new_socket = accept(socket,(struct sockaddr *) &address4,&addrlen);
 #ifdef USESSL
         if (sslptr != NULL && !sslerror) {
-            //initialize ssl thing
+            // initialize ssl thing
             *sslptr = malloc(sizeof(struct sslinfo));
             if (!(*sslptr)) {close(new_socket);return 0;}
             memset(*sslptr,0,sizeof(struct sslinfo));
@@ -718,7 +727,7 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
     }
     if (new_socket > 0) {
         so_ManageSocketWithSelect(new_socket);
-        //write the ip address into the "writeip" buf
+        // write the ip address into the "writeip" buf
         if (writeip != NULL) {
             int cnt = IPMAXLEN+1;
             if (iptype == IPTYPE_IPV4) {
@@ -733,7 +742,7 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
                 #else
                 #ifdef USESSL
                 if (sslptr != NULL && !sslerror) {
-                    //free SSL data again
+                    // free SSL data again
                     SSL_free(((struct sslinfo*)*sslptr)->sslhandle);
                     free(*sslptr); *sslptr = NULL;
                     close(new_socket);
@@ -756,7 +765,7 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
                 #else
                 #ifdef USESSL
                 if (sslptr != NULL && !sslerror) {
-                    //free SSL stuff
+                    // free SSL stuff
                     SSL_free(((struct sslinfo*)*sslptr)->sslhandle);
                     free(*sslptr); *sslptr = NULL;
                     close(new_socket);
@@ -803,8 +812,10 @@ int so_SelectSaysWrite(int sock, void** sslptr) {
     if (sslptr && *sslptr) {
         struct sslinfo* i = *sslptr;
         if (i->ssl_writewantstoreceive) {
-            //we had an SSL_write() which wants to read.
-            //if _read_ is ready, claim we can actually write now (so SSL_write() gets repeated).
+            // we had an SSL_write() which wants to read.
+            // if _read_ is ready, claim we can actually write now
+            // (so SSL_write() gets repeated).
+
             if (FD_ISSET(sock, readset)) {
                 return 1;
             }else{
@@ -813,8 +824,8 @@ int so_SelectSaysWrite(int sock, void** sslptr) {
             return 0;
         }
         if (i->ssl_settosend || i->ssl_requiresend) {
-            //we had an SSL_read() which wants to write.
-            //claim we cannot write so it gets repeated, even if we could.
+            // we had an SSL_read() which wants to write.
+            // claim we cannot write so it gets repeated, even if we could.
             return 0;
         }
     }
@@ -830,13 +841,16 @@ int so_SelectSaysRead(int sock, void** sslptr) {
     if (sslptr && *sslptr) {
         struct sslinfo* i = *sslptr;
         if (i->ssl_writewantstoreceive) {
-            //we had an SSL_write() which wants to read.
-            //claim we cannot read so it gets repeated, even if we could.
+            // we had an SSL_write() which wants to read.
+            // claim we cannot read so it gets repeated, even if we could.
+
             return 0;
         }
         if (i->ssl_settosend || i->ssl_requiresend) {
-            //we had an SSL_read() which wants to write.
-            //if _write_ is ready, claim we can read (so SSL_read() gets repeated).
+            // we had an SSL_read() which wants to write.
+            // if _write_ is ready, claim we can read (so SSL_read()
+            // gets repeated).
+
             if (FD_ISSET(sock, writeset)) {
                 return 1;
             }else{
@@ -861,16 +875,16 @@ int dealwitherror(int retval) {
 #ifndef WINDOWS
         if ((errno != EWOULDBLOCK && errno != EINTR && errno != ENOBUFS) || retval == 0) {
 #endif
-            return 0;//EOF/fatal error which leads to stream stopping
+            return 0; // EOF/fatal error which leads to stream stopping
         }else{
-            return -1;//just a temporary error
+            return -1; // just a temporary error
         }
     }
 }
 #ifdef USESSL
 int dealwithsslerror(int socket, void* sslptr, int arewereading, int retval) {
     struct sslinfo* i = sslptr;
-    //unmark from writing first (if not set explicitely through user)
+    // unmark from writing first (if not set explicitely through user)
     if (i->managedbyselect == 1) {
         if (i->ssl_settosend == 1) {
             i->ssl_settosend = 0;
@@ -887,25 +901,26 @@ int dealwithsslerror(int socket, void* sslptr, int arewereading, int retval) {
         int detailederror = SSL_get_error(i->sslhandle, retval);
         ERR_clear_error();
         if (detailederror == SSL_ERROR_ZERO_RETURN || detailederror == SSL_ERROR_SSL) {
-            //ERR_print_errors_fp(stdout);
-            //printf("SSL error or SSL zero return\n");
             return 0;
         }
         if (detailederror == SSL_ERROR_WANT_READ || detailederror == SSL_ERROR_WANT_WRITE) {
             if (detailederror == SSL_ERROR_WANT_WRITE && arewereading == 1) {
-                //for SSL_read()'s write needs, we want to internally hack into the write fdset
-                //why?
-                //the user sets the write fdset for sockets for which they wants to WRITE, not
-                //read data from (which SSL_read() does). therefore we do this hidden without
-                //disrupting what the user sets from the outside when SSL_read() requires us
-                //to read.
+                // for SSL_read()'s write needs, we want to internally hack
+                // into the write fdset.
+                // why?
+                // the user sets the write fdset for sockets for which they
+                // wants to WRITE, not read data from (which the user expects
+                // SSL_read() to do).
+                // therefore we do this hidden without disrupting what the
+                // user sets from the outside when SSL_read() requires us
+                // to read.
                 if (i->managedbyselect == 1) {
                     if (i->ssl_settosend == 0 && i->ssl_requiresend == 0) {
                         if (FD_ISSET(socket, &weircdselectset_readers)) {
-                            //it is already set. mark that we want to keep it
+                            // it is already set. mark that we want to keep it
                             i->ssl_requiresend = 1;
                         }else{
-                            //set it
+                            // set it
                             i->ssl_settosend = 1;
                             FD_SET(socket,&weircdselectset_writers);
                         }
@@ -916,7 +931,7 @@ int dealwithsslerror(int socket, void* sslptr, int arewereading, int retval) {
                 }
             }else{
                 if (detailederror == SSL_ERROR_WANT_READ && arewereading != 1) {
-                    //for SSL_write()'s read needs, we want to make sure we are in the readset
+                    // for SSL_write()'s read needs, we want to make sure we are in the readset
                     if (i->managedbyselect == 1) {
                         i->ssl_writewantstoreceive = 1;
                         FD_SET(socket,&weircdselectset_readers);
@@ -928,15 +943,15 @@ int dealwithsslerror(int socket, void* sslptr, int arewereading, int retval) {
         if (detailederror == SSL_ERROR_SYSCALL) {
             return dealwitherror(-1);
         }
-        return 0; //if in doubt, assume fatal error
+        return 0; // if in doubt, assume fatal error
     }
 }
 #endif
 #ifdef USESSL
 int so_DoAcceptThings(int socket, void* sslptr) {
     struct sslinfo* i = sslptr;
-    if (i->state_accepted == 0) { //accept not done yet
-        //unmark us from writing at first (if not explicitely user-set)
+    if (i->state_accepted == 0) { // accept not done yet
+        // unmark us from writing at first (if not explicitely user-set)
         if (i->managedbyselect == 1) {
             if (i->ssl_settosend == 1) {
                 i->ssl_settosend = 0;
@@ -950,25 +965,23 @@ int so_DoAcceptThings(int socket, void* sslptr) {
             ERR_clear_error();
             if (r == SSL_ERROR_WANT_READ || r == SSL_ERROR_WANT_WRITE) {
                 if (r == SSL_ERROR_WANT_WRITE) {
-                    //mark us for writing
+                    // mark us for writing
                     if (i->managedbyselect == 1) {
                         if (i->ssl_settosend == 0 && i->ssl_requiresend == 0) {
                             if (FD_ISSET(socket, &weircdselectset_readers)) {
-                                //it is already set. mark that we want to keep it
+                                // it is already set. mark that we want to keep it
                                 i->ssl_requiresend = 1;
                             }else{
-                                //set it
+                                // set it
                                 i->ssl_settosend = 1;
                                 FD_SET(socket,&weircdselectset_writers);
                             }
                         }
                     }
                 }
-                return -1; //temporary problem
+                return -1; // temporary problem
             }
-            //printf("accept fail\n");
-            //ERR_print_errors_fp(stdout);
-            return 0; //constant problem
+            return 0; // constant/fatal problem
         }
         ERR_clear_error();
         i->state_accepted = 1;
@@ -986,7 +999,7 @@ int so_SendData_internal(int socket, const char* buf, int len, int usessl, void*
 #ifdef USESSL
         struct sslinfo* i = sslptr;
         if (i->ssl_settosend == 1 || i->ssl_requiresend == 1) {
-            //SSL_read() was unfinished. therefore, don't allow SSL_write() before that SSL_read() is complete
+            // SSL_read() was unfinished. therefore, don't allow SSL_write() before that SSL_read() is complete
             return -1;
         }
         if (i->managedbyselect == 0) {
@@ -1011,7 +1024,7 @@ int so_SendData_internal(int socket, const char* buf, int len, int usessl, void*
 int so_CheckIfConnected(int socket, void** sslptr) {
 #ifdef USESSL
     if (sslptr && *sslptr) {
-        //XXX: is this sufficient for connection checks?
+        // XXX: is this sufficient for connection checks?
         int z = so_DoAcceptThings(socket, *sslptr);
         if (z <= 0) {
             return 0;
@@ -1026,10 +1039,10 @@ int so_CheckIfConnected(int socket, void** sslptr) {
     unsigned int len = sizeof(val);
 #endif
     int result = getsockopt(socket, SOL_SOCKET, SO_ERROR, &val, &len);
-    if (result < 0) { //failed to obtain option
+    if (result < 0) { // failed to obtain option
         return 0;
     }
-    if (val == 0) { //connect success
+    if (val == 0) { // connect success
         return 1;
     }
     return 0;
@@ -1044,7 +1057,7 @@ int so_ReceiveData_internal(int socket, char* buf, int len, int usessl, void* ss
 #ifdef USESSL
         struct sslinfo* i = sslptr;
         if (i->ssl_writewantstoreceive) {
-            //SSL_write() was unfinished. therefore, don't allow SSL_read() before that SSL_write() is complete
+            // SSL_write() was unfinished. therefore, don't allow SSL_read() before that SSL_write() is complete
             return -1;
         }
         if (i->managedbyselect == 0) {

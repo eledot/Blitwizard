@@ -28,7 +28,7 @@
 #include "logging.h"
 #include "sockets.h"
 #include "listeners.h"
-#include "connections.h" //for CONNECTIONSDEBUG
+#include "connections.h" // for CONNECTIONSDEBUG
 
 struct listener {
     void* userdata;
@@ -58,12 +58,12 @@ static struct listener* listeners_GetByPort(int port, struct listener** prev) {
 }
 
 int listeners_Create(int port, int ssl, void* userdata) {
-    //startup socket system
+    // startup socket system
     if (!so_Startup()) {
         return 0;
     }
 
-    //check if a server is already using this port:
+    // check if a server is already using this port:
     if (listeners_GetByPort(port, NULL)) {
 #ifdef CONNECTIONSDEBUG
         printinfo("[connections-server] port %d already used");
@@ -71,7 +71,7 @@ int listeners_Create(int port, int ssl, void* userdata) {
         return 0;
     }
 
-    //allocate struct:
+    // allocate struct:
     struct listener* l = malloc(sizeof(*l));
     if (!l) {
 #ifdef CONNECTIONSDEBUG
@@ -80,7 +80,7 @@ int listeners_Create(int port, int ssl, void* userdata) {
         return 0;
     }
 
-    //initialise struct:
+    // initialise struct:
     memset(l, 0, sizeof(*l));
     l->socket = so_CreateSocket(1, IPTYPE_IPV6);
     l->port = port;
@@ -113,13 +113,13 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
     struct listener* l = listeners;
     while (l) {
         if (so_SelectSaysRead(l->socket, NULL)) {
-            //something interesting happened with this listener:
+            // something interesting happened with this listener:
             char ipbuf[IPMAXLEN+1];
             int sock;
             void* sptr = NULL;
             int havenewconnection = 0;
 
-            //accepting new connection:
+            // accepting new connection:
             if (!l->ssl) {
                 if (so_AcceptConnection(l->socket, IPTYPE_IPV6, ipbuf, &sock)) {
                     havenewconnection = 1;
@@ -130,7 +130,7 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
                 }
             }
 
-            //process new connection if we have one:
+            // process new connection if we have one:
             if (havenewconnection) {
 #ifdef CONNECTIONSDEBUG
                 printinfo("[connections-server] so_AcceptConnection() succeeded at port %d: %d", l->port, sock);

@@ -24,31 +24,33 @@
 // asynchronous DNS facility
 
 void* hostresolv_ReverseLookupRequest(const char* ip);
- /* Start a reverse lookup request of that ip (no matter if an ipv4 or ipv6 ip).
-    Returns a request handle */
+ // Start a reverse lookup request of that ip (no matter if an ipv4 or ipv6 ip).
+ // Returns a request handle
 
 void* hostresolv_LookupRequest(const char* host, int ipv6);
- /* Start a normal lookup request of that host.
-    Set ipv6 to 1 if you want an ipv6 ip (otherwise to 0).
-    Returns a request handle */
+ // Start a normal lookup request of that host.
+ // Set ipv6 to 1 if you want an ipv6 ip (otherwise to 0).
+ // Returns a request handle
 
 int hostresolv_GetRequestStatus(void* handle);
- /* Get the current status of the request */
+ // Get the current status of the request
 #define RESOLVESTATUS_PENDING 1
 #define RESOLVESTATUS_SUCCESS 2
 #define RESOLVESTATUS_FAILURE 3
 
 const char* hostresolv_GetRequestResult(void* handle);
- /* Get the result of the lookup.
-    Only use this if the request status is RESOLVESTATUS_SUCCESS! */
-
-
+ // Get the result of the lookup.
+ // Only use this if the request status is RESOLVESTATUS_SUCCESS!
 
 void hostresolv_FreeRequest(void* handle);
- /* Free the request and all associated data (handle will become invalid).
-    NEVER use this if the request is still pending (will break horribly).
-   */
+ // Free the request and all associated data (handle will become invalid).
+ // NEVER use this if the request is still pending (will break horribly),
+ // see also hostresolv_CancelRequest below.
 
 void hostresolv_CancelRequest(void* handle);
- /* Cancel a host resolve request. If the request is already terminated,
-    it will be instantly free'd. */
+ // Cancel a host resolve request. If the request is already terminated,
+ // it will be instantly free'd. Otherwise it will be (automatically)
+ // free'd as soon as possible (the cleanup will be processed whenever you
+ // call hostresolv_GetRequestResult for any other host request)
+
+

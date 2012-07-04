@@ -36,15 +36,15 @@
 #include <android/log.h>
 #endif
 
-//physics callback we will need later when setting up the physics simulation
+// physics callback we will need later when setting up the physics simulation
 struct physicsobject;
 int luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
 
-int wantquit = 0; //set to 1 if there was a quit event
-int suppressfurthererrors = 0; //a critical error was shown, don't show more
-int appinbackground = 0; //app is in background (mobile/Android)
-static int sdlinitialised = 0; //sdl was initialised and needs to be quit
-extern int drawingallowed; //stored in luafuncs.c, checks if we come from an on_draw() event or not
+int wantquit = 0; // set to 1 if there was a quit event
+int suppressfurthererrors = 0; // a critical error was shown, don't show more
+int appinbackground = 0; // app is in background (mobile/Android)
+static int sdlinitialised = 0; // sdl was initialised and needs to be quit
+extern int drawingallowed; // stored in luafuncs.c, checks if we come from an on_draw() event or not
 
 #include "luastate.h"
 #include "file.h"
@@ -69,7 +69,7 @@ int MAXLOGICITERATIONS = 50; // 50 * 16 = 800ms
 void main_SetTimestep(int timestep) {
     if (timestep < 16) {timestep = 16;}
     TIMESTEP = timestep;
-    MAXLOGICITERATIONS = 800 / timestep; //never do logic for longer than 800ms
+    MAXLOGICITERATIONS = 800 / timestep; // never do logic for longer than 800ms
     if (MAXLOGICITERATIONS < 2) {
         MAXLOGICITERATIONS = 2;
     }
@@ -84,7 +84,7 @@ void main_Quit(int returncode) {
     listeners_CloseAll();
     if (sdlinitialised) {
 #ifdef USE_SDL_AUDIO
-        //audio_Quit(); //FIXME: workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1396 (causes an unclean shutdown)
+        // audio_Quit(); // FIXME: workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1396 (causes an unclean shutdown)
 #endif
 #ifdef USE_GRAPHICS
         graphics_Quit();
@@ -105,12 +105,12 @@ void main_InitAudio() {
     if (audioinitialised) {return;}
     audioinitialised = 1;
 
-    //get audio backend
+    // get audio backend
 #ifdef USE_SDL_AUDIO
     char* p = luastate_GetPreferredAudioBackend();
 #endif
 
-    //load FFmpeg if we happen to want it
+    // load FFmpeg if we happen to want it
     if (luastate_GetWantFFmpeg()) {
         audiosourceffmpeg_LoadFFmpeg();
     }else{
@@ -120,20 +120,20 @@ void main_InitAudio() {
 #ifdef USE_SDL_AUDIO
     char* error;
 
-    //initialise audio - try 32bit first
+    // initialise audio - try 32bit first
     s16mixmode = 0;
 #ifndef FORCES16AUDIO
     if (!audio_Init(&audiomixer_GetBuffer, 0, p, 0, &error)) {
         if (error) {free(error);}
 #endif
-        //try 16bit now
+        // try 16bit now
         s16mixmode = 1;
         if (!audio_Init(&audiomixer_GetBuffer, 0, p, 1, &error)) {
             printwarning("Warning: Failed to initialise audio: %s",error);
             if (error) {
                 free(error);
             }
-            //non-fatal: we will simulate audio manually:
+            // non-fatal: we will simulate audio manually:
             simulateaudio = 1;
             s16mixmode = 0;
         }
@@ -144,13 +144,13 @@ void main_InitAudio() {
         free(p);
     }
 #else
-    //simulate audio:
+    // simulate audio:
     simulateaudio = 1;
     s16mixmode = 0;
 #endif
-#else //ifdef USE_AUDIO
+#else // ifdef USE_AUDIO
     return;
-#endif //ifdef USE_AUDIO
+#endif // ifdef USE_AUDIO
 }
 
 
@@ -254,14 +254,14 @@ static void textevent(const char* text) {
 
 static void putinbackground(int background) {
     if (background) {
-        //remember we are in the background
+        // remember we are in the background
         appinbackground = 1;
     }else{
-        //restore textures and wipe old ones
+        // restore textures and wipe old ones
 #ifdef ANDROID
         graphics_ReopenForAndroid();
 #endif
-        //we are back in the foreground! \o/
+        // we are back in the foreground! \o/
         appinbackground = 0;
     }
 }
@@ -322,7 +322,7 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard %s starting", VERSION);
 #endif
 
-    //evaluate command line arguments:
+    // evaluate command line arguments:
     const char* script = "game.lua";
     int scriptargfound = 0;
     int option_changedir = 0;
@@ -332,12 +332,12 @@ int main(int argc, char** argv) {
     int gcframecount = 0;
 
 #ifdef WINDOWS
-    //obtain command line arguments a special way on windows:
+    // obtain command line arguments a special way on windows:
     int argc = __argc;
     char** argv = __argv;
 #endif
 
-    //we want to store the script arguments so we can pass them to lua:
+    // we want to store the script arguments so we can pass them to lua:
     char** scriptargs = malloc(sizeof(char*) * MAXSCRIPTARGS);
     if (!scriptargs) {
         printerror("Error: failed to allocate script args space");
@@ -345,11 +345,11 @@ int main(int argc, char** argv) {
     }
     int scriptargcount = 0;
 
-    //parse command line arguments:
+    // parse command line arguments:
     int i = 1;
     while (i < argc) {
-        if (!scriptargfound) { //pre-scriptname arguments
-            //process template path option parameter:
+        if (!scriptargfound) { // pre-scriptname arguments
+            // process template path option parameter:
             if (nextoptionistemplatepath) {
                 nextoptionistemplatepath = 0;
                 option_templatepath = strdup(argv[i]);
@@ -364,7 +364,7 @@ int main(int argc, char** argv) {
                 continue;
             }
 
-            //various options:
+            // various options:
             if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
                 if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
                 || strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
@@ -395,7 +395,7 @@ int main(int argc, char** argv) {
                 script = argv[i];
             }
         }else{
-            //post-scriptname arguments -> store them for Lua
+            // post-scriptname arguments -> store them for Lua
             if (scriptargcount < MAXSCRIPTARGS) {
                 scriptargs[scriptargcount] = strdup(argv[i]);
                 scriptargcount++;
@@ -405,11 +405,11 @@ int main(int argc, char** argv) {
     }
 
 #ifdef USE_AUDIO
-    //This needs to be done at some point before we actually initialise audio
+    // This needs to be done at some point before we actually initialise audio
     audiomixer_Init();
 #endif
 
-    //check the provided path:
+    // check the provided path:
     char outofmem[] = "Out of memory";
     char* error;
     char* filenamebuf = NULL;
@@ -418,7 +418,7 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: locating lua start script...");
 #endif
 
-    //if no template path was provided, default to "templates/"
+    // if no template path was provided, default to "templates/"
     if (!option_templatepath) {
         option_templatepath = strdup("templates/");
         if (!option_templatepath) {
@@ -429,7 +429,7 @@ int main(int argc, char** argv) {
         file_MakeSlashesNative(option_templatepath);
     }
 
-    //check if provided script path is a folder:
+    // check if provided script path is a folder:
     if (file_IsDirectory(script)) {
         filenamebuf = file_AddComponentToPath(script, "game.lua");
         if (!filenamebuf) {
@@ -440,7 +440,7 @@ int main(int argc, char** argv) {
         script = filenamebuf;
     }
 
-    //check if we want to change directory to the provided script path:
+    // check if we want to change directory to the provided script path:
     if (option_changedir) {
         char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
         if (!p) {
@@ -472,7 +472,7 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: Preparing graphics framework...");
 #endif
 
-    //initialise graphics
+    // initialise graphics
 #ifdef USE_GRAPHICS
     if (!graphics_Init(&error)) {
         printerror("Error: Failed to initialise graphics: %s",error);
@@ -489,7 +489,7 @@ int main(int argc, char** argv) {
 #endif
 
 #ifdef USE_PHYSICS
-    //initialise physics
+    // initialise physics
     physicsdefaultworld = physics_CreateWorld();
     if (!physicsdefaultworld) {
         printerror("Error: Failed to initialise Box2D physics");
@@ -504,11 +504,11 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: Reading templates if present...");
 #endif
 
-    //Search & run templates. Separate code for desktop/android due to
-    //android having the templates in embedded resources (where cwd'ing to
-    //isn't supported), while for the desktop it is a regular folder.
+    // Search & run templates. Separate code for desktop/android due to
+    // android having the templates in embedded resources (where cwd'ing to
+    // isn't supported), while for the desktop it is a regular folder.
 #if !defined(ANDROID)
-    //remember current directory:
+    // remember current directory:
     char* currentworkingdir = file_GetCwd();
     if (!currentworkingdir) {
         printerror("Error: failed to change current working directory");
@@ -517,18 +517,18 @@ int main(int argc, char** argv) {
     }
 
     int checksystemwidetemplate = 1;
-    //see if there is a template directory & file:
+    // see if there is a template directory & file:
     if (file_DoesFileExist(option_templatepath) && file_IsDirectory(option_templatepath)) {
         checksystemwidetemplate = 0;
 
-        //change working directory to template folder:
+        // change working directory to template folder:
         int cwdfailed = 0;
         if (!file_Cwd(option_templatepath) && option_templatepathset) {
             printwarning("Warning: failed to change working directory to template path \"%s\"", option_templatepath);
             cwdfailed = 1;
         }
 
-        //now run template file:
+        // now run template file:
         if (!cwdfailed && file_DoesFileExist("init.lua")) {
             attemptTemplateLoad("init.lua");
         }else{
@@ -544,9 +544,9 @@ int main(int argc, char** argv) {
         }
     }
 #endif
-#else //if !defined(ANDROID)
-    //on Android, we only allow templates/init.lua.
-    //see if we can read the file:
+#else // if !defined(ANDROID)
+    // on Android, we only allow templates/init.lua.
+    // see if we can read the file:
     int exists = 0;
     SDL_RWops* rwops = SDL_RWFromFile("templates/init.lua", "rb");
     if (rwops) {
@@ -554,14 +554,14 @@ int main(int argc, char** argv) {
         rwops->close(rwops);
     }
     if (exists) {
-        //run the template file:
+        // run the template file:
         if (!luastate_DoInitialFile("templates/init.lua", 0, &error)) {
             attemptTemplateLoad("templates/init.lua");
         }
     }
 #endif
 
-    //now since templates are loaded, return to old working dir:
+    // now since templates are loaded, return to old working dir:
 #if !defined(ANDROID)
     file_Cwd(currentworkingdir);
 #endif
@@ -570,7 +570,7 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: Executing lua start script...");
 #endif
 
-    //push command line arguments into script state:
+    // push command line arguments into script state:
     i = 0;
     int pushfailure = 0;
     while (i < scriptargcount) {
@@ -586,7 +586,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    //open and run provided script file and pass the command line arguments:
+    // open and run provided script file and pass the command line arguments:
     if (!luastate_DoInitialFile(script, scriptargcount, &error)) {
         if (error == NULL) {
             error = outofmem;
@@ -604,7 +604,7 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: Calling blitwiz.on_init...");
 #endif
 
-    //call init
+    // call init
     if (!luastate_CallFunctionInMainstate("blitwiz.on_init", 0, 1, 1, &error, NULL)) {
         printerror("Error: An error occured when calling blitwiz.on_init: %s",error);
         if (error != outofmem) {
@@ -615,17 +615,17 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    //when graphics or audio is open, run the main loop
+    // when graphics or audio is open, run the main loop
     int blitwizonstepworked = 0;
     int blitwizondrawworked = 0;
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Entering main loop...");
 #endif
 
-    //Initialise audio when it isn't
+    // Initialise audio when it isn't
     main_InitAudio();
 
-    //If we failed to initialise audio, we want to simulate it
+    // If we failed to initialise audio, we want to simulate it
 #ifdef USE_AUDIO
     uint64_t simulateaudiotime = 0;
     if (simulateaudio) {
@@ -641,19 +641,19 @@ int main(int argc, char** argv) {
         blitwizondrawworked = 0;
         uint64_t time = time_GetMilliseconds();
 
-        //this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
+        // this is a hack for SDL bug http://bugzilla.libsdl.org/show_bug.cgi?id=1422
 
 #ifdef USE_AUDIO
-        //simulate audio
+        // simulate audio
         if (simulateaudio) {
             while (simulateaudiotime < time_GetMilliseconds()) {
                 audiomixer_GetBuffer(48 * 4 * 2);
                 simulateaudiotime += 1; // 48 * 1000 times * 4 bytes * 2 channels per second = simulated 48kHz 32bit stereo audio
             }
         }
-#endif //ifdef USE_AUDIO
+#endif // ifdef USE_AUDIO
 
-        //slow sleep: check if we can safe some cpu by waiting longer
+        // slow sleep: check if we can safe some cpu by waiting longer
         unsigned int deltaspan = 16;
 #ifndef USE_GRAPHICS
         int nodraw = 1;
@@ -663,11 +663,11 @@ int main(int argc, char** argv) {
 #endif
         uint64_t delta = time_GetMilliseconds()-lastdrawingtime;
         if (nodraw) {
-            //we can sleep as long as our timeste allows us to
+            // we can sleep as long as our timeste allows us to
             deltaspan = ((double)TIMESTEP)/2.1f;
         }
 
-        //sleep/limit FPS as much as we can
+        // sleep/limit FPS as much as we can
         if (delta < deltaspan) {
             if (connections_NoConnectionsOpen() && !listeners_HaveActiveListeners()) {
                 time_Sleep(deltaspan-delta);
@@ -679,19 +679,19 @@ int main(int argc, char** argv) {
             connections_SleepWait(0);
         }
 
-        //Remember drawing time and process net events
+        // Remember drawing time and process net events
         lastdrawingtime = time_GetMilliseconds();
         if (!luafuncs_ProcessNetEvents()) {
-            //there was an error processing the events
+            // there was an error processing the events
             main_Quit(1);
         }
 
 #ifdef USE_GRAPHICS
-        //check and trigger all sort of input events
+        // check and trigger all sort of input events
         graphics_CheckEvents(&quitevent, &mousebuttonevent, &mousemoveevent, &keyboardevent, &textevent, &putinbackground);
 #endif
 
-        //call the step function and advance physics
+        // call the step function and advance physics
         int iterations = 0;
         while ((logictimestamp < time || physicstimestamp < time) && iterations < MAXLOGICITERATIONS) {
             if (logictimestamp < time && logictimestamp <= physicstimestamp) {
@@ -723,27 +723,27 @@ int main(int argc, char** argv) {
             iterations++;
         }
 
-        //check if we ran out of iterations:
+        // check if we ran out of iterations:
         if (iterations >= MAXLOGICITERATIONS) {
             if (
 #ifdef USE_PHYSICS
                     physicstimestamp < time ||
 #endif
                  logictimestamp < time) {
-                //we got a problem: we aren't finished,
-                //but we hit the iteration limit
+                // we got a problem: we aren't finished,
+                // but we hit the iteration limit
                 if (physicstimestamp < time || logictimestamp < time) {
                     physicstimestamp = time_GetMilliseconds();
                     logictimestamp = time_GetMilliseconds();
                     printwarning("Warning: logic is too slow, maximum logic iterations have been reached (%d)", (int)MAXLOGICITERATIONS);
                 }
             }else{
-                //we don't need to iterate anymore -> everything is fine
+                // we don't need to iterate anymore -> everything is fine
             }
         }
 
 #ifdef USE_GRAPHICS
-        //check for image loading progress
+        // check for image loading progress
         if (!appinbackground) {
             graphics_CheckTextureLoading(&imgloaded);
         }
@@ -752,11 +752,11 @@ int main(int argc, char** argv) {
 #ifdef USE_GRAPHICS
         if (graphics_AreGraphicsRunning()) {
             if (!appinbackground) {
-                //start drawing
+                // start drawing
                 drawingallowed = 1;
                 graphics_StartFrame();
 
-                //call the drawing function
+                // call the drawing function
                 int ondrawdoesntexist = 0;
                 if (!luastate_CallFunctionInMainstate("blitwiz.on_draw", 0, 1, 1, &error, &ondrawdoesntexist)) {
                 printerror("Error: An error occured when calling blitwiz.on_draw: %s",error);
@@ -767,7 +767,7 @@ int main(int argc, char** argv) {
                     if (!ondrawdoesntexist) {blitwizondrawworked = 1;}
                 }
 
-                //complete the drawing
+                // complete the drawing
                 drawingallowed = 0;
                 graphics_CompleteFrame();
             }else{
@@ -776,7 +776,7 @@ int main(int argc, char** argv) {
         }
 #endif
 
-        //we might want to quit if there is nothing else to do
+        // we might want to quit if there is nothing else to do
 #ifdef USE_AUDIO
         if (!blitwizondrawworked && !blitwizonstepworked && connections_NoConnectionsOpen() && !listeners_HaveActiveListeners() && audiomixer_NoSoundsPlaying()) {
 #else
@@ -786,19 +786,20 @@ int main(int argc, char** argv) {
         }
 
 #ifdef USE_GRAPHICS
-        //be very sleepy if in background
+        // be very sleepy if in background
         if (appinbackground) {
             time_Sleep(20);
         }
 #endif
 
-        //do some garbage collection:
+        // do some garbage collection:
         gcframecount++;
         if (gcframecount > 100) {
-            //do a gc step once in a while
+            // do a gc step once in a while
             luastate_GCCollect();
         }
     }
     main_Quit(0);
     return 0;
 }
+

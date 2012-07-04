@@ -25,7 +25,7 @@
 
 #ifdef USE_GRAPHICS
 
-// various standard headers
+//  various standard headers
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -78,7 +78,7 @@ static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userd
 #ifndef NOTHREADEDSDLRW
     int i = ops->read(ops, buffer, 1, bytes);
 #else
-    //workaround for http://bugzilla.libsdl.org/show_bug.cgi?id=1422
+    // workaround for http:// bugzilla.libsdl.org/show_bug.cgi?id=1422
     int i = main_NoThreadedRWopsRead(ops, buffer, 1, bytes);
 #endif
     return i;
@@ -86,18 +86,18 @@ static int graphics_AndroidTextureReader(void* buffer, size_t bytes, void* userd
 #endif
 
 int graphics_PromptTextureLoading(const char* texture) {
-    //check if texture is already present or being loaded
+    // check if texture is already present or being loaded
     struct graphicstexture* gt = graphicstexturelist_GetTextureByName(texture);
     if (gt) {
-        //check for threaded loading
+        // check for threaded loading
         if (gt->threadingptr) {
-            //it will be loaded
+            // it will be loaded
             return 1;
         }
-        return 2; //texture is already present
+        return 2; // texture is already present
     }
 
-    //allocate new texture info
+    // allocate new texture info
     gt = malloc(sizeof(*gt));
     if (!gt) {
         return 0;
@@ -109,7 +109,7 @@ int graphics_PromptTextureLoading(const char* texture) {
         return 0;
     }
 
-    //trigger image fetching thread
+    // trigger image fetching thread
 #ifdef SDLRW
     gt->rwops = SDL_RWFromFile(gt->name, "rb");
     if (!gt->rwops) {
@@ -137,7 +137,7 @@ int graphics_PromptTextureLoading(const char* texture) {
         return 0;
     }
 
-    //add us to the list
+    // add us to the list
     graphicstexturelist_AddTextureToList(gt);
     graphicstexturelist_AddTextureToHashmap(gt);
     return 1;
@@ -175,7 +175,7 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstextu
     img_FreeHandle(gt->threadingptr);
     gt->threadingptr = NULL;
 
-    //check if we succeeded
+    // check if we succeeded
     int success = 0;
     if (data) {
         gt->pixels = data;
@@ -189,12 +189,12 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstextu
         }
     }
 
-    //do callback
+    // do callback
     if (callback) {
         callback(success, gt->name);
     }
 
-    //if this is an empty abandoned or a failed entry, remove
+    // if this is an empty abandoned or a failed entry, remove
     if (!gt->name || !success) {
          graphics_FreeTexture(gt, gtprev);
          return 0;
@@ -204,7 +204,7 @@ int graphics_FinishImageLoading(struct graphicstexture* gt, struct graphicstextu
 
 
 int graphics_LoadTextureInstantly(const char* texture) {
-    //prompt normal async texture loading
+    // prompt normal async texture loading
     if (!graphics_PromptTextureLoading(texture)) {
         return 0;
     }
@@ -213,7 +213,7 @@ int graphics_LoadTextureInstantly(const char* texture) {
         return 0;
     }
 
-    //wait for loading to finish
+    // wait for loading to finish
     while (!img_CheckSuccess(gt->threadingptr)) {
 #ifdef SDLRW
 #ifdef NOTHREADEDSDLRW
@@ -222,7 +222,7 @@ int graphics_LoadTextureInstantly(const char* texture) {
 #endif
     }
 
-    //complete image
+    // complete image
     return graphics_FinishImageLoading(gt, graphicstexturelist_GetPreviousTexture(gt), NULL);
 }
 
@@ -237,19 +237,19 @@ void graphics_UnloadTexture(const char* texname) {
 static int graphics_CheckTextureLoadingCallback(struct graphicstexture* gt, struct graphicstexture* gtprev, void* userdata) {
     void (*callback)(int success, const char* texture) = userdata;
     if (gt->threadingptr) {
-        //texture which is currently being loaded
+        // texture which is currently being loaded
         if (img_CheckSuccess(gt->threadingptr)) {
             if (!graphics_FinishImageLoading(gt,gtprev,callback)) {
-                //keep old valid gtprev, this entry is deleted now
+                // keep old valid gtprev, this entry is deleted now
                 return 0;
             }
         }
     }else{
         if (!gt->name) {
-            //delete abandoned textures
+            // delete abandoned textures
             graphics_FreeTexture(gt, gtprev);
 
-            //keep old valid gtprev
+            // keep old valid gtprev
             return 0;
         }
     }
@@ -262,17 +262,17 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 
 
 int graphics_IsTextureLoaded(const char* name) {
-    //check texture state
+    // check texture state
     struct graphicstexture* gt = graphicstexturelist_GetTextureByName(name);
     if (gt) {
-        //check for threaded loading
+        // check for threaded loading
         if (gt->threadingptr) {
-            //it will be loaded.
+            // it will be loaded.
             return 1;
         }
-        return 2; //texture is already present
+        return 2; // texture is already present
     }
-    return 0; //not loaded
+    return 0; // not loaded
 }
 
-#endif //ifdef USE_GRAPHICS
+#endif // ifdef USE_GRAPHICS

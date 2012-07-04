@@ -33,9 +33,9 @@
 #define CONVERTBUFSIZE 32
 
 struct audiosourceformatconvert_internaldata {
-    struct audiosource* source; //internal audio source for format conversion
+    struct audiosource* source; // internal audio source for format conversion
     int sourceeof;
-    int erroroneof; //error when eof is reached
+    int erroroneof; // error when eof is reached
     int eof;
     int targetformat;
     char convertbuf[CONVERTBUFSIZE];
@@ -64,7 +64,7 @@ static void audiosourceformatconvert_Rewind(struct audiosource* source) {
 static int audiosourceformatconvert_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
-    //We cannot convert anything more when we EOF'ed previously
+    // We cannot convert anything more when we EOF'ed previously
     if (idata->eof) {
         idata->erroroneof = 1;
         return -1;
@@ -72,31 +72,31 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
 
     int writtenbytes = 0;
 
-    //If we have previously converted bytes, return them:
+    // If we have previously converted bytes, return them:
     if (idata->convertbufbytes > 0 && bytes > 0) {
         unsigned int amount = idata->convertbufbytes;
         if (amount > bytes) {amount = bytes;}
 
-        //copy bytes:
+        // copy bytes:
         memcpy(buffer, idata->convertbuf, amount);
         idata->convertbufbytes -= amount;
         writtenbytes += amount;
         buffer += amount;
         bytes -= amount;
 
-        //move remaining bytes up to beginning:
+        // move remaining bytes up to beginning:
         if (idata->convertbufbytes > 0) {
             memmove(idata->convertbuf, idata->convertbuf + amount, CONVERTBUFSIZE - amount);
         }
     }
 
-    //fetch new bytes and return them
+    // fetch new bytes and return them
     while (bytes > 0) {
         if (idata->sourceeof) {
             break;
         }
 
-        //check how many bytes we want:
+        // check how many bytes we want:
         int wantbytes = 0;
         if (idata->source->format == AUDIOSOURCEFORMAT_S16LE) {
             wantbytes = 2;
@@ -106,7 +106,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         }
 
         char bytebuf[8];
-        //read the bytes we want:
+        // read the bytes we want:
         int result = idata->source->read(idata->source, bytebuf, wantbytes);
         if (result < wantbytes) {
             if (result < 0) {
@@ -119,35 +119,35 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
             }
         }
 
-        //convert:
+        // convert:
         if (idata->source->format == AUDIOSOURCEFORMAT_S16LE &&
         idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
             double intmax_big = 32768;
-            //convert s16le > f32le
+            // convert s16le > f32le
             int16_t old = *(int16_t*)((int16_t*)bytebuf);
             double convert = old;
             convert /= intmax_big;
             float new = convert;
 
-            //copy the result into our buffer
+            // copy the result into our buffer
             memcpy(idata->convertbuf, &new, sizeof(new));
             idata->convertbufbytes += sizeof(new);
         }
         if (idata->source->format == AUDIOSOURCEFORMAT_F32LE &&
         idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
             double intmax_small = 32767;
-            //convert f32le > s16le
+            // convert f32le > s16le
             float old = *((float*)bytebuf);
             double convert = old;
             convert *= intmax_small;
             int16_t new = (int16_t)fastdoubletoint32(convert);
 
-            //copy the result into our buffer
+            // copy the result into our buffer
             memcpy(idata->convertbuf, &new, sizeof(new));
             idata->convertbufbytes += sizeof(new);
         }
 
-        //return converted bytes;
+        // return converted bytes;
         unsigned int amount = idata->convertbufbytes;
         if (amount > bytes) {
             amount = bytes;
@@ -157,14 +157,14 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         buffer += amount;
         bytes -= amount;
         idata->convertbufbytes -= amount;
-        //we served all requested bytes:
+        // we served all requested bytes:
         if (bytes == 0) {
-            //are some bytes left in buffer?
+            // are some bytes left in buffer?
             if (idata->convertbufbytes > 0) {
-                //move them up to the beginning
+                // move them up to the beginning
                 memmove(idata->convertbuf, idata->convertbuf + amount, CONVERTBUFSIZE - amount);
             }
-            //all requested bytes served:
+            // all requested bytes served:
             break;
         }
     }
@@ -181,7 +181,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
 }
 
 static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned int pos) {
-    //Forward the seke to our audio source if possible:
+    // Forward the seke to our audio source if possible:
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
     if (idata->sourceeof) {return 0;}
@@ -190,21 +190,21 @@ static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned in
 }
 
 static unsigned int audiosourceformatconvert_Position(struct audiosource* source) {
-    //Forward the position query to our audio source:
+    // Forward the position query to our audio source:
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
     return idata->source->position(idata->source);
 }
 
 static unsigned int audiosourceformatconvert_Length(struct audiosource* source) {
-    //Forward the length query to our audio source:
+    // Forward the length query to our audio source:
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
     return idata->source->length(idata->source);
 }
 
 struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, unsigned int newformat) {
-    //Check some obvious cases
+    // Check some obvious cases
     if (newformat == AUDIOSOURCEFORMAT_UNKNOWN) {
         return NULL;
     }
@@ -215,7 +215,7 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
         return source;
     }
 
-    //Allocate audio source struct
+    // Allocate audio source struct
     struct audiosource* a = malloc(sizeof(*a));
     if (!a) {
         source->close(source);
@@ -223,7 +223,7 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
     }
     memset(a, 0, sizeof(*a));
 
-    //Prepare internal data struct
+    // Prepare internal data struct
     a->internaldata = malloc(sizeof(struct audiosourceformatconvert_internaldata));
     if (!a->internaldata) {
         free(a);
@@ -233,14 +233,14 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
     struct audiosourceformatconvert_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
 
-    //Remember some internal info:
+    // Remember some internal info:
     idata->source = source;
     idata->targetformat = newformat;
     a->format = newformat;
     a->channels = source->channels;
     a->samplerate = source->samplerate;
 
-    //Set callbacks:
+    // Set callbacks:
     a->read = &audiosourceformatconvert_Read;
     a->length = &audiosourceformatconvert_Length;
     a->position = &audiosourceformatconvert_Position;

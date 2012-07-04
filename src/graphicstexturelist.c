@@ -165,11 +165,12 @@ void graphicstexturelist_DoForAllTextures(int (*callback)(struct graphicstexture
     while (gt) {
         struct graphicstexture* gtnext = gt->next;
         if (callback(gt, gtprev, userdata)) {
-            //entry is still valid (callback return 1), remember it as prev
+            // entry is still valid (callback return 1), remember it as prev
             gtprev = gt;
         }
         gt = gtnext;
     }
 }
 
-#endif //ifdef USE_GRAPHICS
+#endif // ifdef USE_GRAPHICS
+

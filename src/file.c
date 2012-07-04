@@ -52,8 +52,10 @@ static int file_IsDirectorySeparator(char c) {
     if (c == '/' || c == '\\') {return 1;}
 #else
     if (file_NativeSlash() == c
-    || c == '\\' /* this is actually wrong for mac/linux, but we want to support
-                    paths written by thoughtless windows people aswell. */
+    || c == '\\'
+    // this is actually wrong for mac/linux,
+    // but we want to support
+    // paths written by thoughtless windows people aswell.
     ) {return 1;}
 #endif
     return 0;
@@ -100,7 +102,7 @@ char* file_GetCwd() {
     if (GetCurrentDirectory(sizeof(cwdbuf), cwdbuf) <= 0) {
         return 0;
     }
-    //turn all paths like C:\blubb\ into C:/blubb/ (blitwizard-style paths)
+    // turn all paths like C:\blubb\ into C:/blubb/ (blitwizard-style paths)
     unsigned int i = 0;
     while (i <= strlen(cwdbuf)) {
         if (cwdbuf[i] == '\\') {cwdbuf[i] = '/';}
@@ -156,7 +158,7 @@ static int file_LatestSlash(const char* path) {
 static void file_CutOffOneElement(char* path) {
     while (1) {
         int i = file_LatestSlash(path);
-        //check if there is nothing left to cut off for absolute paths
+        // check if there is nothing left to cut off for absolute paths
 #ifdef WINDOWS
         if (i == 2 && path[1] == ':' && (tolower(path[0]) >= 'a' && tolower(path[0]) <= 'z')) {
             return;
@@ -166,26 +168,26 @@ static void file_CutOffOneElement(char* path) {
             return;
         }
 #endif
-        //see what we can cut off
+        // see what we can cut off
         if (i < 0) {
-            //just one relative item left -> empty to current dir ""
+            // just one relative item left -> empty to current dir ""
             path[0] = 0;
             return;
         }else{
             if (i == (int)strlen(path)-1) {
-                //slash is at the end (directory path).
+                // slash is at the end (directory path).
                 path[i] = 0;
                 if (strlen(path) > 0) {
                     if (path[strlen(path)-1] == '.') {
-                        //was this a trailing ./ or ../?
+                        // was this a trailing ./ or ../?
                         if (strlen(path) > 1) {
                             if (path[strlen(path)-2] == '.') {
-                                //this is ../, so we're done when the .. is gone
+                                // this is ../, so we're done when the .. is gone
                                 path[strlen(path)-2] = 0;
                                 return;
                             }
                         }
-                        //it is just ./ so we need to carry on after removing it
+                        // it is just ./ so we need to carry on after removing it
                         path[strlen(path)-1] = 0;
                     }
                 }
@@ -236,36 +238,36 @@ void file_StripComponentFromPath(char* path) {
 }
 
 char* file_GetAbsolutePathFromRelativePath(const char* path) {
-    //cancel for absolute paths
+    // cancel for absolute paths
     if (!file_IsPathRelative(path)) {
         return strdup(path);
     }
 
-    //cut off unrequired clutter
+    // cut off unrequired clutter
     while (path[0] == '.' && path[1] == file_NativeSlash()) {
         path += 2;
     }
 
-    //get current working directory
+    // get current working directory
     char* currentdir = file_GetCwd();
     if (!currentdir) {
         return NULL;
     }
 
-    //process ../
+    // process ../
     while (path[0] == '.' && path[1] == '.' && path[2] == file_NativeSlash()) {
         file_CutOffOneElement(currentdir);
         path += 3;
     }
 
-    //allocate space for new path
+    // allocate space for new path
     char* newdir = malloc(strlen(currentdir) + 1 + strlen(path) + 1);
     if (!newdir) {
         free(currentdir);
         return NULL;
     }
 
-    //assemble new path
+    // assemble new path
     memcpy(newdir, currentdir, strlen(currentdir));
     char slash = file_NativeSlash();
     newdir[strlen(currentdir)] = slash;
@@ -334,20 +336,20 @@ int file_ContentToBuffer(const char* path, char** buf, size_t* buflen) {
     if (!r) {
         return 0;
     }
-    //obtain file size
+    // obtain file size
     fseek(r, 0L, SEEK_END);
     unsigned int size = ftell(r);
     fseek(r, 0L, SEEK_SET);
-    //allocate buf
+    // allocate buf
     char* fbuf = malloc(size+1);
     if (!fbuf) {
         fclose(r);
         return 0;
     }
-    //read data
+    // read data
     int i = fread(fbuf, 1, size, r);
     fclose(r);
-    //check data
+    // check data
     if (i != (int)size) {
         free(fbuf);
         return 0;

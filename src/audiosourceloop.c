@@ -44,7 +44,7 @@ void audiosourceloop_SetLooping(struct audiosource* source, int looping) {
 }
 
 static void audiosourceloop_Rewind(struct audiosource* source) {
-    //this audio source has no rewind functionality
+    // this audio source has no rewind functionality
     return;
 }
 
@@ -54,7 +54,7 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
         return -1;
     }
 
-    int rewinded = 0; //avoid endless rewind loops for empty sources
+    int rewinded = 0; // avoid endless rewind loops for empty sources
     unsigned int byteswritten = 0;
     while (bytes > 0) {
         int i = 0;
@@ -96,85 +96,56 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 static void audiosourceloop_Close(struct audiosource* source) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
 
-    //close the processed source
+    // close the processed source
     if (idata->source) {
         idata->source->close(idata->source);
     }
 
-    //free all structs
+    // free all structs
     if (source->internaldata) {
         free(source->internaldata);
     }
     free(source);
 }
 
-#ifdef NOTHREADEDSDLRW
-static void audiosourceloop_CloseMainthread(struct audiosource* source) {
-    struct audiosourceloop_internaldata* idata = source->internaldata;
-
-    //close the processed source
-    if (idata->source) {
-        idata->source->closemainthread(idata->source);
-        idata->source = NULL;
-    }
-
-    audiosourceloop_CloseMainthread(source);
-}
-#endif
-
 struct audiosource* audiosourceloop_Create(struct audiosource* source) {
     if (!source) {
-        //no source given
+        // no source given
         return NULL;
     }
     if (source->channels != 2) {
-        //we only support stereo audio
-#ifdef NOTHREADEDSDLRW
-        source->closemainthread(source);
-#else
+        // we only support stereo audio
         source->close(source);
-#endif
         return NULL;
     }
 
-    //allocate visible data struct
+    // allocate visible data struct
     struct audiosource* a = malloc(sizeof(*a));
     if (!a) {
-#ifdef NOTHREADEDSDLRW
-        source->closemainthread(source);
-#else
         source->close(source);
-#endif
         return NULL;
     }
 
-    //allocate internal data struct
+    // allocate internal data struct
     memset(a,0,sizeof(*a));
     a->internaldata = malloc(sizeof(struct audiosourceloop_internaldata));
     if (!a->internaldata) {
         free(a);
-#ifdef NOTHREADEDSDLRW
-        source->closemainthread(source);
-#else
         source->close(source);
-#endif
         return NULL;
     }
 
-    //remember various things
+    // remember various things
     struct audiosourceloop_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->source = source;
     a->samplerate = source->samplerate;
     a->channels = source->channels;
 
-    //function pointers
+    // function pointers
     a->read = &audiosourceloop_Read;
     a->close = &audiosourceloop_Close;
     a->rewind = &audiosourceloop_Rewind;
-#ifdef NOTHREADEDSDLRW
-    a->closemainthread = &audiosourceloop_CloseMainthread;
-#endif
 
     return a;
 }
