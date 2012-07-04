@@ -195,6 +195,16 @@ int luafuncs_createStaticObject(lua_State* l) {
     return 1;
 }
 
+int luafuncs_destroyObject(lua_State* l) {
+    struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    obj->refcount--;
+    if (obj->refcount <= 0) {
+        // no references left, we can delete the object
+
+    }
+    return 0;
+}
+
 static void applyobjectsettings(struct luaphysicsobj* obj) {
     if (!obj->object) {return;}
     physics_SetRotationRestriction(obj->object, obj->rotationrestriction);

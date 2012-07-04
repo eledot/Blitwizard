@@ -25,6 +25,7 @@
 
 int luafuncs_createMovableObject(lua_State* l);
 int luafuncs_createStaticObject(lua_State* l);
+int luafuncs_destroyObject(lua_State* l);
 int luafuncs_setShapeRectangle(lua_State* l);
 int luafuncs_setShapeEdges(lua_State* l);
 int luafuncs_setShapeCircle(lua_State* l);

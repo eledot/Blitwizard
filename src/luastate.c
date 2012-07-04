@@ -125,6 +125,9 @@ static void luastate_CreatePhysicsTable(lua_State* l) {
     lua_pushstring(l, "createStaticObject");
     lua_pushcfunction(l, &luafuncs_createStaticObject);
     lua_settable(l, -3);
+    lua_pushstring(l, "destroyObject");
+    lua_pushcfunction(l, &luafuncs_destroyObject);
+    lua_settable(l, -3);
     lua_pushstring(l, "restrictRotation");
     lua_pushcfunction(l, &luafuncs_restrictRotation);
     lua_settable(l, -3);
