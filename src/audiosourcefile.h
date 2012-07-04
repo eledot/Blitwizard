@@ -22,6 +22,8 @@
 */
 
 struct audiosource* audiosourcefile_Create(const char* path);
-//Create an audio source from a file. Please note this doesn't do any encoding!
-//It just returns the binary data in that file as it is.
-//Pass into audiosourceogg or others to make them decode it.
+// Create an audio source from a file.
+// Please note this doesn't do any decoding or processing!
+// It just returns the binary data in that file as it is.
+// Pass into audiosourceogg or others to make them decode it.
+

@@ -22,5 +22,5 @@
 */
 
 struct audiosource* audiosourceformatconvert_Create(struct audiosource* filesource, unsigned int newformat);
-//Create an audio source that converts a given stream to another format.
+// Create an audio source that converts a given stream to another format.
 

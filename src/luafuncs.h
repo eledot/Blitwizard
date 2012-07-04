@@ -21,7 +21,7 @@
 
 */
 
-//os:
+// os:
 int luafuncs_getcwd(lua_State* l);
 int luafuncs_chdir(lua_State* l);
 int luafuncs_isdir(lua_State* l);
@@ -32,19 +32,19 @@ int luafuncs_exit(lua_State* l);
 int luafuncs_sysname(lua_State* l);
 int luafuncs_sysversion(lua_State* l);
 
-//blitwiz.*:
+// blitwiz.*:
 int luafuncs_setstep(lua_State* l);
 
-//base:
+// Base:
 int luafuncs_loadfile(lua_State* l);
 int luafuncs_dofile(lua_State* l);
 int luafuncs_print(lua_State* l);
 
-//Time:
+// Time:
 int luafuncs_getTime(lua_State* l);
 int luafuncs_sleep(lua_State* l);
 
-//Graphics:
+// Graphics:
 int luafuncs_getRendererName(lua_State* l);
 int luafuncs_setWindow(lua_State* l);
 int luafuncs_loadImage(lua_State* l);
@@ -57,14 +57,15 @@ int luafuncs_getDisplayModes(lua_State* l);
 int luafuncs_getDesktopDisplayMode(lua_State* l);
 int luafuncs_isImageLoaded(lua_State* l);
 
-//Sound:
+// Sound:
 int luafuncs_getBackendName(lua_State* l);
 int luafuncs_play(lua_State* l);
 int luafuncs_playing(lua_State* l);
 int luafuncs_stop(lua_State* l);
 int luafuncs_adjust(lua_State* l);
 
-//string:
+// Strings:
 int luafuncs_startswith(lua_State* l);
 int luafuncs_endswith(lua_State* l);
 int luafuncs_split(lua_State* l);
+

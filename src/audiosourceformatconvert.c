@@ -76,14 +76,14 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
     if (idata->convertbufbytes > 0 && bytes > 0) {
         unsigned int amount = idata->convertbufbytes;
         if (amount > bytes) {amount = bytes;}
-        
+
         //copy bytes:
         memcpy(buffer, idata->convertbuf, amount);
         idata->convertbufbytes -= amount;
         writtenbytes += amount;
         buffer += amount;
         bytes -= amount;
-        
+
         //move remaining bytes up to beginning:
         if (idata->convertbufbytes > 0) {
             memmove(idata->convertbuf, idata->convertbuf + amount, CONVERTBUFSIZE - amount);
@@ -95,7 +95,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         if (idata->sourceeof) {
             break;
         }
-        
+
         //check how many bytes we want:
         int wantbytes = 0;
         if (idata->source->format == AUDIOSOURCEFORMAT_S16LE) {
@@ -198,7 +198,7 @@ static unsigned int audiosourceformatconvert_Position(struct audiosource* source
 
 static unsigned int audiosourceformatconvert_Length(struct audiosource* source) {
     //Forward the length query to our audio source:
-    struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;    
+    struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
     return idata->source->length(idata->source);
 }
@@ -214,8 +214,8 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
     if (source->format == newformat) {
         return source;
     }
-   
-    //Allocate audio source struct 
+
+    //Allocate audio source struct
     struct audiosource* a = malloc(sizeof(*a));
     if (!a) {
         source->close(source);
@@ -231,7 +231,7 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
         return NULL;
     }
     struct audiosourceformatconvert_internaldata* idata = a->internaldata;
-    memset(idata, 0, sizeof(*idata));    
+    memset(idata, 0, sizeof(*idata));
 
     //Remember some internal info:
     idata->source = source;

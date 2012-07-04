@@ -38,7 +38,7 @@ void ovalpoint(double angle, double width, double height, double* x, double* y);
 
 #ifdef FASTMATH
 
-//use the fast double > int32 conversion from Lua
+// use the fast double > int32 conversion from Lua
 #include "lua.h"
 #include "llimits.h"
 static inline int fastdoubletoint32(double i) {
@@ -49,7 +49,7 @@ static inline int fastdoubletoint32(double i) {
 
 #else
 
-//use slow normal cast
+// use slow normal cast
 static inline int fastdoubletoint32(double i) {
     return (int)i;
 }
@@ -59,3 +59,4 @@ static inline int fastdoubletoint32(double i) {
 #ifdef __cplusplus
 }
 #endif
+

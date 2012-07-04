@@ -28,14 +28,14 @@
 #include "file.h"
 
 static char* queryregstring(HKEY key, const char* path, const char* name) {
-    //the windows registry knows where Steam is:
+    // the windows registry knows where Steam is:
     char data[256] = "";
     unsigned int datalen = sizeof(data)-1;
     HKEY khandle;
     if (RegOpenKeyEx(key, path, 0, KEY_QUERY_VALUE, &khandle) != ERROR_SUCCESS) {return NULL;}
     if (RegQueryValueEx(khandle, name, 0, 0, (LPBYTE)data, (DWORD*)&datalen) != ERROR_SUCCESS) {RegCloseKey(khandle); return NULL;}
-    
-    //null terminate the queried value properly:
+
+    // null terminate the queried value properly:
     if (datalen >= sizeof(data)) {datalen = sizeof(data)-1;}
     data[datalen] = 0;
     RegCloseKey(khandle);
@@ -49,19 +49,19 @@ const char* win32_GetPathForSteam() {
         return steampath;
     }
 
-    //the registry knows where steam is:
+    // the registry knows where steam is:
     char* path = queryregstring(HKEY_CURRENT_USER, "Software\\\\Valve\\\\Steam", "SteamPath");
     if (!path) {return NULL;}
     file_MakeSlashesNative(path);
 
-    //copy and remember the path:
+    // copy and remember the path:
     unsigned int copylen = strlen(path);
     if (copylen >= sizeof(steampath)) {copylen = sizeof(steampath)-1;}
     memcpy(steampath, path, copylen);
     steampath[copylen] = 0;
     free(path);
 
-    return steampath;    
+    return steampath;
 }
 
 char chromepath[512] = "";
@@ -70,20 +70,20 @@ const char* win32_GetPathForChrome() {
         return chromepath;
     }
 
-    //the registry knows where chrome is:
+    // the registry knows where chrome is:
     char* path = queryregstring(HKEY_CURRENT_USER, "Software\\\\Google\\\\Update", "path");
-    if (!path) {return NULL;} 
-    file_MakeSlashesNative(path); //now: C:\Users\Jonas\AppData\Local\Google\Update\GoogleUpdate.exe
-    char* p2 = file_GetDirectoryPathFromFilePath(path); //now: C:\Users\Jonas\AppData\Local\Google\Update
+    if (!path) {return NULL;}
+    file_MakeSlashesNative(path); // now: C:\Users\Jonas\AppData\Local\Google\Update\GoogleUpdate.exe
+    char* p2 = file_GetDirectoryPathFromFilePath(path); // now: C:\Users\Jonas\AppData\Local\Google\Update
     free(path);
     if (!p2) {return NULL;}
     path = p2;
-    file_StripComponentFromPath(path); //now: C:\Users\Jonas\AppData\Local\Google
+    file_StripComponentFromPath(path); // now: C:\Users\Jonas\AppData\Local\Google
     char sep[] = "/";
     if (strlen(path) > 0 && (path[strlen(path)-1] == '/' || path[strlen(path)-1] == '\\')) {
         sep[0] = 0;
     }
-    snprintf(chromepath, sizeof(chromepath), "%s%sChrome/Application", path, sep); //now: C:\Users\Jonas\AppData\Local\Google\Chrome\Application
+    snprintf(chromepath, sizeof(chromepath), "%s%sChrome/Application", path, sep); // now: C:\Users\Jonas\AppData\Local\Google\Chrome\Application
     free(path);
     file_MakeSlashesNative(chromepath);
 

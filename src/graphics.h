@@ -24,123 +24,125 @@
 #ifdef USE_GRAPHICS
 
 int graphics_AreGraphicsRunning();
-//Returns 1 if the graphics are open/active, otherwise 0.
+// Returns 1 if the graphics are open/active, otherwise 0.
 
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error);
-//Set or change graphics mode.
-//This can possibly cause all textures to become unloaded and reloaded,
-//so is a possibly very slow operation.
-//Renderer can be NULL (for any), "software", "opengl" or "direct3d".
-//If you want the best for your system, go for NULL.
+// Set or change graphics mode.
+// This can possibly cause all textures to become unloaded and reloaded,
+// so is a possibly very slow operation.
+// Renderer can be NULL (for any), "software", "opengl" or "direct3d".
+// If you want the best for your system, go for NULL.
 
 const char* graphics_GetCurrentRendererName();
-//Get the renderer currently used for the active graphics mode.
-//Returns NULL when no mode has been set.
+// Get the renderer currently used for the active graphics mode.
+// Returns NULL when no mode has been set.
 
 int graphics_Init(char** error);
 
 #ifdef WINDOWS
-HWND graphics_GetWindowHWND(); //get win32 HWND handle for the window
+HWND graphics_GetWindowHWND(); // get win32 HWND handle for the window
 #endif
 
 int graphics_PromptTextureLoading(const char* texture);
-//Prompt texture loading.
-//Returns 0 on fatal error (e.g. out of memory), 1 for operation in progress,
-//2 for image already loaded.
+// Prompt texture loading.
+// Returns 0 on fatal error (e.g. out of memory), 1 for operation in progress,
+// 2 for image already loaded.
 
 int graphics_LoadTextureInstantly(const char* texture);
-//Prompts texture loading and blocks until the texture is loaded or cancelled.
-//Returns 0 on any error (both fatal out of memory or image loading failure),
-//1 when the image has been loaded successfully.
+// Prompts texture loading and blocks until the texture is loaded or cancelled.
+// Returns 0 on any error (both fatal out of memory or image loading failure),
+// 1 when the image has been loaded successfully.
 
 void graphics_CheckTextureLoading(void (*callback)(int success, const char* texture));
-//Check texture loading state and get the newest callbacks.
-//For the callback, success will be 1 for images loaded successfully,
-//otherwise 0. texture will contain the texure's name.
+// Check texture loading state and get the newest callbacks.
+// For the callback, success will be 1 for images loaded successfully,
+// otherwise 0. texture will contain the texure's name.
 
 int graphics_GetNumberOfVideoModes();
-//Get the number of supported video modes (= the modes usable in fullscreen)
+// Get the number of supported video modes (= the modes usable in fullscreen)
 
 void graphics_GetVideoMode(int index, int* width, int* height);
-//Get the video mode at the given index (0..graphics_GetNumberOfVideoMode()-1)
+// Get the video mode at the given index (0..graphics_GetNumberOfVideoMode()-1)
 
 void graphics_GetDesktopVideoMode(int* x, int* y);
-//Get the current video mode of the desktop
+// Get the current video mode of the desktop
 
 void graphics_Close();
-//Close the graphics but keep them available for use
+// Close the graphics but keep them available for use
 
 void graphics_Quit();
-//Quit the graphics completely
+// Quit the graphics completely
 
 int graphics_IsFullscreen();
-//Return if the graphics are currently running at full screen. 1: yes, 0: no. Undefined result when no graphics mode set
+// Return if the graphics are currently running at full screen.
+// 1: yes, 0: no. Undefined result when no graphics mode set
 
 void graphics_MinimizeWindow();
-//Minimize the window
+// Minimize the window
 
 void graphics_StartFrame();
-//Clears the screen to prepare for the next frame.
+// Clears the screen to prepare for the next frame.
 
 int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue);
-//Draw a texture cropped. Returns 1 on success, 0 when there is no such texture.
+// Draw a texture cropped. Returns 1 on success, 0 when there is no such texture.
 
 int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue);
-//Draw a texture. Returns 1 on success, 0 when there is no such texture.
+// Draw a texture. Returns 1 on success, 0 when there is no such texture.
 
 void graphics_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a);
-//Draw a colored rectangle.
+// Draw a colored rectangle.
 
 void graphics_CompleteFrame();
-//Update the current drawing changes to screen.
-//Use this always after completing one frame.
+// Update the current drawing changes to screen.
+// Use this always after completing one frame.
 
 void graphics_UnloadTexture(const char* texname);
-//Unload the given texture if loaded currently. Does nothing if texture is currently being loaded!
+// Unload the given texture if loaded currently. Does nothing if texture is currently being loaded!
 
 int graphics_IsTextureLoaded(const char* name);
-//Check if a texture is loaded. 0: no, 1: operation in progress, 2: yes
+// Check if a texture is loaded. 0: no, 1: operation in progress, 2: yes
 
 int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigned int* height);
-//1 on success, 0 on error
+// 1 on success, 0 on error
 
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height);
-//1 on success, 0 on error (window not opened most likely)
+// 1 on success, 0 on error (window not opened most likely)
 
 const char* graphics_GetWindowTitle();
-//Return the current title of the window
+// Return the current title of the window
 
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background));
-//Check for events and return info about them through the provided callbacks
+// Check for events and return info about them through the provided callbacks
 
 void graphics_TransferTexturesFromHW();
-//Transfer textures from SDL, e.g. if app is in background
+// Transfer textures from SDL, e.g. if app is in background
 
 int graphics_TransferTexturesToHW();
-//Transfer textures back to SDL
+// Transfer textures back to SDL
 
 #ifdef ANDROID
 void graphics_ReopenForAndroid();
-//Reopen graphics and reupload textures. Required when coming back into foreground
+// Reopen graphics and reupload textures. Required when coming back into foreground
 #endif
 
 void graphics_TextureFromHW(struct graphicstexture* gt);
-//Push texture onto 3d accelerated hardware
+// Push texture onto 3d accelerated hardware
 
 int graphics_TextureToHW(struct graphicstexture* gt);
-//Pull texture from 3d accelerated hardware
+// Pull texture from 3d accelerated hardware
 
 void graphics_DestroyHWTexture(struct graphicstexture* gt);
-//Destroy the 3d texture (e.g. in preparation for free'ing the texture)
+// Destroy the 3d texture (e.g. in preparation for free'ing the texture)
 
 int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* prev);
-//Free a texture
+// Free a texture
 
 int graphics_HaveValidWindow();
-//Returns 1 if a window is open, otherwise 0
+// Returns 1 if a window is open, otherwise 0
 
-#else //ifdef USE_GRAPHICS
+#else // ifdef USE_GRAPHICS
 
 #define compiled_without_graphics "No graphics available - this binary was compiled with graphics (including null device) disabled"
 
-#endif //ifdef USE_GRAPHICS
+#endif // ifdef USE_GRAPHICS
+

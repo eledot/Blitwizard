@@ -34,7 +34,7 @@ struct audiosourceloop_internaldata {
     int sourceeof;
     int eof;
     int returnerroroneof;
-    
+
     int looping;
 };
 
@@ -53,7 +53,7 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
     if (idata->eof) {
         return -1;
     }
-    
+
     int rewinded = 0; //avoid endless rewind loops for empty sources
     unsigned int byteswritten = 0;
     while (bytes > 0) {
@@ -95,12 +95,12 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 
 static void audiosourceloop_Close(struct audiosource* source) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
-    
+
     //close the processed source
     if (idata->source) {
         idata->source->close(idata->source);
     }
-    
+
     //free all structs
     if (source->internaldata) {
         free(source->internaldata);
@@ -117,7 +117,7 @@ static void audiosourceloop_CloseMainthread(struct audiosource* source) {
         idata->source->closemainthread(idata->source);
         idata->source = NULL;
     }
-    
+
     audiosourceloop_CloseMainthread(source);
 }
 #endif
@@ -147,7 +147,7 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 #endif
         return NULL;
     }
-    
+
     //allocate internal data struct
     memset(a,0,sizeof(*a));
     a->internaldata = malloc(sizeof(struct audiosourceloop_internaldata));
@@ -160,14 +160,14 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 #endif
         return NULL;
     }
-    
+
     //remember various things
     struct audiosourceloop_internaldata* idata = a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->source = source;
     a->samplerate = source->samplerate;
     a->channels = source->channels;
-    
+
     //function pointers
     a->read = &audiosourceloop_Read;
     a->close = &audiosourceloop_Close;
@@ -175,6 +175,6 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
 #ifdef NOTHREADEDSDLRW
     a->closemainthread = &audiosourceloop_CloseMainthread;
 #endif
-    
+
     return a;
 }

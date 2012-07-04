@@ -23,7 +23,8 @@
 
 
 struct audiosource* audiosourceflac_Create(struct audiosource* filesource);
-//Take an audio source that returns encoded binary data (usually audiosourcefile)
-//and attempt to decode the data as FLAC audio.
-//If the file isn't understood by FLAC,
-//this creation function will simply return NULL.
+// Take an audio source that returns encoded binary data (usually
+// audiosourcefile) and attempt to decode the data as FLAC audio.
+// If the file isn't understood by FLAC, this creation function will
+// simply return NULL.
+

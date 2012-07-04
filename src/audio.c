@@ -113,9 +113,9 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
         *error = strdup(errbuf);
         return 0;
     }
-    
+
     SDL_AudioSpec fmt,actualfmt;
-    
+
     int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
     if (buffersize > 0) {
         if (buffersize < MINSOUNDBUFFERSIZE) {buffersize = MINSOUNDBUFFERSIZE;}
@@ -136,9 +136,9 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
     fmt.samples = custombuffersize;
     fmt.callback = audiocallback;
     fmt.userdata = NULL;
-    
+
     samplecallbackptr = samplecallback;
-        
+
     if (SDL_OpenAudio(&fmt, &actualfmt) < 0) {
         snprintf(errbuf,sizeof(errbuf),"Failed to open SDL audio: %s", SDL_GetError());
         errbuf[sizeof(errbuf)-1] = 0;
@@ -154,7 +154,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
         //SDL_AudioQuit();
         return 0;
     }
-    
+
     soundenabled = 1;
     SDL_PauseAudio(0);
     return 1;

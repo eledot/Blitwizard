@@ -408,7 +408,7 @@ int main(int argc, char** argv) {
     //This needs to be done at some point before we actually initialise audio
     audiomixer_Init();
 #endif
-    
+
     //check the provided path:
     char outofmem[] = "Out of memory";
     char* error;
@@ -439,7 +439,7 @@ int main(int argc, char** argv) {
         }
         script = filenamebuf;
     }
-    
+
     //check if we want to change directory to the provided script path:
     if (option_changedir) {
         char* p = file_GetAbsoluteDirectoryPathFromFilePath(script);
@@ -515,8 +515,8 @@ int main(int argc, char** argv) {
         main_Quit(1);
         return 1;
     }
-   
-    int checksystemwidetemplate = 1; 
+
+    int checksystemwidetemplate = 1;
     //see if there is a template directory & file:
     if (file_DoesFileExist(option_templatepath) && file_IsDirectory(option_templatepath)) {
         checksystemwidetemplate = 0;
@@ -569,7 +569,7 @@ int main(int argc, char** argv) {
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Executing lua start script...");
 #endif
-    
+
     //push command line arguments into script state:
     i = 0;
     int pushfailure = 0;
@@ -614,7 +614,7 @@ int main(int argc, char** argv) {
         main_Quit(1);
         return 1;
     }
-    
+
     //when graphics or audio is open, run the main loop
     int blitwizonstepworked = 0;
     int blitwizondrawworked = 0;

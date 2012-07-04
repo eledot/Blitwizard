@@ -49,7 +49,7 @@ static char wineversionbuf[] = "";
 static const char* osinfo_GetWineVersion() {
     if (strlen(wineversionbuf) > 0) {return wineversionbuf;}
 
-    return wineversionbuf;  
+    return wineversionbuf;
 }
 const char* osinfo_GetSystemName() {
     return staticwindowsbuf;
@@ -62,7 +62,7 @@ const char* osinfo_GetSystemVersion() {
     GetVersionEx(&osvi);
 
     char ntorwine[20] = "NT";
-    if (osinfo_DetectWine()) {strcpy(ntorwine, "Wine");}    
+    if (osinfo_DetectWine()) {strcpy(ntorwine, "Wine");}
 
     snprintf(versionbuf,sizeof(versionbuf),"%s/%d.%d",ntorwine,(int)osvi.dwMajorVersion,(int)osvi.dwMinorVersion);
     versionbuf[sizeof(versionbuf)-1] = 0;
@@ -124,7 +124,7 @@ static const char* osinfo_GetDistributionName() {
     }
     if (filecontains("/etc/SUSE-release", "SUSE")) {
         strcpy(distribuf, "SUSE");
-    }   
+    }
     if (file_DoesFileExist("/etc/debian_version")) {
         //check for derivates:
         if (filecontains("/etc/lsb-release", "Ubuntu")) {
@@ -158,7 +158,7 @@ const char* osinfo_GetSystemVersion() {
     Gestalt(gestaltSystemVersionMajor, &majorVersion);
     Gestalt(gestaltSystemVersionMinor, &minorVersion);
     Gestalt(gestaltSystemVersionBugFix, &bugfixVersion);
-    
+
     snprintf(versionbuf,sizeof(versionbuf),"%d.%d.%d",majorVersion,minorVersion,bugfixVersion);
     versionbuf[sizeof(versionbuf)-1] = 0;
     return versionbuf;
@@ -179,7 +179,7 @@ const char* osinfo_GetSystemVersion() {
 #ifdef ANDROID
     //Android:
     strcpy(versionbuf,"Unknown system version");
-    return versionbuf;  
+    return versionbuf;
 #endif
     //All others:
     strcpy(versionbuf,"Unknown system version");

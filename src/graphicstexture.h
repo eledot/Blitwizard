@@ -28,22 +28,23 @@
 #endif
 
 struct graphicstexture {
-    //basic info
+    // basic info
     char* name;
-    void* pixels; //NULL if not currently stored separately
+    void* pixels; // NULL if not currently stored separately
     unsigned int width,height;
-    //threaded PNG loading
+    // threaded PNG loading
     int autodelete;
     void* threadingptr;
-    //SDL info
-    HWTEX tex; //NULL if not loaded yet
+    // SDL info
+    HWTEX tex; // NULL if not loaded yet
 #ifdef SDLRW
     SDL_RWops* rwops;
 #endif
 
-    //pointer to next list element
+    // pointer to next list element
     struct graphicstexture* next;
-    //pointer to next hashmap bucket element
+    // pointer to next hashmap bucket element
     struct graphicstexture* hashbucketnext;
 
 };
+

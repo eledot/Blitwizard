@@ -21,31 +21,31 @@
 
 */
 
-//Run script:
+// Run script:
 
 int luastate_DoInitialFile(const char* file, int argcount, char** error);
 
-//Misc:
+// Misc:
 
 char* luastate_GetPreferredAudioBackend();
 int luastate_GetWantFFmpeg();
 void luastate_PrintStackDebug();
 void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)(void*));
 void luastate_GCCollect();
-void* luastate_GetStatePtr(); //pointer of the lua state
-void* internaltracebackfunc(); //function pointer of traceback function
+void* luastate_GetStatePtr(); // pointer of the lua state
+void* internaltracebackfunc(); // function pointer of traceback function
 
-//Call functions:
+// Call functions:
 
-//Arguments:
-int luastate_PushFunctionArgumentToMainstate_Bool(int yesno); //1: success, 0: failure (out of memory)
-int luastate_PushFunctionArgumentToMainstate_String(const char* string); //1: success, 0: failure (out of memory)
-int luastate_PushFunctionArgumentToMainstate_Double(double i); //1: success, 0: failure (out of memory)
-//Function call:
-int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetablelookup, int allownil, char** error, int* functiondidnotexist); //1: success, 0: failure
-//*error will be either changed to NULL or to an error string - NULL means most likely out of memory)
-//allownil set to 1 will only report failure when the function existed and ran into an error, if it simply didn't exist at all it will report sucess.
-//If allownil is 1 and functiondidnotexist is not NULL, *functiondidnotexist will be set to 1 if the function did not exist (and success was reported). If the function actually existed (no matter whether the call succeeded or not), it will be left untouched
+// Arguments:
+int luastate_PushFunctionArgumentToMainstate_Bool(int yesno); // 1: success, 0: failure (out of memory)
+int luastate_PushFunctionArgumentToMainstate_String(const char* string); // 1: success, 0: failure (out of memory)
+int luastate_PushFunctionArgumentToMainstate_Double(double i); // 1: success, 0: failure (out of memory)
+// Function call:
+int luastate_CallFunctionInMainstate(const char* function, int args, int recursivetablelookup, int allownil, char** error, int* functiondidnotexist); // 1: success, 0: failure
+// *error will be either changed to NULL or to an error string - NULL means most likely out of memory)
+// allownil set to 1 will only report failure when the function existed and ran into an error, if it simply didn't exist at all it will report sucess.
+// If allownil is 1 and functiondidnotexist is not NULL, *functiondidnotexist will be set to 1 if the function did not exist (and success was reported). If the function actually existed (no matter whether the call succeeded or not), it will be left untouched
 
 #define IDREF_MAGIC 373482
 
@@ -60,3 +60,4 @@ struct luaidref {
         void* ptr;
     } ref;
 };
+

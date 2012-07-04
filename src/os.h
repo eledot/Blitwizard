@@ -64,40 +64,38 @@
 // Set SDLRW for Android:
 #ifdef ANDROID
 #define SDLRW
-//SDL bug with Android SDL_RWops threading:
-#define NOTHREADEDSDLRW
 #endif
 
 // Debugging the Android/SDL_RWops approach on Linux:
-//#define SDLRW
-//#define NOTHREADEDSDLRW
+// #define SDLRW
 
-//Force S16 audio on Android:
+// Force S16 audio on Android:
 #ifdef ANDROID
 #define FORCES16AUDIO
 #endif
 
-//We want to know if we have Unix for sockets and such:
+// We want to know if we have Unix for sockets and such:
 #ifndef WINDOWS
 #define UNIX
 #endif
 
-//See if we have SDL:
+// See if we have SDL:
 #if (defined(USE_SDL_AUDIO) || defined(USE_SDL_GRAPHICS))
 #define HAVE_SDL
 #endif
 
-//Detect 32/64bit compilation (doesn't necessarily apply to system's 32/64bit):
+// Detect 32/64bit compilation (doesn't necessarily apply to system's 32/64bit):
 #ifdef WINDOWS
 #if defined(_WIN64)
 #define _64BIT
 #endif
 #else
-//gcc check:
+// gcc check:
 #if (defined(_LP64) || defined(__LP64__))
 #define _64BIT
 #endif
 #endif
 
 
-#endif //ifndef _BLITWIZARD_OS_H
+#endif // ifndef _BLITWIZARD_OS_H
+

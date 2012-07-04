@@ -23,17 +23,18 @@
 
 
 uint64_t time_GetMilliseconds();
-//Timestamp derived from SDL_GetTicks(),
-//but deals with wraps (SDL_GetTicks() is originally
-//an uint32_t).
+// Timestamp derived from SDL_GetTicks(),
+// but deals with wraps (SDL_GetTicks() is originally
+// an uint32_t).
 //
-//When a wrap happens, it is detected and the time is
-//forced to proceed from the last returned value + 1.
+// When a wrap happens, it is detected and the time is
+// forced to proceed from the last returned value + 1.
 //
-//This results in an inaccurate time returned when
-//a wrap happens relative to the previous time stamp
-//returned, but the time will never wrap/suddenly
-//jump backwards until uint64_t is exceeded.
+// This results in an inaccurate time returned when
+//  a wrap happens relative to the previous time stamp
+// returned, but the time will never wrap/suddenly
+// jump backwards until uint64_t is exceeded.
 
 void time_Sleep(uint32_t milliseconds);
-//Sleep for a specified amount of time.
+// Sleep for a specified amount of time.
+

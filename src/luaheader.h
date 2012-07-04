@@ -35,5 +35,6 @@
 #include "lualib.h"
 #endif
 
-#endif //ifndef LUAHEADER_H_
+#endif // ifndef LUAHEADER_H_
+
 

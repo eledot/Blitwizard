@@ -50,7 +50,7 @@ void win32console_Launch() {
 #endif
     consoleopen = 1;
 
-    //now print all the log that is still kept in memory:
+    // now print all the log that is still kept in memory:
     if (memorylogbuf) {
         printf("%s", memorylogbuf);
     }
@@ -65,3 +65,4 @@ void win32console_Close() {
 #endif
     consoleopen = 0;
 }
+

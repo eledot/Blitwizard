@@ -61,7 +61,7 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
         //we got a collision callback for this object -> call it
         lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc());
         lua_insert(l, -2);
-        
+
         //stack now looks like this: <traceback> <callback>
 
         //create a new physics object ref on the stack which
@@ -72,7 +72,7 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
         ref->magic = IDREF_MAGIC;
         ref->type = IDREF_PHYSICS;
         ref->ref.ptr = otherobj;
-        
+
         //push other information:
         lua_pushnumber(l, x);
         lua_pushnumber(l, y);
@@ -93,7 +93,7 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
             if (!lua_toboolean(l, -1)) {
                 *enabled = 0;
             }
-     
+
             //pop error handling function and return value:
             lua_pop(l, 2);
         }
@@ -613,7 +613,7 @@ int luafuncs_setCollisionCallback(lua_State* l) {
 
     if (lua_gettop(l) > 2) {
         lua_pop(l, lua_gettop(l)-2);
-    }    
+    }
 
     char funcname[200];
     snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->object);

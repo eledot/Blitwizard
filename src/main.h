@@ -25,10 +25,4 @@ void main_InitAudio();
 void main_Quit(int returncode);
 void* main_DefaultPhysicsPtr();
 void main_SetTimestep(int timestep);
-#ifdef NOTHREADEDSDLRW
-//Used to work around http://bugzilla.libsdl.org/show_bug.cgi?id=1422
-void main_NoThreadedRWopsClose(void* rwops);
-void* main_NoThreadedRWopsOpen(const char* path);
-int main_NoThreadedRWopsRead(void* rwops, void* buffer, size_t size, unsigned int bytes);
-int main_ProcessNoThreadedReading();
-#endif
+

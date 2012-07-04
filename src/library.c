@@ -222,7 +222,7 @@ void* library_LoadSearch(const char* name) {
         return ptr;
     }
 #endif
-   
+
     //For Mac OS X/Windows, we will attempt to obtain FFmpeg from Chrome or Steam:
 #if defined(WINDOWS) || defined(MAC)
     if (
@@ -284,7 +284,7 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
                 }else{
                     //Now we have the final dll path:
                     snprintf(pathbuf, sizeof(pathbuf), "%s%s%s%s%s", chromepath, sep, versionfolder, sep2, p);
-                    free(p); 
+                    free(p);
                 }
 #endif
 

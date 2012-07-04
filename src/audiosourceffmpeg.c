@@ -609,7 +609,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
                 }
             }
         }else{
-            //EOF or error: 
+            //EOF or error:
             idata->packetseof = 1;
         }
     }
