@@ -38,7 +38,7 @@
 
 //physics callback we will need later when setting up the physics simulation
 struct physicsobject;
-void luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
+int luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
 
 int wantquit = 0; //set to 1 if there was a quit event
 int suppressfurthererrors = 0; //a critical error was shown, don't show more
