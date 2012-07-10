@@ -27,9 +27,15 @@
 #include <string.h>
 
 int isipoctetchar_check(char c, int type) {
-    if (c >= '0' && c <= '9') {return 1;}
-    if (c >= 'a' && c <= 'f' && type == 1) {return 1;}
-    if (c >= 'A' && c <= 'F' && type == 1) {return 1;}
+    if (c >= '0' && c <= '9') {
+        return 1;
+    }
+    if (c >= 'a' && c <= 'f' && type == 1) {
+        return 1;
+    }
+    if (c >= 'A' && c <= 'F' && type == 1) {
+        return 1;
+    }
     return 0;
 }
 int isip_check(const char* str, int type) {
@@ -49,16 +55,30 @@ int isip_check(const char* str, int type) {
         if (!isipoctetchar_check(str[r],type)) { // are we still in an octet? probably not:
             if (str[r] == colonchar && !previousiscolon) { // check if it's a proper separator ending an octet
                 if (r == 0) { // IPv6: we *need* to be at a double colon. a single colon at start is forbidden
-                    if (len < 2) {return 0;}
-                    if (str[r+1] != colonchar) {return 0;} // we require a double colon!
+                    if (len < 2) {
+                        return 0;
+                    }
+                    if (str[r+1] != colonchar) {
+                        // we require a double colon
+                        return 0;
+                    }
                     previousiscolon = 1;
                     octet = 1;r++;continue;
                 }
                 octet++;octetlen = 0;
-                if (octet > 4 && type != 1) {return 0;} // IPv4: too many octets
-                if (octet > 8 && type == 1 && r > 0) {return 0;} // IPv6: too many octets
-                if (type != 1) { // IPv4: value may be only 0-255
-                    if (atoi(val) > 255) {return 0;}
+                if (octet > 4 && type != 1) {
+                    // IPv4: too many octets
+                    return 0;
+                }
+                if (octet > 8 && type == 1 && r > 0) {
+                    // IPv6: too many octets
+                    return 0;
+                }
+                if (type != 1) {
+                    // IPv4: value may be only 0-255
+                    if (atoi(val) > 255) {
+                        return 0;
+                    }
                     strcpy(val,"");
                 }
                 previousiscolon = 1;
@@ -74,8 +94,12 @@ int isip_check(const char* str, int type) {
         }else{
             previousiscolon = 0;
             octetlen++;
-            if (octetlen > 3 && type != 1) {return 0;}
-            if (octetlen > 4 && type == 1) {return 0;}
+            if (octetlen > 3 && type != 1) {
+                return 0;
+            }
+            if (octetlen > 4 && type == 1) {
+                return 0;
+            }
             if (type != 1) {
                 val[strlen(val)+1] = 0;
                 val[strlen(val)] = str[r];
@@ -90,11 +114,21 @@ int isip_check(const char* str, int type) {
         }
     }
     if (type != 1) {
-        if (atoi(val) > 255) {return 0;}
+        if (atoi(val) > 255) {
+            return 0;
+        }
     }
-    if (octetlen <= 0) {octet--;}
-    if (octet < 3 && type != 1) {return 0;} // too few colons for IPv4
-    if (octet < 8 && type == 1 && (doublecolon == 0 || octet <= 0)) {return 0;} // not enough colons for IPv6 and no double colon
+    if (octetlen <= 0) {
+        octet--;
+    }
+    if (octet < 3 && type != 1) {
+        // too few colons for IPv4
+        return 0;
+    }
+    if (octet < 8 && type == 1 && (doublecolon == 0 || octet <= 0)) {
+        // not enough colons for IPv6 and no double colon
+        return 0;
+    }
     return 1;
 }
 int isipv4ip(const char* str) {

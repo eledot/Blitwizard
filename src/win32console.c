@@ -29,6 +29,7 @@
 #include <fcntl.h>
 #endif
 
+
 #include "win32console.h"
 #include "logging.h"
 
@@ -36,7 +37,9 @@ static int consoleopen = 0;
 
 void win32console_Launch() {
 #ifdef WINDOWS
-    if (consoleopen) {return;}
+    if (consoleopen) {
+        return;
+    }
 
     AllocConsole();
 
@@ -58,7 +61,9 @@ void win32console_Launch() {
 
 void win32console_Close() {
 #ifdef WINDOWS
-    if (!consoleopen) {return;}
+    if (!consoleopen) {
+        return;
+    }
 
     fclose(stdout);
     FreeConsole();

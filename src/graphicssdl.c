@@ -58,7 +58,9 @@ static int sdlvideoinit = 0;
 extern int graphicsvisible;
 
 int graphics_HaveValidWindow() {
-    if (mainwindow) {return 1;}
+    if (mainwindow) {
+        return 1;
+    }
     return 0;
 }
 
@@ -101,7 +103,9 @@ int graphics_Init(char** error) {
 }
 
 int graphics_TextureToHW(struct graphicstexture* gt) {
-    if (gt->tex || gt->threadingptr || !gt->name) {return 1;}
+    if (gt->tex || gt->threadingptr || !gt->name) {
+        return 1;
+    }
 
     // create texture
     SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
@@ -140,7 +144,9 @@ int graphics_TextureToHW(struct graphicstexture* gt) {
 }
 
 void graphics_TextureFromHW(struct graphicstexture* gt) {
-    if (!gt->tex || gt->threadingptr || !gt->name) {return;}
+    if (!gt->tex || gt->threadingptr || !gt->name) {
+        return;
+    }
 
     if (!gt->pixels) {
         gt->pixels = malloc(gt->width * gt->height * 4);
@@ -194,8 +200,12 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
         return 0;
     }
 
-    if (alpha <= 0) {return 1;}
-    if (alpha > 1) {alpha = 1;}
+    if (alpha <= 0) {
+        return 1;
+    }
+    if (alpha > 1) {
+        alpha = 1;
+    }
 
     // calculate source dimensions
     SDL_Rect src,dest;
@@ -229,12 +239,24 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
     SDL_Point p;
     p.x = (int)((double)rotationcenterx * ((double)drawwidth / src.w));
     p.y = (int)((double)rotationcentery * ((double)drawheight / src.h));
-    if (red > 1) {red = 1;}
-    if (red < 0) {red = 0;}
-    if (blue > 1) {blue = 1;}
-    if (blue < 0) {blue = 0;}
-    if (green > 1) {green = 1;}
-    if (green < 0) {green = 0;}
+    if (red > 1) {
+        red = 1;
+    }
+    if (red < 0) {
+        red = 0;
+    }
+    if (blue > 1) {
+        blue = 1;
+    }
+    if (blue < 0) {
+        blue = 0;
+    }
+    if (green > 1) {
+        green = 1;
+    }
+    if (green < 0) {
+        green = 0;
+    }
     SDL_SetTextureColorMod(gt->tex, (red * 255.0f), (green * 255.0f), (blue * 255.0f));
     if (horiflipped) {
         SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_HORIZONTAL);
@@ -248,7 +270,9 @@ int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
     if (mainwindow) {
         int w,h;
         SDL_GetWindowSize(mainwindow, &w,&h);
-        if (w < 0 || h < 0) {return 0;}
+        if (w < 0 || h < 0) {
+            return 0;
+        }
         *width = w;
         *height = h;
         return 1;
@@ -287,7 +311,9 @@ void graphics_ReopenForAndroid() {
     char renderer[512];
     const char* p = graphics_GetCurrentRendererName();
     int len = strlen(p)+1;
-    if (len >= sizeof(renderer)) {len = sizeof(renderer)-1;}
+    if (len >= sizeof(renderer)) {
+        len = sizeof(renderer)-1;
+    }
     memcpy(renderer, p, len);
     renderer[sizeof(renderer)-1] = 0;
 
@@ -295,7 +321,9 @@ void graphics_ReopenForAndroid() {
     char title[512];
     p = graphics_GetWindowTitle();
     len = strlen(p)+1;
-    if (len >= sizeof(title)) {len = sizeof(title)-1;}
+    if (len >= sizeof(title)) {
+        len = sizeof(title)-1;
+    }
     memcpy(title, p, len);
     title[sizeof(title)-1] = 0;
 
@@ -312,7 +340,9 @@ void graphics_ReopenForAndroid() {
 #endif
 
 const char* graphics_GetWindowTitle() {
-    if (!mainrenderer || !mainwindow) {return NULL;}
+    if (!mainrenderer || !mainwindow) {
+        return NULL;
+    }
     return SDL_GetWindowTitle(mainwindow);
 }
 
@@ -330,7 +360,9 @@ SDL_RendererInfo info;
 static char openglstaticname[] = "opengl";
 #endif
 const char* graphics_GetCurrentRendererName() {
-    if (!mainrenderer) {return NULL;}
+    if (!mainrenderer) {
+        return NULL;
+    }
     SDL_GetRendererInfo(mainrenderer, &info);
 #if defined(ANDROID)
     if (strcasecmp(info.name, "opengles") == 0) {
@@ -359,14 +391,20 @@ static void graphics_ReadVideoModes() {
 
     // allocate space for video modes
     int d = SDL_GetNumVideoDisplays();
-    if (d < 1) {return;}
+    if (d < 1) {
+        return;
+    }
     int c = SDL_GetNumDisplayModes(0);
     int i = 0;
     videomodesx = malloc((c+1)*sizeof(int));
     videomodesy = malloc((c+1)*sizeof(int));
     if (!videomodesx || !videomodesy) {
-        if (videomodesx) {free(videomodesx);}
-        if (videomodesy) {free(videomodesy);}
+        if (videomodesx) {
+            free(videomodesx);
+        }
+        if (videomodesy) {
+            free(videomodesy);
+        }
         return;
     }
     memset(videomodesx, 0, (c+1) * sizeof(int));
@@ -388,7 +426,10 @@ static void graphics_ReadVideoModes() {
                     }
                     j++;
                 }
-                if (isduplicate) {i++;continue;}
+                if (isduplicate) {
+                    i++;
+                    continue;
+                }
 
                 // add mode
                 lastusedindex++;
@@ -404,7 +445,9 @@ int graphics_GetNumberOfVideoModes() {
     char* error;
     if (!graphics_InitVideoSubsystem(&error)) {
         printwarning("Failed to initialise video subsystem: %s", error);
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
         return 0;
     }
     graphics_ReadVideoModes();
@@ -427,7 +470,9 @@ void graphics_GetDesktopVideoMode(int* x, int* y) {
     *y = 0;
     if (!graphics_InitVideoSubsystem(&error)) {
         printwarning("Failed to initialise video subsystem: %s", error);
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
         return;
     }
     SDL_DisplayMode m;
@@ -440,7 +485,9 @@ void graphics_GetDesktopVideoMode(int* x, int* y) {
 }
 
 void graphics_MinimizeWindow() {
-    if (!mainwindow) {return;}
+    if (!mainwindow) {
+        return;
+    }
     SDL_MinimizeWindow(mainwindow);
 }
 
@@ -452,7 +499,9 @@ int graphics_IsFullscreen() {
 }
 
 void graphics_ToggleFullscreen() {
-    if (!mainwindow) {return;}
+    if (!mainwindow) {
+        return;
+    }
     SDL_bool wantfull = SDL_TRUE;
     if (mainwindowfullscreen) {
         wantfull = SDL_FALSE;
@@ -468,7 +517,9 @@ void graphics_ToggleFullscreen() {
 
 #ifdef WINDOWS
 HWND graphics_GetWindowHWND() {
-    if (!mainwindow) {return NULL;}
+    if (!mainwindow) {
+        return NULL;
+    }
     SDL_SysWMinfo info;
     SDL_VERSION(&info.version);
     if (SDL_GetWindowWMInfo(mainwindow, &info)) {
@@ -706,7 +757,9 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 #endif
         if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
             int release = 0;
-            if (e.type == SDL_MOUSEBUTTONUP) {release = 1;}
+            if (e.type == SDL_MOUSEBUTTONUP) {
+                release = 1;
+            }
             int button = e.button.button;
             mousebuttonevent(button, release, e.button.x, e.button.y);
         }
@@ -751,7 +804,9 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
         }
         if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
             int release = 0;
-            if (e.type == SDL_KEYUP) {release = 1;}
+            if (e.type == SDL_KEYUP) {
+                release = 1;
+            }
             char keybuf[30] = "";
             if (e.key.keysym.sym >= SDLK_F1 && e.key.keysym.sym <= SDLK_F12) {
                 sprintf(keybuf, "f%d", (e.key.keysym.sym+1)-SDLK_F1);

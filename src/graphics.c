@@ -65,7 +65,9 @@ int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int d
 
 int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigned int* height) {
     struct graphicstexture* gt = graphicstexturelist_GetTextureByName(name);
-    if (!gt || gt->threadingptr) {return 0;}
+    if (!gt || gt->threadingptr) {
+        return 0;
+    }
 
     *width = gt->width;
     *height = gt->height;

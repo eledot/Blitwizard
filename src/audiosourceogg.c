@@ -109,7 +109,9 @@ static size_t vorbismemoryreader(void *ptr, size_t size, size_t nmemb, void *dat
 
         // see how many bytes we have now
         unsigned int amount = size * nmemb;
-        if (amount > idata->fetchedbytes) {amount = idata->fetchedbytes;}
+        if (amount > idata->fetchedbytes) {
+            amount = idata->fetchedbytes;
+        }
 
         // is it sufficient for a chunk?
         if (amount < size) {
@@ -309,7 +311,9 @@ static void audiosourceogg_Close(struct audiosource* source) {
 }
 
 struct audiosource* audiosourceogg_Create(struct audiosource* filesource) {
-    if (!filesource) {return NULL;}
+    if (!filesource) {
+        return NULL;
+    }
     // main data structure
     struct audiosource* a = malloc(sizeof(*a));
     if (!a) {

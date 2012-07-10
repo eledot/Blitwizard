@@ -228,10 +228,18 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
 
 void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float vol, float pan) {
     struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
-    if (pan < -1) {pan = -1;}
-    if (pan > 1) {pan = 1;}
-    if (vol < 0) {vol = 0;}
-    if (vol > 1) {vol = 1;}
+    if (pan < -1) {
+        pan = -1;
+    }
+    if (pan > 1) {
+        pan = 1;
+    }
+    if (vol < 0) {
+        vol = 0;
+    }
+    if (vol > 1) {
+        vol = 1;
+    }
     idata->pan = pan;
     idata->vol = vol;
 
@@ -249,8 +257,12 @@ void audiosourcefadepanvol_StartFade(struct audiosource* source, float seconds, 
         idata->fadesampleend = 0;
         return;
     }
-    if (targetvol < 0) {targetvol = 0;}
-    if (targetvol > 1) {targetvol = 1;}
+    if (targetvol < 0) {
+        targetvol = 0;
+    }
+    if (targetvol > 1) {
+        targetvol = 1;
+    }
 
     idata->terminateafterfade = terminate;
     idata->fadevaluestart = idata->vol;

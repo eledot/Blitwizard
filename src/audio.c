@@ -39,13 +39,17 @@ static int soundenabled = 0;
 
 void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
     memset(stream, 0, (size_t)len);
-    if (!samplecallbackptr) {return;}
+    if (!samplecallbackptr) {
+        return;
+    }
     SDL_MixAudio(stream, samplecallbackptr((unsigned int)len), (unsigned int)len, SDL_MIX_MAXVOLUME);
     // memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
 }
 
 const char* audio_GetCurrentBackendName() {
-    if (!soundenabled) {return NULL;}
+    if (!soundenabled) {
+        return NULL;
+    }
     return SDL_GetCurrentAudioDriver();
 }
 
@@ -106,7 +110,9 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 #endif
 #endif
     const char* b = preferredbackend;
-    if (strlen(b) <= 0) {b = NULL;}
+    if (strlen(b) <= 0) {
+        b = NULL;
+    }
     if (SDL_AudioInit(b) < 0) {
         snprintf(errbuf,sizeof(errbuf),"Failed to initialize SDL audio: %s", SDL_GetError());
         errbuf[sizeof(errbuf)-1] = 0;
@@ -118,7 +124,9 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
 
     int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
     if (buffersize > 0) {
-        if (buffersize < MINSOUNDBUFFERSIZE) {buffersize = MINSOUNDBUFFERSIZE;}
+        if (buffersize < MINSOUNDBUFFERSIZE) {
+            buffersize = MINSOUNDBUFFERSIZE;
+        }
         if (buffersize > MAXSOUNDBUFFERSIZE) {
             buffersize = MAXSOUNDBUFFERSIZE;
         }

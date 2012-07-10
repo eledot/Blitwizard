@@ -47,7 +47,9 @@ static int osinfo_DetectWine() {
 }
 static char wineversionbuf[] = "";
 static const char* osinfo_GetWineVersion() {
-    if (strlen(wineversionbuf) > 0) {return wineversionbuf;}
+    if (strlen(wineversionbuf) > 0) {
+        return wineversionbuf;
+    }
 
     return wineversionbuf;
 }
@@ -55,14 +57,18 @@ const char* osinfo_GetSystemName() {
     return staticwindowsbuf;
 }
 const char* osinfo_GetSystemVersion() {
-    if (strlen(versionbuf) > 0) {return versionbuf;}
+    if (strlen(versionbuf) > 0) {
+        return versionbuf;
+    }
     OSVERSIONINFO osvi;
     memset(&osvi, 0, sizeof(OSVERSIONINFO));
     osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
     GetVersionEx(&osvi);
 
     char ntorwine[20] = "NT";
-    if (osinfo_DetectWine()) {strcpy(ntorwine, "Wine");}
+    if (osinfo_DetectWine()) {
+        strcpy(ntorwine, "Wine");
+    }
 
     snprintf(versionbuf,sizeof(versionbuf),"%s/%d.%d",ntorwine,(int)osvi.dwMajorVersion,(int)osvi.dwMinorVersion);
     versionbuf[sizeof(versionbuf)-1] = 0;
@@ -89,7 +95,9 @@ int filecontains(const char* file, const char* name) {
                 i = (int)sizeof(filecontents)-1;
             }
             filecontents[i] = 0;
-            if (i < (int)strlen(name)) {return 0;}
+            if (i < (int)strlen(name)) {
+                return 0;
+            }
             int j = 0;
             while (j < i-(int)strlen(name)) {
                 int r = j;
@@ -100,7 +108,9 @@ int filecontains(const char* file, const char* name) {
                     }
                     r++;
                 }
-                if (matched) {break;}
+                if (matched) {
+                    break;
+                }
                 j++;
             }
             return 1;
@@ -110,7 +120,9 @@ int filecontains(const char* file, const char* name) {
 }
 static char distribuf[64] = "";
 static const char* osinfo_GetDistributionName() {
-    if (strlen(distribuf) > 0) {return distribuf;}
+    if (strlen(distribuf) > 0) {
+        return distribuf;
+    }
     if (file_DoesFileExist("/etc/redhat-release")) {
         if (filecontains("/etc/redhat-release", "Red Hat")) {
             strcpy(distribuf, "Red Hat");
@@ -150,7 +162,9 @@ static const char* osinfo_GetDistributionName() {
 
 const char* osinfo_GetSystemVersion() {
     // print out detailed system version
-    if (strlen(versionbuf) > 0) {return versionbuf;}
+    if (strlen(versionbuf) > 0) {
+        return versionbuf;
+    }
 #ifdef MAC
     // Mac OS X:
     SInt32 majorVersion,minorVersion,bugfixVersion;
@@ -188,7 +202,9 @@ const char* osinfo_GetSystemVersion() {
 
 static char osbuf[64] = "";
 const char* osinfo_GetSystemName() {
-    if (strlen(osbuf) > 0) {return osbuf;}
+    if (strlen(osbuf) > 0) {
+        return osbuf;
+    }
 #ifdef MAC
     strcpy(osbuf, "Mac OS X");
 #endif

@@ -79,7 +79,9 @@ void* resolvethread(void* data) {
     if (i->type == REQUESTTYPE_LOOKUP) {
         i->result = malloc(IPMAXLEN+1);
         int iptype = IPTYPE_IPV4;
-        if (i->wantipv6 == 1) {iptype = IPTYPE_IPV6;}
+        if (i->wantipv6 == 1) {
+            iptype = IPTYPE_IPV6;
+        }
         if (!so_ResolveBlocking(i->requestvalue, iptype, i->result, IPMAXLEN+1)) {
             free(i->result);i->result = NULL;
         }
@@ -99,11 +101,16 @@ void* hostresolv_internal_NewRequest(int type, const char* requestvalue, int wan
     struct requestinfo i;
     memset(&i,0,sizeof(i));
     i.requestvalue = malloc(strlen(requestvalue)+1);
-    if (!i.requestvalue) {return NULL;}
+    if (!i.requestvalue) {
+        return NULL;
+    }
     strcpy(i.requestvalue, requestvalue);
     i.type = type;
     void* entry = malloc(sizeof(i));
-    if (!entry) {free(i.requestvalue);return NULL;}
+    if (!entry) {
+        free(i.requestvalue);
+        return NULL;
+    }
     memcpy(entry, &i, sizeof(i));
     // now fire off our thread
     struct requestinfo* ri = entry;
@@ -147,7 +154,9 @@ void hostresolv_CleanCancelled() {
     }
 }
 int hostresolv_GetRequestStatus(void* handle) {
-    if (!handle) {return RESOLVESTATUS_FAILURE;}
+    if (!handle) {
+        return RESOLVESTATUS_FAILURE;
+    }
     struct requestinfo* i = handle;
 #ifdef WINDOWS
     if (WaitForSingleObject(i->threadhandle, 0) == WAIT_OBJECT_0) {
@@ -168,16 +177,24 @@ int hostresolv_GetRequestStatus(void* handle) {
 }
 const char* hostresolv_GetRequestResult(void* handle) {
     hostresolv_CleanCancelled();
-    if (!handle) {return NULL;}
-    if (hostresolv_GetRequestStatus(handle) == RESOLVESTATUS_PENDING) {return NULL;}
+    if (!handle) {
+        return NULL;
+    }
+    if (hostresolv_GetRequestStatus(handle) == RESOLVESTATUS_PENDING) {
+        return NULL;
+    }
     struct requestinfo* i = handle;
     return i->result;
 }
 void hostresolv_FreeRequest(void* handle) {
-    if (!handle) {return;}
+    if (!handle) {
+        return;
+    }
     struct requestinfo* i = handle;
     free(i->requestvalue);
-    if (i->result) {free(i->result);}
+    if (i->result) {
+        free(i->result);
+    }
 #ifdef WINDOWS
     CloseHandle(i->threadhandle);
 #else
@@ -186,7 +203,9 @@ void hostresolv_FreeRequest(void* handle) {
     free(handle);
 }
 void hostresolv_CancelRequest(void* handle) {
-    if (!handle) {return;}
+    if (!handle) {
+        return;
+    }
     int state = hostresolv_GetRequestStatus(handle);
     if (state != RESOLVESTATUS_PENDING) {
         hostresolv_FreeRequest(handle);

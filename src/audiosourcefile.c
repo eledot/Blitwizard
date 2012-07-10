@@ -101,7 +101,9 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 
 static void audiosourcefile_Close(struct audiosource* source) {
     struct audiosourcefile_internaldata* idata = source->internaldata;
-    if (!idata) {return;}
+    if (!idata) {
+        return;
+    }
     // close file we might have opened
 #ifdef SDLRW
     if (idata->file) {

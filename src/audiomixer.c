@@ -119,7 +119,9 @@ static int audiomixer_GetFreeChannelSlot(int priority) {
 }
 
 static int audiomixer_GetChannelSlotById(int id) {
-    if (id <= 0) {return -1;}
+    if (id <= 0) {
+        return -1;
+    }
     int i = 0;
     while (i < MAXCHANNELS) {
         if (channels[i].id == id && channels[i].mixsource) {
@@ -363,7 +365,9 @@ void* audiomixer_GetBuffer(unsigned int len) { // SOUND THREAD
     }
 
     if (streambuflen != len && (streambuflen < len || streambuflen > len * 2)) {
-        if (streambuf) {free(streambuf);}
+        if (streambuf) {
+            free(streambuf);
+        }
         streambuf = malloc(len);
         streambuflen = len;
     }
@@ -379,7 +383,9 @@ void* audiomixer_GetBuffer(unsigned int len) { // SOUND THREAD
         if (amount > filledbytes) {
             amount = filledbytes;
         }
-        if (amount == 0) {break;}
+        if (amount == 0) {
+            break;
+        }
 
         // copy the amount of bytes we have
         memcpy(p, mixbuf, amount);

@@ -67,7 +67,9 @@ int TIMESTEP = 16;
 int MAXLOGICITERATIONS = 50; // 50 * 16 = 800ms
 
 void main_SetTimestep(int timestep) {
-    if (timestep < 16) {timestep = 16;}
+    if (timestep < 16) {
+        timestep = 16;
+    }
     TIMESTEP = timestep;
     MAXLOGICITERATIONS = 800 / timestep; // never do logic for longer than 800ms
     if (MAXLOGICITERATIONS < 2) {
@@ -102,7 +104,9 @@ int simulateaudio = 0;
 int audioinitialised = 0;
 void main_InitAudio() {
 #ifdef USE_AUDIO
-    if (audioinitialised) {return;}
+    if (audioinitialised) {
+        return;
+    }
     audioinitialised = 1;
 
     // get audio backend
@@ -124,7 +128,9 @@ void main_InitAudio() {
     s16mixmode = 0;
 #ifndef FORCES16AUDIO
     if (!audio_Init(&audiomixer_GetBuffer, 0, p, 0, &error)) {
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
 #endif
         // try 16bit now
         s16mixmode = 1;
@@ -158,7 +164,9 @@ static void quitevent() {
     char* error;
     if (!luastate_CallFunctionInMainstate("blitwiz.on_close", 0, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_close: %s",error);
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
         fatalscripterror();
         return;
     }
@@ -190,7 +198,9 @@ static void mousebuttonevent(int button, int release, int x, int y) {
     }
     if (!luastate_CallFunctionInMainstate(funcname, 3, 1, 1, &error, NULL)) {
         printerror("Error when calling %s: %s", funcname, error);
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
         fatalscripterror();
         main_Quit(1);
         return;
@@ -212,7 +222,9 @@ static void mousemoveevent(int x, int y) {
     }
     if (!luastate_CallFunctionInMainstate("blitwiz.on_mousemove", 2, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_mousemove: %s", error);
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
         fatalscripterror();
         main_Quit(1);
         return;
@@ -222,7 +234,9 @@ static void keyboardevent(const char* button, int release) {
     char* error;
     char onkeyup[] = "blitwiz.on_keyup";
     const char* funcname = "blitwiz.on_keydown";
-    if (release) {funcname = onkeyup;}
+    if (release) {
+        funcname = onkeyup;
+    }
     if (!luastate_PushFunctionArgumentToMainstate_String(button)) {
         printerror("Error when pushing func args to %s", funcname);
         fatalscripterror();
@@ -231,7 +245,9 @@ static void keyboardevent(const char* button, int release) {
     }
     if (!luastate_CallFunctionInMainstate(funcname, 1, 1, 1, &error, NULL)) {
         printerror("Error when calling %s: %s", funcname, error);
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
         fatalscripterror();
         main_Quit(1);
         return;
@@ -246,7 +262,9 @@ static void textevent(const char* text) {
     }
     if (!luastate_CallFunctionInMainstate("blitwiz.on_text", 1, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_text: %s", error);
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
         fatalscripterror();
         return;
     }
@@ -280,7 +298,9 @@ static void imgloaded(int success, const char* texture) {
     }
     if (!luastate_CallFunctionInMainstate("blitwiz.on_image", 2, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_image: %s", error);
-        if (error) {free(error);}
+        if (error) {
+            free(error);
+        }
         fatalscripterror();
         return;
     }

@@ -206,7 +206,9 @@ int luafuncs_destroyObject(lua_State* l) {
 }
 
 static void applyobjectsettings(struct luaphysicsobj* obj) {
-    if (!obj->object) {return;}
+    if (!obj->object) {
+        return;
+    }
     physics_SetRotationRestriction(obj->object, obj->rotationrestriction);
     physics_SetRestitution(obj->object, obj->restitution);
     physics_SetFriction(obj->object, obj->friction);

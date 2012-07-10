@@ -47,7 +47,9 @@
 //  No FFmpeg support!
 
 struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
-    if (source) {source->close(source);}
+    if (source) {
+        source->close(source);
+    }
     return NULL;
 }
 
@@ -127,7 +129,9 @@ static void (*ffmpeg_av_log_set_level)(int level);
 
 static int loadorfailstate = 0;
 static void loadorfail(void** ptr, void* lib, const char* name) {
-    if (loadorfailstate) {return;}
+    if (loadorfailstate) {
+        return;
+    }
     *ptr = library_GetSymbol(lib, name);
 
     if (!*ptr) {
@@ -173,8 +177,12 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
     errno = 0;
     struct audiosource* source = data;
     struct audiosourceffmpeg_internaldata* idata = (struct audiosourceffmpeg_internaldata*)source->internaldata;
-    if (idata->returnerroroneof) {return -1;}
-    if (idata->sourceeof) {return 0;}
+    if (idata->returnerroroneof) {
+        return -1;
+    }
+    if (idata->sourceeof) {
+        return 0;
+    }
 
     if (idata->source) {
         int i = idata->source->read(idata->source, (void*)buf, (unsigned int)buf_size);
@@ -206,7 +214,9 @@ static int audiosourceffmpeg_InitFFmpeg() {
 }
 
 void audiosourceffmpeg_DisableFFmpeg() {
-    if (ffmpegopened != 0) {return;}
+    if (ffmpegopened != 0) {
+        return;
+    }
     ffmpegopened = -1;
 }
 
@@ -308,7 +318,9 @@ int audiosourceffmpeg_LoadFFmpeg() {
 
 static void audiosourceffmpeg_Rewind(struct audiosource* source) {
     struct audiosourceffmpeg_internaldata* idata = source->internaldata;
-    if (idata->returnerroroneof) {return;}
+    if (idata->returnerroroneof) {
+        return;
+    }
     idata->eof = 0;
     if (idata->source) {
         idata->source->rewind(idata->source);
@@ -533,7 +545,9 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
             int bufsize = AVCODEC_MAX_AUDIO_FRAME_SIZE + 16;
             int gotframe = 0;
             int len = ffmpeg_avcodec_decode_audio3(idata->codeccontext, (int16_t*)outputbuf, &bufsize, &idata->packet);
-            if (len > 0) {gotframe = 1;}
+            if (len > 0) {
+                gotframe = 1;
+            }
 
             //    new variant: decode_audio4:
             // int gotframe;
@@ -579,7 +593,9 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
                     unsigned int copybytes = framesize;
 
                     // practically, we don't want more than specified in 'bytes':
-                    if (copybytes > bytes) {copybytes = bytes;}
+                    if (copybytes > bytes) {
+                        copybytes = bytes;
+                    }
 
                     // copy the bytes, move the buffers accordingly:
                     memcpy(buffer, p, copybytes);
@@ -628,12 +644,16 @@ static void audiosourceffmpeg_Close(struct audiosource* source) {
 
 struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     // without an audio source we can't do anything senseful
-    if (!source) {return NULL;}
+    if (!source) {
+        return NULL;
+    }
 
     // allocate main data struct:
     struct audiosource* a = malloc(sizeof(*a));
     if (!a) {
-        if (source) {source->close(source);}
+        if (source) {
+            source->close(source);
+        }
         return NULL;
     }
     memset(a, 0, sizeof(*a));
@@ -642,7 +662,9 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     a->internaldata = malloc(sizeof(struct audiosourceffmpeg_internaldata));
     if (!a->internaldata) {
         free(a);
-        if (source) {source->close(source);}
+        if (source) {
+            source->close(source);
+        }
         return NULL;
     }
 

@@ -152,7 +152,9 @@ int listeners_CheckForConnections(int (*newconnection)(int port, int socket, con
 int listeners_CloseByPort(int port) {
     struct listener* prev;
     struct listener* l = listeners_GetByPort(port, &prev);
-    if (!l) {return 0;}
+    if (!l) {
+        return 0;
+    }
     so_CloseSocket(l->socket);
     if (prev) {
         prev->next = l->next;
@@ -164,7 +166,9 @@ int listeners_CloseByPort(int port) {
 }
 
 int listeners_HaveActiveListeners() {
-    if (listeners) {return 1;}
+    if (listeners) {
+        return 1;
+    }
     return 0;
 }
 

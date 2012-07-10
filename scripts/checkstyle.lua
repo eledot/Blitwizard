@@ -5,7 +5,8 @@
 -- Some style check options:
 
 c_indent_spaces = 4
-c_bracket_on_separate_line = true
+c_bracket_on_separate_line = false
+c_allow_for_loops = false
 lua_indent_spaces = 4
 lua_use_semicolon = false
 
@@ -52,6 +53,16 @@ function error_bracketonseparateline(file, nr)
     print("Style: line " .. file .. ":" .. nr .. " has an isolated bracket, please put it on the previous line")
 end
 
+function error_multiplecommandsonelineafterbracket(file, nr)
+    styleerror = true
+    print("Style: line " .. file .. ":" .. nr .. " has multiple commands or statements in a single line, please put everything after { in a new line")
+end
+
+function error_multiplecommandsonelineaftersemicolon(file, nr)
+    styleerror = true
+    print("Style: line " .. file .. ":" .. nr .. " has multiple commands or statements in a line, please put everything after ; in a new line")
+end
+
 function checkcommentsandstrings(file, nr, language, line, insideblockcomment, insidestring, blockcommentlength)
     -- Get start position of block comments:
     local blockcommentstart = 1/0
@@ -88,6 +99,7 @@ function checkcommentsandstrings(file, nr, language, line, insideblockcomment, i
     if linestringstart == nil then
         linestringstart = 1 / 0
     end
+
     -- Skip escaped string starts
     while linestringstart > 1 and linestringstart < 1 / 0 do
         if string.sub(line, linestringstart - 1, linestringstart - 1) == "\"" then
@@ -193,9 +205,17 @@ end
 
 function checkfile(file)
     local n = 1
+
+    -- variables used for checkcommentsandstrings()
     local insideblockcomment = false
     local insidestring = false
     local blockcommentlength = 0
+
+    -- variables used for char per char check
+    local cpc_insidestring = false
+    local cpc_bracketcount = 0
+    local cpc_ininitialiser = false
+
     for line in io.lines(file) do
         local line_without_comments = ""
 
@@ -209,9 +229,12 @@ function checkfile(file)
             error_whitespace(file, n)
         end
 
+        -- check language:
+        local language = "c"
+
         -- get line without line, block comments
         local isolatedline = ""
-        isolatedline,insideblockcomment,insidestring,blockcommentlength = checkcommentsandstrings(file, n, "c", line, insideblockcomment, insidestring, blockcommentlength)
+        isolatedline,insideblockcomment,insidestring,blockcommentlength,openbracketcount = checkcommentsandstrings(file, n, language, line, insideblockcomment, insidestring, blockcommentlength, openbracketcount)
         while string.ends(isolatedline, " ") do
             if #isolatedline > 1 then
                 isolatedline = string.sub(isolatedline, 1, #isolatedline - 1)
@@ -219,20 +242,111 @@ function checkfile(file)
                 isolatedline = ""
             end
         end
+
+        -- evaluate line char per char for () brackets and strings
+        local i = 1
+        while i <= #isolatedline do
+            if cpc_insidestring == false then
+                if string.sub(isolatedline, i, i) == "\"" then
+                    -- check for " string start
+
+                    -- make sure it isn't escaped:
+                    local escaped = false
+                    if i > 1 then
+                        if string.sub(isolatedline, i-1, i-1) == "\\" then
+                            escaped = true
+                        end
+                    end
+                    
+                    -- unescaped string start:
+                    if escaped == false then
+                        cpc_insidestring = "\""
+                    end
+                elseif string.sub(isolatedline, i, i) == "(" then
+                    -- Check for opening brackets
+                    cpc_bracketcount = cpc_bracketcount + 1
+                elseif string.sub(isolatedline, i, i) == ")" then
+                    -- Check for closing brackets
+                    cpc_bracketcount = math.max(0, cpc_bracketcount - 1)
+                elseif string.sub(isolatedline, i, i) == "=" and cpc_bracketcount == 0 then
+                    -- Assignment line with possible initialiser
+
+                    -- Make sure it's not an equality check of some sort:
+                    local equality = false
+                    if i > 1 then -- avoid !=, <= and >=, ==
+                        local char = string.sub(isolatedline, i - 1, i - 1)
+                        if char == "!" or char == "<" or char == ">" or char == "=" then
+                            equality = true
+                        end
+                    end
+                    if i < #isolatedline then -- avoid ==
+                        if string.sub(isolatedline, i + 1, i + 1) == "=" then
+                            equality = true
+                        end
+                    end
+
+                    if equality == false then
+                        -- it wasn't some equality check but a true assignment
+                        cpc_ininitialiser = true
+                    end
+                elseif (string.sub(isolatedline, i, i) == ";" and cpc_bracketcount == 0) then
+                    -- End of command, terminate our initialiser scope
+                    cpc_ininitialiser = false
+                elseif ((string.sub(isolatedline, i, i) == "{" and cpc_ininitialiser == false) or (string.sub(isolatedline, i, i) == ";" and cpc_bracketcount == 0)) then
+                    -- Check for opening scopes followed by code
+                    -- or terminatted lines followed by code
+                    -- => multiple commands in one line which is bad
+
+                    -- Check if there is a command in the followup:
+                    local followedbynonspace = false
+                    local j = i + 1
+                    while j <= #isolatedline do
+                        if string.sub(isolatedline, j, j) ~= " "
+                        and string.sub(isolatedline, j, j) ~= "\t" then
+                            followedbynonspace = true
+                            break
+                        end
+                        j = j + 1
+                    end
+
+                    if followedbynonspace == true then
+                        if string.sub(isolatedline, i, i) == "{" then
+                            error_multiplecommandsonelineafterbracket(file, n)
+                        else
+                            error_multiplecommandsonelineaftersemicolon(file, n)
+                        end
+                    end
+                end
+            else
+                -- check for end of string
+                if i + #cpc_insidestring - 1 <= #isolatedline then
+                    if string.sub(isolatedline, i, i + #cpc_insidestring - 1) == cpc_insidestring then
+                        i = i + #cpc_insidestring - 1
+                        cpc_insidestring = false
+                    end
+                end
+            end
+            i = i + 1
+        end
+
+        -- check line for various obvious problems:
         if #isolatedline > 0 then
             if insidestring == false then
                 if language == "c" then
                     -- Check for bracket on separate line
                     if string.ends(isolatedline, "{") then
                         if c_bracket_on_separate_line then
+                            -- Bracket SHALL be isolated
                             local linecopy = isolatedline
                             while string.starts(linecopy, " ") do
                                 linecopy = string.sub(linecopy, 2)
                             end
                             if linecopy ~= "{" then
-
+                                error_bracketnotonseparateline(file, n)
+                            end
                         end
                     end
+                end
             end
         end
 

@@ -115,7 +115,9 @@ static int connections_E(struct connection* c, int (*errorcallback)(struct conne
         c->errorreported = 1;
         c->error = error;
         if (errorcallback) {
-            if (!errorcallback(c, error)) {return 0;}
+            if (!errorcallback(c, error)) {
+                return 0;
+            }
         }
     }
     return 1;
@@ -124,7 +126,9 @@ static int connections_E(struct connection* c, int (*errorcallback)(struct conne
 static struct connection* justreadingfromconnection = NULL;
 static int readconnectionclosed = 0;
 static int connections_ProcessReceivedData(struct connection* c, int (*readcallback)(struct connection* c, char* data, unsigned int datalength), int* closed) {
-    if (c->error >= 0) {return 1;}
+    if (c->error >= 0) {
+        return 1;
+    }
     *closed = 0;
     if (!readcallback) {
         c->inbufbytes = 0;
@@ -141,7 +145,9 @@ static int connections_ProcessReceivedData(struct connection* c, int (*readcallb
                     int readlen = j;
 
                     // don't process the \r from \r\n:
-                    if (j > 0 && c->inbuf[j-1] == '\r') {readlen--;}
+                    if (j > 0 && c->inbuf[j-1] == '\r') {
+                        readlen--;
+                    }
 
                     justreadingfromconnection = c;
                     readconnectionclosed = 0;
@@ -213,7 +219,9 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
             if (!c->errorreported) {
                 c->errorreported = 1;
                 if (errorcallback) {
-                    if (!errorcallback(c, c->error)) {return 0;}
+                    if (!errorcallback(c, c->error)) {
+                        return 0;
+                    }
                 }
             }
         }
@@ -281,8 +289,12 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
                 }
 
                 // free requests:
-                if (c->hostresolveptr) {hostresolv_CancelRequest(c->hostresolveptr);}
-                if (c->hostresolveptrv6) {hostresolv_CancelRequest(c->hostresolveptrv6);}
+                if (c->hostresolveptr) {
+                    hostresolv_CancelRequest(c->hostresolveptr);
+                }
+                if (c->hostresolveptrv6) {
+                    hostresolv_CancelRequest(c->hostresolveptrv6);
+                }
                 c->hostresolveptr = NULL;
                 c->hostresolveptrv6 = NULL;
 
@@ -355,7 +367,9 @@ int connections_CheckAll(int (*connectedcallback)(struct connection* c), int (*r
 
                     c->connected = 1;
                     if (connectedcallback) {
-                        if (!connectedcallback(c)) {return 0;}
+                        if (!connectedcallback(c)) {
+                            return 0;
+                        }
                     }
                 }else{
                     // we aren't connected!
@@ -568,7 +582,9 @@ void connections_Init(struct connection* c, const char* target, int port, int li
         c->hostresolveptr = hostresolv_LookupRequest(target, 0);
         c->hostresolveptrv6 = hostresolv_LookupRequest(target, 1);
         if (!c->hostresolveptrv6) { // we really want v6 resolution, so we work well with ipv6-only
-            if (c->hostresolveptr) {hostresolv_CancelRequest(c->hostresolveptr);}
+            if (c->hostresolveptr) {
+                hostresolv_CancelRequest(c->hostresolveptr);
+            }
             c->hostresolveptr = NULL;
         }
 #ifdef CONNECTIONSDEBUG
@@ -591,12 +607,16 @@ void connections_Init(struct connection* c, const char* target, int port, int li
 // Send on a connection. Do not use if ->connected is not 1 yet!
 void connections_Send(struct connection* c, const char* data, int datalength) {
     int r = datalength;
-    if (!connections_CheckIfConnected(c)) {return;}
+    if (!connections_CheckIfConnected(c)) {
+        return;
+    }
     // sadly, we cannot send an infinite size of bytes:
     if (r > c->outbufsize - (c->outbufbytes + c->outbufoffset)) {
         r = c->outbufsize - (c->outbufbytes + c->outbufoffset);
     }
-    if (r <= 0) {return;}
+    if (r <= 0) {
+        return;
+    }
     // put bytes into send buffer:
     memcpy(c->outbuf + c->outbufoffset + c->outbufbytes, data, r);
     c->outbufbytes += r;
@@ -648,6 +668,8 @@ void connections_Close(struct connection* c) {
 }
 
 int connections_NoConnectionsOpen() {
-    if (connectionlist) {return 0;}
+    if (connectionlist) {
+        return 0;
+    }
     return 1;
 }

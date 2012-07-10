@@ -39,7 +39,10 @@ double getdist(double x, double y, double x2, double y2) {
 
 static double anglefromzero(double x, double y) {
     int substract180 = 0;
-    if (x < 0) {x = -x;substract180 = 1;}
+    if (x < 0) {
+        x = -x;
+        substract180 = 1;
+    }
     if (x < 0.0001 && x > -0.0001) {
         if (y < 0) {
             return -90;
@@ -76,8 +79,12 @@ void rotatevec(double x, double y, double rotation, double* x2, double* y2) {
 }
 
 double normalizeangle(double angle) {
-    while (angle > 180) {angle -= 360;}
-    while (angle < -180) {angle += 360;}
+    while (angle > 180) {
+        angle -= 360;
+    }
+    while (angle < -180) {
+        angle += 360;
+    }
     return angle;
 }
 

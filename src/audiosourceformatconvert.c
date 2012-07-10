@@ -44,7 +44,9 @@ struct audiosourceformatconvert_internaldata {
 
 static void audiosourceformatconvert_Close(struct audiosource* source) {
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
-    if (idata->source) {idata->source->close(idata->source);}
+    if (idata->source) {
+        idata->source->close(idata->source);
+    }
     return;
 }
 
@@ -75,7 +77,9 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
     // If we have previously converted bytes, return them:
     if (idata->convertbufbytes > 0 && bytes > 0) {
         unsigned int amount = idata->convertbufbytes;
-        if (amount > bytes) {amount = bytes;}
+        if (amount > bytes) {
+            amount = bytes;
+        }
 
         // copy bytes:
         memcpy(buffer, idata->convertbuf, amount);
@@ -184,8 +188,12 @@ static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned in
     // Forward the seke to our audio source if possible:
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
-    if (idata->sourceeof) {return 0;}
-    if (!idata->source->seek) {return 0;}
+    if (idata->sourceeof) {
+        return 0;
+    }
+    if (!idata->source->seek) {
+        return 0;
+    }
     return idata->source->seek(idata->source, pos);
 }
 

@@ -51,7 +51,9 @@ struct mutex {
 
 mutex* mutex_Create() {
     mutex* m = malloc(sizeof(mutex));
-    if (!m) {return NULL;}
+    if (!m) {
+        return NULL;
+    }
     memset(m, 0, sizeof(*m));
 #ifdef HAVE_SDL
     m->m = SDL_CreateMutex();

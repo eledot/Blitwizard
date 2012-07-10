@@ -48,7 +48,9 @@ static void audiosourceprereadcache_Rewind(struct audiosource* source) {
 
 static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
     struct audiosourceprereadcache_internaldata* idata = source->internaldata;
-    if (idata->eof) {return -1;}
+    if (idata->eof) {
+        return -1;
+    }
     if (idata->prereadcachesize == 0) {
         // cache was not initialised yet - initialise with standard size
         idata->prereadcachesize = (1024 * 20);
@@ -57,7 +59,9 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
             return -1;
         }
     }
-    if (!idata->prereadcache) {return -1;}
+    if (!idata->prereadcache) {
+        return -1;
+    }
 
     unsigned int writtenbytes = 0;
     while (bytes > 0) {
@@ -80,7 +84,9 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
             if (idata->prereadcachebytes > 0) {
                 // we have some cached bytes - return them
                 unsigned int readbytes = idata->prereadcachebytes;
-                if (readbytes > bytes) {readbytes = bytes;}
+                if (readbytes > bytes) {
+                    readbytes = bytes;
+                }
                 memcpy(buffer, idata->prereadcache, readbytes);
                 buffer += readbytes;
                 bytes -= readbytes;
@@ -105,14 +111,20 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
 
 static void audiosourceprereadcache_Close(struct audiosource* source) {
     struct audiosourceprereadcache_internaldata* idata = source->internaldata;
-    if (idata->source) {idata->source->close(idata->source);}
-    if (idata->prereadcache) {free(idata->prereadcache);}
+    if (idata->source) {
+        idata->source->close(idata->source);
+    }
+    if (idata->prereadcache) {
+        free(idata->prereadcache);
+    }
     free(idata);
     free(source);
 }
 
 struct audiosource* audiosourceprereadcache_Create(struct audiosource* source) {
-    if (!source) {return NULL;}
+    if (!source) {
+        return NULL;
+    }
     struct audiosource* a = malloc(sizeof(*a));
     if (!a) {
         return NULL;

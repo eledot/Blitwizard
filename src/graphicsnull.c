@@ -55,7 +55,9 @@ static char* nulldevicetitle = NULL;
 extern int graphicsvisible;
 
 int graphics_HaveValidWindow() {
-    if (nulldevicewidth && nulldeviceheight) {return 1;}
+    if (nulldevicewidth && nulldeviceheight) {
+        return 1;
+    }
     return 0;
 }
 
@@ -120,7 +122,9 @@ void graphics_ReopenForAndroid() {
 #endif
 
 const char* graphics_GetWindowTitle() {
-    if (!nulldevicewidth && !nulldeviceheight) {return NULL;}
+    if (!nulldevicewidth && !nulldeviceheight) {
+        return NULL;
+    }
     return nulldevicetitle;
 }
 
@@ -129,7 +133,9 @@ void graphics_Quit() {
 }
 
 static char nullstaticname[] = "nulldevice";
-const char* graphics_GetCurrentRendererName() {return nullstaticname;}
+const char* graphics_GetCurrentRendererName() {
+    return nullstaticname;
+}
 
 int graphics_GetNumberOfVideoModes() {
     return GRAPHICS_NULL_VIDEOMODES_COUNT;
@@ -162,7 +168,9 @@ int graphics_IsFullscreen() {
 }
 
 void graphics_ToggleFullscreen() {
-    if (!nulldevicewidth) {return;}
+    if (!nulldevicewidth) {
+        return;
+    }
     if (nulldevicefullscreen) {
         nulldevicefullscreen = 0;
     }else{
@@ -186,7 +194,9 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
     }
 #endif
 
-    if (width < 1 || height < 1) {return 0;}
+    if (width < 1 || height < 1) {
+        return 0;
+    }
     if (fullscreen) {
         nulldevicefullscreen = 1;
     }else{

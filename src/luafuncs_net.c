@@ -279,7 +279,11 @@ static void luafuncs_parsestreamsettings(lua_State* l, int stackindex, int argnu
     lua_pushstring(l, "linebuffered");
     lua_gettable(l, stackindex);
     if (lua_type(l, -1) == LUA_TBOOLEAN) {
-        if (lua_toboolean(l, -1)) {*linebuffered = 1;}else{*linebuffered = 0;}
+        if (lua_toboolean(l, -1)) {
+            *linebuffered = 1;
+        }else{
+            *linebuffered = 0;
+        }
     }else{
         if (lua_type(l, -1) != LUA_TNIL) {
             haveluaerror(l, badargument2, argnumber, functionname, "the settings table contains an invalid linebuffered setting: boolean expected");
@@ -291,7 +295,11 @@ static void luafuncs_parsestreamsettings(lua_State* l, int stackindex, int argnu
     lua_pushstring(l, "lowdelay");
     lua_gettable(l, stackindex);
     if (lua_type(l, -1) == LUA_TBOOLEAN) {
-        if (lua_toboolean(l, -1)) {*lowdelay = 1;}else{*lowdelay = 0;}
+        if (lua_toboolean(l, -1)) {
+            *lowdelay = 1;
+        }else{
+            *lowdelay = 0;
+        }
     }else{
         if (lua_type(l, -1) != LUA_TNIL) {
             haveluaerror(l, badargument2, argnumber, functionname, "the settings table contains an invalid lowdelay setting: boolean expected");
@@ -592,8 +600,12 @@ int connectionevents(int port, int socket, const char* ip, void* sslptr, void* u
     c->outbuf = malloc(CONNECTIONOUTBUFSIZE);
     c->outbufsize = CONNECTIONOUTBUFSIZE;
     if (!c->inbuf || !c->outbuf) {
-        if (c->inbuf) {free(c->inbuf);}
-        if (c->outbuf) {free(c->outbuf);}
+        if (c->inbuf) {
+            free(c->inbuf);
+        }
+        if (c->outbuf) {
+            free(c->outbuf);
+        }
         free(c);
         free(iptr->ref.ptr);
         lua_pop(l, 4); // error handler, callback, port, luaidref
@@ -679,7 +691,9 @@ static int errorevents(struct connection* c, int error) {
 
 int luafuncs_ProcessNetEvents() {
     int result = listeners_CheckForConnections(&connectionevents);
-    if (!result) {return 0;}
+    if (!result) {
+        return 0;
+    }
     result = connections_CheckAll(&connectedevents, &readevents, &errorevents);
     return result;
 }

@@ -54,7 +54,9 @@ static struct graphicstexture* texlist = NULL;
 hashmap* texhashmap = NULL;
 
 void graphicstexturelist_InitializeHashmap() {
-    if (texhashmap) {return;}
+    if (texhashmap) {
+        return;
+    }
     texhashmap = hashmap_New(1024 * 1024);
 }
 

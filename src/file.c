@@ -49,14 +49,18 @@ static char file_NativeSlash() {
 
 static int file_IsDirectorySeparator(char c) {
 #ifdef WINDOWS
-    if (c == '/' || c == '\\') {return 1;}
+    if (c == '/' || c == '\\') {
+        return 1;
+    }
 #else
     if (file_NativeSlash() == c
     || c == '\\'
     // this is actually wrong for mac/linux,
     // but we want to support
     // paths written by thoughtless windows people aswell.
-    ) {return 1;}
+    ) {
+        return 1;
+    }
 #endif
     return 0;
 }
@@ -64,7 +68,9 @@ static int file_IsDirectorySeparator(char c) {
 void file_MakeSlashesNative(char* path) {
     unsigned int i = 0;
     while (i < strlen(path)) {
-        if (file_IsDirectorySeparator(path[i])) {path[i] = file_NativeSlash();}
+        if (file_IsDirectorySeparator(path[i])) {
+            path[i] = file_NativeSlash();
+        }
         i++;
     }
 }
@@ -105,7 +111,9 @@ char* file_GetCwd() {
     // turn all paths like C:\blubb\ into C:/blubb/ (blitwizard-style paths)
     unsigned int i = 0;
     while (i <= strlen(cwdbuf)) {
-        if (cwdbuf[i] == '\\') {cwdbuf[i] = '/';}
+        if (cwdbuf[i] == '\\') {
+            cwdbuf[i] = '/';
+        }
         i++;
     }
 #else
@@ -120,8 +128,12 @@ int file_IsDirectory(const char* path) {
 #ifndef WINDOWS
     struct stat info;
     int r = stat(path,&info);
-    if (r < 0) {return 0;}
-    if (S_ISDIR(info.st_mode) != 0) {return 1;}
+    if (r < 0) {
+        return 0;
+    }
+    if (S_ISDIR(info.st_mode) != 0) {
+        return 1;
+    }
     return 0;
 #endif
 #ifdef WINDOWS
@@ -135,12 +147,16 @@ int file_IsDirectory(const char* path) {
 int file_DoesFileExist(const char* path) {
 #ifndef WINDOWS
         struct stat st;
-        if (stat(path,&st) == 0) {return 1;}
+        if (stat(path,&st) == 0) {
+            return 1;
+        }
         return 0;
 #else
         DWORD fileAttr;
         fileAttr = GetFileAttributes(path);
-        if (0xFFFFFFFF == fileAttr) {return 0;}
+        if (0xFFFFFFFF == fileAttr) {
+            return 0;
+        }
         return 1;
 #endif
 }
@@ -151,7 +167,9 @@ static int file_LatestSlash(const char* path) {
     while (!file_IsDirectorySeparator(path[i]) && i > 0) {
         i--;
     }
-    if (i <= 0) {i = -1;}
+    if (i <= 0) {
+        i = -1;
+    }
     return i;
 }
 
@@ -207,7 +225,9 @@ char* file_AddComponentToPath(const char* path, const char* component) {
         }
     }
     char* newpath = malloc(strlen(path)+addslash+1+strlen(component));
-    if (!newpath) {return NULL;}
+    if (!newpath) {
+        return NULL;
+    }
     memcpy(newpath, path, strlen(path));
     if (addslash) {
         newpath[strlen(path)] = file_NativeSlash();
@@ -283,7 +303,9 @@ char* file_GetDirectoryPathFromFilePath(const char* path) {
         return strdup(path);
     }else{
         char* pathcopy = strdup(path);
-        if (!pathcopy) {return NULL;}
+        if (!pathcopy) {
+            return NULL;
+        }
         int i = file_LatestSlash(path);
         if (i < 0) {
             free(pathcopy);
@@ -297,24 +319,32 @@ char* file_GetDirectoryPathFromFilePath(const char* path) {
 
 int file_IsPathRelative(const char* path) {
 #ifdef WINDOWS
-    if (PathIsRelative(path) == TRUE) {return 1;}
+    if (PathIsRelative(path) == TRUE) {
+        return 1;
+    }
     return 0;
 #else
-    if (file_IsDirectorySeparator(path[0])) {return 0;}
+    if (file_IsDirectorySeparator(path[0])) {
+        return 0;
+    }
     return 1;
 #endif
 }
 
 char* file_GetAbsoluteDirectoryPathFromFilePath(const char* path) {
     char* p = file_GetDirectoryPathFromFilePath(path);
-    if (!p) {return NULL;}
+    if (!p) {
+        return NULL;
+    }
 
     if (!file_IsPathRelative(p)) {
         return p;
     }
 
     char* p2 = file_GetAbsolutePathFromRelativePath(p);
-    if (!p2) {return NULL;}
+    if (!p2) {
+        return NULL;
+    }
     return p2;
 }
 
@@ -324,7 +354,9 @@ char* file_GetFileNameFromFilePath(const char* path) {
         return strdup(path);
     }else{
         char* filename = malloc(strlen(path)-i+1);
-        if (!filename) {return NULL;}
+        if (!filename) {
+            return NULL;
+        }
         memcpy(filename, path + i + 1, strlen(path)-i);
         filename[strlen(path)-i] = 0;
         return filename;
@@ -364,7 +396,9 @@ char* file_GetTempPath(const char* name) {
     return NULL;
 #else
     char* tmppath = malloc(strlen("/tmp/") + 1 + strlen(name));
-    if (!tmppath) {return NULL;}
+    if (!tmppath) {
+        return NULL;
+    }
     memcpy(tmppath, "/tmp/", strlen("/tmp/"));
     memcpy(tmppath + strlen("/tmp/"), name, strlen(name));
     tmppath[strlen("/tmp/") + strlen(name)] = 0;
@@ -388,3 +422,4 @@ char* filesystem_GetUserFileDir() {
     return strdup(programsdirbuf);
 }
 #endif
+

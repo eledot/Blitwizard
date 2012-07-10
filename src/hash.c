@@ -88,6 +88,8 @@ uint32_t hashmap_GetIndex(hashmap* h, const char* buf, size_t len, int ignorecas
 }
 
 void hashmap_Free(hashmap* h) {
-    if (h->items) {free(h->items);}
+    if (h->items) {
+        free(h->items);
+    }
     free(h);
 }

@@ -55,7 +55,9 @@ void memorylog(const char* str) {
         }
         char* p = realloc(memorylogbuf, newsize);
         // out of memory.. nothing we could sensefully do
-        if (!p) {return;}
+        if (!p) {
+            return;
+        }
         // resizing complete:
         memorylogbuf = p;
         memorylogbufsize = newsize;

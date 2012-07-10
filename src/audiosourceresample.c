@@ -65,9 +65,13 @@ int audiosourceresample_Seek(struct audiosource* source, unsigned int pos) {
 }
 
 struct audiosource* audiosourceresample_Create(struct audiosource* source, unsigned int targetrate) {
-    if (!source || source->samplerate <= 0) {return NULL;}
+    if (!source || source->samplerate <= 0) {
+        return NULL;
+    }
     struct audiosource* as = malloc(sizeof(*as));
-    if (!as) {return NULL;}
+    if (!as) {
+        return NULL;
+    }
     memset(as,0,sizeof(*as));
     as->internaldata = source;
     as->read = &audiosourceresample_Read;
@@ -160,7 +164,9 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 
     // If we have unreturned processed bytes left, return them
     unsigned int returnprocessed = idata->processedbytes;
-    if (returnprocessed > bytes) {returnprocessed = bytes;}
+    if (returnprocessed > bytes) {
+        returnprocessed = bytes;
+    }
     if (returnprocessed > 0) {
         memcpy(buffer, idata->processedbuf, returnprocessed);
         if (returnprocessed < idata->processedbytes) {
@@ -203,8 +209,12 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
         unsigned int out = outbytes - idata->processedbytes;
 
         // We want to have this in nice full channel samples:
-        while (in > 0 && in % (sizeof(float) * source->channels) != 0) {in--;}
-        while (out > 0 && out % (sizeof(float) * source->channels) != 0) {out--;}
+        while (in > 0 && in % (sizeof(float) * source->channels) != 0) {
+            in--;
+        }
+        while (out > 0 && out % (sizeof(float) * source->channels) != 0) {
+            out--;
+        }
         // printf("in, out: %u, %u\n",in,out);
         unsigned int insamples = in/(sizeof(float)*source->channels);
         unsigned int outsamples = out/(sizeof(float)*source->channels);

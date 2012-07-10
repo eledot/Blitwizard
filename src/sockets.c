@@ -90,7 +90,9 @@ static char* sslerror = NULL;
 static void promptsslerror(const char* str) {
     if (sslerror_memoryerror == 0) {
         // only free if not static buffer
-        if (sslerror) {free(sslerror);}
+        if (sslerror) {
+            free(sslerror);
+        }
     }
     sslerror_memoryerror = 0;
     sslerror = malloc(strlen(str)+1); // allocate error buffer
@@ -106,7 +108,9 @@ static void promptsslerror(const char* str) {
 
 int so_sysinited = 0;
 static int soinitfunc(const char* cert, const char* key) {
-    if (so_sysinited == 1) {return 1;}
+    if (so_sysinited == 1) {
+        return 1;
+    }
     FD_ZERO(&weircdselectset_readers);
     FD_ZERO(&weircdselectset_writers);
 #ifdef WINDOWS
@@ -191,7 +195,9 @@ const char* so_SSLNotAvailable() {
 #endif
 }
 void so_SetSocketNonblocking(int socket) {
-    if (so_sysinited == 0) {return;}
+    if (so_sysinited == 0) {
+        return;
+    }
 #ifndef WINDOWS
     int save_fd;
     save_fd = fcntl(socket, F_GETFL);
@@ -212,14 +218,25 @@ int so_ReverseResolveBlocking(const char* ip, char* hostbuf, int hostbuflen) {
     char tempip[IPMAXLEN+1];
     strncpy(tempip,ip,IPMAXLEN+1);
     tempip[IPMAXLEN] = 0;
-    if (tempip[0] == '[') {memmove(tempip, tempip+1, IPMAXLEN);}
-    if (tempip[strlen(tempip)-1] == ']') {tempip[strlen(tempip)-1] = 0;}
+    if (tempip[0] == '[') {
+        memmove(tempip, tempip+1, IPMAXLEN);
+    }
+    if (tempip[strlen(tempip)-1] == ']') {
+        tempip[strlen(tempip)-1] = 0;
+    }
     int salen;
     int iptype = IPTYPE_IPV4;
     unsigned int r = 0;
     while (r < strlen(ip)) {
-        if (ip[r] == '.') {break;} // is ipv4
-        if (ip[r] == ':') {iptype = IPTYPE_IPV6;break;}
+        if (ip[r] == '.') {
+            // ipv4
+            break;
+        }
+        if (ip[r] == ':') {
+            // ipv6
+            iptype = IPTYPE_IPV6;
+            break;
+        }
         r++;
     }
     if (iptype == IPTYPE_IPV6) {
@@ -255,7 +272,9 @@ int so_ReverseResolveBlocking(const char* ip, char* hostbuf, int hostbuflen) {
         return 0;
     }
     hostbuf[hostbuflen-1] = 0; // make sure it's always nullterminated even if truncated
-    if (strlen(hostbuf) <= 0) {return 0;}
+    if (strlen(hostbuf) <= 0) {
+        return 0;
+    }
     return 1;
 }
 
@@ -270,7 +289,9 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
     }
     struct addrinfo *result = NULL;
     // Attempt to resolve:
-    if (getaddrinfo(host, NULL, &hints, &result) != 0) {return 0;}
+    if (getaddrinfo(host, NULL, &hints, &result) != 0) {
+        return 0;
+    }
     // Convert first result to an ipv4 address:
     if (result && iptype == IPTYPE_IPV4) {
         struct sockaddr_in  *sockaddr_ipv4;
@@ -278,7 +299,9 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
         strncpy(ipbuf, inet_ntoa(sockaddr_ipv4->sin_addr), ipbuflen);
         ipbuf[ipbuflen-1] = 0;
         freeaddrinfo(result);
-        if (strlen(ipbuf) <= 0) {return 0;}
+        if (strlen(ipbuf) <= 0) {
+            return 0;
+        }
         return 1;
     }
     // Convert first result to an ipv6 address:
@@ -296,7 +319,9 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
         ipbuf[ipbuflen-1] = 0;
         #endif
         freeaddrinfo(result);
-        if (strlen(ipbuf) <= 0) {return 0;}
+        if (strlen(ipbuf) <= 0) {
+            return 0;
+        }
         return 1;
     }
     freeaddrinfo(result);
@@ -304,16 +329,22 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen) 
 }
 
 void so_ManageSocketWithSelect(int socket) {
-    if (so_sysinited == 0) {return;}
+    if (so_sysinited == 0) {
+        return;
+    }
     so_SetSocketNonblocking(socket);
     FD_SET(socket, &weircdselectset_readers);
-    if (fdnr <= socket) {fdnr = socket+1;}
+    if (fdnr <= socket) {
+        fdnr = socket+1;
+    }
     return;
 }
 
 // Mark a socket for writing so so_SelectWait will notify us when it's ready
 void so_SelectWantWrite(int socket, int enabled) {
-    if (so_sysinited == 0) {return;}
+    if (so_sysinited == 0) {
+        return;
+    }
     if (enabled == 1) {
         FD_SET(socket,&weircdselectset_writers);
     }else{
@@ -322,7 +353,9 @@ void so_SelectWantWrite(int socket, int enabled) {
 }
 
 void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {
-    if (so_sysinited == 0) {return;}
+    if (so_sysinited == 0) {
+        return;
+    }
 #ifdef USESSL
     if (sslptr == NULL || *sslptr == NULL) {
         // Use the normal more simple variant for connections without SSL:
@@ -341,7 +374,10 @@ void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {
             i->ssl_requiresend = 0;
             i->ssl_settosend = 1; // it is only still set for ssl now -> remember
         }
-        if (i->ssl_settosend == 1) {return;} // SSL still needs it -> keep
+        if (i->ssl_settosend == 1) {
+            // SSL still needs to send things -> keep send state
+            return;
+        }
         FD_CLR(socket,&weircdselectset_writers);
     }
 #else
@@ -351,7 +387,10 @@ void so_SelectWantWriteSSL(int socket, int enabled, void** sslptr) {
 
 // Create a new socket with the given iptype (IPTYPE_IPV4, IPTYPE_IPV6)
 int so_CreateSocket(int addToSelect, int iptype) {
-    if (so_sysinited == 0) {return -1;} // socket system needs to work!
+    if (so_sysinited == 0) {
+        // socket system needs to be initialised
+        return -1;
+    }
     int newsock = -1;
     // Get the socket:
     if (iptype == IPTYPE_IPV6) {
@@ -363,15 +402,21 @@ int so_CreateSocket(int addToSelect, int iptype) {
         newsock = socket(AF_INET, SOCK_STREAM, 0);
     }
     // Return failure if we didn't obtain a socket:
-    if (newsock < 0) {return -1;}
+    if (newsock < 0) {
+        return -1;
+    }
     // Set socket nonblocking (we use nonblocking sockets purely!)
     so_SetSocketNonblocking(newsock);
     // Manage socket with our select facility if the user wants it:
-    if (addToSelect == 1) {so_ManageSocketWithSelect(newsock);}
+    if (addToSelect == 1) {
+        so_ManageSocketWithSelect(newsock);
+    }
     return newsock;
 }
 int so_MakeSocketListen(int socket, int port, int iptype, const char* bindip) {
-    if (so_sysinited == 0) {return 0;}
+    if (so_sysinited == 0) {
+        return 0;
+    }
     // ( 1 ) --- prepare address struct
 #ifdef IPV6
     struct sockaddr_in6 addressstruct6;
@@ -592,17 +637,23 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
 
     // Detect ip type:
     int iptype = IPTYPE_IPV4;
-    if (isipv6ip(ip)) {iptype = IPTYPE_IPV6;}
+    if (isipv6ip(ip)) {
+        iptype = IPTYPE_IPV6;
+    }
 
     // ( 2 ) --- fill in ip of struct
     if (iptype == IPTYPE_IPV6) {
 #ifdef IPV6
-        if (!so_AddressToStruct(ip, iptype, &addressstruct6)) {return 0;}
+        if (!so_AddressToStruct(ip, iptype, &addressstruct6)) {
+            return 0;
+        }
 #else
         return 0; // ipv6 is not supported.
 #endif
     }else{
-        if (!so_AddressToStruct(ip, iptype, &addressstruct4)) {return 0;}
+        if (!so_AddressToStruct(ip, iptype, &addressstruct4)) {
+            return 0;
+        }
     }
 
     // ( 3 ) --- set port of struct
@@ -619,7 +670,9 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
     if (sslptr != NULL && !sslerror && !*sslptr) {
         // initialize SSL thing
         *sslptr = malloc(sizeof(struct sslinfo));
-        if (!(*sslptr)) {return 0;}
+        if (!(*sslptr)) {
+            return 0;
+        }
         memset(*sslptr,0,sizeof(struct sslinfo));
         ((struct sslinfo*)*sslptr)->sslhandle = SSL_new(ctx);
         if (!((struct sslinfo*)*sslptr)->sslhandle) {
@@ -643,19 +696,27 @@ int so_ConnectSSLSocketToIP(int socket, const char* ip, unsigned int port, void*
         char buf[512];
         r = connect(socket, (struct sockaddr*)&addressstruct4, sizeof(struct sockaddr_in));
     }
-    if (r == 0) {return 1;}
+    if (r == 0) {
+        return 1;
+    }
 
     // check for async error code
     #ifdef WINDOWS
     int err = WSAGetLastError();
-    if (err == WSAEWOULDBLOCK || err == WSAEINPROGRESS) {return 1;}
+    if (err == WSAEWOULDBLOCK || err == WSAEINPROGRESS) {
+        return 1;
+    }
     #else
-    if (errno == EWOULDBLOCK || errno == EINPROGRESS) {return 1;}
+    if (errno == EWOULDBLOCK || errno == EINPROGRESS) {
+        return 1;
+    }
     #endif
     return 0;
 }
 int so_SelectWait(int maximumsleeptime) {
-    if (so_sysinited == 0) {return 0;}
+    if (so_sysinited == 0) {
+        return 0;
+    }
     struct timeval t;
     memset(&t,0,sizeof(struct timeval));
     t.tv_usec = maximumsleeptime*1000;
@@ -669,21 +730,33 @@ int so_SelectWait(int maximumsleeptime) {
     return r;
 }
 void so_CloseSocket(int socket) {
-    if (so_sysinited == 0) {return;}
+    if (so_sysinited == 0) {
+        return;
+    }
     FD_CLR(socket, &weircdselectset_readers);
     FD_CLR(socket, &weircdselectset_writers);
-    if (readset != NULL) {FD_CLR(socket, readset);}
-    if (writeset != NULL) {FD_CLR(socket, writeset);}
+    if (readset != NULL) {
+        FD_CLR(socket, readset);
+    }
+    if (writeset != NULL) {
+        FD_CLR(socket, writeset);
+    }
     close(socket);
 }
 int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* writesocket, void** sslptr) {
-    if (so_sysinited == 0) {return 0;}
+    if (so_sysinited == 0) {
+        return 0;
+    }
     socklen_t addrlen;
 
 #ifndef USESSL
-    if (sslptr) {return 0;}
+    if (sslptr) {
+        return 0;
+    }
 #else
-    if (sslptr && sslerror) {return 0;}
+    if (sslptr && sslerror) {
+        return 0;
+    }
 #endif
 
 #ifdef IPV6
@@ -700,7 +773,9 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
         addrlen = sizeof(address4);
     }
     int new_socket;
-    if (!FD_ISSET(socket,readset)) {return 0;}
+    if (!FD_ISSET(socket,readset)) {
+        return 0;
+    }
     if (iptype == IPTYPE_IPV6) {
         #ifdef IPV6
         new_socket = accept(socket,(struct sockaddr *) &address6,&addrlen);
@@ -713,11 +788,15 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
         if (sslptr != NULL && !sslerror) {
             // initialize ssl thing
             *sslptr = malloc(sizeof(struct sslinfo));
-            if (!(*sslptr)) {close(new_socket);return 0;}
+            if (!(*sslptr)) {
+                close(new_socket);
+                return 0;
+            }
             memset(*sslptr,0,sizeof(struct sslinfo));
             ((struct sslinfo*)*sslptr)->sslhandle = SSL_new(ctx);
             if (!((struct sslinfo*)*sslptr)->sslhandle) {
-                free(*sslptr); *sslptr = NULL;
+                free(*sslptr);
+                *sslptr = NULL;
                 close(new_socket);
                 return 0;
             }
@@ -744,7 +823,8 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
                 if (sslptr != NULL && !sslerror) {
                     // free SSL data again
                     SSL_free(((struct sslinfo*)*sslptr)->sslhandle);
-                    free(*sslptr); *sslptr = NULL;
+                    free(*sslptr);
+                    *sslptr = NULL;
                     close(new_socket);
                 }
                 #endif
@@ -767,7 +847,8 @@ int so_AcceptConnection_internal(int socket, int iptype, char* writeip, int* wri
                 if (sslptr != NULL && !sslerror) {
                     // free SSL stuff
                     SSL_free(((struct sslinfo*)*sslptr)->sslhandle);
-                    free(*sslptr); *sslptr = NULL;
+                    free(*sslptr);
+                    *sslptr = NULL;
                     close(new_socket);
                 }
                 #endif
@@ -807,7 +888,9 @@ int so_GetIPLen() {
     return IPMAXLEN;
 }
 int so_SelectSaysWrite(int sock, void** sslptr) {
-    if (so_sysinited == 0) {return 0;}
+    if (so_sysinited == 0) {
+        return 0;
+    }
 #ifdef USESSL
     if (sslptr && *sslptr) {
         struct sslinfo* i = *sslptr;
@@ -836,7 +919,9 @@ int so_SelectSaysWrite(int sock, void** sslptr) {
     return 1;
 }
 int so_SelectSaysRead(int sock, void** sslptr) {
-    if (so_sysinited == 0) {return 0;}
+    if (so_sysinited == 0) {
+        return 0;
+    }
 #ifdef USESSL
     if (sslptr && *sslptr) {
         struct sslinfo* i = *sslptr;
@@ -990,7 +1075,9 @@ int so_DoAcceptThings(int socket, void* sslptr) {
 }
 #endif
 int so_SendData_internal(int socket, const char* buf, int len, int usessl, void* sslptr) {
-    if (so_sysinited == 0) {return -1;}
+    if (so_sysinited == 0) {
+        return -1;
+    }
     if (usessl == 0) {
         errno = 0;
         int z = send(socket,buf,len,0);
@@ -1049,7 +1136,9 @@ int so_CheckIfConnected(int socket, void** sslptr) {
 }
 
 int so_ReceiveData_internal(int socket, char* buf, int len, int usessl, void* sslptr) {
-    if (so_sysinited == 0) {return -1;}
+    if (so_sysinited == 0) {
+        return -1;
+    }
     if (usessl == 0) {
         int z = recv(socket,buf,len,0);
         return dealwitherror(z);
