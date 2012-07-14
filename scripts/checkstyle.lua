@@ -12,6 +12,9 @@ lua_use_semicolon = false
 
 -- End of options.
 
+luakeywords = { "function", "do", "end", "for", "while", "if", "then", "else", "elseif", "or", "and", "break", "return", "local" }
+ckeywords = { "else", "const", "char", "int", "long", "struct", "short", "signed", "unsigned", "float", "double", "if", "switch", "case", "return", "continue", "break", "extern", "static" }
+
 args = {...}
 styleerror = false
 
@@ -61,6 +64,15 @@ end
 function error_multiplecommandsonelineaftersemicolon(file, nr)
     styleerror = true
     print("Style: line " .. file .. ":" .. nr .. " has multiple commands or statements in a line, please put everything after ; in a new line")
+end
+
+function error_expectedwhitespace(file, nr, char, after)
+    styleerror = true
+    local beforeafter = "before"
+    if after then
+        beforeafter = "after"
+    end
+    print("Style: line " .. file .. ":" .. nr .. " should have a whitespace " .. beforeafter .. " " .. char)
 end
 
 function checkcommentsandstrings(file, nr, language, line, insideblockcomment, insidestring, blockcommentlength)
@@ -243,6 +255,18 @@ function checkfile(file)
             end
         end
 
+        -- check if preprocessor line (C)
+        local cpc_preprocessorline = false
+        if language == "c" then
+            local linecopy = isolatedline
+            while string.starts(linecopy, " ") do
+                linecopy = string.sub(linecopy, 2)
+            end
+            if string.starts(linecopy, "#") then
+                cpc_preprocessorline = true
+            end
+        end
+
         -- evaluate line char per char for () brackets and strings
         local i = 1
         while i <= #isolatedline do
@@ -262,6 +286,62 @@ function checkfile(file)
                     if escaped == false then
                         cpc_insidestring = "\""
                     end
+                elseif (string.sub(isolatedline, i, i) == "+" or
+                string.sub(isolatedline, i, i) == "-" or
+                string.sub(isolatedline, i, i) == "*" or
+                string.sub(isolatedline, i, i) == "/" or
+                string.sub(isolatedline, i, i) == "^" or
+                string.sub(isolatedline, i, i) == "~") then
+                    local currentc = string.sub(isolatedline, i, i)
+                    local c1 = false
+                    local c2 = false
+                    if i > 1 then
+                        c1 = string.sub(isolatedline, i - 1, i - 1)
+                    end
+                    if i < #isolatedline then
+                        c2 = string.sub(isolatedline, i + 1, i + 1)
+                    end
+
+                    local dontcomplain = false
+
+                    -- Allow -> pointers
+                    if currentc == "-" and c1 ~= false and c2 ~= false and
+                    c1 ~= " " and c2 == ">" then
+                        dontcomplain = true
+                    end
+
+                    -- Allow / in preprocessor include line
+                    if currentc == "/" and cpc_preprocessorline and
+                    string.find(isolatedline, "#include", 1, false) ~= nil then
+                        dontcomplain = true
+                    end
+
+                    -- Allow * pointer deference: *pointer
+                    if currentc == "*" and (c1 == false or c1 == "(" or
+                    c1 == ")" or c1 == ")" or c1 == "+" or c1 == "-"
+                    or c1 == "*" or c1 == "/" or c1 == "}" or c1 == "{"
+                    or c1 == "=") then
+                        dontcomplain = true
+                    end
+
+                    -- Allow * pointer declarations: char*/int*
+                    --if currentc == "*" and c1 ~= false then
+                    --
+                    --    local beforestr = string.sub(isolatedline, 1, i - 1)
+                    --    
+                    --end
+
+                    -- FIXME rewrite this to remove the checks handled above
+                    if c1 ~= false and not dontcomplain then
+                        if c1 ~= " " then
+                            error_expectedwhitespace(file, n, currentc, false)
+                        end
+                    end
+                    if i < #isolatedline and not dontcomplain then
+                        if c2 ~= " " then 
+                            error_expectedwhitespace(file, n, currentc, true)
+                        end
+                    end
                 elseif string.sub(isolatedline, i, i) == "(" then
                     -- Check for opening brackets
                     cpc_bracketcount = cpc_bracketcount + 1
@@ -275,7 +355,7 @@ function checkfile(file)
                     local equality = false
                     if i > 1 then -- avoid !=, <= and >=, ==
                         local char = string.sub(isolatedline, i - 1, i - 1)
-                        if char == "!" or char == "<" or char == ">" or char == "=" then
+                        if char == "!" or char == "<" or char == ">" or char == "=" or char == "^" or char == "~" or char == "|" then
                             equality = true
                         end
                     end

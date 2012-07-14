@@ -8,13 +8,25 @@
 
 print("Physics example in blitwizard")
 
--- Some global vars we want to use
-crates = {} -- a list of all crate objects
-balls = {} -- a list of all ball objects
-smokeobjs = {} -- a list of smoke particles
+-- >> Some global vars we want to use:
+-- list of all crate physics objects:
+crates = {}
+-- list of health numbers (0..1) for each crate object:
+crateshealth = {}
+-- list of crate splint particles. each particle is a sub list containing:
+-- { x pos, y pos , initial rotation, rotation speed, anim progress (0..1) }
+cratesplints = {}
+-- list of all ball physics objects:
+balls = {}
+-- list of smoke particles. each particle is a sub list containing:
+-- { x pos, y pos, current rotation angle, current smoke alpha }
+smokeobjs = {}
+-- meter (physics unit) to pixels factor:
 pixelspermeter = 30 -- meter (physics unit) to pixels factor
-cratesize = 64/pixelspermeter -- size of a crate
-ballsize = 32/pixelspermeter -- size of a ball
+-- size of a crate (length of each side):
+cratesize = 64/pixelspermeter
+-- size of a ball (diameter):
+ballsize = 32/pixelspermeter
 
 -- Warn if we run without templates
 if blitwiz.templatesinitialised ~= true then
@@ -39,6 +51,7 @@ function blitwiz.on_init()
 	blitwiz.graphics.loadImage("shadows.png")
 	blitwiz.graphics.loadImage("ball.png")
     blitwiz.graphics.loadImage("smoke.png")
+    blitwiz.graphics.loadImage("cratesplint.png")
 
 	-- Add base level collision (as seen in bg.png)
 	local x,y = bgimagepos()
@@ -106,6 +119,14 @@ function blitwiz.on_draw()
 	local x,y = bgimagepos()
 	blitwiz.graphics.drawImage("shadows.png", {x=x, y=y})
 
+    -- Draw crate splints:
+    local imgw,imgh = blitwiz.graphics.getImageSize("cratesplint.png")
+    local i = 1
+    while i <= #cratesplints do
+        blitwiz.graphics.drawImage("cratesplint.png", {x=cratesplints[i][1] - imgw/2, y=cratesplints[i][2] - imgh/2 + cratesplints[i][5] * 50, rotationangle=cratesplints[i][3] + cratesplints[i][5]*360*2*cratesplints[i][4], alpha=1 - cratesplints[i][5], scalex=3.5 - cratesplints[i][5]*3.5, scaley=3.5 - cratesplints[i][5]*3.5})
+        i = i + 1
+    end
+
     -- Draw smoke objects:
     local imgw,imgh = blitwiz.graphics.getImageSize("smoke.png")
     local i = 1
@@ -166,11 +187,34 @@ function blitwiz.on_mousedown(button, x, y)
 		blitwiz.physics.setLinearDamping(crate, 0.3)
 
 		crates[#crates+1] = crate
+        crateshealth[#crateshealth+1] = 1
 
         -- Set a collision callback for the smoke effect
         blitwiz.physics.setCollisionCallback(crate, function(otherobj, x, y, nx, ny, force)
             if force > 4 then
                 smokeobjs[#smokeobjs+1] = { x * pixelspermeter, y * pixelspermeter, math.random()*360, math.min(1, (force-4)/20) }
+            end
+            if force > 1 then
+                local i = 1
+                while i <= #crates do
+                    if crates[i] == crate then
+                        local h = crateshealth[i]
+                        h = h - force/100
+                        crateshealth[i] = h
+                        if h <= 0 then
+                            local j = 1
+                            while j <= 2 + math.random() * 8 do
+                                cratesplints[#cratesplints+1] = { x * pixelspermeter + 30 - 60 * math.random(), y * pixelspermeter + 30 - 60 * math.random(), math.random() * 360, math.random()*1, 0 }
+                                j = j + 1 
+                            end
+                            table.remove(crates, i)
+                            blitwiz.physics.destroyObject(crate)
+                            table.remove(crateshealth, i)
+                        end
+                        break
+                    end
+                    i = i +1
+                end
             end
             return true
         end)
@@ -211,6 +255,17 @@ function blitwiz.on_step()
         else
             i = i + 1
         end
+    end
+    -- animate splints:
+    local i = 1
+    while i <= #cratesplints do
+        -- do animation:
+        cratesplints[i][5] = cratesplints[i][5] + 0.005
+        if cratesplints[i][5] > 1 then
+            -- remove splint when animation complete:
+            table.remove(cratesplints, i)
+        end
+        i = i + 1
     end
 end
 

@@ -66,7 +66,7 @@ uint64_t time_GetMilliseconds() {
         oldtime = i;
     }else{
         // we wrapped around. set a time offset to avoid the wrap
-        timeoffset = (oldtime-i)+1;
+        timeoffset = (oldtime - i) + 1;
         i += timeoffset;
     }
 #else // ifdef HAVE_SDL
@@ -92,7 +92,7 @@ uint64_t time_GetMilliseconds() {
     clock_gettime(CLOCK_MONOTONIC, &current);
     int64_t seconds = current.tv_sec - lastunixtime.tv_sec;
     int64_t nseconds = current.tv_nsec - lastunixtime.tv_nsec;
-    uint64_t i = (uint64_t)((double)((seconds) * 1000 + nseconds/(1000000.0)) + 0.5);
+    uint64_t i = (uint64_t)((double)((seconds) * 1000 + nseconds / 1000000.0) + 0.5);
     if (i > 1000) {
         i += oldtimestamp;
         oldtimestamp = i;

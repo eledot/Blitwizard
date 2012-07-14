@@ -30,7 +30,7 @@
 static char* queryregstring(HKEY key, const char* path, const char* name) {
     // the windows registry knows where Steam is:
     char data[256] = "";
-    unsigned int datalen = sizeof(data)-1;
+    unsigned int datalen = sizeof(data) - 1;
     HKEY khandle;
     if (RegOpenKeyEx(key, path, 0, KEY_QUERY_VALUE, &khandle) != ERROR_SUCCESS) {
         return NULL;
@@ -42,7 +42,7 @@ static char* queryregstring(HKEY key, const char* path, const char* name) {
 
     // null terminate the queried value properly:
     if (datalen >= sizeof(data)) {
-        datalen = sizeof(data)-1;
+        datalen = sizeof(data) - 1;
     }
     data[datalen] = 0;
     RegCloseKey(khandle);
@@ -66,7 +66,7 @@ const char* win32_GetPathForSteam() {
     // copy and remember the path:
     unsigned int copylen = strlen(path);
     if (copylen >= sizeof(steampath)) {
-        copylen = sizeof(steampath)-1;
+        copylen = sizeof(steampath) - 1;
     }
     memcpy(steampath, path, copylen);
     steampath[copylen] = 0;
@@ -95,7 +95,7 @@ const char* win32_GetPathForChrome() {
     path = p2;
     file_StripComponentFromPath(path); // now: C:\Users\Jonas\AppData\Local\Google
     char sep[] = "/";
-    if (strlen(path) > 0 && (path[strlen(path)-1] == '/' || path[strlen(path)-1] == '\\')) {
+    if (strlen(path) > 0 && (path[strlen(path) - 1] == '/' || path[strlen(path) - 1] == '\\')) {
         sep[0] = 0;
     }
     snprintf(chromepath, sizeof(chromepath), "%s%sChrome/Application", path, sep); // now: C:\Users\Jonas\AppData\Local\Google\Chrome\Application
