@@ -111,6 +111,8 @@ function blitwiz.on_mousedown(button, mousex, mousey)
 		blitwiz.on_init = nil
         browser_on_draw = blitwiz.on_draw
 		blitwiz.on_draw = nil
+        browser_on_step = blitwiz.on_step
+        blitwiz.on_step = nil
 
 		-- Load example
 		dofile("game.lua")
@@ -171,6 +173,7 @@ function blitwiz.on_mousedown(button, mousex, mousey)
                 blitwiz.on_mousemove = browser_on_mousemove
                 blitwiz.on_init = browser_on_init
                 blitwiz.on_draw = browser_on_draw
+                blitwiz.on_step = browser_on_step
                 return
             else
                 if f ~= nil then
