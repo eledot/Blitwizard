@@ -99,6 +99,7 @@ function blitwiz.on_mousedown(button, mousex, mousey)
 	updatemenufocus(mousex, mousey)
 	if menufocus > 0 then
 		os.chdir("../../examples/" .. examples[menufocus] .. "/")
+
 		-- Remember and delete our previous event functions
         browser_on_close = blitwiz.on_close
 		blitwiz.on_close = nil
@@ -110,8 +111,43 @@ function blitwiz.on_mousedown(button, mousex, mousey)
 		blitwiz.on_init = nil
         browser_on_draw = blitwiz.on_draw
 		blitwiz.on_draw = nil
+
 		-- Load example
 		dofile("game.lua")
+
+        -- Wrap blitwiz.graphics.loadImage to load an image only if not present:
+        if browser_loadImage_wrapped ~= true then
+            browser_loadImage_wrapped = true
+
+            -- wrap loadImage:
+            local f = blitwiz.graphics.loadImage
+            function blitwiz.graphics.loadImage(imgname)
+                -- don't do anything if already being loaded or present
+                if blitwiz.graphics.isImageLoaded(imgname) ~= nil then
+                    return
+                end
+
+                -- otherwise, load:
+                f(imgname)
+            end
+
+            -- wrap loadImageAsync:
+            local f = blitwiz.graphics.loadImageAsync
+            function blitwiz.graphics.loadImageAsync(imgname)
+                -- don't do anything if already being loaded or present
+                if blitwiz.graphics.isImageLoaded(imgname) ~= nil then
+                    -- fire the callback if fully loaded:
+                    if blitwiz.graphics.isImageLoaded(imgname) == true then
+                        blitwiz.on_image(imgname, true)
+                    end
+                    return
+                end
+
+                -- otherwise, load:
+                f(imgname)
+            end
+        end
+
         -- Wrap drawing to show return button:
         local f = blitwiz.on_draw
         example_start_time = blitwiz.time.getTime()
@@ -119,10 +155,16 @@ function blitwiz.on_mousedown(button, mousex, mousey)
             f()
             blitwiz.graphics.drawImage("return.png", {x=blitwiz.graphics.getWindowSize()-blitwiz.graphics.getImageSize("return.png"), y= -150 + math.min(150, (blitwiz.time.getTime() - example_start_time) * 0.2)})
         end
+
+        -- Wrap on_mousedown to enable clicking the return button:
         local f = blitwiz.on_mousedown
         blitwiz.on_mousedown = function(button, x, y)
             local imgw,imgh = blitwiz.graphics.getImageSize("return.png")
             if (x > blitwiz.graphics.getWindowSize()-imgw and y < imgh) then
+                -- Unload some often-conflicting images:
+                blitwiz.graphics.unloadImage("bg.png")
+                blitwiz.graphics.unloadImage("background.png")
+
                 -- Restore event functions of the sample browser:
                 blitwiz.on_close = browser_on_close
                 blitwiz.on_mousedown = browser_on_mousedown
@@ -131,9 +173,12 @@ function blitwiz.on_mousedown(button, mousex, mousey)
                 blitwiz.on_draw = browser_on_draw
                 return
             else
-                f(button, x, y)
+                if f ~= nil then
+                    f(button, x, y)
+                end
             end
         end
+
 		-- Run example
 		blitwiz.on_init()
 	end

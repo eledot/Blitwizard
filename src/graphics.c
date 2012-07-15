@@ -228,11 +228,26 @@ int graphics_LoadTextureInstantly(const char* texture) {
     return graphics_FinishImageLoading(gt, graphicstexturelist_GetPreviousTexture(gt), NULL);
 }
 
-void graphics_UnloadTexture(const char* texname) {
+void graphics_UnloadTexture(const char* texname, void (*callback)(int success, const char* texture)) {
     struct graphicstexture* gt = graphicstexturelist_GetTextureByName(texname);
-    if (gt && !gt->threadingptr) {
-        struct graphicstexture* gtprev = graphicstexturelist_GetPreviousTexture(gt);
-        graphics_FreeTexture(gt, gtprev);
+    if (gt) {
+        if (!gt->threadingptr) {
+            // regularly unload
+            struct graphicstexture* gtprev = graphicstexturelist_GetPreviousTexture(gt);
+            graphics_FreeTexture(gt, gtprev);
+        }else{
+            // prompt the image loading callback with an error:
+            if (callback) {
+                callback(0, gt->name);
+            }
+
+            // cancel loading by abandoning the texture
+            free(gt->name);
+            gt->name = NULL;
+
+            // it will be fully thrown away as soon as the
+            // threaded image loading was completed
+        }
     }
 }
 
@@ -247,6 +262,7 @@ static int graphics_CheckTextureLoadingCallback(struct graphicstexture* gt, stru
             }
         }
     }else{
+        // texture is a regular loaded texture. check if it was abandoned:
         if (!gt->name) {
             // delete abandoned textures
             graphics_FreeTexture(gt, gtprev);
@@ -278,3 +294,4 @@ int graphics_IsTextureLoaded(const char* name) {
 }
 
 #endif // ifdef USE_GRAPHICS
+

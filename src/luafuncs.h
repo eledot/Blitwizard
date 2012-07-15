@@ -56,6 +56,7 @@ int luafuncs_drawRectangle(lua_State* l);
 int luafuncs_getDisplayModes(lua_State* l);
 int luafuncs_getDesktopDisplayMode(lua_State* l);
 int luafuncs_isImageLoaded(lua_State* l);
+int luafuncs_unloadImage(lua_State* l);
 
 // Sound:
 int luafuncs_getBackendName(lua_State* l);

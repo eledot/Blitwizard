@@ -96,8 +96,10 @@ void graphics_CompleteFrame();
 // Update the current drawing changes to screen.
 // Use this always after completing one frame.
 
-void graphics_UnloadTexture(const char* texname);
-// Unload the given texture if loaded currently. Does nothing if texture is currently being loaded!
+void graphics_UnloadTexture(const char* texname, void (*callback)(int success, const char* texture));
+// Unload the given texture if loaded currently.
+// If the texture is currently being loaded, loading will be cancelled and,
+// if the provided callback is not NULL, the callback will be called.
 
 int graphics_IsTextureLoaded(const char* name);
 // Check if a texture is loaded. 0: no, 1: operation in progress, 2: yes

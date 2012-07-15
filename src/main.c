@@ -171,6 +171,29 @@ static void quitevent() {
         return;
     }
 }
+
+void imgloadedcallback(int success, const char* texture) {
+    char* error;
+    if (!luastate_PushFunctionArgumentToMainstate_String(texture)) {
+        printerror("Error when pushing func args to blitwiz.on_image");
+        fatalscripterror();
+        return;
+    }
+    if (!luastate_PushFunctionArgumentToMainstate_Bool(success)) {
+        printerror("Error when pushing func args to blitwiz.on_image");
+        fatalscripterror();
+        return;
+    }
+    if (!luastate_CallFunctionInMainstate("blitwiz.on_image", 2, 1, 1, &error, NULL)) {
+        printerror("Error when calling blitwiz.on_image: %s", error);
+        if (error) {
+            free(error);
+        }
+        fatalscripterror();
+        return;
+    }
+}
+
 static void mousebuttonevent(int button, int release, int x, int y) {
     char* error;
     char onmouseup[] = "blitwiz.on_mouseup";
@@ -281,28 +304,6 @@ static void putinbackground(int background) {
 #endif
         // we are back in the foreground! \o/
         appinbackground = 0;
-    }
-}
-
-static void imgloaded(int success, const char* texture) {
-    char* error;
-    if (!luastate_PushFunctionArgumentToMainstate_String(texture)) {
-        printerror("Error when pushing func args to blitwiz.on_image");
-        fatalscripterror();
-        return;
-    }
-    if (!luastate_PushFunctionArgumentToMainstate_Bool(success)) {
-        printerror("Error when pushing func args to blitwiz.on_image");
-        fatalscripterror();
-        return;
-    }
-    if (!luastate_CallFunctionInMainstate("blitwiz.on_image", 2, 1, 1, &error, NULL)) {
-        printerror("Error when calling blitwiz.on_image: %s", error);
-        if (error) {
-            free(error);
-        }
-        fatalscripterror();
-        return;
     }
 }
 
@@ -765,7 +766,7 @@ int main(int argc, char** argv) {
 #ifdef USE_GRAPHICS
         // check for image loading progress
         if (!appinbackground) {
-            graphics_CheckTextureLoading(&imgloaded);
+            graphics_CheckTextureLoading(&imgloadedcallback);
         }
 #endif
 

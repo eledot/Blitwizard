@@ -398,6 +398,26 @@ int luafuncs_setWindow(lua_State* l) {
 #endif
 }
 
+void imgloadedcallback(int success, const char* texture); // written in main.c
+int luafuncs_unloadImage(lua_State* l) {
+#ifdef USE_GRAPHICS
+    const char* p = lua_tostring(l,1);
+    if (!p) {
+        lua_pushstring(l, "First parameter is not a valid image name string");
+        return lua_error(l);
+    }
+    // check on texture state and decide what to do:
+    int i = graphics_IsTextureLoaded(p);
+    if (i > 0) { // loaded or currently being loaded
+        graphics_UnloadTexture(p, &imgloadedcallback);
+    }
+    return 0;
+#else // ifdef USE_GRAPHICS
+    lua_pushstring(l, compiled_without_graphics);
+    return lua_error(l);
+#endif
+}
+
 int luafuncs_isImageLoaded(lua_State* l) {
 #ifdef USE_GRAPHICS
     const char* p = lua_tostring(l,1);
