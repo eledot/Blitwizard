@@ -405,10 +405,15 @@ int luafuncs_isImageLoaded(lua_State* l) {
         lua_pushstring(l, "First parameter is not a valid image name string");
         return lua_error(l);
     }
-    if (graphics_IsTextureLoaded(p) == 2) {
+    int i = graphics_IsTextureLoaded(p);
+    if (i == 2) { // loaded: true
         lua_pushboolean(l, 1);
     }else{
-        lua_pushboolean(l, 0);
+        if (i == 1) { // operation in progress: false
+            lua_pushboolean(l, 0);
+        }else{ // not loaded: nil
+            lua_pushnil(l);
+        }
     }
     return 1;
 #else // ifdef USE_GRAPHICS
