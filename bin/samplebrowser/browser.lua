@@ -47,6 +47,7 @@ function blitwiz.on_init()
 		blitwiz.graphics.loadImage("menu" .. i .. ".png")
 		i = i + 1
 	end
+    blitwiz.graphics.loadImage("return.png")
 end
 
 function getbuttonpos(index)
@@ -98,14 +99,41 @@ function blitwiz.on_mousedown(button, mousex, mousey)
 	updatemenufocus(mousex, mousey)
 	if menufocus > 0 then
 		os.chdir("../../examples/" .. examples[menufocus] .. "/")
-		-- Delete our previous event functions
+		-- Remember and delete our previous event functions
+        browser_on_close = blitwiz.on_close
 		blitwiz.on_close = nil
+        browser_on_mousedown = blitwiz.on_mousedown
 		blitwiz.on_mousedown = nil
+        browser_on_mousemove = blitwiz.on_mousemove
 		blitwiz.on_mousemove = nil
+        browser_on_init = blitwiz.on_init
 		blitwiz.on_init = nil
+        browser_on_draw = blitwiz.on_draw
 		blitwiz.on_draw = nil
 		-- Load example
 		dofile("game.lua")
+        -- Wrap drawing to show return button:
+        local f = blitwiz.on_draw
+        example_start_time = blitwiz.time.getTime()
+        blitwiz.on_draw = function()
+            f()
+            blitwiz.graphics.drawImage("return.png", {x=blitwiz.graphics.getWindowSize()-blitwiz.graphics.getImageSize("return.png"), y= -150 + math.min(150, (blitwiz.time.getTime() - example_start_time) * 0.2)})
+        end
+        local f = blitwiz.on_mousedown
+        blitwiz.on_mousedown = function(button, x, y)
+            local imgw,imgh = blitwiz.graphics.getImageSize("return.png")
+            if (x > blitwiz.graphics.getWindowSize()-imgw and y < imgh) then
+                -- Restore event functions of the sample browser:
+                blitwiz.on_close = browser_on_close
+                blitwiz.on_mousedown = browser_on_mousedown
+                blitwiz.on_mousemove = browser_on_mousemove
+                blitwiz.on_init = browser_on_init
+                blitwiz.on_draw = browser_on_draw
+                return
+            else
+                f(button, x, y)
+            end
+        end
 		-- Run example
 		blitwiz.on_init()
 	end

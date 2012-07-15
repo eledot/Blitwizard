@@ -53,19 +53,19 @@ tr,td {
 <body>
 <a name="0toc"><h1>0. Table of Contents</h1></a>
 <ul class="toc">
-<li><a href="#1introduction">1. Introduction</a></li>
-<li><a href="#2summary">2. API summary and document structure</a></li>
-<li><a href="#3blitwiz.font">3. <i>blitwiz.font</i> namespace</a></li>
+<li><a href="#introduction">1. Introduction</a></li>
+<li><a href="#summary">2. API summary and document structure</a></li>
+<li><a href="#blitwiz.font">3. <i>blitwiz.font</i> namespace</a></li>
 <li><a href="#blitwiz.graphics">4. <i>blitwiz.graphics</i> namespace</a></li>
 <li><a href="#blitwiz.net">5. <i>blitwiz.net</i> namespace</a></li>
 <li><a href="#blitwiz.physics">6. <i>blitwiz.physics</i> namespace</a></li>
 <li><a href="#blitwiz.sound">7. <i>blitwiz.sound</i> namespace</a></li>
 <li><a href="#blitwiz.time">8. <i>blitwiz.time</i> namespace</a></li>
-<li><a href="#9blitwiz.on_*">9. Event callbacks</a></li>
-<li><a href="#10os">10. <i>os</i> standard namespace extension</a></li>
+<li><a href="#blitwiz.on_*">9. Event callbacks</a></li>
+<li><a href="#os">10. <i>os</i> standard namespace extension</a></li>
 <li><a href="#string">11. <i>string</i> standard namespace extension</a></li>
 </ul>
-<a name="1introduction"><h1>1. Introduction</h1></a>
+<a name="introduction"><h1>1. Introduction</h1></a>
 <p>This document describes the blitwizard Lua api with all provided functions.
 Since blitwizard is intended for use with Lua 5 (which it includes),
 those are mainly the functions you will use to program your games.</p>
@@ -73,7 +73,7 @@ those are mainly the functions you will use to program your games.</p>
 <p>If this document refers to namespaces, this actually means the Lua tables in
 the global space that hold sub functions and variables conveniently packed into
 common modules, e.g. the string table or the os table of the standard lib.</p>
-<a name="2summary"><h1>2. API summary and document structure</h1></a>
+<a name="summary"><h1>2. API summary and document structure</h1></a>
 <p>
 Blitwizard mainly comes with an own blitwiz namespace, but also extends the Lua 5
 standard library which it contains. The Lua 5 standard functions are <b>not</b> described
@@ -349,7 +349,7 @@ Return values: window width <i>(number)</i>, window height <i>(number)</i>
 </p>
 </li>
 
-<li><h2><a name="blitwiz.graphcis.isImageLoaded">blitwiz.graphics.isImageLoaded</a>(filename <i>(string)</i>)</h2>
+<li><h2><a name="blitwiz.graphics.isImageLoaded">blitwiz.graphics.isImageLoaded</a>(filename <i>(string)</i>)</h2>
 <p>
 Check whether an image is fully loaded and available or not.
 If the image has been loaded through <a href="#blitwiz.graphics.loadImage">
@@ -357,9 +357,8 @@ blitwiz.graphics.loadImage</a> or through <a href="#blitwiz.graphics.loadImageAs
 blitwiz.graphics.loadImageAsync</a> (with the async loading being complete),
 the function will return true.
 </p>
-<p>In all other cases (e.g. also when the image is still being loaded through
-<a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>)
-the function will return false.
+<p>When the image is currently being loaded through <a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>, the function will return false.</p>
+<p>When the image is neither loaded nor currently being loaded, the function will return nil.
 </p>
 <p>
 Parameters:
@@ -368,7 +367,7 @@ Parameters:
 <li>filename <i>(string)</i> &mdash; specify the filename/path of the image</li>
 </ul>
 <p>
-Return value: image presence state as described above <i>(boolean)</i>
+Return value: image presence state as described above <i>(boolean or nil)</i>
 </p>
 </li>
 
@@ -1669,7 +1668,7 @@ Parameters:
 
 </ul>
 
-<a name="10os"><h1>10. <i>os</i> standard namespace extension</h1></a>
+<a name="os"><h1>10. <i>os</i> standard namespace extension</h1></a>
 <p>This describes the blitwizard extensions to the Lua standard <b>os</b> library. Check the manual on <a href="http://www.lua.org/">www.lua.org</a> for the standard functions of the os lib already provided by Lua.</p>
 <ul>
 
