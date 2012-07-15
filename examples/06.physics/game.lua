@@ -123,7 +123,7 @@ function blitwiz.on_draw()
     local imgw,imgh = blitwiz.graphics.getImageSize("cratesplint.png")
     local i = 1
     while i <= #cratesplints do
-        blitwiz.graphics.drawImage("cratesplint.png", {x=cratesplints[i][1] - imgw/2, y=cratesplints[i][2] - imgh/2 + cratesplints[i][5] * 50, rotationangle=cratesplints[i][3] + cratesplints[i][5]*360*2*cratesplints[i][4], alpha=1 - cratesplints[i][5], scalex=3.5 - cratesplints[i][5]*3.5, scaley=3.5 - cratesplints[i][5]*3.5})
+        blitwiz.graphics.drawImage("cratesplint.png", {x=cratesplints[i][1] - imgw/2, y=cratesplints[i][2] - imgh/2 + cratesplints[i][5] * cratesplints[i][5] * 500, rotationangle=cratesplints[i][3] + cratesplints[i][5]*360*2*cratesplints[i][4], alpha=1 - cratesplints[i][5], scalex=3.5 - cratesplints[i][5]*3.5, scaley=3.5 - cratesplints[i][5]*3.5})
         i = i + 1
     end
 
@@ -195,6 +195,7 @@ function blitwiz.on_mousedown(button, x, y)
                 smokeobjs[#smokeobjs+1] = { x * pixelspermeter, y * pixelspermeter, math.random()*360, math.min(1, (force-4)/20) }
             end
             if force > 1 then
+                -- substract health from the crate:
                 local i = 1
                 while i <= #crates do
                     if crates[i] == crate then
@@ -202,6 +203,7 @@ function blitwiz.on_mousedown(button, x, y)
                         h = h - force/100
                         crateshealth[i] = h
                         if h <= 0 then
+                            -- health is zero -> destroy crate
                             local j = 1
                             while j <= 2 + math.random() * 8 do
                                 cratesplints[#cratesplints+1] = { x * pixelspermeter + 30 - 60 * math.random(), y * pixelspermeter + 30 - 60 * math.random(), math.random() * 360, math.random()*1, 0 }

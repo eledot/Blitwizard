@@ -40,6 +40,7 @@
 #include "audiosourceloop.h"
 #include "audiosourceffmpeg.h"
 #include "audiosourceprereadcache.h"
+#include "audiosourceformatconvert.h"
 #include "mathhelpers.h"
 
 #ifndef USE_SDL_AUDIO

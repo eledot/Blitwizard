@@ -37,6 +37,7 @@
 extern "C" {
 
 class mycontactlistener;
+static int insidecollisioncallback = 0;
 
 struct physicsworld {
     mycontactlistener* listener;
@@ -54,7 +55,15 @@ struct physicsobject {
     double gravityx,gravityy;
     void* userdata;
     struct physicsworld* pworld;
+    int deleted; // 1: deleted inside collision callback, 0: everything normal
 };
+
+struct deletedphysicsobject {
+    struct physicsobject* obj;
+    struct deletedphysicsobject* next;
+};
+
+struct deletedphysicsobject* deletedlist = NULL;
 
 struct bodyuserdata {
     void* userdata;
@@ -84,8 +93,13 @@ mycontactlistener::~mycontactlistener() {return;}
 void mycontactlistener::PreSolve(b2Contact *contact, const b2Manifold *oldManifold) {
     struct physicsobject* obj1 = ((struct bodyuserdata*)contact->GetFixtureA()->GetBody()->GetUserData())->pobj;
     struct physicsobject* obj2 = ((struct bodyuserdata*)contact->GetFixtureB()->GetBody()->GetUserData())->pobj;
+    if (obj1->deleted || obj2->deleted) {
+        // one of the objects should be deleted already, ignore collision
+        contact->SetEnabled(false);
+        return;
+    }
 
-    //get collision point (this is never really accurate, but mostly sufficient)
+    // get collision point (this is never really accurate, but mostly sufficient)
     int n = contact->GetManifold()->pointCount;
     b2WorldManifold wmanifold;
     contact->GetWorldManifold(&wmanifold);
@@ -102,7 +116,7 @@ void mycontactlistener::PreSolve(b2Contact *contact, const b2Manifold *oldManifo
     collidex /= divisor;
     collidey /= divisor;
 
-    //get collision normal ("push out" direction)
+    // get collision normal ("push out" direction)
     float normalx = wmanifold.normal.x;
     float normaly = wmanifold.normal.y;
 
@@ -112,13 +126,13 @@ void mycontactlistener::PreSolve(b2Contact *contact, const b2Manifold *oldManifo
     //find our current world
     struct physicsworld* w = obj1->pworld;
 
-    //return the information through the callback
+    // return the information through the callback
     if (w->callback) {
         if (!w->callback(w->callbackuserdata, obj1, obj2, collidex, collidey, normalx, normaly, impact)) {
-            //contact should be disabled:
+            // contact should be disabled:
             contact->SetEnabled(false);
         }else{
-            //contact should remain enabled:
+            // contact should remain enabled:
             contact->SetEnabled(true);
         }
     }
@@ -148,15 +162,19 @@ void physics_DestroyWorld(struct physicsworld* world) {
 
 int physics_GetStepSize(struct physicsworld* world) {
 #if defined(ANDROID) || defined(__ANDROID__)
-    //less accurate physics on Android
-    return (1000/50);
+    // less accurate physics on Android (40 FPS)
+    return (1000/40);
 #else
-    //more accurate physics on desktop
-    return (1000/100);
+    // more accurate physics on desktop (60 FPS)
+    return (1000/60);
 #endif
 }
 
+static void physics_DestroyObjectDo(struct physicsobject* obj);
+
 void physics_Step(struct physicsworld* world) {
+    // Do a collision step
+    insidecollisioncallback = 1; // remember we are inside a step
     int i = 0;
     while (i < 2) {
         double forcefactor = (1.0/(1000.0f/physics_GetStepSize(world)))*2;
@@ -173,16 +191,25 @@ void physics_Step(struct physicsworld* world) {
             b = b->GetNext();
         }
 #if defined(ANDROID) || defined(__ANDROID__)
-        //less accurate on Android
+        // less accurate on Android
+        int it1 = 4;
+        int it2 = 2;
+#else
+        // more accurate on desktop
         int it1 = 7;
         int it2 = 4;
-#else
-        //more accurate on desktop
-        int it1 = 10;
-        int it2 = 7;
 #endif
         world->w->Step(1.0 /(1000.0f/physics_GetStepSize(world)), it1, it2);
         i++;
+    }
+    insidecollisioncallback = 0; // we are no longer inside a step
+    // actually delete objects marked for deletion during the step:
+    while (deletedlist) {
+        // delete all objects in the deletion queue
+        physics_DestroyObjectDo(deletedlist->obj);
+        struct deletedphysicsobject* pobj = deletedlist;
+        deletedlist = deletedlist->next;
+        free(pobj);
     }
 }
 
@@ -432,12 +459,30 @@ void physics_GetMassCenterOffset(struct physicsobject* obj, double* offsetx, dou
     *offsety = mdata.center.y;
 }
 
-void physics_DestroyObject(struct physicsobject* obj) {
-    if (!obj) {return;}
+static void physics_DestroyObjectDo(struct physicsobject* obj) {
     if (obj->body) {
         obj->world->DestroyBody(obj->body);
     }
     free(obj);
+}
+
+void physics_DestroyObject(struct physicsobject* obj) {
+    if (!obj) {
+        return;
+    }
+    if (!insidecollisioncallback) {
+        physics_DestroyObjectDo(obj);
+    }else{
+        obj->deleted = 1;
+        struct deletedphysicsobject* dobject = (struct deletedphysicsobject*)malloc(sizeof(*dobject));
+        if (!dobject) {
+            return;
+        }
+        memset(dobject, 0, sizeof(*dobject));
+        dobject->obj = obj;
+        dobject->next = deletedlist;
+        deletedlist = dobject;
+    }
 }
 
 void physics_Warp(struct physicsobject* obj, double x, double y, double angle) {

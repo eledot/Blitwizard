@@ -46,7 +46,60 @@ struct luaphysicsobj {
     double lineardamping;
     double angulardamping;
     int rotationrestriction;
+    int deleted;
 };
+
+static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
+    char invalid[] = "Not a valid physics object reference";
+    if (lua_type(l, index) != LUA_TUSERDATA) {
+        lua_pushstring(l, invalid);
+        lua_error(l);
+        return NULL;
+    }
+    if (lua_rawlen(l, index) != sizeof(struct luaidref)) {
+        lua_pushstring(l, invalid);
+        lua_error(l);
+        return NULL;
+    }
+    struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
+    if (!idref || idref->magic != IDREF_MAGIC || idref->type != IDREF_PHYSICS) {
+        lua_pushstring(l, invalid);
+        lua_error(l);
+        return NULL;
+    }
+    struct luaphysicsobj* obj = idref->ref.ptr;
+    return obj;
+}
+
+static int garbagecollect_physobj(lua_State* l) {
+    struct luaphysicsobj* pobj = toluaphysicsobj(l, -1);
+    if (!pobj) {
+        // not a physics object!
+        return 0;
+    }
+    pobj->refcount--;
+    // printf("garbage collect ref count: %d\n", pobj->refcount);
+    if (pobj->refcount > 0) {
+        // object is still referenced -> do not delete
+        return 0;
+    }
+    if (pobj->object) {
+        // void collision callback
+        char funcname[200];
+        snprintf(funcname, sizeof(funcname), "collisioncallback%p", pobj->object);
+        funcname[sizeof(funcname)-1] = 0;
+        lua_pushstring(l, funcname);
+        lua_pushnil(l);
+        lua_settable(l, LUA_REGISTRYINDEX);
+
+        // Close the associated physics object
+        physics_DestroyObject(pobj->object);
+    }
+
+    // free the physics object itself
+    free(pobj);
+    return 0;
+}
 
 static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
     lua_State* l = luastate_GetStatePtr();
@@ -68,10 +121,14 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
         // references the object we collided with
         struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
         ((struct luaphysicsobj*)physics_GetObjectUserdata(otherobj))->refcount++;
+        // printf("new refcount: %d\n", ((struct luaphysicsobj*)physics_GetObjectUserdata(otherobj))->refcount);
         memset(ref, 0, sizeof(*ref));
         ref->magic = IDREF_MAGIC;
         ref->type = IDREF_PHYSICS;
-        ref->ref.ptr = otherobj;
+        ref->ref.ptr = (struct luaphysicsobj*)physics_GetObjectUserdata(otherobj);
+
+        // the reference needs to be garbage collected:
+        luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
 
         // push other information:
         lua_pushnumber(l, x);
@@ -119,48 +176,6 @@ int luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicso
     return 1;
 }
 
-static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
-    char invalid[] = "Not a valid physics object reference";
-    if (lua_type(l, index) != LUA_TUSERDATA) {
-        lua_pushstring(l, invalid);
-        lua_error(l);
-        return NULL;
-    }
-    if (lua_rawlen(l, index) != sizeof(struct luaidref)) {
-        lua_pushstring(l, invalid);
-        lua_error(l);
-        return NULL;
-    }
-    struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
-    if (!idref || idref->magic != IDREF_MAGIC || idref->type != IDREF_PHYSICS) {
-        lua_pushstring(l, invalid);
-        lua_error(l);
-        return NULL;
-    }
-    struct luaphysicsobj* obj = idref->ref.ptr;
-    return obj;
-}
-
-static int garbagecollect_physobj(lua_State* l) {
-    struct luaphysicsobj* pobj = toluaphysicsobj(l, -1);
-    if (!pobj) {
-        // not a physics object!
-        return 0;
-    }
-    pobj->refcount--;
-    if (pobj->refcount > 0) {
-        // object is still referenced -> do not delete
-        return 0;
-    }
-    if (pobj->object) {
-        // Close the associated physics object
-        physics_DestroyObject(pobj->object);
-    }
-    // free the physics object itself
-    free(pobj);
-    return 0;
-}
-
 static struct luaidref* createphysicsobj(lua_State* l) {
     // Create a luaidref userdata struct which points to a luaphysicsobj:
     struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
@@ -196,11 +211,30 @@ int luafuncs_createStaticObject(lua_State* l) {
 }
 
 int luafuncs_destroyObject(lua_State* l) {
+    // destroy given physics object if possible
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     obj->refcount--;
+    // printf("destroy refcount: %d\n", obj->refcount);
+    obj->deleted = 1;
+
+    if (obj->object) {
+        // void collision callback
+        char funcname[200];
+        snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->object);
+        funcname[sizeof(funcname)-1] = 0;
+        lua_pushstring(l, funcname);
+        lua_pushnil(l);
+        lua_settable(l, LUA_REGISTRYINDEX);
+
+        // delete physics body
+        physics_DestroyObject(obj->object);
+        obj->object = NULL;
+    }
+
+    // delete object itself if reference count is zero
     if (obj->refcount <= 0) {
         //  no references left, we can delete the object
-
+        free(obj);
     }
     return 0;
 }
@@ -218,6 +252,10 @@ static void applyobjectsettings(struct luaphysicsobj* obj) {
 
 int luafuncs_impulse(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (!obj->movable) {
         lua_pushstring(l, "Impulse can be only applied to movable objects");
         return lua_error(l);
@@ -294,6 +332,10 @@ int luafuncs_ray(lua_State* l) {
 
 int luafuncs_restrictRotation(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (lua_type(l, 2) != LUA_TBOOLEAN) {
         lua_pushstring(l, "Second parameter is not a valid rotation restriction boolean");
         return lua_error(l);
@@ -309,6 +351,10 @@ int luafuncs_restrictRotation(lua_State* l) {
 
 int luafuncs_setGravity(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (!obj->object) {
         lua_pushstring(l, "Physics object has no shape");
         return lua_error(l);
@@ -339,6 +385,10 @@ int luafuncs_setGravity(lua_State* l) {
 
 int luafuncs_setMass(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (!obj->movable) {
         lua_pushstring(l, "Mass can be only set on movable objects");
         return lua_error(l);
@@ -383,6 +433,10 @@ void transferbodysettings(struct physicsobject* oldbody, struct physicsobject* n
 
 int luafuncs_warp(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (!obj->object) {
         lua_pushstring(l, "Physics object doesn't have a shape");
         return lua_error(l);
@@ -417,6 +471,10 @@ int luafuncs_warp(lua_State* l) {
 
 int luafuncs_getPosition(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (!obj->object) {
         lua_pushstring(l, "Physics object doesn't have a shape");
         return lua_error(l);
@@ -430,6 +488,10 @@ int luafuncs_getPosition(lua_State* l) {
 
 int luafuncs_setRestitution(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter not a valid restitution number");
         return lua_error(l);
@@ -441,6 +503,10 @@ int luafuncs_setRestitution(lua_State* l) {
 
 int luafuncs_setFriction(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter not a valid friction number");
         return lua_error(l);
@@ -452,6 +518,10 @@ int luafuncs_setFriction(lua_State* l) {
 
 int luafuncs_setLinearDamping(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter not a valid angular damping number");
         return lua_error(l);
@@ -463,6 +533,10 @@ int luafuncs_setLinearDamping(lua_State* l) {
 
 int luafuncs_setAngularDamping(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter not a valid angular damping number");
         return lua_error(l);
@@ -474,6 +548,10 @@ int luafuncs_setAngularDamping(lua_State* l) {
 
 int luafuncs_getRotation(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
     if (!obj->object) {
         lua_pushstring(l, "Physics object doesn't have a shape");
         return lua_error(l);
@@ -486,6 +564,14 @@ int luafuncs_getRotation(lua_State* l) {
 
 int luafuncs_setShapeEdges(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
+    if (obj->object) {
+        lua_pushstring(l, "Physics object already has a shape");
+        return lua_error(l);
+    }
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TTABLE) {
         lua_pushstring(l, "Second parameter is not a valid edge list table");
         return lua_error(l);
@@ -506,7 +592,6 @@ int luafuncs_setShapeEdges(lua_State* l) {
             if (lua_type(l, -1) == LUA_TNIL && haveedge) {
                 break;
             }
-            printf("type: %d\n", lua_type(l, -1));
             lua_pushstring(l, "Edge list contains non-table value or is empty");
             physics_DestroyObject(physics_CreateObjectEdges_End(context));
             return lua_error(l);
@@ -557,6 +642,14 @@ int luafuncs_setShapeEdges(lua_State* l) {
 
 int luafuncs_setShapeCircle(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
+    if (obj->object) {
+        lua_pushstring(l, "Physics object already has a shape");
+        return lua_error(l);
+    }
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
         lua_pushstring(l, "Not a valid circle radius number");
         return lua_error(l);
@@ -580,6 +673,14 @@ int luafuncs_setShapeCircle(lua_State* l) {
 
 int luafuncs_setShapeOval(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
+    if (obj->object) {
+        lua_pushstring(l, "Physics object already has a shape");
+        return lua_error(l);
+    }
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
         lua_pushstring(l, "Not a valid oval width number");
         return lua_error(l);
@@ -609,6 +710,14 @@ int luafuncs_setShapeOval(lua_State* l) {
 
 int luafuncs_setCollisionCallback(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
+    if (!obj->object) {
+        lua_pushstring(l, "Physics object doesn't have a shape");
+        return lua_error(l);
+    }
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TFUNCTION) {
         return haveluaerror(l, badargument1, 2, "blitwiz.physics.setCollisionCallback", "function", lua_strtype(l, 2));
     }
@@ -630,6 +739,14 @@ int luafuncs_setCollisionCallback(lua_State* l) {
 
 int luafuncs_setShapeRectangle(lua_State* l) {
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
+    if (obj->deleted) {
+        lua_pushstring(l, "Physics object was deleted");
+        return lua_error(l);
+    }
+    if (obj->object) {
+        lua_pushstring(l, "Physics object already has a shape");
+        return lua_error(l);
+    }
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
         lua_pushstring(l, "Not a valid rectangle width number");
         return lua_error(l);

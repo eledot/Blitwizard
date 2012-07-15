@@ -22,9 +22,9 @@
 */
 
 #include "os.h"
+#include <stdio.h>
 #ifdef WINDOWS
 #include <windows.h>
-#include <stdio.h>
 #include <io.h>
 #include <fcntl.h>
 #endif
