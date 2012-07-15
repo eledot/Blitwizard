@@ -806,7 +806,7 @@ Return value: none
 The physics use their own <b>physics units</b>. Do NOT use pixels here! Instead, think of how long a meter would roughly be in your game in pixels, and then scale all pixels accordingly into meter units before you pass them to the physics. Why? Physics operate best in certain value ranges:
 </p>
 <p>
-The best size for your moving physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual.
+The best size for your moving physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual (since Blitwizard physics are based on the Box2D library).
 </p>
 <p>
 The physics are <b>inaccurate</b>, since they are game-oriented (that means mainly fast and for realtime use) and not for accurate calculations. The idea is that they can deal with a lot of objects and situations in realtime, not an accurate representation of real world physics.
