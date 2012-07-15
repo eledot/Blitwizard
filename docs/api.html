@@ -599,7 +599,7 @@ end
 
 <li><h2><a name="blitwiz.graphics.unloadImage">blitwiz.graphics.unloadImage</a>(image name <i>(string)</i>)</h2>
 <p>
-Unloads the given image if loaded. If the image is currently being loaded, the loading process will be cancelled (and callbacks like <a href="blitwiz.on_image">blitwiz.on_image</a> will be notified with image loading failure).
+Unloads the given image if loaded. If the image is currently in the progress of being loaded through <a href="#blitwiz.graphics.loadImageAsync">blitwiz.graphics.loadImageAsync</a>, the loading process will be cancelled (and callbacks like <a href="#blitwiz.on_image">blitwiz.on_image</a> will be notified with image loading failure).
 </p>
 </li>
 
