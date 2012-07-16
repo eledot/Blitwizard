@@ -685,7 +685,9 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         mainrenderer = SDL_CreateRenderer(mainwindow, -1, SDL_RENDERER_SOFTWARE);
     }
     if (!mainrenderer) {
+        // we failed to create the renderer
         if (mainwindow) {
+            // destroy window aswell in case it is open
             SDL_DestroyWindow(mainwindow);
             mainwindow = NULL;
         }

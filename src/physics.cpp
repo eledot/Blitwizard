@@ -120,10 +120,10 @@ void mycontactlistener::PreSolve(b2Contact *contact, const b2Manifold *oldManifo
     float normalx = wmanifold.normal.x;
     float normaly = wmanifold.normal.y;
 
-    //impact force:
+    // impact force:
     float impact = contact->GetManifold()->points[0].normalImpulse; //oldManifold->points[0].normalImpulse; //impulse->normalImpulses[0];
 
-    //find our current world
+    // find our current world
     struct physicsworld* w = obj1->pworld;
 
     // return the information through the callback
@@ -180,11 +180,14 @@ void physics_Step(struct physicsworld* world) {
         double forcefactor = (1.0/(1000.0f/physics_GetStepSize(world)))*2;
         b2Body* b = world->w->GetBodyList();
         while (b) {
+            // obtain physics object struct from body
             struct physicsobject* obj = ((struct bodyuserdata*)b->GetUserData())->pobj;
             if (obj) {
                 if (obj->gravityset) {
+                    // custom gravity which we want to apply
                     b->ApplyLinearImpulse(b2Vec2(obj->gravityx * forcefactor, obj->gravityy * forcefactor), b2Vec2(b->GetPosition().x, b->GetPosition().y));
                 }else{
+                    // no custom gravity -> apply world gravity
                     b->ApplyLinearImpulse(b2Vec2(world->gravityx * forcefactor, world->gravityy * forcefactor), b2Vec2(b->GetPosition().x, b->GetPosition().y));
                 }
             }
@@ -203,12 +206,17 @@ void physics_Step(struct physicsworld* world) {
         i++;
     }
     insidecollisioncallback = 0; // we are no longer inside a step
+
     // actually delete objects marked for deletion during the step:
     while (deletedlist) {
-        // delete all objects in the deletion queue
+        // delete first object in the queue
         physics_DestroyObjectDo(deletedlist->obj);
+
+        // update list pointers (-> remove object from queue)
         struct deletedphysicsobject* pobj = deletedlist;
         deletedlist = deletedlist->next;
+
+        // free removed object
         free(pobj);
     }
 }
@@ -232,18 +240,21 @@ public:
 };
 
 int physics_Ray(struct physicsworld* world, double startx, double starty, double targetx, double targety, double* hitpointx, double* hitpointy, struct physicsobject** hitobject, double* hitnormalx, double* hitnormaly) {
-    mycallback* callbackobj = new mycallback();
-    world->w->RayCast(callbackobj, b2Vec2(startx, starty), b2Vec2(targetx, targety));
-    if (callbackobj->closestcollidedbody) {
-        *hitpointx = callbackobj->closestcollidedposition.x;
-        *hitpointy = callbackobj->closestcollidedposition.y;
-        *hitobject = ((struct bodyuserdata*)callbackobj->closestcollidedbody->GetUserData())->pobj;
-        *hitnormalx = callbackobj->closestcollidednormal.x;
-        *hitnormaly = callbackobj->closestcollidednormal.y;
-        delete callbackobj;
+    // create callback object which finds the closest impact
+    mycallback callbackobj;
+
+    // cast a ray and have our callback object check for closest impact
+    world->w->RayCast(&callbackobj, b2Vec2(startx, starty), b2Vec2(targetx, targety));
+    if (callbackobj.closestcollidedbody) {
+        // we have a closest collided body, provide hitpoint information:
+        *hitpointx = callbackobj.closestcollidedposition.x;
+        *hitpointy = callbackobj.closestcollidedposition.y;
+        *hitobject = ((struct bodyuserdata*)callbackobj.closestcollidedbody->GetUserData())->pobj;
+        *hitnormalx = callbackobj.closestcollidednormal.x;
+        *hitnormaly = callbackobj.closestcollidednormal.y;
         return 1;
     }
-    delete callbackobj;
+    // no collision found
     return 0;
 }
 
