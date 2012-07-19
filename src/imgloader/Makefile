@@ -8,8 +8,8 @@
 FILES:=pngloader.o imgloader.o
 SSEFLAGS:=`cd ../../ && sh scripts/checksse.sh`
 SSEFLAGS2:=`cd ../../../ && sh scripts/checksse.sh`
-CFLAGS:=-O2 -fomit-frame-pointer -ffast-math $(SSEFLAGS) -I./zlib/ -I. -DDEBUGLOG
-CFLAGS2:=-O2 -fomit-frame-pointer -ffast-math $(SSEFLAGS2) -I./zlib/ -I. -DDEBUGLOG
+CFLAGS:=-O2 -fomit-frame-pointer -ffast-math $(SSEFLAGS) -I./zlib/ -I. -I./png/ -DDEBUGLOG
+CFLAGS2:=-O2 -fomit-frame-pointer -ffast-math $(SSEFLAGS2) -I./zlib/ -I. -I./png/ -DDEBUGLOG
 CROSSCOMPILER:=i686-pc-mingw32-gcc
 EMPTY:=
 ifeq ($(AR),$(EMPTY))
