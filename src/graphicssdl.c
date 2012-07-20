@@ -260,8 +260,12 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
     SDL_SetTextureColorMod(gt->tex, (red * 255.0f), (green * 255.0f), (blue * 255.0f));
     if (horiflipped) {
         SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_HORIZONTAL);
-    }else{
-        SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
+    } else {
+        if (rotationangle > 0.001 || rotationangle < -0.001) {
+            SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
+        } else {
+            SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
+        }
     }
     return 1;
 }

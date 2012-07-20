@@ -40,7 +40,7 @@ menufocus = 1
 
 function blitwiz.on_init()
 	print "Launching blitwizard sample browser"
-	blitwiz.graphics.setWindow(640,480,"blitwizard 2d engine", false)
+	blitwiz.graphics.setWindow(640, 480, "blitwizard 2d engine", false, "software")
 	blitwiz.graphics.loadImage("title.png")
 	local i = 1
 	while i <= #examples do
