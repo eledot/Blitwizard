@@ -74,12 +74,9 @@ static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
 
 static int garbagecollect_physobj(lua_State* l) {
     struct luaphysicsobj* pobj = toluaphysicsobj(l, -1);
-    if (!pobj) {
-        // not a physics object!
-        return 0;
-    }
+    assert(pobj != NULL);
 
-    printinfo("GC refcount is: %d\n", pobj->refcount);
+    // printinfo("GC refcount is: %d", pobj->refcount);
 
     pobj->refcount--;
     if (pobj->refcount > 0) {
