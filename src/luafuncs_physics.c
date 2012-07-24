@@ -192,13 +192,16 @@ static struct luaidref* createphysicsobj(lua_State* l) {
         lua_error(l);
         return NULL;
     }
+
     // initialise structs:
     memset(obj, 0, sizeof(*obj));
-    obj->refcount = 1;
+    obj->refcount = 1;  // this is a new object,
+      // so there is only one new reference (our own)
     memset(ref, 0, sizeof(*ref));
     ref->magic = IDREF_MAGIC;
     ref->type = IDREF_PHYSICS;
     ref->ref.ptr = obj;
+
     // make sure it gets garbage collected lateron:
     luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
     return ref;
@@ -220,6 +223,7 @@ int luafuncs_destroyObject(lua_State* l) {
     // destroy given physics object if possible
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
     obj->refcount--;
+
     // printf("destroy refcount: %d\n", obj->refcount);
     obj->deleted = 1;
 
@@ -320,17 +324,23 @@ int luafuncs_ray(lua_State* l) {
     double hitpointx,hitpointy;
     double normalx,normaly;
     if (physics_Ray(main_DefaultPhysicsPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly)) {
+        // create a new reference to the (existing) object the ray has hit:
         struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
         ((struct luaphysicsobj*)physics_GetObjectUserdata(obj))->refcount++;
         memset(ref, 0, sizeof(*ref));
         ref->magic = IDREF_MAGIC;
         ref->type = IDREF_PHYSICS;
         ref->ref.ptr = obj;
+  
+        // the reference needs to be garbage collected:
+        luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
+
+        // push the other information we also want to return:
         lua_pushnumber(l, hitpointx);
         lua_pushnumber(l, hitpointy);
         lua_pushnumber(l, normalx);
         lua_pushnumber(l, normaly);
-        return 5;
+        return 5;  // return it all
     }
     lua_pushnil(l);
     return 1;
