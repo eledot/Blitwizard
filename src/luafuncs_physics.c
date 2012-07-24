@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <assert.h>
 #include "luaheader.h"
 
 #include "logging.h"
@@ -77,12 +78,16 @@ static int garbagecollect_physobj(lua_State* l) {
         // not a physics object!
         return 0;
     }
+
+    printinfo("GC refcount is: %d\n", pobj->refcount);
+
     pobj->refcount--;
-    // printf("garbage collect ref count: %d\n", pobj->refcount);
     if (pobj->refcount > 0) {
         // object is still referenced -> do not delete
         return 0;
     }
+    assert(pobj->refcount >= 0);
+  
     if (pobj->object) {
         // void collision callback
         char funcname[200];
@@ -121,6 +126,7 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
         // references the object we collided with
         struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
         ((struct luaphysicsobj*)physics_GetObjectUserdata(otherobj))->refcount++;
+        assert(((struct luaphysicsobj*)physics_GetObjectUserdata(otherobj))->refcount > 1);
         // printf("new refcount: %d\n", ((struct luaphysicsobj*)physics_GetObjectUserdata(otherobj))->refcount);
         memset(ref, 0, sizeof(*ref));
         ref->magic = IDREF_MAGIC;
