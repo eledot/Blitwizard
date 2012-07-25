@@ -85,20 +85,27 @@ static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
 }
 
 static int garbagecollect_physobj(lua_State* l) {
+    // convert to a physics object:
     struct luaphysicsobj* pobj = toluaphysicsobj(l, -1);
+
+    // if we garbage collect a non-physics object, all is screwed:
     assert(pobj != NULL);
 
-    // printinfo("GC refcount is: %d", pobj->refcount);
-
+    // decrease the ref count since we garbage collect a luaidref to our obj
     pobj->refcount--;
     if (pobj->refcount > 0) {
-        // object is still referenced -> do not delete
+        // object is still referenced -> do not delete it for now
         return 0;
     }
+    // -> we got the last reference
+    
+    // ... or things went very wrong and the supposed-to-be-last was already
+    // processed (which should never happen):
     assert(pobj->refcount >= 0);
   
+    // delete physics shape object if we can:
     if (pobj->object) {
-        // void collision callback
+        // void collision callback first:
         char funcname[200];
         snprintf(funcname, sizeof(funcname), "collisioncallback%p", pobj->object);
         funcname[sizeof(funcname)-1] = 0;
@@ -110,8 +117,10 @@ static int garbagecollect_physobj(lua_State* l) {
         physics_DestroyObject(pobj->object);
     }
 
-    // free the physics object itself
+    // free the lua physics object itself
     free(pobj);
+
+    // the luaidref will be freed by the lua garbage collector
     return 0;
 }
 
