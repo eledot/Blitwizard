@@ -50,24 +50,36 @@ struct luaphysicsobj {
     int deleted;
 };
 
+// attempt to convert the user data on the stack to a lua physics object
 static struct luaphysicsobj* toluaphysicsobj(lua_State* l, int index) {
+    // define an error message
     char invalid[] = "Not a valid physics object reference";
+
+    // it needs to be a userdata first:
     if (lua_type(l, index) != LUA_TUSERDATA) {
         lua_pushstring(l, invalid);
         lua_error(l);
         return NULL;
     }
+
+    // since we use "luaidref" for everything (physics objects, sounds, ..),
+    // it needs to be of the size of that struct:
     if (lua_rawlen(l, index) != sizeof(struct luaidref)) {
         lua_pushstring(l, invalid);
         lua_error(l);
         return NULL;
     }
+
+    // assume it is a valid luaidref and check what type it is:
     struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
     if (!idref || idref->magic != IDREF_MAGIC || idref->type != IDREF_PHYSICS) {
+        // either wrong magic (-> not a luaidref) or not a physics reference
         lua_pushstring(l, invalid);
         lua_error(l);
         return NULL;
     }
+
+    // it is a physics object -> return it
     struct luaphysicsobj* obj = idref->ref.ptr;
     return obj;
 }
