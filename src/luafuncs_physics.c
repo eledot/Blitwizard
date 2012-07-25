@@ -219,9 +219,8 @@ int luafuncs_createStaticObject(lua_State* l) {
 int luafuncs_destroyObject(lua_State* l) {
     // destroy given physics object if possible
     struct luaphysicsobj* obj = toluaphysicsobj(l, 1);
-    obj->refcount--;
+    assert(obj->refcount > 0);
 
-    // printf("destroy refcount: %d\n", obj->refcount);
     obj->deleted = 1;
 
     if (obj->object) {
@@ -236,12 +235,6 @@ int luafuncs_destroyObject(lua_State* l) {
         // delete physics body
         physics_DestroyObject(obj->object);
         obj->object = NULL;
-    }
-
-    // delete object itself if reference count is zero
-    if (obj->refcount <= 0) {
-        //  no references left, we can delete the object
-        free(obj);
     }
     return 0;
 }
