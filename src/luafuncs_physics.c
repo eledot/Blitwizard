@@ -124,15 +124,24 @@ static int garbagecollect_physobj(lua_State* l) {
     return 0;
 }
 
+// Attempt to trigger a user-defined collision callback for a given physics
+// object. When no callback is set by the user or if the callback succeeds,
+// 1 will be returned. In case of a lua error in the callback, 0 will be
+// returned and a traceback printed to stderr (and blitwizard should be
+// terminated by the calling function).
 static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
+    // get global lua state we use for blitwizard (no support for multiple
+    // states as of now):
     lua_State* l = luastate_GetStatePtr();
+
+    // obtain the collision callback:
     char funcname[200];
     snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj);
     funcname[sizeof(funcname)-1] = 0;
-
     lua_pushstring(l, funcname);
     lua_gettable(l, LUA_REGISTRYINDEX);
 
+    // check if the collision callback is not nil (-> defined):
     if (lua_type(l, -1) != LUA_TNIL) {
         // we got a collision callback for this object -> call it
         lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc());
@@ -179,21 +188,41 @@ static int luafuncs_trycollisioncallback(struct physicsobject* obj, struct physi
             lua_pop(l, 2);
         }
     }else{
+        // callback was nil and not defined by user
         lua_pop(l, 1); // pop the nil value
     }
     return 1;
 }
 
+// This function can throw lua out of memory errors (but no others) and should
+// therefore be pcall'ed. Since we don't handle out of memory sanely anyway,
+// it isn't pcalled for now: FIXME
+// This function gets the information about two objects colliding, and will
+// subsequently attempt to call both object's collision callbacks.
+// 
+// The user callbacks can decide that the collision shouldn't be handled,
+// in which case this function will return 0. Otherwise, it will return 1.
+// If a lua error happens in the user callbacks (apart from out of memory),
+// it will instant-quit blitwizard with backtrace (it will never return).
 int luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force) {
+    // we want to track if any of the callbacks wants to ignore the collision:
     int enabled = 1;
+
+    // call first object's callback:
     if (!luafuncs_trycollisioncallback(a, b, x, y, normalx, normaly, force, &enabled)) {
+        // a lua error happened and backtrace was spilled out -> simply quit
         main_Quit(1);
         return 1;
     }
+
+    // call second object's callback:
     if (!luafuncs_trycollisioncallback(b, a, x, y, -normalx, -normaly, force, &enabled)) {
+        // a lua error happened in the callback was spilled out -> quit
         main_Quit(1);
         return 1;
     }
+
+    // if any of the callbacks wants to ignore the collision, return 0:
     if (!enabled) {
         return 0;
     }
