@@ -1,4 +1,13 @@
+#!/bin/bash
 
+# This test confirms os.ls() (a blitwizard lua api function) works.
+# It lists the files in the templates/ directory using blitwizard/os.ls,
+# then does the same in bash and compares the results.
+
+source preparetest.sh
+
+# Get output from blitwizard
+echo "
 -- create a static and a movable object:
 local obj1 = blitwiz.physics.createStaticObject()
 local obj2 = blitwiz.physics.createMovableObject()
@@ -15,4 +24,13 @@ while i < 1000 do
     i = i + 1
 end
 os.exit(0)
+" > ./test.lua
+$RUNBLITWIZARD ./test.lua
+
+if [ "x$?" = "x0" ]; then
+    exit 0
+else
+    exit 1
+fi
+
 
