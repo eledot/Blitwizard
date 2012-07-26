@@ -367,6 +367,8 @@ int luafuncs_ray(lua_State* l) {
         // create a new reference to the (existing) object the ray has hit:
         struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
         ((struct luaphysicsobj*)physics_GetObjectUserdata(obj))->refcount++;
+        assert(((struct luaphysicsobj*)physics_GetObjectUserdata(obj))
+        ->refcount >= 2);
         memset(ref, 0, sizeof(*ref));
         ref->magic = IDREF_MAGIC;
         ref->type = IDREF_PHYSICS;
