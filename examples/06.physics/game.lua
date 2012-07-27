@@ -36,7 +36,7 @@ end
 function blitwiz.on_init()
 	-- Open a window
     function openwindow()
-        blitwiz.graphics.setWindow(640, 480, "Physics", false, "software")
+        blitwiz.graphics.setWindow(640, 480, "Physics", false)
     end
     if pcall(openwindow) == false then
         -- Opening a window failed.

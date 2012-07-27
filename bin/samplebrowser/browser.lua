@@ -40,7 +40,7 @@ menufocus = 1
 
 function blitwiz.on_init()
 	print "Launching blitwizard sample browser"
-	blitwiz.graphics.setWindow(640, 480, "blitwizard 2d engine", false, "software")
+	blitwiz.graphics.setWindow(640, 480, "blitwizard 2d engine", false)
 	blitwiz.graphics.loadImage("title.png")
 	local i = 1
 	while i <= #examples do
@@ -95,6 +95,7 @@ function updatemenufocus(mousex, mousey)
 	end
 end
 
+-- Find and delete all physics objects found recursively in _G
 function find_and_delete_physics_objects(t)
     local globaltable = false
     if t == nil then
@@ -215,7 +216,6 @@ function blitwiz.on_mousedown(button, mousex, mousey)
                 end
             end
         end
-
 		-- Run example
 		blitwiz.on_init()
 	end

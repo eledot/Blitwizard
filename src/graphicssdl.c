@@ -56,6 +56,7 @@ static int mainwindowfullscreen;
 static SDL_Renderer* mainrenderer;
 static int sdlvideoinit = 0;
 extern int graphicsvisible;
+int inbackground = 0;
 
 int graphics_HaveValidWindow() {
     if (mainwindow) {
@@ -720,6 +721,12 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         SDL_DestroyWindow(mainwindow);
         return 0;
     }
+
+    // Re-focus window if previously focussed
+    if (!inbackground) {
+        SDL_RaiseWindow(mainwindow);
+    }
+
     graphicsvisible = 1;
     return 1;
 }
@@ -735,7 +742,6 @@ void graphics_CompleteFrame() {
 
 int lastfingerdownx,lastfingerdowny;
 
-int inbackground = 0;
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background)) {
     SDL_Event e;
     while (SDL_PollEvent(&e) == 1) {
@@ -745,7 +751,6 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
         if (e.type == SDL_MOUSEMOTION) {
             mousemoveevent(e.motion.x, e.motion.y);
         }
-#ifdef ANDROID
         if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_MINIMIZED || e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)) {
             // app was put into background
             if (!inbackground) {
@@ -760,7 +765,6 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
                 inbackground = 0;
             }
         }
-#endif
         if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
             int release = 0;
             if (e.type == SDL_MOUSEBUTTONUP) {

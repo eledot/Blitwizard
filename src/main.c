@@ -42,6 +42,7 @@ int luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicso
 
 int wantquit = 0; // set to 1 if there was a quit event
 int suppressfurthererrors = 0; // a critical error was shown, don't show more
+int windowisfocussed = 0;
 int appinbackground = 0; // app is in background (mobile/Android)
 static int sdlinitialised = 0; // sdl was initialised and needs to be quit
 extern int drawingallowed; // stored in luafuncs.c, checks if we come from an on_draw() event or not
