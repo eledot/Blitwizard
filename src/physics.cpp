@@ -478,7 +478,7 @@ static void physics_DestroyObjectDo(struct physicsobject* obj) {
 }
 
 void physics_DestroyObject(struct physicsobject* obj) {
-    if (!obj) {
+    if (!obj || obj->deleted == 1) {
         return;
     }
     if (!insidecollisioncallback) {

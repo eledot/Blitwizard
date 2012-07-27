@@ -95,6 +95,37 @@ function updatemenufocus(mousex, mousey)
 	end
 end
 
+function find_and_delete_physics_objects(t)
+    local globaltable = false
+    if t == nil then
+        t = _G
+        globaltable = true
+    end
+    local function processvalue(v)
+        if (type(v) == "table") then
+            find_and_delete_physics_objects(v)
+        end
+        if (type(v) == "userdata") then
+            pcall(function()
+                -- This should only do anything if v is a physics object:
+                blitwiz.physics.destroyObject(v)
+            end)
+        end
+    end
+    if not globaltable then
+        for _,v in ipairs(t) do
+            processvalue(v)
+        end
+    end
+    for k,v in pairs(t) do
+        if not globaltable or k ~= "_G" then
+            if k ~= "blitwiz" and k ~= "table" and k ~= "package" then
+                processvalue(v)
+            end
+        end
+    end
+end
+
 function blitwiz.on_mousedown(button, mousex, mousey)
 	updatemenufocus(mousex, mousey)
 	if menufocus > 0 then
@@ -163,6 +194,9 @@ function blitwiz.on_mousedown(button, mousex, mousey)
         blitwiz.on_mousedown = function(button, x, y)
             local imgw,imgh = blitwiz.graphics.getImageSize("return.png")
             if (x > blitwiz.graphics.getWindowSize()-imgw and y < imgh) then
+                -- Wipe physics objects:
+                find_and_delete_physics_objects()
+
                 -- Unload some often-conflicting images:
                 blitwiz.graphics.unloadImage("bg.png")
                 blitwiz.graphics.unloadImage("background.png")

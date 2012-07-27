@@ -4,7 +4,7 @@ SUBDIRS = scripts src tests
 clean:
 	cd libs && rm -f libblitwizard*.a
 	cd libs && rm -f libimglib.a
-install:
+install: all
 	cd src && $(MAKE) install
 cppcheck:
 	cppcheck --enable=all -q -f src/*.c src/*.h

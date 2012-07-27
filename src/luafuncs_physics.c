@@ -262,7 +262,7 @@ int luafuncs_createMovableObject(lua_State* l) {
 }
 
 int luafuncs_createStaticObject(lua_State* l) {
-    createphysicsobj(l);
+    struct luaidref* ref = createphysicsobj(l);
     return 1;
 }
 
@@ -372,7 +372,7 @@ int luafuncs_ray(lua_State* l) {
         memset(ref, 0, sizeof(*ref));
         ref->magic = IDREF_MAGIC;
         ref->type = IDREF_PHYSICS;
-        ref->ref.ptr = obj;
+        ref->ref.ptr = (struct luaphysicsobj*)physics_GetObjectUserdata(obj);
   
         // the reference needs to be garbage collected:
         luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
