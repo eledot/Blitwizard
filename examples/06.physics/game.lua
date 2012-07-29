@@ -26,7 +26,7 @@ pixelspermeter = 30 -- meter (physics unit) to pixels factor
 -- size of a crate (length of each side):
 cratesize = 64/pixelspermeter
 -- size of a ball (diameter):
-ballsize = 32/pixelspermeter
+ballsize = 24/pixelspermeter
 
 -- Warn if we run without templates
 if blitwiz.templatesinitialised ~= true then
@@ -226,12 +226,12 @@ function blitwiz.on_mousedown(button, x, y)
 		-- Add a ball
         local ball = blitwiz.physics.createMovableObject()
         blitwiz.physics.setShapeCircle(ball, ballsize / 2)
-        blitwiz.physics.setMass(ball, 2)
+        blitwiz.physics.setMass(ball, 0.4)
 		blitwiz.physics.setFriction(ball, 0.1)
         blitwiz.physics.warp(ball, objectposx + imgposx/pixelspermeter, objectposy + imgposy/pixelspermeter)
-        blitwiz.physics.setAngularDamping(ball, 0.02)
-		blitwiz.physics.setLinearDamping(ball, 0.01)
-		blitwiz.physics.setRestitution(ball, 0.3)
+        blitwiz.physics.setAngularDamping(ball, 0.3)
+		blitwiz.physics.setLinearDamping(ball, 0.3)
+		blitwiz.physics.setRestitution(ball, 0.6)
 
         balls[#balls+1] = ball
 	end
