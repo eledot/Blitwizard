@@ -200,7 +200,7 @@ function blitwiz.on_mousedown(button, x, y)
                 while i <= #crates do
                     if crates[i] == crate then
                         local h = crateshealth[i]
-                        h = h - force/100
+                        h = h - force/500
                         crateshealth[i] = h
                         if h <= 0 then
                             -- health is zero -> destroy crate
