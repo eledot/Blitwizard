@@ -23,7 +23,6 @@ function blitwiz.on_init()
 
 	-- Load image
 	blitwiz.graphics.loadImage("bg.png")
-	blitwiz.graphics.loadImage("crate.png")
 	blitwiz.graphics.loadImage("char1.png")
 	blitwiz.graphics.loadImage("char2.png")
 	blitwiz.graphics.loadImage("char3.png")
