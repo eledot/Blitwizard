@@ -2,6 +2,7 @@ Blitwizard Credits:
 
 Project lead/Programmer: Jonas Thiem
 Code contributors: Nicolas Haunold
+Crate texture for physics example: Shahri
 Mac builds and porting assistance: Nicolas Haunold
 Debian/ARM build testing: Francesco Ariis
 

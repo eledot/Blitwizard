@@ -773,7 +773,9 @@ int main(int argc, char** argv) {
 
 #ifdef USE_GRAPHICS
         if (graphics_AreGraphicsRunning()) {
+#ifdef ANDROID
             if (!appinbackground) {
+#endif
                 // start drawing
                 drawingallowed = 1;
                 graphics_StartFrame();
@@ -792,9 +794,11 @@ int main(int argc, char** argv) {
                 // complete the drawing
                 drawingallowed = 0;
                 graphics_CompleteFrame();
+#ifdef ANDROID
             }else{
                 blitwizondrawworked = 1;
             }
+#endif
         }
 #endif
 

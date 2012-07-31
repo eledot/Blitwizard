@@ -136,7 +136,7 @@ function blitwiz.on_draw()
     end
 
 	-- Draw stats
-	blitwiz.font.draw("default", "Object stats:\nCrates: " .. tostring(#crates) .. ", balls: " .. tostring(#balls), 10, 10)
+	blitwiz.font.draw("default", "Crates: " .. tostring(#crates) .. ", balls: " .. tostring(#balls), 15, 30)
 end
 
 function limitcrateposition(x,y)
