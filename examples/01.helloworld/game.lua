@@ -80,7 +80,7 @@ function blitwiz.on_draw()
 	-- Actual drawing happens here
 	blitwiz.graphics.drawImage("hello_world.png", {x=mw/2 - w/2, y=mh/2 - h/2})
     blitwiz.graphics.drawImage("system_info.png", {x=mw/2 - w/2, y=mh/2 + h/2 - 30})
-	blitwiz.font.draw("default", _VERSION .. ",\n   running on: "  .. os.sysname() .. " (" .. os.sysversion() .. ")", mw/2 - w/2 + 10, mh/2 + h/2 - 30 + 40)
+	blitwiz.font.draw("default", _VERSION .. ",\nrunning on: "  .. os.sysname() .. " (" .. os.sysversion() .. ")", mw/2 - w/2 + 20, mh/2 + h/2 - 30 + 28)
 
 	-- Done!
 end
