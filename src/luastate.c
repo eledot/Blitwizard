@@ -25,7 +25,7 @@
 #include "luaheader.h"
 #include "luastate.h"
 #include "luafuncs.h"
-#include "luafuncs_physics.h"
+#include "luafuncs_physics2d.h"
 #include "luafuncs_net.h"
 #include "luaerror.h"
 
@@ -113,9 +113,9 @@ void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)
     if (tablestackindex < 0) {tablestackindex++;}
 }
 
-static void luastate_CreatePhysicsTable(lua_State* l) {
+static void luastate_CreatePhysics2dTable(lua_State* l) {
     lua_newtable(l);
-#ifdef USE_PHYSICS
+#ifdef USE_PHYSICS2D
     lua_pushstring(l, "setGravity");
     lua_pushcfunction(l, &luafuncs_setGravity);
     lua_settable(l, -3);
@@ -453,8 +453,8 @@ static lua_State* luastate_New() {
     luastate_CreateTimeTable(l);
     lua_settable(l, -3);
 
-    lua_pushstring(l, "physics");
-    luastate_CreatePhysicsTable(l);
+    lua_pushstring(l, "physics2d");
+    luastate_CreatePhysics2dTable(l);
     lua_settable(l, -3);
 
     // we still have the module "blitwiz" on the stack here

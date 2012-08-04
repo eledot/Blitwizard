@@ -87,6 +87,7 @@ int audiomixer_NoSoundsPlaying() {
 
 // Cancel channel, we are in the sound thread
 static void audiomixer_CancelChannel(int slot) {
+    printf("Cancelling %d\n", slot);
     if (channels[slot].mixsource) {
         channels[slot].mixsource->close(channels[slot].mixsource);
         channels[slot].mixsource = NULL;

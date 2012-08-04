@@ -109,7 +109,7 @@ function find_and_delete_physics_objects(t)
         if (type(v) == "userdata") then
             pcall(function()
                 -- This should only do anything if v is a physics object:
-                blitwiz.physics.destroyObject(v)
+                blitwiz.physics2d.destroyObject(v)
             end)
         end
     end

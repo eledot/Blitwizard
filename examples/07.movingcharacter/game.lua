@@ -29,8 +29,8 @@ function blitwiz.on_init()
 
 	-- Add base level collision
 	local x,y = bgimagepos()
-	levelcollision = blitwiz.physics.createStaticObject()
-	blitwiz.physics.setShapeEdges(levelcollision, {
+	levelcollision = blitwiz.physics2d.createStaticObject()
+	blitwiz.physics2d.setShapeEdges(levelcollision, {
 		{(0+x)/pixelspermeter, (245+y)/pixelspermeter,
         (0+x)/pixelspermeter, (0+y)/pixelspermeter},
 
@@ -70,16 +70,16 @@ function blitwiz.on_init()
 		{(640+x)/pixelspermeter, (364+y)/pixelspermeter,
         (640+x)/pixelspermeter, (0+y)/pixelspermeter}
 	})
-	blitwiz.physics.setFriction(levelcollision, 0.5)
+	blitwiz.physics2d.setFriction(levelcollision, 0.5)
 
 	-- Add character
-	char = blitwiz.physics.createMovableObject()
-	blitwiz.physics.setShapeOval(char, (50+x)/pixelspermeter, (140+y)/pixelspermeter)
-	blitwiz.physics.setMass(char, 60)
-	blitwiz.physics.setFriction(char, 0.3)
-	--blitwiz.physics.setLinearDamping(char, 10)
-	blitwiz.physics.warp(char, (456+x)/pixelspermeter, (188+y)/pixelspermeter)
-	blitwiz.physics.restrictRotation(char, true)
+	char = blitwiz.physics2d.createMovableObject()
+	blitwiz.physics2d.setShapeOval(char, (50+x)/pixelspermeter, (140+y)/pixelspermeter)
+	blitwiz.physics2d.setMass(char, 60)
+	blitwiz.physics2d.setFriction(char, 0.3)
+	--blitwiz.physics2d.setLinearDamping(char, 10)
+	blitwiz.physics2d.warp(char, (456+x)/pixelspermeter, (188+y)/pixelspermeter)
+	blitwiz.physics2d.restrictRotation(char, true)
 end
 
 function bgimagepos()
@@ -124,7 +124,7 @@ function blitwiz.on_draw()
 	blitwiz.graphics.drawImage("bg.png", {x=bgx, y=bgy})
 
 	-- Draw the character
-	local x,y = blitwiz.physics.getPosition(char)
+	local x,y = blitwiz.physics2d.getPosition(char)
 	local w,h = blitwiz.graphics.getImageSize("char1.png")
 	blitwiz.graphics.drawImage("char" .. frame .. ".png", {x=x*pixelspermeter - w/2 + bgx, y=y*pixelspermeter - h/2 + bgy, flipped=flipped})
 end
@@ -135,10 +135,10 @@ end
 
 function blitwiz.on_step()
 	local onthefloor = false
-	local charx,chary = blitwiz.physics.getPosition(char)
+	local charx,chary = blitwiz.physics2d.getPosition(char)
 
 	-- Cast a ray to check for the floor
-	local obj,posx,posy,normalx,normaly = blitwiz.physics.ray(charx,chary,charx,chary+350/pixelspermeter)
+	local obj,posx,posy,normalx,normaly = blitwiz.physics2d.ray(charx,chary,charx,chary+350/pixelspermeter)
 
 	-- Check if we reach the floor:
 	local charsizex,charsizey = blitwiz.graphics.getImageSize("char1.png")
@@ -155,17 +155,17 @@ function blitwiz.on_step()
 		if leftright < 0 then
 			flipped = true
 			walkanim = true
-			blitwiz.physics.impulse(char, charx + 5, chary - 3, -0.4, -0.6)
+			blitwiz.physics2d.impulse(char, charx + 5, chary - 3, -0.4, -0.6)
 		end
 		if leftright > 0 then
 			flipped = false
 			walkanim = true
-        	blitwiz.physics.impulse(char, charx - 5, chary - 3, 0.4, -0.6)
+        	blitwiz.physics2d.impulse(char, charx - 5, chary - 3, 0.4, -0.6)
 		end
 		-- jump
 		if jump == true and lastjump + 500 < blitwiz.time.getTime() then
 			lastjump = blitwiz.time.getTime()
-			blitwiz.physics.impulse(char, charx, chary - 1, 0, -20)
+			blitwiz.physics2d.impulse(char, charx, chary - 1, 0, -20)
 		end
 	end
 

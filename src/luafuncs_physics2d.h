@@ -21,7 +21,7 @@
 
 */
 
-#ifdef USE_PHYSICS
+#ifdef USE_PHYSICS2D
 
 int luafuncs_createMovableObject(lua_State* l);
 int luafuncs_createStaticObject(lua_State* l);
@@ -44,7 +44,7 @@ int luafuncs_getPosition(lua_State* l);
 int luafuncs_warp(lua_State* l);
 int luafuncs_setGravity(lua_State* l);
 
-struct physicsobject;
-int luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
+struct physicsobject2d;
+int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physicsobject2d* a, struct physicsobject2d* b, double x, double y, double normalx, double normaly, double force);
 
 #endif

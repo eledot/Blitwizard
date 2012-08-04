@@ -36,9 +36,9 @@
 #include <android/log.h>
 #endif
 
-// physics callback we will need later when setting up the physics simulation
-struct physicsobject;
-int luafuncs_globalcollisioncallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
+// physics2d callback we will need later when setting up the physics simulation
+struct physicsobject2d;
+int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physicsobject2d* a, struct physicsobject2d* b, double x, double y, double normalx, double normaly, double force);
 
 int wantquit = 0; // set to 1 if there was a quit event
 int suppressfurthererrors = 0; // a critical error was shown, don't show more
@@ -55,7 +55,7 @@ extern int drawingallowed; // stored in luafuncs.c, checks if we come from an on
 #include "audiomixer.h"
 #include "logging.h"
 #include "audiosourceffmpeg.h"
-#include "physics.h"
+#include "physics2d.h"
 #include "connections.h"
 #include "listeners.h"
 #ifdef USE_SDL_GRAPHICS
@@ -78,9 +78,9 @@ void main_SetTimestep(int timestep) {
     }
 }
 
-struct physicsworld* physicsdefaultworld = NULL;
-void* main_DefaultPhysicsPtr() {
-    return physicsdefaultworld;
+struct physicsworld2d* physics2ddefaultworld = NULL;
+void* main_DefaultPhysics2dPtr() {
+    return physics2ddefaultworld;
 }
 
 void main_Quit(int returncode) {
@@ -510,16 +510,16 @@ int main(int argc, char** argv) {
     printinfo("Blitwizard startup: Initialising physics...");
 #endif
 
-#ifdef USE_PHYSICS
+#ifdef USE_PHYSICS2D
     // initialise physics
-    physicsdefaultworld = physics_CreateWorld();
-    if (!physicsdefaultworld) {
+    physics2ddefaultworld = physics2d_CreateWorld();
+    if (!physics2ddefaultworld) {
         printerror("Error: Failed to initialise Box2D physics");
         fatalscripterror();
         main_Quit(1);
         return 1;
     }
-    physics_SetCollisionCallback(physicsdefaultworld, &luafuncs_globalcollisioncallback_unprotected, NULL);
+    physics2d_SetCollisionCallback(physics2ddefaultworld, &luafuncs_globalcollision2dcallback_unprotected, NULL);
 #endif
 
 #if defined(ANDROID) || defined(__ANDROID__)
@@ -731,16 +731,18 @@ int main(int argc, char** argv) {
                 }
                 logictimestamp += TIMESTEP;
             }
-#ifdef USE_PHYSICS
+#ifdef USE_PHYSICS2D
             if (physicstimestamp < time && physicstimestamp <= logictimestamp) {
-                int psteps = ((float)TIMESTEP/(float)physics_GetStepSize(physicsdefaultworld));
+                int psteps = ((float)TIMESTEP/(float)physics2d_GetStepSize(physics2ddefaultworld));
                 if (psteps < 1) {psteps = 1;}
                 while (psteps > 0) {
-                    physics_Step(physicsdefaultworld);
-                    physicstimestamp += physics_GetStepSize(physicsdefaultworld);
+                    physics2d_Step(physics2ddefaultworld);
+                    physicstimestamp += physics2d_GetStepSize(physics2ddefaultworld);
                     psteps--;
                 }
             }
+#else
+            physicstimestamp = time + 2000;
 #endif
             iterations++;
         }
@@ -748,7 +750,7 @@ int main(int argc, char** argv) {
         // check if we ran out of iterations:
         if (iterations >= MAXLOGICITERATIONS) {
             if (
-#ifdef USE_PHYSICS
+#ifdef USE_PHYSICS2D
                     physicstimestamp < time ||
 #endif
                  logictimestamp < time) {

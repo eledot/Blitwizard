@@ -121,7 +121,7 @@ NULL_AUDIO_FEATURE_ENABLED="yes"
 FLAC_FEATURE_ENABLED="yes"
 SPEEX_RESAMPLING_FEATURE_ENABLED="yes"
 FFMPEG_FEATURE_ENABLED="yes"
-PHYSICS_FEATURE_ENABLED="yes"
+PHYSICS2D_FEATURE_ENABLED="yes"
 FAST_FLOAT2INT_FEATURE_ENABLED="yes"
 
 
@@ -475,7 +475,7 @@ AS_IF([test "x$enable_physics" = xyes],[
             #nothing there
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libbox2d: no"
-            PHYSICS_FEATURE_ENABLED="no, need libbox2d"
+            PHYSICS2D_FEATURE_ENABLED="no, need libbox2d"
         ])
         AC_LANG_POP([C++])
     ],[
@@ -485,7 +485,7 @@ AS_IF([test "x$enable_physics" = xyes],[
   libbox2d: static"
     ])
 ],[
-    PHYSICS_FEATURE_ENABLED="no, disabled"
+    PHYSICS2D_FEATURE_ENABLED="no, disabled"
 ])
 
 # Prepare final deps info output:
@@ -499,7 +499,7 @@ This results in the following feature set:
   Flac decoding: ${FLAC_FEATURE_ENABLED}
   Speex-based resampling: ${SPEEX_RESAMPLING_FEATURE_ENABLED}
   Runtime FFmpeg support: ${FFMPEG_FEATURE_ENABLED}
-  Physics simulation support: ${PHYSICS_FEATURE_ENABLED}
+  2D physics simulation support: ${PHYSICS2D_FEATURE_ENABLED}
   Fast float-to-int conversion: ${FAST_FLOAT2INT_FEATURE_ENABLED}
 "
 
@@ -626,7 +626,7 @@ AS_IF([test "x$NULL_AUDIO_FEATURE_ENABLED" = xyes],[
 
 ]) # AUDIO_FEATURE_ENABLED
 
-AS_IF([test "x$PHYSICS_FEATURE_ENABLED" = xyes],[
+AS_IF([test "x$PHYSICS2D_FEATURE_ENABLED" = xyes],[
     statictest=`echo $STATIC_LIBS_USE | grep box2d`
     AS_IF([test -z "$statictest"],[
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lbox2d"
@@ -634,7 +634,7 @@ AS_IF([test "x$PHYSICS_FEATURE_ENABLED" = xyes],[
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardbox2d"
         FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ibox2d/ -Ibox2d/Box2D/"
     ])
-    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSICS"
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSICS2D"
 ])
 
 # Get the scripts/ dir (absolute path):

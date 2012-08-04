@@ -55,8 +55,8 @@ function blitwiz.on_init()
 
 	-- Add base level collision (as seen in bg.png)
 	local x,y = bgimagepos()
-	levelcollision = blitwiz.physics.createStaticObject()
-	blitwiz.physics.setShapeEdges(levelcollision, {
+	levelcollision = blitwiz.physics2d.createStaticObject()
+	blitwiz.physics2d.setShapeEdges(levelcollision, {
 		{(119+x)/pixelspermeter, (0+y)/pixelspermeter,
 		(119+x)/pixelspermeter, (360+y)/pixelspermeter},
 		
@@ -72,20 +72,20 @@ function blitwiz.on_init()
 		{(593+x)/pixelspermeter, (122+y)/pixelspermeter,
 		(564+x)/pixelspermeter, (0+y)/pixelspermeter}
 	})
-	blitwiz.physics.setFriction(levelcollision, 0.5)
+	blitwiz.physics2d.setFriction(levelcollision, 0.5)
 
     -- Testing automatic garbage collection of physics objects:
-    local gctestobj = blitwiz.physics.createStaticObject()
-    blitwiz.physics.setShapeRectangle(gctestobj, 100/pixelspermeter, 20/pixelspermeter)
-    blitwiz.physics.warp(gctestobj, 0, 0)
-    blitwiz.physics.setFriction(gctestobj, 0.3)
+    local gctestobj = blitwiz.physics2d.createStaticObject()
+    blitwiz.physics2d.setShapeRectangle(gctestobj, 100/pixelspermeter, 20/pixelspermeter)
+    blitwiz.physics2d.warp(gctestobj, 0, 0)
+    blitwiz.physics2d.setFriction(gctestobj, 0.3)
     gctestobj = nil
 
 	-- Even more basic level collision (that black rectangle part in bg.png)
-	levelcollision2 = blitwiz.physics.createStaticObject()
-	blitwiz.physics.setShapeRectangle(levelcollision2, (382 - 222)/pixelspermeter, (314 - 242)/pixelspermeter)
-	blitwiz.physics.warp(levelcollision2, ((222+382)/2+x)/pixelspermeter, ((242 + 314)/2+y)/pixelspermeter)
-	blitwiz.physics.setFriction(levelcollision2, 0.3)
+	levelcollision2 = blitwiz.physics2d.createStaticObject()
+	blitwiz.physics2d.setShapeRectangle(levelcollision2, (382 - 222)/pixelspermeter, (314 - 242)/pixelspermeter)
+	blitwiz.physics2d.warp(levelcollision2, ((222+382)/2+x)/pixelspermeter, ((242 + 314)/2+y)/pixelspermeter)
+	blitwiz.physics2d.setFriction(levelcollision2, 0.3)
 end
 
 function bgimagepos()
@@ -102,16 +102,16 @@ function blitwiz.on_draw()
 	-- Draw all crates:
 	local imgw,imgh = blitwiz.graphics.getImageSize("crate.png")
 	for index,crate in ipairs(crates) do
-		local x,y = blitwiz.physics.getPosition(crate)
-		local rotation = blitwiz.physics.getRotation(crate)
+		local x,y = blitwiz.physics2d.getPosition(crate)
+		local rotation = blitwiz.physics2d.getRotation(crate)
 		blitwiz.graphics.drawImage("crate.png", {x=x*pixelspermeter - imgw/2, y=y*pixelspermeter - imgh/2, rotationangle=rotation})
 	end
 
 	-- Draw all balls
 	local imgw,imgh = blitwiz.graphics.getImageSize("ball.png")
     for index,ball in ipairs(balls) do
-        local x,y = blitwiz.physics.getPosition(ball)
-        local rotation = blitwiz.physics.getRotation(ball)
+        local x,y = blitwiz.physics2d.getPosition(ball)
+        local rotation = blitwiz.physics2d.getRotation(ball)
         blitwiz.graphics.drawImage("ball.png", {x=x*pixelspermeter - imgw/2, y=y*pixelspermeter - imgh/2, rotationangle=rotation})
     end
 
@@ -178,19 +178,19 @@ function blitwiz.on_mousedown(button, x, y)
 		objectposx,objectposy = limitcrateposition(objectposx, objectposy)
 
 		-- Add a crate
-		local crate = blitwiz.physics.createMovableObject()
-		blitwiz.physics.setFriction(crate, 0.4)
-		blitwiz.physics.setShapeRectangle(crate, cratesize, cratesize)
-		blitwiz.physics.setMass(crate, 30)
-		blitwiz.physics.warp(crate, objectposx + imgposx/pixelspermeter, objectposy + imgposy/pixelspermeter)
-		blitwiz.physics.setAngularDamping(crate, 0.5)
-		blitwiz.physics.setLinearDamping(crate, 0.3)
+		local crate = blitwiz.physics2d.createMovableObject()
+		blitwiz.physics2d.setFriction(crate, 0.4)
+		blitwiz.physics2d.setShapeRectangle(crate, cratesize, cratesize)
+		blitwiz.physics2d.setMass(crate, 30)
+		blitwiz.physics2d.warp(crate, objectposx + imgposx/pixelspermeter, objectposy + imgposy/pixelspermeter)
+		blitwiz.physics2d.setAngularDamping(crate, 0.5)
+		blitwiz.physics2d.setLinearDamping(crate, 0.3)
 
 		crates[#crates+1] = crate
         crateshealth[#crateshealth+1] = 1
 
         -- Set a collision callback for the smoke effect
-        blitwiz.physics.setCollisionCallback(crate, function(otherobj, x, y, nx, ny, force)
+        blitwiz.physics2d.setCollisionCallback(crate, function(otherobj, x, y, nx, ny, force)
             if force > 4 then
                 smokeobjs[#smokeobjs+1] = { x * pixelspermeter, y * pixelspermeter, math.random()*360, math.min(1, (force-4)/20) }
             end
@@ -210,7 +210,7 @@ function blitwiz.on_mousedown(button, x, y)
                                 j = j + 1 
                             end
                             table.remove(crates, i)
-                            blitwiz.physics.destroyObject(crate)
+                            blitwiz.physics2d.destroyObject(crate)
                             table.remove(crateshealth, i)
                         end
                         break
@@ -224,14 +224,14 @@ function blitwiz.on_mousedown(button, x, y)
 		objectposx,objectposy = limitballposition(objectposx, objectposy)
 
 		-- Add a ball
-        local ball = blitwiz.physics.createMovableObject()
-        blitwiz.physics.setShapeCircle(ball, ballsize / 2)
-        blitwiz.physics.setMass(ball, 0.4)
-		blitwiz.physics.setFriction(ball, 0.1)
-        blitwiz.physics.warp(ball, objectposx + imgposx/pixelspermeter, objectposy + imgposy/pixelspermeter)
-        blitwiz.physics.setAngularDamping(ball, 0.3)
-		blitwiz.physics.setLinearDamping(ball, 0.3)
-		blitwiz.physics.setRestitution(ball, 0.6)
+        local ball = blitwiz.physics2d.createMovableObject()
+        blitwiz.physics2d.setShapeCircle(ball, ballsize / 2)
+        blitwiz.physics2d.setMass(ball, 0.4)
+		blitwiz.physics2d.setFriction(ball, 0.1)
+        blitwiz.physics2d.warp(ball, objectposx + imgposx/pixelspermeter, objectposy + imgposy/pixelspermeter)
+        blitwiz.physics2d.setAngularDamping(ball, 0.3)
+		blitwiz.physics2d.setLinearDamping(ball, 0.3)
+		blitwiz.physics2d.setRestitution(ball, 0.6)
 
         balls[#balls+1] = ball
 	end
