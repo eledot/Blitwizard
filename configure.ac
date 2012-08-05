@@ -33,12 +33,20 @@ fi
 # Enable/disable features:
 
 AC_ARG_ENABLE([sdl-graphics],
-    [AS_HELP_STRING([--disable-sdl-graphics],[disable graphics support through SDL (default is enabled)])],
+    [AS_HELP_STRING([--disable-sdl-graphics],[disable 2d graphics support through SDL (default is enabled)])],
 [case "${enableval}" in
     yes | no ) enable_sdlgraphics="${enableval}" ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --disable-sdl-graphics) ;;
 esac],
 [enable_sdlgraphics=yes])
+
+AC_ARG_ENABLE([ogre-graphics],
+    [AS_HELP_STRING([--disable-ogre-graphics],[disable 2d/3d graphics support through Ogre (default is enabled)])],
+[case "${enableval}" in
+    yes | no ) enable_ogregraphics="${enableval}" ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --disable-ogre-graphics) ;;
+esac],
+[enable_ogregraphics=yes])
 
 AC_ARG_ENABLE([sdl-audio],
     [AS_HELP_STRING([--disable-sdl-audio],[disable audio support through SDL (default is enabled)])],
@@ -69,6 +77,11 @@ AC_ARG_ENABLE([graphics],
  esac],
 [enable_graphics=yes])
 
+AS_IF([test "x$enable_graphics" = xno], [
+    enable_sdlgraphics="no"
+    enable_ogregraphics="no"
+])
+
 AC_ARG_ENABLE([audio],
     [AS_HELP_STRING([--disable-audio],[disable audio support completely, including the null audio device (default is enabled)])],
 [case "${enableval}" in
@@ -76,6 +89,10 @@ AC_ARG_ENABLE([audio],
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-audio) ;;
  esac],
 [enable_audio="yes"])
+
+AS_IF([test "x$enable_audio" = xno], [
+    enable_sdlaudio="no"
+])
 
 AC_ARG_ENABLE([physics],
     [AS_HELP_STRING([--disable-physics],[disable physics simulation support (default is enabled)])],
@@ -101,6 +118,8 @@ AC_ARG_ENABLE([speex],
  esac],
 [enable_speex=yes])
 
+cmake -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off
+
 
 # Evaluate target os:
 
@@ -115,6 +134,8 @@ STATIC_LIBS_USE=""
 # Remember which flags we need because we don't use some libs at all
 
 GRAPHICS_FEATURE_ENABLED="yes"
+SDL_GRAPHICS_FEATURE_ENABLED="yes"
+OGRE_GRAPHICS_FEATURE_ENABLED="yes"
 NULL_GRAPHICS_FEATURE_ENABLED="yes"
 AUDIO_FEATURE_ENABLED="yes"
 NULL_AUDIO_FEATURE_ENABLED="yes"
@@ -161,13 +182,6 @@ AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
 
 # Check for SDL2 availability:
 
-AS_IF([test "x$enable_audio" = xno], [
-    enable_sdlaudio="no"
-])
-AS_IF([test "x$enable_graphics" = xno], [
-    enable_sdlgraphics="no"
-])
-
 NEEDSDL="no"
 AS_IF([test "x$enable_sdlaudio" = xyes], [
     NEEDSDL="yes"
@@ -188,8 +202,7 @@ AS_IF([test "x$NEEDSDL" = xyes],[
             #nothing there
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   SDL2: no"
-            GRAPHICS_FEATURE_ENABLED="no, need SDL2"
-            AUDIO_FEATURE_ENABLED="no, need SDL2"
+            SDL_GRAPHICS_FEATURE_ENABLED="no, need SDL2"
         ])
     ],[
         AC_MSG_RESULT([yes])
@@ -199,11 +212,38 @@ AS_IF([test "x$NEEDSDL" = xyes],[
     ])
 ])
 
+
+AS_IF([test "x$enable_ogregraphics" = xyes],[
+    AC_MSG_CHECKING([for static Ogre3D library])
+    AS_IF([test ! -f "src/OgreMain/src/OgreMath.cpp"],[
+        AC_MSG_RESULT([no])
+        AC_CHECK_LIB([Ogrelaleli], [SDL_Init],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  Ogre3D: shared"
+        ],[
+            #nothing there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  Ogre3D: no"
+            OGRE_GRAPHICS_FEATURE_ENABLED="no, need Ogre3D"
+        ])
+    ],[
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} Ogre3D"
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  Ogre3D: static"
+    ])
+])
+
+
 AS_IF([test "x$enable_sdlgraphics" = xno],[
-    GRAPHICS_FEATURE_ENABLED="no, disabled"
+    SDL_GRAPHICS_FEATURE_ENABLED="no, disabled"
 ])
 AS_IF([test "x$enable_sdlaudio" = xno],[
     AUDIO_FEATURE_ENABLED="no, disabled"
+])
+AS_IF([test "x$enable_ogregraphics" = xno],[
+    OGRE_GRAPHICS_FEATURE_ENABLED="no, disabled"
 ])
 
 AS_IF([test "x$enable_graphics" = xyes],[ # START enable_graphics block
@@ -221,7 +261,8 @@ AS_IF([test ! -f "src/imgloader/png/png.c"],[
         #nothing there
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libpng: no"
-        GRAPHICS_FEATURE_ENABLED="no, need libpng"
+        SDL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
+        OGRE_GRAPHICS_FEATURE_ENABLED="no, need libpng"
         NULL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
     ])
 ],[
@@ -257,6 +298,8 @@ AS_IF([test ! -f "src/imgloader/zlib/gzlib.c"],[
 
 ],[ # STOP enable_graphics block
     GRAPHICS_FEATURE_ENABLED="no, disabled"
+    SDL_GRAPHICS_FEATURE_ENABLED="no, disabled"
+    OGRE_GRAPHICS_FEATURE_ENABLED="no, disabled"
     NULL_GRAPHICS_FEATURE_ENABLED="no, disabled"
 ])
 
@@ -492,7 +535,8 @@ AS_IF([test "x$enable_physics" = xyes],[
 
 DEPS_INFO_OUTPUT="
 This results in the following feature set:
-  Graphics: ${GRAPHICS_FEATURE_ENABLED}
+  SDL Graphics (2d only): ${SDL_GRAPHICS_FEATURE_ENABLED}
+  Ogre Graphics (2d or 3d): ${OGRE_GRAPHICS_FEATURE_ENABLED}
   Null device graphics: ${NULL_GRAPHICS_FEATURE_ENABLED}
   Audio: ${AUDIO_FEATURE_ENABLED}
   Null device audio: ${NULL_AUDIO_FEATURE_ENABLED}
@@ -518,7 +562,7 @@ AS_IF([test -z "$statictest"], [
         FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DLUA_5_2_HEADER"
     ])
 ])
-AS_IF([test "x$GRAPHICS_FEATURE_ENABLED" = xyes],[
+AS_IF([test "x$SDL_GRAPHICS_FEATURE_ENABLED" = xyes],[
     statictest=`echo $STATIC_LIBS_USE | grep SDL2`
     SDLADDED=yes
     AS_IF([test -z "$statictest"], [
@@ -528,6 +572,17 @@ AS_IF([test "x$GRAPHICS_FEATURE_ENABLED" = xyes],[
         FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Isdl/include"
     ])
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_SDL_GRAPHICS"
+])
+AS_IF([test "x$OGRE_GRAPHICS_FEATURE_ENABLED" = xyes],[
+    statictest=`echo $STATIC_LIBS_USE | grep Ogre3D`
+    SDLADDED=yes
+    AS_IF([test -z "$statictest"], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lOgreMain"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardOgreMain"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Isdl/include"
+    ])
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_OGRE_GRAPHICS"
 ])
 AS_IF([test "x$AUDIO_FEATURE_ENABLED" = xyes],[
     AS_IF([test "x$SDLADDED" = xno],[
