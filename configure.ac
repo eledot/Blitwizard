@@ -118,7 +118,7 @@ AC_ARG_ENABLE([speex],
  esac],
 [enable_speex=yes])
 
-cmake -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off
+# cmake -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off
 
 
 # Evaluate target os:
@@ -133,7 +133,6 @@ STATIC_LIBS_USE=""
 
 # Remember which flags we need because we don't use some libs at all
 
-GRAPHICS_FEATURE_ENABLED="yes"
 SDL_GRAPHICS_FEATURE_ENABLED="yes"
 OGRE_GRAPHICS_FEATURE_ENABLED="yes"
 NULL_GRAPHICS_FEATURE_ENABLED="yes"
@@ -212,8 +211,41 @@ AS_IF([test "x$NEEDSDL" = xyes],[
     ])
 ])
 
-
+# Check FreeType:
+COMPILE_OGRE="yes"
 AS_IF([test "x$enable_ogregraphics" = xyes],[
+    AC_MSG_CHECKING([for static freetype library])
+    AS_IF([test ! -f "src/freetype/src/freetype.c"], [
+        AC_MSG_RESULT([no])
+        AC_CHECK_LIB([freetype], [Unerhoerte_freetyperey],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  freetype: shared"
+        ],[
+            #nothing there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  freetype: no"
+            OGRE_GRAPHICS_FEATURE_ENABLED="no, need freetype"
+            COMPILE_OGRE="no"
+        ])
+
+    ],[
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} freetype"
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  freetype: static"
+    ])
+],[
+    COMPILE_OGRE="no"
+])
+
+# Check OIS:
+AS_IF([test "x$COMPILE_OGRE" = xyes], [
+    AC_MSG_CHECKING([for static OIS library])
+])
+
+# Check Ogre3D:
+AS_IF([test "x$COMPILE_OGRE" = xyes],[
     AC_MSG_CHECKING([for static Ogre3D library])
     AS_IF([test ! -f "src/OgreMain/src/OgreMath.cpp"],[
         AC_MSG_RESULT([no])
@@ -226,6 +258,7 @@ AS_IF([test "x$enable_ogregraphics" = xyes],[
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   Ogre3D: no"
             OGRE_GRAPHICS_FEATURE_ENABLED="no, need Ogre3D"
+            COMPILE_OGRE="no"
         ])
     ],[
         AC_MSG_RESULT([yes])
@@ -248,53 +281,53 @@ AS_IF([test "x$enable_ogregraphics" = xno],[
 
 AS_IF([test "x$enable_graphics" = xyes],[ # START enable_graphics block
 
-# Check for libpng availability:
+    # Check for libpng availability:
 
-AC_MSG_CHECKING([for static png library])
-AS_IF([test ! -f "src/imgloader/png/png.c"],[
-    AC_MSG_RESULT([no])
-    AC_CHECK_LIB([png], [png_create_read_struct],[
-        #shared lib is there!
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+    AC_MSG_CHECKING([for static png library])
+    AS_IF([test ! -f "src/imgloader/png/png.c"],[
+        AC_MSG_RESULT([no])
+        AC_CHECK_LIB([png], [png_create_read_struct],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libpng: shared"
-    ],[
-        #nothing there
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+        ],[
+            #nothing there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libpng: no"
-        SDL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
-        OGRE_GRAPHICS_FEATURE_ENABLED="no, need libpng"
-        NULL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
-    ])
-],[
-    AC_MSG_RESULT([yes])
-    STATIC_LIBS_USE="${STATIC_LIBS_USE} png"
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  libpng: static"
-])
-
-
-# Check for zlib availability:
-
-AC_MSG_CHECKING([for static zlib library])
-AS_IF([test ! -f "src/imgloader/zlib/gzlib.c"],[
-    AC_MSG_RESULT([no])
-    AC_CHECK_HEADER([zlib.h],[
-        #shared lib is there!
-        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  zlib: shared"
+            SDL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
+            OGRE_GRAPHICS_FEATURE_ENABLED="no, need libpng"
+            NULL_GRAPHICS_FEATURE_ENABLED="no, need libpng"
+        ])
     ],[
-        #nothing there
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} png"
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
-  zlib: no"
-        GRAPHICS_FEATURE_ENABLED="no, need zlib"
-        NULL_GRAPHICS_FEATURE_ENABLED="no, need zlib"
+  libpng: static"
     ])
-],[
-    AC_MSG_RESULT([yes])
-    STATIC_LIBS_USE="${STATIC_LIBS_USE} zlib"
-    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+
+
+    # Check for zlib availability:
+
+    AC_MSG_CHECKING([for static zlib library])
+    AS_IF([test ! -f "src/imgloader/zlib/gzlib.c"],[
+        AC_MSG_RESULT([no])
+        AC_CHECK_HEADER([zlib.h],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  zlib: shared"
+        ],[
+            #nothing there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  zlib: no"
+            GRAPHICS_FEATURE_ENABLED="no, need zlib"
+            NULL_GRAPHICS_FEATURE_ENABLED="no, need zlib"
+        ])
+    ],[
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} zlib"
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   zlib: static"
-])
+    ])
 
 ],[ # STOP enable_graphics block
     GRAPHICS_FEATURE_ENABLED="no, disabled"
@@ -703,6 +736,32 @@ AS_IF([test -z "$maybeos"],[
     AC_MSG_NOTICE([Trying to compile for a Unix target.]) 
     # >> Unix
     AM_CONDITIONAL([WIN_APP_PATHS], [test 0 = 1])
+
+    # Check Xaw headers for Ogre3D:
+    AS_IF([test "x$COMPILE_OGRE" = xyes], [
+        AC_CHECK_HEADERS([X11/Xaw/Form.h],,[
+            AC_MSG_ERROR([Cannot find Xaw header files required for Ogre3D. Please install them or compile with --disable-ogre-graphics])
+        ])
+    ])
+
+    # Check X11, Xext headers for Ogre3D and SDL:
+    NEED_XHEADERS="no"
+    AS_IF([test "x$COMPILE_OGRE" = xyes], [
+        NEED_XHEADERS="yes"
+    ])
+    AS_IF([test "x$NULL_GRAPHICS_FEATURE_ENABLED" = xyes],[
+        NEED_XHEADERS="yes"
+    ])
+    AC_CHECK_HEADERS([X11/Xlib.h],,[
+        AC_MSG_ERROR([Cannot find Xlib header files required for Ogre3D and SDL2. Please install them or compile with --disable-ogre-graphics and --disable-sdl-graphics])
+    ])
+    AS_IF([test "x$NEED_XHEADERS" = xyes], [
+        AC_CHECK_HEADERS([X11/extensions/Xext.h],,[
+            AC_MSG_ERROR([Cannot find Xext header files required for Ogre3D and SDL2. Please install them or compile with --disable-ogre-graphics and --disable-sdl-graphics])
+        ],[
+#include <X11/Xlib.h>
+        ])
+    ])
 
     MACTEST=`uname -a | grep Darwin`
     AS_IF([test -z "$MACTEST"],[
