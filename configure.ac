@@ -215,9 +215,9 @@ AS_IF([test "x$NEEDSDL" = xyes],[
 COMPILE_OGRE="yes"
 AS_IF([test "x$enable_ogregraphics" = xyes],[
     AC_MSG_CHECKING([for static freetype library])
-    AS_IF([test ! -f "src/freetype/src/freetype.c"], [
+    AS_IF([test ! -f "src/freetype/src/base/ftinit.c"], [
         AC_MSG_RESULT([no])
-        AC_CHECK_LIB([freetype], [Unerhoerte_freetyperey],[
+        AC_CHECK_LIB([freetype], [FT_Init_FreeType],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   freetype: shared"
@@ -242,12 +242,31 @@ AS_IF([test "x$enable_ogregraphics" = xyes],[
 # Check OIS:
 AS_IF([test "x$COMPILE_OGRE" = xyes], [
     AC_MSG_CHECKING([for static OIS library])
+    AS_IF([test ! -f "src/ois/src/OISKeyboard.cpp"],[
+        AC_MSG_RESULT([no])
+        AC_CHECK_HEADER([OIS.h],[
+            #shared lib is there!
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  OIS: shared"
+        ],[
+            #nothing there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  OIS: no"
+            OGRE_GRAPHICS_FEATURE_ENABLED="no, need OIS"
+            COMPILE_OGRE="no"
+        ])
+    ],[
+        AC_MSG_RESULT([yes])
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} OIS"
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  OIS: static"
+    ])
 ])
 
 # Check Ogre3D:
 AS_IF([test "x$COMPILE_OGRE" = xyes],[
     AC_MSG_CHECKING([for static Ogre3D library])
-    AS_IF([test ! -f "src/OgreMain/src/OgreMath.cpp"],[
+    AS_IF([test ! -f "src/ogre/OgreMain/src/OgreMath.cpp"],[
         AC_MSG_RESULT([no])
         AC_CHECK_LIB([Ogrelaleli], [SDL_Init],[
             #shared lib is there!
@@ -609,12 +628,34 @@ AS_IF([test "x$SDL_GRAPHICS_FEATURE_ENABLED" = xyes],[
 AS_IF([test "x$OGRE_GRAPHICS_FEATURE_ENABLED" = xyes],[
     statictest=`echo $STATIC_LIBS_USE | grep Ogre3D`
     SDLADDED=yes
+
+    # Add ogre to include path:
     AS_IF([test -z "$statictest"], [
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lOgreMain"
     ], [
-        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardOgreMain"
-        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Isdl/include"
+        for f in libs/libblitwizardOgre*.a libs/libblitwizardPlugin_*.a libs/libblitwizardRenderSystem_*.a
+        do
+            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -l`basename $f .a | sed -e 's/^lib//'`"
+        done
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iogre/include"
     ])
+
+    # Add OIS to include path:
+    AS_IF([test -z "$statictest"], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lOIS"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardOIS"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iois/includes"
+    ])
+
+    # Add freetype to include path:
+    AS_IF([test -z "$statictest"], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lfreetype"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardfreetype"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ifreetype/include"
+    ])
+
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_OGRE_GRAPHICS"
 ])
 AS_IF([test "x$AUDIO_FEATURE_ENABLED" = xyes],[
@@ -769,7 +810,7 @@ AS_IF([test -z "$maybeos"],[
 
         AM_CONDITIONAL([MAC_APP_PATHS], [test 0 = 1])
         LIBS="-pthread -ldl -lm -lrt"
-        WRITELINE="\nluatarget=posix\nCXX=$CXX\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no"
+        WRITELINE="\nluatarget=posix\nCXX=$CXX\nCC=$CC\nAR=$AR\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=no\nWINDOWSBUILD=no\n"
     ],[
         # Mac OS X:
 
@@ -782,7 +823,7 @@ AS_IF([test -z "$maybeos"],[
         # Various other flags:
         AM_CONDITIONAL([MAC_APP_PATHS], [test 1 = 1])
         LIBS="$LIBS -lm -liconv -pthread -framework CoreServices -framework Carbon -framework AudioUnit -framework ForceFeedback -framework OpenGL -framework AppKit -framework Cocoa -framework Foundation -framework IOKit -framework CoreAudio"
-        WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCXX=$CXX\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes"
+        WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=posix\nCXX=$CXX\nCC=$CC\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nMACBUILD=yes\nWINDOWSBUILD=no\n"
     ])
 
     echo -e "$WRITELINE" > scripts/.buildinfo
@@ -821,7 +862,7 @@ AS_IF([test -z "$maybeos"],[
     TGHOST="$host_alias"
     AC_SUBST(TGHOST)
     
-    WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCXX=$CXX\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no"
+    WRITELINE="\nEXEEXT=$EXEEXT\nluatarget=mingw\nCXX=$CXX\nCC=$CC\nAR=$AR\nHOST=$TGHOST\nUSE_LIB_FLAGS=$FINAL_USE_LIB_FLAGS\nRANLIB=$RANLIB\nSTATIC_LIBS_USE=$STATIC_LIBS_USE\nMACBUILD=no\nWINDOWSBUILD=yes\n"
     echo -e "$WRITELINE" > scripts/.buildinfo
 
     CFLAGS="$CFLAGS -static-libgcc -mwindows -mthreads -L../ -I../ `cd $scriptsdir && sh ./checksse.sh`"

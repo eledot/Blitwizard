@@ -96,12 +96,90 @@ fi
 # Copy compiled png/zlib
 if [ ! -e libs/libblitwizardpng.a ]; then
     if [ -n "`echo $static_libs_use | grep png`" ]; then
-        cp src/imgloader/libcustompng.a libs/libblitwizardpng.a
+        cp src/imgloader/libcustompng.a libs/libblitwizardpng.a || { echo "Failed to copy libpng"; exit 1; }
     fi
 fi
 if [ ! -e libs/libblitwizardzlib.a ]; then
     if [ -n "`echo $static_libs_use | grep zlib`" ]; then
-        cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a
+        cp src/imgloader/libcustomzlib.a libs/libblitwizardzlib.a || { echo "Failed to copy zlib"; exit 1; }
+    fi
+fi
+
+# Compile OIS:
+if [ ! -e libs/libblitwizardOIS.a ]; then
+    if [ -n "`echo $static_libs_use | grep OIS`" ]; then
+        echo "Compiling OIS..."
+        cd src/ois/src
+        if [ "x$MACBUILD" = xyes ]; then
+            # Linux
+            $CXX -c *.cpp -I../includes || { echo "Failed to compile OIS"; exit 1; }
+            cd mac
+            $CXX -c *.cpp -I../../includes || { echo "Failed to compile OIS"; exit 1; }
+            cd ..
+            $AR rcs ../libOIS.a ./*.o ./linux/*.o
+        else
+            if [ "x$WINDOWSBUILD" = xyes ]; then
+                # Windows
+                $CXX -c *.cpp -I../includes || { echo "Failed to compile OIS"; exit 1; }
+                cd win32
+                $CXX -c *.cpp -I../../includes || { echo "Failed to compile OIS"; exit 1; }
+                cd ..
+                $AR rcs ../libOIS.a ./*.o ./linux/*.o
+            else
+                # Linux
+                $CXX -c *.cpp -I../includes || { echo "Failed to compile OIS"; exit 1; }
+                cd linux
+                $CXX -c *.cpp -I../../includes || { echo "Failed to compile OIS"; exit 1; }
+                cd ..
+                $AR rcs ../libOIS.a ./*.o ./linux/*.o
+            fi
+        fi
+        cd "$dir"
+    fi
+fi
+
+# Copy OIS:
+if [ ! -e libs/libblitwizardOIS.a ]; then
+    if [ -n "`echo $static_libs_use | grep OIS`" ]; then
+        cp src/ois/libOIS.a libs/libblitwizardOIS.a || { echo "Failed to copy OIS"; exit 1; }
+    fi
+fi
+
+# Compile freetype:
+if [ ! -e libs/libblitwizardfreetype.a ]; then
+    if [ -n "`echo $static_libs_use | grep freetype`" ]; then
+        echo "Compiling freetype..."
+        cd src/freetype/ && ./configure --host="$host" --disable-shared --enable-static && make || { echo "Failed to compile freetype"; exit 1; }
+        cd "$dir"
+    fi
+fi
+
+# Copy compiled freetype
+if [ ! -e libs/libblitwizardfreetype.a ]; then
+    if [ -n "`echo $static_libs_use | grep freetype`" ]; then
+        cp src/freetype/objs/.libs/libfreetype.a libs/libblitwizardfreetype.a || { echo "Failed to copy freetype"; exit 1; }
+    fi
+fi
+
+# Ogre3D:
+if [ ! -e libs/libblitwizardOgreMainStatic.a ]; then
+    if [ -n "`echo $static_libs_use | grep Ogre3D`" ]; then
+        cd src/ogre/
+        cmake -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off . || { echo "Failed to compile Ogre3D"; exit 1; }
+        make || { echo "Failed to compile Ogre3D"; exit 1; }
+        cd "$dir"
+    fi
+fi
+
+# Compile Ogre3D:
+if [ ! -e libs/libblitwizardOgreMainStatic.a ]; then
+    if [ -n "`echo $static_libs_use | grep Ogre3D`" ]; then
+        for f in src/ogre/lib/*
+        do
+            NEWNAME="libs/libblitwizard`basename $f .a`"
+            NEWNAME="`echo $NEWNAME | sed -e 's/libblitwizardlib/libblitwizard/'`.a"
+            cp "$f" "$NEWNAME"
+        done
     fi
 fi
 

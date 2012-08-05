@@ -58,7 +58,7 @@ tr,td {
 <li><a href="#blitwiz.font">3. <i>blitwiz.font</i> namespace</a></li>
 <li><a href="#blitwiz.graphics">4. <i>blitwiz.graphics</i> namespace</a></li>
 <li><a href="#blitwiz.net">5. <i>blitwiz.net</i> namespace</a></li>
-<li><a href="#blitwiz.physics">6. <i>blitwiz.physics</i> namespace</a></li>
+<li><a href="#blitwiz.physics">6. <i>blitwiz.physics2d, blitwiz.physics3d</i> namespaces</a></li>
 <li><a href="#blitwiz.sound">7. <i>blitwiz.sound</i> namespace</a></li>
 <li><a href="#blitwiz.time">8. <i>blitwiz.time</i> namespace</a></li>
 <li><a href="#blitwiz.on_*">9. Event callbacks</a></li>
@@ -104,10 +104,15 @@ Scope: If you no longer reference your network stream, it will disappear automat
 </p>
 </li>
 <li>
-<p><i><a name="physics_object">physics object</a></i> &mdash; represents a physics object. Allows you to retrieve its position/rotation and apply new forces.
+<p><i><a name="2d_physics_object">2d physics object</a></i> &mdash; represents a 2d physics object. Allows you to retrieve its position/rotation and apply new forces.
 </p>
 <p>
-Scope: If you no longer reference your physics object, it will disappear automatically. However, it will only disappear after some time (when garbage collected) and up to that point, it will continue to hang around (and other physics objects will still be able to collide with it for that time). Therefore, it is recommended you explicitely destroy physics objects with <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a>.
+Scope: If you no longer reference your 2d physics object, it will disappear automatically. However, it will only disappear after some time (when garbage collected) and up to that point, it will continue to hang around (and other 2d physics objects will still be able to collide with it for that time). Therefore, it is recommended you explicitely destroy 2d physics objects with <a href="#blitwiz.physics2d.destroyObject">blitwiz.physics2d.destroyObject</a>.
+</p>
+<p><i><a name="3d_physics_object">3d physics object</a></i> &mdash; represents a 3d physics object, similar to the 2d physics object.
+</p>
+<p>
+Scope: Similar to 3d physics object. Can be destroyed through <a href="#blitwiz.physics3d.destroyObject">blitwiz.physics3d.destroyObject</a>.
 </p>
 </li>
 <li>
@@ -799,52 +804,53 @@ Return value: none
 </li>
 
 </ul>
-<a name="blitwiz.physics"><h1>6. <i>blitwiz.physics</i> namespace</h1></a>
-<p>This namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#physics_object">physics objects</a>. Please note that a &ldquo;physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world. You can also not move objects directly (except <a href="#blitwiz.physics.warp">warping</a> which you should use as rarely as possible) - they will move on their own according to their mass, how they collide with each other etc. You can give them "pushes" though by using <a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>.</p>
+<a name="blitwiz.physics"><h1>6. <i>blitwiz.physics2d</i>, <i>blitwiz.physics3d</i> namespaces</h1></a>
+<p>The <b>blitwiz.physics2d</b> namespace offers physics engine functionality (for 2D space, so objects with a two coordinate position and rotation moving and colliding on a 2D plane). For that, it uses <a href="#2d_physics_object">2d physics objects</a>. Please note that a &ldquo;2d physics object&rdquo; is nothing you can see. You will need to draw an image at its position yourself if you want to actually see it in your game world. You can also not move objects directly (except <a href="#blitwiz.physics2d.warp">warping</a> which you should use as rarely as possible) - they will move on their own according to their mass, how they collide with each other etc. You can give them "pushes" though by using <a href="#blitwiz.physics2d.impulse">blitwiz.physics2d.impulse</a>.</p>
+<p>The <b>blitwiz.physics3d</b> namespace offers similar functionality for the more complex 3D space with <a href="#3d_physics_object">3d physics objects</a>. Please note the 3d physics are considerably slower with many objects, so make sure to test your game on slow computers and optimise the physics object count for them to ensure your game still runs at acceptable speed.</p>
 <p><b>Physics are complicated. Take a look at the examples to get an idea for it, especially the "Moving character" example if you simply want to make a character that walks around in a level.</b></p>
 <p>
 The physics use their own <b>physics units</b>. Do NOT use pixels here! Instead, think of how long a meter would roughly be in your game in pixels, and then scale all pixels accordingly into meter units before you pass them to the physics. Why? Physics operate best in certain value ranges:
 </p>
 <p>
-The best size for your moving physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual (since Blitwizard physics are based on the Box2D library).
+The best size for your moving 2d physics objects is between 0.1 and 10 (meters) - that doesn't mean other sizes won't work, but for those sizes, the simulation will generally work most reliably. This hint is taken from the <a href="http://box2d.org/">Box2D</a> manual (since Blitwizard physics are based on the Box2D library).
 </p>
 <p>
 The physics are <b>inaccurate</b>, since they are game-oriented (that means mainly fast and for realtime use) and not for accurate calculations. The idea is that they can deal with a lot of objects and situations in realtime, therefore not being a fully accurate representation of real world physics.
 </p>
 <p>For example, if you simply let an object fall down and calculate how fast it should fall to the ground and then compare with this simulation, you will see the result is most likely different. However, if you throw 20 boxes at each other, you will notice these physics can still deal with this in realtime and give you a convincing behaviour.
 </p>
-<p>To start, you will want to use <a href="#blitwiz.physics.createMovableObject">blitwiz.physics.createMovableObject</a> to create moving physics objects, and <a href="#blitwiz.physics.createObject">blitwiz.physics.createStaticObject</a> to create the static level geometry.
+<p>To start, you will want to use <a href="#blitwiz.physics2d.createMovableObject">blitwiz.physics2d.createMovableObject</a> to create moving 2d physics objects, and <a href="#blitwiz.physics2d.createObject">blitwiz.physics2d.createStaticObject</a> to create the static level geometry.
 </p>
 <ul>
 
-<li><h2><a name="blitwiz.physics.createMovableObject">blitwiz.physics.createMovableObject()</a></h2>
+<li><h2><a name="blitwiz.physics2d.createMovableObject">blitwiz.physics2d.createMovableObject()</a></h2>
 <p>
-Create a movable physics object. Movable means that apart from manual explicit position changes through <a href="#blitwiz.physics.warp">blitwiz.physics.warp</a>, the object can move by gravity forces, collisions etc. unlike static geometry created with <a href="#blitwiz.physics.createStaticObject">blitwiz.physics.createStaticObject</a> which has infinite mass and can never move on its own (you can still warp it around however).
+Create a movable 2d physics object. Movable means that apart from manual explicit position changes through <a href="#blitwiz.physics2d.warp">blitwiz.physics2d.warp</a>, the object can move by gravity forces, collisions etc. unlike static geometry created with <a href="#blitwiz.physics2d.createStaticObject">blitwiz.physics2d.createStaticObject</a> which has infinite mass and can never move on its own (you can still warp it around however).
 </p>
 <p>Movable objects can only have certain more simple geometry forms, which is why they aren't really suitable for the complex shape level geometry often has. Also, using static objects even with simple shapes (where a movable object could be used) simply saves a lot of calculation time. And maybe you just don't want certain things like the ground to possibly move away :-)
 </p>
 <p>
-Remember to use <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a> when you no longer want to use an object.
+Remember to use <a href="#blitwiz.physics2d.destroyObject">blitwiz.physics2d.destroyObject</a> when you no longer want to use an object.
 </p>
 <p>
 You will want to take the following steps:
 </p>
 <ul style="list-style-type:disc">
 <li>
-Set a geometry shape with any of the blitwiz.physics.setShape* functions which support movable objects, e.g. <a href="#blitwiz.physics.setShapeRectangle">blitwiz.physics.setShapeRectangle</a>.
+Set a geometry shape with any of the blitwiz.physics2d.setShape* functions which support movable objects, e.g. <a href="#blitwiz.physics2d.setShapeRectangle">blitwiz.physics2d.setShapeRectangle</a>.
 </li>
 <li>
-Set a non-zero mass with <a href="#blitwiz.physics.setMass">blitwiz.physics.setMass</a>. If you don't do this, the object will have an infinite mass and not move.
+Set a non-zero mass with <a href="#blitwiz.physics2d.setMass">blitwiz.physics2d.setMass</a>. If you don't do this, the object will have an infinite mass and not move.
 </li>
 <li>
-Use <a href="#blitwiz.physics.warp">blitwiz.physics.warp</a> to place the object at any desired starting position (Warning: if it intersects with other objects, weird things will happen. Try it out if you want to have some physics fun).
+Use <a href="#blitwiz.physics2d.warp">blitwiz.physics2d.warp</a> to place the object at any desired starting position (Warning: if it intersects with other objects, weird things will happen. Try it out if you want to have some physics fun).
 </li>
 </ul>
 <p>
 Parameters: none
 </p>
 <p>
-Return value: movable <a href="#physics_object">physics object</a>
+Return value: movable <a href="#2d_physics_object">2d physics object</a>
 </p>
 <p>
 Example:
@@ -853,35 +859,35 @@ Example:
 -- which would be a reasonable idea, you should represent it with a 30x30
 -- sized image)
 
-local pobject = <a href="#blitwiz.physics.createMovableObject">blitwiz.physics.createMovableObject</a>()
-<a href="#blitwiz.physics.setShapeRectangle">blitwiz.physics.setShapeRectangle</a>(pobject, 1, 1)
-<a href="#blitwiz.physics.setMass">blitwiz.physics.setMass</a>(pobject, 10) -- the mass of the object
-<a href="#blitwiz.physics.warp">blitwiz.physics.warp</a>(pobject, 2, 2) -- warp to pixel position 60, 60 (pixel factor is 30)
+local pobject = <a href="#blitwiz.physics2d.createMovableObject">blitwiz.physics2d.createMovableObject</a>()
+<a href="#blitwiz.physics2d.setShapeRectangle">blitwiz.physics2d.setShapeRectangle</a>(pobject, 1, 1)
+<a href="#blitwiz.physics2d.setMass">blitwiz.physics2d.setMass</a>(pobject, 10) -- the mass of the object
+<a href="#blitwiz.physics2d.warp">blitwiz.physics2d.warp</a>(pobject, 2, 2) -- warp to pixel position 60, 60 (pixel factor is 30)
 
 -- The default gravity is always 0 (x coordinate), 9 (y coordinate, so downwards).
--- Use <a href="#blitwiz.physics.setWorldGravity">blitwiz.physics.setWorldGravity</a> to change it for all objects.
--- You can also use <a href="#blitwiz.physics.setGravity">blitwiz.physics.setGravity</a> to override it on a per-object basis.
+-- Use <a href="#blitwiz.physics2d.setWorldGravity">blitwiz.physics2d.setWorldGravity</a> to change it for all objects.
+-- You can also use <a href="#blitwiz.physics2d.setGravity">blitwiz.physics2d.setGravity</a> to override it on a per-object basis.
 -- (the object will ignore the world gravity setting as a consequence)
 
--- Now you simply need to use <a href="#blitwiz.physics.getPosition">blitwiz.physics.getPosition</a> inside <a href="#blitwiz.on_draw">blitwiz.on_draw</a> to query
+-- Now you simply need to use <a href="#blitwiz.physics2d.getPosition">blitwiz.physics2d.getPosition</a> inside <a href="#blitwiz.on_draw">blitwiz.on_draw</a> to query
 -- the position, then draw a 30x30 box image at that position each frame
 </div>
 </li>
 
-<li><h2><a name="blitwiz.physics.createStaticObject">blitwiz.physics.createStaticObject()</a></h2>
-<p>Create a non-movable physics object. Please note those objects cannot move (except when <a href="#blitwiz.physics.warp">warped</a> around which ignores any sort of collisions) and are intended for static geometry with which the movable objects can collide. It can use also the more complex geometry shapes and the movable objects will collide accordingly.
+<li><h2><a name="blitwiz.physics2d.createStaticObject">blitwiz.physics2d.createStaticObject()</a></h2>
+<p>Create a non-movable 2d physics object. Please note those objects cannot move (except when <a href="#blitwiz.physics2d.warp">warped</a> around which ignores any sort of collisions) and are intended for static geometry with which the movable objects can collide. It can use also the more complex geometry shapes and the movable objects will collide accordingly.
 </p>
 <p>
-Set a shape with any of the blitwiz.physics.setShape* functions and then warp it at the right place with <a href="#blitwiz.physics.warp">blitwiz.physics.warp</a>. Setting a mass won't work because static geometry is well, static, and therefore has infinite mass.
+Set a shape with any of the blitwiz.physics2d.setShape* functions and then warp it at the right place with <a href="#blitwiz.physics2d.warp">blitwiz.physics2d.warp</a>. Setting a mass won't work because static geometry is well, static, and therefore has infinite mass.
 </p>
 <p>
-Remember to use <a href="#blitwiz.physics.destroyObject">blitwiz.physics.destroyObject</a> when you no longer want to use an object.
+Remember to use <a href="#blitwiz.physics2d.destroyObject">blitwiz.physics2d.destroyObject</a> when you no longer want to use an object.
 </p>
 <p>
 Parameters: none
 </p>
 <p>
-Return value: static <a href="#physics_object">physics object</a>
+Return value: static <a href="#2d_physics_object">2d physics object</a>
 </p>
 <p>
 Example:
@@ -889,47 +895,47 @@ Example:
 <div class="code">-- Create some static level geometry. We will assume a meter -&gt; pixel factor of 30
 local pixelpermeterfac = 30
 
-local geometry = <a href="#blitwiz.physics.createStaticObject">blitwiz.physics.createStaticObject</a>()
+local geometry = <a href="#blitwiz.physics2d.createStaticObject">blitwiz.physics2d.createStaticObject</a>()
 -- We can supply any list of collision edges we want:
-<a href="#blitwiz.physics.setShapeEdges">blitwiz.physics.setShapeEdges</a>(geometry, [
+<a href="#blitwiz.physics2d.setShapeEdges">blitwiz.physics2d.setShapeEdges</a>(geometry, [
 	[0/pixelpermeterfac, 0/pixelpermeterfac, 500/pixelpermeterfac, 250/pixelpermeterfac],
 	[500/pixelpermeterfac, 250/pixelpermeterfac, 0/pixelpermeterfac, 500/pixelpermeterfac]
 ])
 -- An edge consists of an array (table) containing four coordinates (two for start and end point each)
 -- We supply the edge 0,0 -&gt; 500,250 (pixels), and 500,250 -&gt; 0,500.
 
--- Since the object is static, those edges will never move unless you <a href="#blitwiz.physics.warp">warp</a> the object around.
+-- Since the object is static, those edges will never move unless you <a href="#blitwiz.physics2d.warp">warp</a> the object around.
 </div>
 </li>
 
-<li><h2><a name="blitwiz.physics.destroyObject">blitwiz.physics.destroyObject(physics object <a href="#physics_object"><i>(physics object)</i></a>)</a></h2>
+<li><h2><a name="blitwiz.physics2d.destroyObject">blitwiz.physics2d.destroyObject(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>)</a></h2>
 <p>
-The given physics object will be destroyed. All references to it become invalid and using them will throw an error. Use this function to remove physics objects you no longer need.
+The given 2d physics object will be destroyed. All references to it become invalid and using them will throw an error. Use this function to remove 2d physics objects you no longer need.
 </p>
 <p>
 Parameters:
 </p>
 <ul class="parameters">
-<li>physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to be destroyed</li>
+<li>2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object to be destroyed</li>
 </ul>
 </li>
 
-<li><h2><a name="blitwiz.physics.impulse">blitwiz.physics.impulse(physics object <a href="#physics_object"><i>(physics object)</i></a>, impulse source x <i>(number)</i>, impulse source y <i>(number)</i>, impulse force x <i>(number)</i>, impulse force y <i>(number)</i>)</a></h2>
+<li><h2><a name="blitwiz.physics2d.impulse">blitwiz.physics2d.impulse(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, impulse source x <i>(number)</i>, impulse source y <i>(number)</i>, impulse force x <i>(number)</i>, impulse force y <i>(number)</i>)</a></h2>
 <p>
-Apply a force impulse onto a movable physics object. You can think of it as a "push" applied onto the object that allows you to push it around. You can NOT directly control the results similarly to real life - the object will simply get pushed and will react according to the physics simulation, rotate, wobble, dance, whatever might be the result.
+Apply a force impulse onto a movable 2d physics object. You can think of it as a "push" applied onto the object that allows you to push it around. You can NOT directly control the results similarly to real life - the object will simply get pushed and will react according to the physics simulation, rotate, wobble, dance, whatever might be the result.
 </p>
 <p>
-If you need to move an object to a point and require it to get there, then you should <a href="#blitwiz.physics.warp">warp</a> it - however forcing it into a position in such a way will ignore collision. If you want collision to be considered, you need to impulse it, however then you have no guarantee it actually moves as intended.
+If you need to move an object to a point and require it to get there, then you should <a href="#blitwiz.physics2d.warp">warp</a> it - however forcing it into a position in such a way will ignore collision. If you want collision to be considered, you need to impulse it, however then you have no guarantee it actually moves as intended.
 </p>
 <p>
-For player characters which you want to move around as intended to make them walk but where you still want collision taken into account, you should use this impulse function but restrict rotation with <a href="#blitwiz.physics.restrictRotation">blitwiz.physics.restrictRotation</a> so the player cannot randomly "fall over".
+For player characters which you want to move around as intended to make them walk but where you still want collision taken into account, you should use this impulse function but restrict rotation with <a href="#blitwiz.physics2d.restrictRotation">blitwiz.physics2d.restrictRotation</a> so the player cannot randomly "fall over".
 </p>
 <p>
 Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to which you want to apply an impulse
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object to which you want to apply an impulse
 </li>
 <li>
 impulse source x <i>(number)</i> &mdash; the x source coordinate from where the impulse originates
@@ -951,16 +957,16 @@ Return value: none
 Example:
 </p>
 <div class="code">-- Apply an impulse coming from the left into the center of an object
-local x,y = <a href="#blitwiz.physics.setPosition">blitwiz.physics.setPosition</a>(object)
-<a href="#blitwiz.physics.impulse">blitwiz.physics.impulse</a>(object, x - 5, y, 5, 0)
+local x,y = <a href="#blitwiz.physics2d.setPosition">blitwiz.physics2d.setPosition</a>(object)
+<a href="#blitwiz.physics2d.impulse">blitwiz.physics2d.impulse</a>(object, x - 5, y, 5, 0)
 
 -- The direction 5, 0 basically points from the source x - 5, y into the center of the object (to the right).
 -- The strength of the force impulse is the length of the force direction vector, so 5 in this case.
 </div>
 </li>
 
-<li><h2><a name="blitwiz.physics.ray">blitwiz.physics.ray</a>(source x <i>(number)</i>, sourcey <i>(number)</i>, target x <i>(number)</i>, target y <i>(number)</i>)</h2>
-<p>Cast a collision test ray from the source physics coordinates to the target coordinates to check if it hits a physics object. If an object is hit, you will get impact information. Please note this doesn't do anything to the target object, it is a purely informational collision check function. Returns nil if nothing was hit, otherwise the object that was hit, the impact position and normal.</p>
+<li><h2><a name="blitwiz.physics2d.ray">blitwiz.physics2d.ray</a>(source x <i>(number)</i>, sourcey <i>(number)</i>, target x <i>(number)</i>, target y <i>(number)</i>)</h2>
+<p>Cast a collision test ray from the source physics coordinates to the target coordinates to check if it hits a 2d physics object. If an object is hit, you will get impact information. Please note this doesn't do anything to the target object, it is a purely informational collision check function. Returns nil if nothing was hit, otherwise the object that was hit, the impact position and normal.</p>
 <p>
 Parameters:
 </p>
@@ -978,10 +984,10 @@ target x <i>(number)</i> &mdash; target x coordinate for the ray's target
 target y <i>(number)</i> &mdash; target y coordinate
 </li>
 </ul>
-<p>Return value: either nil (when nothing was hit), or: hit object <a href="#physics_object"><i>(physics object)</i></a>, impact position x <i>(number)</i>, impact position y <i>(number)</i>, impact surface normal x <i>(number)</i>, impact surface normal y <i>(number)</i></p>
+<p>Return value: either nil (when nothing was hit), or: hit object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, impact position x <i>(number)</i>, impact position y <i>(number)</i>, impact surface normal x <i>(number)</i>, impact surface normal y <i>(number)</i></p>
 </li>
 
-<li><h2><a name="blitwiz.physics.restrictRotation">blitwiz.physics.restrictRotation</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, restrict <i>(boolean)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.restrictRotation">blitwiz.physics2d.restrictRotation</a>(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, restrict <i>(boolean)</i>)</h2>
 <p>
 Restrict rotation of the given object to the current angle. If you didn't just create the object (in which case the angle will be simply 0) you should warp it to a desired angle first.
 </p>
@@ -993,7 +999,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which to apply/change the shape
 </li>
 <li>
 restrict <i>(boolean)</i> &mdash; a boolean whether you want to restrict it from now on (true) or not (false)
@@ -1005,7 +1011,7 @@ Return value: none
 </li>
 
 
-<li><h2><a name="blitwiz.physics.setAngularDamping">blitwiz.physics.setAngularDamping</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, damping <i>(number)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.setAngularDamping">blitwiz.physics2d.setAngularDamping</a>(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, damping <i>(number)</i>)</h2>
 <p>
 Set the angular damping of the object which is always applied when the object rotates. With no angular damping, an object can rotate forever when once set in motion without ever stopping. When the angular damping is greater than zero, it will slow down the rotation accordingly. The default angular damping of objects is 0 (none).
 </p>
@@ -1015,7 +1021,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the damping
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which you want to change the damping
 </li>
 <li>
 damping <i>(number)</i> &mdash; the angular damping you want to set which should be in the range 0 (no damping) to infinity (full damping) - however, recommended values are between 0 and 0.1
@@ -1026,7 +1032,7 @@ Return value: none
 </p>
 <li>
 
-<li><h2><a name="blitwiz.physics.setCollisionCallback">blitwiz.physics.setCollisionCallback</a>(physics object <a href="#physis_object"><i>(physics object)</i></a>, callback <i>(function)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.setCollisionCallback">blitwiz.physics2d.setCollisionCallback</a>(2d physics object <a href="#physis_object"><i>(2d physics object)</i></a>, callback <i>(function)</i>)</h2>
 <p>
 Set a collision callback function which gets called when this object collides with another.
 </p>
@@ -1036,11 +1042,11 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the friction
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which you want to change the friction
 </li>
 <li>
-Callback function, with those parameters: collided object <i>(physics object)</i>, collision point x <i>(number)</i>, collision point y <i>(number)</i>, collision normal x <i>(number)</i>, collision normal y <i>(number)</i>, collision force <i>(number)</i>,
-<br>whereas the collided object is the physics object you collided with, the collision point x/y are the coordinates of the point in the center of the collision (the collision is usually an overlap, so this "point" is always an estimation), the collision normal x/y with the normal being the direction in which your object is pushed back as a result of the collision (NOT necessarily the normal of the surface you impacted on), and collision force being the strength of the impact force.
+Callback function, with those parameters: collided object <i>(2d physics object)</i>, collision point x <i>(number)</i>, collision point y <i>(number)</i>, collision normal x <i>(number)</i>, collision normal y <i>(number)</i>, collision force <i>(number)</i>,
+<br>whereas the collided object is the 2d physics object you collided with, the collision point x/y are the coordinates of the point in the center of the collision (the collision is usually an overlap, so this "point" is always an estimation), the collision normal x/y with the normal being the direction in which your object is pushed back as a result of the collision (NOT necessarily the normal of the surface you impacted on), and collision force being the strength of the impact force.
 </li>
 </ul>
 <p>
@@ -1052,23 +1058,23 @@ Example:
 os.openConsole()
 
 -- Set a collision callback
-<a href="#blitwiz.physics.setCollisionCallback">blitwiz.physics.setCollisionCallback</a>(object, function(collidedobject, cx, cy, nx, ny, f)
+<a href="#blitwiz.physics2d.setCollisionCallback">blitwiz.physics2d.setCollisionCallback</a>(object, function(collidedobject, cx, cy, nx, ny, f)
     print("Collision happened. Impact strength: " .. f)
 end)
 </div>
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.setFriction">blitwiz.physics.setFriction</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, friction <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.setFriction">blitwiz.physics2d.setFriction</a>(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, friction <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
 <p>
-Set the friction of the physics object which is applied when it touches/collides with other objects. All objects with no friction set have 0 as default (no friction).
+Set the friction of the 2d physics object which is applied when it touches/collides with other objects. All objects with no friction set have 0 as default (no friction).
 </p>
 <p>
 Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the friction
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which you want to change the friction
 </li>
 <li>
 friction <i>(number)</i> &mdash; the friction you want to set which should be in the range 0 (no friction) to 1 (full friction)
@@ -1079,9 +1085,9 @@ Return value: none
 </p>
 <li>
 
-<li><h2><a name="blitwiz.physics.setGravity">blitwiz.physics.setGravity</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, x gravity force <i>(number)</i>, y gravity force <i>(number)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.setGravity">blitwiz.physics2d.setGravity</a>(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, x gravity force <i>(number)</i>, y gravity force <i>(number)</i>)</h2>
 <p>
-Set the gravity force which applies to a particular movable object. This means the world gravity set through <a href="#blitwiz.physics.setWorldGravity">blitwiz.physics.setWorldGravity</a> will be ignored by this object.
+Set the gravity force which applies to a particular movable object. This means the world gravity set through <a href="#blitwiz.physics2d.setWorldGravity">blitwiz.physics2d.setWorldGravity</a> will be ignored by this object.
 </p>
 <p>
 Use setGravity with just the object as parameter (without the gravity x/y force parameters) to reset the object to world gravity.
@@ -1091,7 +1097,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to which apply a dedicated gravity force
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object to which apply a dedicated gravity force
 <li>
 x gravity force <i>(number)</i> &mdash; the x coordinate of the object's gravity force
 </li>
@@ -1104,7 +1110,7 @@ Return value: none
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.setLinearDamping">blitwiz.physics.setLinearDamping</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, damping <i>(number)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.setLinearDamping">blitwiz.physics2d.setLinearDamping</a>(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, damping <i>(number)</i>)</h2>
 <p>
 Set the linear damping of the object which is always applied when the object moves. With no linear damping, an object can move forever when once set in motion without ever stopping. When the linear damping is greater than zero, it will slow down the movement accordingly. The default linear damping of objects is 0 (none).
 </p>
@@ -1114,7 +1120,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the damping
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which you want to change the damping
 </li>
 <li>
 damping <i>(number)</i> &mdash; the linear damping you want to set which should be in the range 0 (no damping) to infinity (full damping) - however, recommended values are between 0 and 0.1
@@ -1125,16 +1131,16 @@ Return value: none
 </p>
 <li>
 
-<li><h2><a name="blitwiz.physics.setMass">blitwiz.physics.setMass</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, mass <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.setMass">blitwiz.physics2d.setMass</a>(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, mass <i>(number)</i>, mass center x offset <i>(number)</i>, mass center y offset <i>(number)</i>)</h2>
 <p>
-Set the mass of a movable physics object (and optionally the mass center). It is intended to be in kilogram, but since the physics are a game-oriented simulation (that means not perfectly accurate) it is recommended you simply experiment with values that suit you best. 0 is infinite mass. Please note that objects with a really huge mass (or very tiny) can cause the physics to become unstable/less accurate - you'll see yourself if you play around with very heavy objects colliding with very light ones..
+Set the mass of a movable 2d physics object (and optionally the mass center). It is intended to be in kilogram, but since the physics are a game-oriented simulation (that means not perfectly accurate) it is recommended you simply experiment with values that suit you best. 0 is infinite mass. Please note that objects with a really huge mass (or very tiny) can cause the physics to become unstable/less accurate - you'll see yourself if you play around with very heavy objects colliding with very light ones..
 </p>
 <p>
 Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which you want to change the mass settings
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which you want to change the mass settings
 </li>
 <li>
 mass <i>(number)</i> &mdash; the mass you want to set. 0 is infinite, negative masses are not allowed
@@ -1151,7 +1157,7 @@ Return value: none
 </p>
 <li>
 
-<li><h2><a name="blitwiz.physics.setRestitution">blitwiz.physics.setRestitution(physics object <a href="#physics_object"><i>(physics object)</i></a>, restitution <i>(number)</i>)</a></h2>
+<li><h2><a name="blitwiz.physics2d.setRestitution">blitwiz.physics2d.setRestitution(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, restitution <i>(number)</i>)</a></h2>
 <p>
 Set how much an object restitutes velocity after an impact. A restitution of 0 will make it stop fully at collision (default), and with 1 it will fully conserve all speed and bounce around.
 </p>
@@ -1160,7 +1166,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to change restitution
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which to change restitution
 </li>
 <li>
 restitution <i>(number)</i> &mdash; the restitution in a range from 0 to 1
@@ -1171,7 +1177,7 @@ Return value: none
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.setShapeCircle">blitwiz.physics.setShapeCircle(physics object <a href="#physics_object"><i>(physics object)</i></a>, radius <i>(number)</i>)</a></h2>
+<li><h2><a name="blitwiz.physics2d.setShapeCircle">blitwiz.physics2d.setShapeCircle(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, radius <i>(number)</i>)</a></h2>
 <p>
 Set a circle shape for an object. Compatible with both movable and static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. The shape will be used as a collision shape when calculating collisions.
 </p>
@@ -1180,7 +1186,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which to apply/change the shape
 </li>
 <li>
 radius <i>(number)</i> &mdash; the circle radius in physics units
@@ -1191,7 +1197,7 @@ Return value: none
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.setShapeEdges">blitwiz.physics.setShapeEdges</a>(physics object <a href="#physics_object"><i>(physics object)</i></a>, edge list <i>(table)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.setShapeEdges">blitwiz.physics2d.setShapeEdges</a>(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, edge list <i>(table)</i>)</h2>
 <p>
 Set edges as collision shape for an object. Only compatible with static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. Please note the edges have an infinite thinness, so if you construct an enclosed shape with them (e.g. a square) it will be hollow inside and you can put things into it.
 </p>
@@ -1201,7 +1207,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which to apply/change the shape
 </li>
 <li>
 edge list <i>(table)</i> &mdash; a table/array that contains all edges. Each edge is an own table that contains 4 numbers - x/y coordinate of the edge's starting point, and x/y coordinate of the edge's end point. It is NOT required each edge is connected to the other
@@ -1215,7 +1221,7 @@ Example:
 </p>
 <div class="code">-- Set a 0,100-500,100 pixel edge and a 0,400-500,400 pixel edge (not connected to each other), assuming 30 pixels per meter
 local pixelpermeterfac = 30
-<a href="#blitwiz.physics.setShapeEdges">blitwiz.physics.setShapeEdges</a>(object, [
+<a href="#blitwiz.physics2d.setShapeEdges">blitwiz.physics2d.setShapeEdges</a>(object, [
 	[0/pixelpermeterfac, 100/pixelpermeterfac, 500/pixelpermeterfac, 100/pixelpermeterfac],
 	[0/pixelpermeterfac, 400/pixelpermeterfac, 500/pixelpermeterfac, 400/pixelpermeterfac],
 ])
@@ -1223,7 +1229,7 @@ local pixelpermeterfac = 30
 </li>
 
 
-<li><h2><a name="blitwiz.physics.setShapeOval">blitwiz.physics.setShapeOval(physics object <a href="#physics_object"><i>(physics object)</i></a>, oval width <i>(number)</i>, oval height <i>(number)</i>)</a></h2>
+<li><h2><a name="blitwiz.physics2d.setShapeOval">blitwiz.physics2d.setShapeOval(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, oval width <i>(number)</i>, oval height <i>(number)</i>)</a></h2>
 <p>
 Set an oval shape for an object. Compatible with both movable and static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. The shape will be used as a collision shape when calculating collisions.
 </p>
@@ -1232,7 +1238,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which to apply/change the shape
 </li>
 <li>
 oval width <i>(number)</i> &mdash; horizontal size of the oval shape in physics units
@@ -1246,7 +1252,7 @@ Return value: none
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.setShapeRectangle">blitwiz.physics.setShapeRectangle(physics object <a href="#physics_object"><i>(physics object)</i></a>, rectangle width <i>(number)</i>, rectangle height <i>(number)</i>)</a></h2>
+<li><h2><a name="blitwiz.physics2d.setShapeRectangle">blitwiz.physics2d.setShapeRectangle(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, rectangle width <i>(number)</i>, rectangle height <i>(number)</i>)</a></h2>
 <p>
 Set a rectangle shape for an object. Compatible with both movable and static objects. Remember you shouldn't supply pixel values but a custom meter-similar physics unit. The shape will be used as a collision shape when calculating collisions.
 </p>
@@ -1255,7 +1261,7 @@ Parameters:
 </p>
 <ul class="parameters">
 <li>
-physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object for which to apply/change the shape
+2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object for which to apply/change the shape
 </li>
 <li>
 rectangle width <i>(number)</i> &mdash; the width in physics units of the rectangle
@@ -1269,7 +1275,7 @@ Return value: none
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.setWorldGravity">blitwiz.physics.setWorldGravity</a>(world x gravity force <i>(number)</i>, world y gravity force <i>(number)</i>)</h2>
+<li><h2><a name="blitwiz.physics2d.setWorldGravity">blitwiz.physics2d.setWorldGravity</a>(world x gravity force <i>(number)</i>, world y gravity force <i>(number)</i>)</h2>
 <p>
 Set the world gravity force which applies to all movable objects for which a dedicated gravity force isn't set.
 </p>
@@ -1289,9 +1295,9 @@ Return value: none
 </p>
 </li>
 
-<li><h2><a name="blitwiz.physics.warp">blitwiz.physics.warp(physics object <a href="#physics_object"><i>(physics object)</i></a>, x position <i>(integer)</i>, y position <i>(integer)</i>, rotation angle <i>(number)</i>)</a></h2>
+<li><h2><a name="blitwiz.physics2d.warp">blitwiz.physics2d.warp(2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a>, x position <i>(integer)</i>, y position <i>(integer)</i>, rotation angle <i>(number)</i>)</a></h2>
 <p>
-The given physics object will be warped to the given position and rotation. Please note warping is an instant teleportation and ignores all collisions. Warping fully or partially into other objects is possible aswell and can lead to strange physics results. You should use warping only rarely e.g. to setup objects to their intended initial positions in the game world.
+The given 2d physics object will be warped to the given position and rotation. Please note warping is an instant teleportation and ignores all collisions. Warping fully or partially into other objects is possible aswell and can lead to strange physics results. You should use warping only rarely e.g. to setup objects to their intended initial positions in the game world.
 </p>
 <p>
 Please remember (see the introduction text to this chapter) that you shouldn't use pixel units, but rather a custom unit that maps roughly to meters in the real world in terms of average objects scale.
@@ -1300,7 +1306,7 @@ Please remember (see the introduction text to this chapter) that you shouldn't u
 Parameters:
 </p>
 <ul class="parameters">
-<li>physics object <a href="#physics_object"><i>(physics object)</i></a> &mdash; the physics object to be warped</li>
+<li>2d physics object <a href="#2d_physics_object"><i>(2d physics object)</i></a> &mdash; the 2d physics object to be warped</li>
 <li>x position <i>(number)</i> &mdash; the x coordinate of the position where you want to warp the object to</li>
 <li>y position <i>(number)</i> &mdash; the y coordinate of the warp position</li>
 <li>rotation angle <i>(number)</i> &mdash; the angle for the rotation. 90 is 90° clockwise, -90 is 90° ocounter-clockwise etc.</li>
