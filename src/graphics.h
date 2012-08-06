@@ -23,6 +23,10 @@
 
 #ifdef USE_GRAPHICS
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 int graphics_AreGraphicsRunning();
 // Returns 1 if the graphics are open/active, otherwise 0.
 
@@ -145,6 +149,10 @@ int graphics_HaveValidWindow();
 #else // ifdef USE_GRAPHICS
 
 #define compiled_without_graphics "No graphics available - this binary was compiled with graphics (including null device) disabled"
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // ifdef USE_GRAPHICS
 

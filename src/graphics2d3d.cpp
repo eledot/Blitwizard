@@ -23,7 +23,7 @@
 
 #include "os.h"
 
-#ifdef USE_SDL_GRAPHICS
+#if defined(USE_SDL_GRAPHICS) || defined(USE_OGRE_GRAPHICS)
 
 //  various standard headers
 #include <stdio.h>
@@ -35,6 +35,10 @@
 #endif
 #include <stdarg.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "logging.h"
 #include "imgloader.h"
 #include "timefuncs.h"
@@ -44,17 +48,28 @@
 #include "main.h"
 #endif
 
+#ifdef USE_SDL_GRAPHICS
 #include "SDL.h"
 #include "SDL_syswm.h"
+#endif
+#ifdef USE_OGRE_GRAPHICS
+
+#endif
 
 #include "graphicstexture.h"
 #include "graphics.h"
 #include "graphicstexturelist.h"
 
+
+#ifdef USE_SDL_GRAPHICS
 static SDL_Window* mainwindow;
 static int mainwindowfullscreen;
 static SDL_Renderer* mainrenderer;
 static int sdlvideoinit = 0;
+#endif
+#ifdef USE_OGRE_GRAPHICS
+
+#endif
 extern int graphicsvisible;
 int inbackground = 0;
 
@@ -859,4 +874,8 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 }
 
 #endif // ifdef USE_SDL_GRAPHICS
+
+#ifdef __cplusplus
+}
+#endif
 
