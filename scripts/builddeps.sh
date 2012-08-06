@@ -171,7 +171,7 @@ if [ ! -e libs/libblitwizardOgreMainStatic.a ]; then
     fi
 fi
 
-# Compile Ogre3D:
+# Copy Ogre3D:
 if [ ! -e libs/libblitwizardOgreMainStatic.a ]; then
     if [ -n "`echo $static_libs_use | grep Ogre3D`" ]; then
         for f in src/ogre/lib/*
@@ -180,6 +180,25 @@ if [ ! -e libs/libblitwizardOgreMainStatic.a ]; then
             NEWNAME="`echo $NEWNAME | sed -e 's/libblitwizardlib/libblitwizard/'`.a"
             cp "$f" "$NEWNAME"
         done
+    fi
+fi
+
+# bullet physics
+if [ ! -e libs/libblitwizardBulletDynamics.a ] || [ ! -e libs/libblitwizardBulletCollision.a ] || [ ! -e libs/libblitwizardBulletSoftBody.a ] || [ ! -e libs/libblitwizardLinearMath.a ]; then
+    if [ -n "`echo $static_libs_use | grep bullet`" ]; then
+        cd src/bullet/
+        sh autogen.sh && ./configure --host="$host" --disable-demos --disable-shared --enable-static --disable-debug && make || { echo "Failed to compile bullet physics"; exit 1; }
+        cd "$dir"
+    fi
+fi
+
+# Copy compiled bullet physics:
+if [ ! -e libs/libblitwizardBulletDynamics.a ] || [ ! -e libs/libblitwizardBulletCollision.a ] || [ ! -e libs/libblitwizardBulletSoftBody.a ] || [ ! -e libs/libblitwizardLinearMath.a ]; then
+    if [ -n "`echo $static_libs_use | grep bullet`" ]; then
+        cp src/bullet/src/.libs/libBulletDynamics.a libs/libblitwizardBulletDynamics.a || { echo "Failed to copy bullet physics"; exit 1; }
+        cp src/bullet/src/.libs/libBulletCollision.a libs/libblitwizardBulletCollision.a || { echo "Failed to copy bullet physics"; exit 1; }
+        cp src/bullet/src/.libs/libBulletSoftBody.a libs/libblitwizardBulletSoftBody.a || { echo "Failed to copy bullet physics"; exit 1; }
+        cp src/bullet/src/.libs/libLinearMath.a libs/libblitwizardLinearMath.a || { echo "Failed to copy bullet physics"; exit 1; }
     fi
 fi
 

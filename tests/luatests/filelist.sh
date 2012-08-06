@@ -27,6 +27,7 @@ end
 
 print(\"xx\" .. outputline .. \"yy\")" > ./test.lua
 $RUNBLITWIZARD ./test.lua > ./testoutput
+rm ./test.lua
 
 # Get comparison output through bash
 olddir=`pwd`

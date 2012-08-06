@@ -94,13 +94,21 @@ AS_IF([test "x$enable_audio" = xno], [
     enable_sdlaudio="no"
 ])
 
-AC_ARG_ENABLE([physics],
-    [AS_HELP_STRING([--disable-physics],[disable physics simulation support (default is enabled)])],
+AC_ARG_ENABLE([physics2d],
+    [AS_HELP_STRING([--disable-physics2d],[disable physics simulation support based on Box2D (default is enabled)])],
 [case "${enableval}" in
-     yes | no ) enable_physics="${enableval}" ;;
-     *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics) ;;
+     yes | no ) enable_physics2d="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics2d) ;;
  esac],
-[enable_physics=yes])
+[enable_physics2d=yes])
+
+AC_ARG_ENABLE([physics3d],
+    [AS_HELP_STRING([--disable-physics3d],[disable physics simulation support based on bullet physics (default is enabled)])],
+[case "${enableval}" in
+     yes | no ) enable_physics3d="${enableval}" ;;
+     *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics3d) ;;
+ esac],
+[enable_physics3d=yes])
 
 AC_ARG_ENABLE([flac],
     [AS_HELP_STRING([--disable-flac],[disable optional FLAC audio support.])],
@@ -142,6 +150,7 @@ FLAC_FEATURE_ENABLED="yes"
 SPEEX_RESAMPLING_FEATURE_ENABLED="yes"
 FFMPEG_FEATURE_ENABLED="yes"
 PHYSICS2D_FEATURE_ENABLED="yes"
+PHYSICS3D_FEATURE_ENABLED="yes"
 FAST_FLOAT2INT_FEATURE_ENABLED="yes"
 
 
@@ -244,7 +253,8 @@ AS_IF([test "x$COMPILE_OGRE" = xyes], [
     AC_MSG_CHECKING([for static OIS library])
     AS_IF([test ! -f "src/ois/src/OISKeyboard.cpp"],[
         AC_MSG_RESULT([no])
-        AC_CHECK_HEADER([OIS.h],[
+        AC_LANG_PUSH([C++])
+        AC_CHECK_HEADERS([OIS.h],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   OIS: shared"
@@ -255,6 +265,7 @@ AS_IF([test "x$COMPILE_OGRE" = xyes], [
             OGRE_GRAPHICS_FEATURE_ENABLED="no, need OIS"
             COMPILE_OGRE="no"
         ])
+        AC_LANG_POP([C++])
     ],[
         AC_MSG_RESULT([yes])
         STATIC_LIBS_USE="${STATIC_LIBS_USE} OIS"
@@ -268,7 +279,8 @@ AS_IF([test "x$COMPILE_OGRE" = xyes],[
     AC_MSG_CHECKING([for static Ogre3D library])
     AS_IF([test ! -f "src/ogre/OgreMain/src/OgreMath.cpp"],[
         AC_MSG_RESULT([no])
-        AC_CHECK_LIB([Ogrelaleli], [SDL_Init],[
+        AC_LANG_PUSH([C++])
+        AC_CHECK_HEADERS([OgreRoot.h],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   Ogre3D: shared"
@@ -279,6 +291,7 @@ AS_IF([test "x$COMPILE_OGRE" = xyes],[
             OGRE_GRAPHICS_FEATURE_ENABLED="no, need Ogre3D"
             COMPILE_OGRE="no"
         ])
+        AC_LANG_POP([C++])
     ],[
         AC_MSG_RESULT([yes])
         STATIC_LIBS_USE="${STATIC_LIBS_USE} Ogre3D"
@@ -330,7 +343,7 @@ AS_IF([test "x$enable_graphics" = xyes],[ # START enable_graphics block
     AC_MSG_CHECKING([for static zlib library])
     AS_IF([test ! -f "src/imgloader/zlib/gzlib.c"],[
         AC_MSG_RESULT([no])
-        AC_CHECK_HEADER([zlib.h],[
+        AC_CHECK_HEADERS([zlib.h],[
             #shared lib is there!
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   zlib: shared"
@@ -432,7 +445,7 @@ AS_IF([test "x$enable_flac" = xyes],[
         # Check for shared FLAC lib:
         HAVESHAREDFLAC="no"
         AC_CHECK_LIB([FLAC], [FLAC__stream_decoder_new],[
-            AC_CHECK_HEADER([FLAC/format.h], [
+            AC_CHECK_HEADERS([FLAC/format.h], [
                 HAVESHAREDFLAC="yes"
                 LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libFLAC: shared"
@@ -467,7 +480,7 @@ AS_IF([test "x$enable_speex" = xyes],[
         HAVESHAREDSPEEX="no"
         AC_CHECK_LIB([speexdsp], [speex_resampler_init],[
             AC_CHECK_LIB([speex], [speex_encoder_init],[
-                AC_CHECK_HEADER([speex/speex_resampler.h], [
+                AC_CHECK_HEADERS([speex/speex_resampler.h], [
                     HAVESHAREDSPEEX="yes"
                     LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libspeex: shared"
@@ -510,7 +523,7 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
     # Check for regular -llua5.2 first
     AC_CHECK_LIB([lua5.2], [lua_close],[
         AC_CHECK_LIB([lua5.2], [lua_rawlen],[
-            AC_CHECK_HEADER([lua5.2/lua.h], [
+            AC_CHECK_HEADERS([lua5.2/lua.h], [
                 #shared lib is there!
                 LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
@@ -525,7 +538,7 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
     AS_IF([test "x$HAVE_LUA_SHARED" = xno],[
         AC_CHECK_LIB([lua], [lua_close],[
             AC_CHECK_LIB([lua], [lua_rawlen],[
-                AC_CHECK_HEADER([lua.h], [
+                AC_CHECK_HEADERS([lua.h], [
                     #shared lib is there!
                     LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   liblua: shared"
@@ -547,10 +560,44 @@ AS_IF([test ! -f "src/lua/src/lua.h"],[
   liblua: static"
 ])
 
+# Check for bullet physics availability:
+
+AS_IF([test "x$enable_physics3d" = xyes],[
+    AC_MSG_CHECKING([for static bullet physics library])
+    HAVE_STATIC_BULLET="yes"
+    AS_IF([test ! -f "src/bullet/src/BulletDynamics/Dynamics/btRigidBody.cpp"],[
+        AC_MSG_RESULT([no])
+        HAVE_STATIC_BULLET="no"
+    ], [
+        AC_MSG_RESULT([yes])
+    ])
+    AS_IF([test "x$HAVE_STATIC_BULLET" = xno], [
+        # check for shared lib
+        AC_LANG_PUSH([C++])
+        AC_CHECK_HEADER([BulletDynamics/btBulletDynamicsCommon.h], [
+            # shared lib is there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  bullet: shared"
+        ], [
+            # no lib there
+            LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  bullet: no"
+            PHYSICS3D_FEATURE_ENABLED="no, need bullet physics"
+        ])
+        AC_LANG_POP([C++])
+    ], [
+        # static lib is here
+        STATIC_LIBS_USE="${STATIC_LIBS_USE} bullet"
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  bullet: static"
+    ])
+], [
+    PHYSICS3D_FEATURE_ENABLED="no, disabled"
+])
 
 # Check for libbox2d availability:
 
-AS_IF([test "x$enable_physics" = xyes],[
+AS_IF([test "x$enable_physics2d" = xyes],[
     AC_MSG_CHECKING([for static Box2D library])
     HAVE_STATIC_BOX2D="yes"
     AS_IF([test ! -f "src/box2d/Box2D/Box2D.h"],[
@@ -579,7 +626,7 @@ AS_IF([test "x$enable_physics" = xyes],[
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libbox2d: static"
     ])
-],[
+], [
     PHYSICS2D_FEATURE_ENABLED="no, disabled"
 ])
 
@@ -596,6 +643,7 @@ This results in the following feature set:
   Speex-based resampling: ${SPEEX_RESAMPLING_FEATURE_ENABLED}
   Runtime FFmpeg support: ${FFMPEG_FEATURE_ENABLED}
   2D physics simulation support: ${PHYSICS2D_FEATURE_ENABLED}
+  3D physics simulation support: ${PHYSICS3D_FEATURE_ENABLED}
   Fast float-to-int conversion: ${FAST_FLOAT2INT_FEATURE_ENABLED}
 "
 
@@ -764,6 +812,16 @@ AS_IF([test "x$PHYSICS2D_FEATURE_ENABLED" = xyes],[
         FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ibox2d/ -Ibox2d/Box2D/"
     ])
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSICS2D"
+])
+AS_IF([test "x$PHYSICS3D_FEATURE_ENABLED" = xyes],[
+    statictest=`echo $STATIC_LIBS_USE | grep bullet`
+    AS_IF([test -z "$statictest"],[
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lBulletDynamics -lBulletSoftBody -lBulletCollision -lLinearMath"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardBulletDynamics -lblitwizardBulletSoftBody -lblitwizardBulletCollision -lblitwizardLinearMath"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Ibullet/src/"
+    ])
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSICS3D"
 ])
 
 # Get the scripts/ dir (absolute path):

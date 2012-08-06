@@ -9,13 +9,13 @@ source preparetest.sh
 # Get output from blitwizard
 echo "
 -- create a static and a movable object:
-local obj1 = blitwiz.physics.createStaticObject()
-local obj2 = blitwiz.physics.createMovableObject()
-blitwiz.physics.setShapeOval(obj1, 3, 2)
-blitwiz.physics.setShapeRectangle(obj2, 5, 4)
+local obj1 = blitwiz.physics2d.createStaticObject()
+local obj2 = blitwiz.physics2d.createMovableObject()
+blitwiz.physics2d.setShapeOval(obj1, 3, 2)
+blitwiz.physics2d.setShapeRectangle(obj2, 5, 4)
 
 -- a ray is also generating new references and affecting garbage collection:
-blitwiz.physics.ray(-10, 0, 0, 0)
+blitwiz.physics2d.ray(-10, 0, 0, 0)
 
 -- collect garbage until something happens
 print(\"Physics GC test phase 1/2\")
@@ -39,8 +39,10 @@ end
 os.exit(0)
 " > ./test.lua
 $RUNBLITWIZARD ./test.lua
+RETURNVALUE="$?"
+rm ./test.lua
 
-if [ "x$?" = "x0" ]; then
+if [ "x$RETURNVALUE" = "x0" ]; then
     exit 0
 else
     exit 1
