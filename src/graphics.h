@@ -71,8 +71,9 @@ void graphics_GetVideoMode(int index, int* width, int* height);
 void graphics_GetDesktopVideoMode(int* x, int* y);
 // Get the current video mode of the desktop
 
-void graphics_Close();
-// Close the graphics but keep them available for use
+void graphics_Close(int preservetextures);
+// Close the graphics. preservetextures 1: keep them available for use,
+// 0: dispose of them
 
 void graphics_Quit();
 // Quit the graphics completely
@@ -146,13 +147,13 @@ int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* pre
 int graphics_HaveValidWindow();
 // Returns 1 if a window is open, otherwise 0
 
-#else // ifdef USE_GRAPHICS
-
-#define compiled_without_graphics "No graphics available - this binary was compiled with graphics (including null device) disabled"
-
 #ifdef __cplusplus
 }
 #endif
+
+#else // ifdef USE_GRAPHICS
+
+#define compiled_without_graphics "No graphics available - this binary was compiled with graphics (including null device) disabled"
 
 #endif // ifdef USE_GRAPHICS
 

@@ -23,6 +23,10 @@
 
 #include "os.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #if defined(USE_SDL_GRAPHICS) || defined(USE_OGRE_GRAPHICS)
 
 //  various standard headers
@@ -34,10 +38,6 @@
 #include <windows.h>
 #endif
 #include <stdarg.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 #include "logging.h"
 #include "imgloader.h"
@@ -278,7 +278,7 @@ int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigne
         SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_HORIZONTAL);
     } else {
         if (rotationangle > 0.001 || rotationangle < -0.001) {
-            SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, 0);
+            SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_NONE);
         } else {
             SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
         }
@@ -303,9 +303,11 @@ int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
 
 
 void graphics_Close(int preservetextures) {
+    // close graphics, and destroy textures if instructed to do so
     graphicsvisible = 0;
     if (mainrenderer) {
         if (preservetextures) {
+            // preserve textures if not instructed to destroy them
             graphicstexturelist_TransferTexturesFromHW();
         }
         SDL_DestroyRenderer(mainrenderer);
@@ -416,8 +418,8 @@ static void graphics_ReadVideoModes() {
     }
     int c = SDL_GetNumDisplayModes(0);
     int i = 0;
-    videomodesx = malloc((c+1)*sizeof(int));
-    videomodesy = malloc((c+1)*sizeof(int));
+    videomodesx = (int*)malloc((c+1)*sizeof(int));
+    videomodesy = (int*)malloc((c+1)*sizeof(int));
     if (!videomodesx || !videomodesy) {
         if (videomodesx) {
             free(videomodesx);
@@ -873,7 +875,7 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
     }
 }
 
-#endif // ifdef USE_SDL_GRAPHICS
+#endif // if defined(USE_SDL_GRAPHICS) || defined(USE_OGRE_GRAPHICS)
 
 #ifdef __cplusplus
 }
