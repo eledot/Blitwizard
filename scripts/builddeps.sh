@@ -165,7 +165,7 @@ fi
 if [ ! -e libs/libblitwizardOgreMainStatic.a ]; then
     if [ -n "`echo $static_libs_use | grep Ogre3D`" ]; then
         cd src/ogre/
-        cmake -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off . || { echo "Failed to compile Ogre3D"; exit 1; }
+        cmake -DOGRE_CONFIG_ENABLE_ZIP=0 -DOGRE_BUILD_PLUGIN_BSP=0 -DOGRE_BUILD_PLUGIN_PFX=0 -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off . || { echo "Failed to compile Ogre3D"; exit 1; }
         make || { echo "Failed to compile Ogre3D"; exit 1; }
         cd "$dir"
     fi

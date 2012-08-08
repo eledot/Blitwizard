@@ -58,8 +58,8 @@ int graphics_AreGraphicsRunning() {
     return graphicsvisible;
 }
 
-int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
-    return graphics_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle, horiflipped, red, green, blue);
+int graphicsrender_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
+    return graphicsrender_DrawCropped(texname, x, y, alpha, 0, 0, 0, 0, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle, horiflipped, red, green, blue);
 }
 
 

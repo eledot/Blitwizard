@@ -53,7 +53,10 @@ extern "C" {
 #include "SDL_syswm.h"
 #endif
 #ifdef USE_OGRE_GRAPHICS
-
+#include <OgreWindowEventUtilities.h>
+#include <OgreMaterialManager.h>
+#include <OgreMeshSerializer.h>
+#include <OgreMeshManager.h>
 #endif
 
 #include "graphicstexture.h"
@@ -62,16 +65,24 @@ extern "C" {
 
 
 #ifdef USE_SDL_GRAPHICS
-static SDL_Window* mainwindow;
-static int mainwindowfullscreen;
-static SDL_Renderer* mainrenderer;
-static int sdlvideoinit = 0;
+SDL_Window* mainwindow = NULL;
+SDL_Renderer* mainrenderer = NULL;
+int sdlvideoinit = 0;
 #endif
 #ifdef USE_OGRE_GRAPHICS
-
+Ogre::Root* mainogreroot = NULL;
+Ogre::Camera* maincamera = NULL;
+Ogre::SceneManager* mainscenemanager = NULL;
+Ogre::RenderWindow* mainwindow = NULL;
+OIS::InputManager* maininput = NULL;
+OIS::Mouse* mainmouse = NULL;
+OIS::Keyboard* mainkeyboard = NULL;
 #endif
-extern int graphicsvisible;
-int inbackground = 0;
+
+int graphicsactive = 0;  // whether graphics are active/opened (1) or not (0)
+int inbackground = 0;  // whether program has focus (1) or not (0)
+int graphics3d;  // 1: Ogre graphics, 0: SDL graphics
+int mainwindowfullscreen; // whether fullscreen (1) or not (0)
 
 int graphics_HaveValidWindow() {
     if (mainwindow) {
@@ -80,14 +91,32 @@ int graphics_HaveValidWindow() {
     return 0;
 }
 
+#ifdef USE_OGRE_GRAPHICS
+// event receiver to be used by Ogre:
+class EventReceiver : public Ogre::FrameListener, public Ogre::WindowEventListener, public OIS::KeyListener, public OIS::MouseListener {
+public:
+    EventReceiver(void) {
+    }
+    ~EventReceiver(void) {
+    }
+};
+static EventReceiver* maineventreceiver = NULL;
+#endif
+
 void graphics_DestroyHWTexture(struct graphicstexture* gt) {
-    if (gt->tex){
+#ifdef USE_SDL_GRAPHICS
+    if (gt->tex.sdltex && !graphics3d) {
         SDL_DestroyTexture(gt->tex);
         gt->tex = NULL;
     }
+#endif
+#ifdef USE_OGRE_GRAPHICS
+
+#endif
 }
 
 static int graphics_InitVideoSubsystem(char** error) {
+#ifdef USE_SDL_GRAPHICS
     char errormsg[512];
     // initialize SDL video if not done yet
     if (!sdlvideoinit) {
@@ -99,12 +128,14 @@ static int graphics_InitVideoSubsystem(char** error) {
         }
         sdlvideoinit = 1;
     }
+#endif
     return 1;
 }
 
 int graphics_Init(char** error) {
     char errormsg[512];
 
+#ifdef USE_SDL_GRAPHICS
     // set scaling settings
     SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_NORMAL);
 
@@ -115,48 +146,60 @@ int graphics_Init(char** error) {
         *error = strdup(errormsg);
         return 0;
     }
+#endif
     return 1;
 }
 
 int graphics_TextureToHW(struct graphicstexture* gt) {
-    if (gt->tex || gt->threadingptr || !gt->name) {
-        return 1;
-    }
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        if (gt->tex.sdltex || gt->threadingptr || !gt->name) {
+            return 1;
+        }
 
-    // create texture
-    SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
-    if (!t) {
-        printwarning("Warning: SDL failed to create texture: %s\n",SDL_GetError());
-        return 0;
-    }
+        // create texture
+        SDL_Texture* t = SDL_CreateTexture(mainrenderer, SDL_PIXELFORMAT_ABGR8888, SDL_TEXTUREACCESS_STREAMING, gt->width, gt->height);
+        if (!t) {
+            printwarning("Warning: SDL failed to create texture: %s\n", SDL_GetError());
+            return 0;
+        }
 
-    // lock texture
-    void* pixels; int pitch;
-    if (SDL_LockTexture(t, NULL, &pixels, &pitch) != 0) {
-        printwarning("Warning: SDL failed to lock texture: %s\n",SDL_GetError());
-        SDL_DestroyTexture(t);
-        return 0;
-    }
+        // lock texture
+        void* pixels; int pitch;
+        if (SDL_LockTexture(t, NULL, &pixels, &pitch) != 0) {
+            printwarning("Warning: SDL failed to lock texture: %s\n", SDL_GetError());
+            SDL_DestroyTexture(t);
+            return 0;
+        }
 
-    // copy pixels into texture
-    memcpy(pixels, gt->pixels, gt->width * gt->height * 4);
+        // copy pixels into texture
+        memcpy(pixels, gt->pixels, gt->width * gt->height * 4);
 
-    // unlock texture
-    SDL_UnlockTexture(t);
+        // unlock texture
+        SDL_UnlockTexture(t);
 
-    // set blend mode
-    if (SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND) < 0) {
-        printf("Warning: Blend mode SDL_BLENDMODE_BLEND not applied: %s\n",SDL_GetError());
-    }
+        // set blend mode
+        if (SDL_SetTextureBlendMode(t, SDL_BLENDMODE_BLEND) < 0) {
+            printf("Warning: Blend mode SDL_BLENDMODE_BLEND not applied: %s\n",SDL_GetError());
+        }
 
-    // if on the desktop, discard texture
+        // if on the desktop, discard texture from regular memory
 #if !defined(ANDROID)
-    free(gt->pixels);
-    gt->pixels = NULL;
+        free(gt->pixels);
+        gt->pixels = NULL;
 #endif
 
-    gt->tex = t;
-    return 1;
+        gt->tex.sdltex = t;
+    }
+#endif
+#ifdef USE_OGRE_GRAPHICS
+    if (graphics3d) {
+        if (gt->tex.ogretex || gt->threadingptr || !gt->name) {
+            return 1;
+        }
+    }
+#endif
+    return 0;
 }
 
 void graphics_TextureFromHW(struct graphicstexture* gt) {
@@ -197,96 +240,9 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
     gt->tex = NULL;
 }
 
-void graphics_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a) {
-    SDL_SetRenderDrawColor(mainrenderer, (int)((float)r * 255.0f),
-    (int)((float)g * 255.0f), (int)((float)b * 255.0f), (int)((float)a * 255.0f));
-    SDL_Rect rect;
-    rect.x = x;
-    rect.y = y;
-    rect.w = width;
-    rect.h = height;
-
-    SDL_SetRenderDrawBlendMode(mainrenderer, SDL_BLENDMODE_BLEND);
-    SDL_RenderFillRect(mainrenderer, &rect);
-}
-
-int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
-    struct graphicstexture* gt = graphicstexturelist_GetTextureByName(texname);
-    if (!gt || gt->threadingptr || !gt->tex) {
-        return 0;
-    }
-
-    if (alpha <= 0) {
-        return 1;
-    }
-    if (alpha > 1) {
-        alpha = 1;
-    }
-
-    // calculate source dimensions
-    SDL_Rect src,dest;
-    src.x = sourcex;
-    src.y = sourcey;
-
-    if (sourcewidth > 0) {
-        src.w = sourcewidth;
-    }else{
-        src.w = gt->width;
-    }
-    if (sourceheight > 0) {
-        src.h = sourceheight;
-    }else{
-        src.h = gt->height;
-    }
-
-    // set target dimensinos
-    dest.x = x; dest.y = y;
-    if (drawwidth == 0 || drawheight == 0) {
-        dest.w = src.w;dest.h = src.h;
-    }else{
-        dest.w = drawwidth; dest.h = drawheight;
-    }
-
-    // render
-    int i = (int)((float)255.0f * alpha);
-    if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
-        printwarning("Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
-    }
-    SDL_Point p;
-    p.x = (int)((double)rotationcenterx * ((double)drawwidth / src.w));
-    p.y = (int)((double)rotationcentery * ((double)drawheight / src.h));
-    if (red > 1) {
-        red = 1;
-    }
-    if (red < 0) {
-        red = 0;
-    }
-    if (blue > 1) {
-        blue = 1;
-    }
-    if (blue < 0) {
-        blue = 0;
-    }
-    if (green > 1) {
-        green = 1;
-    }
-    if (green < 0) {
-        green = 0;
-    }
-    SDL_SetTextureColorMod(gt->tex, (red * 255.0f), (green * 255.0f), (blue * 255.0f));
-    if (horiflipped) {
-        SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_HORIZONTAL);
-    } else {
-        if (rotationangle > 0.001 || rotationangle < -0.001) {
-            SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_NONE);
-        } else {
-            SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
-        }
-    }
-    return 1;
-}
 
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
+#ifdef USE_SDL_GRAPHICS
     if (mainwindow) {
         int w,h;
         SDL_GetWindowSize(mainwindow, &w,&h);
@@ -297,6 +253,7 @@ int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
         *height = h;
         return 1;
     }
+#endif
     return 0;
 }
 
@@ -304,7 +261,7 @@ int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
 
 void graphics_Close(int preservetextures) {
     // close graphics, and destroy textures if instructed to do so
-    graphicsvisible = 0;
+    graphicsactive = 0;
     if (mainrenderer) {
         if (preservetextures) {
             // preserve textures if not instructed to destroy them
@@ -744,22 +701,14 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
         SDL_RaiseWindow(mainwindow);
     }
 
-    graphicsvisible = 1;
+    graphicsactive = 1;
     return 1;
-}
-
-void graphics_StartFrame() {
-    SDL_SetRenderDrawColor(mainrenderer, 0, 0, 0, 1);
-    SDL_RenderClear(mainrenderer);
-}
-
-void graphics_CompleteFrame() {
-    SDL_RenderPresent(mainrenderer);
 }
 
 int lastfingerdownx,lastfingerdowny;
 
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background)) {
+#ifdef USE_SDL_GRAPHICS
     SDL_Event e;
     while (SDL_PollEvent(&e) == 1) {
         if (e.type == SDL_QUIT) {
@@ -873,6 +822,12 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
             }
         }
     }
+#endif
+#ifdef USE_OGRE_GRAPHICS
+    WindowEventUtilities::messagePump();
+    mainmouse->capture();
+    mainkeyboard->capture();    
+#endif
 }
 
 #endif // if defined(USE_SDL_GRAPHICS) || defined(USE_OGRE_GRAPHICS)

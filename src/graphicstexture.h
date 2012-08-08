@@ -21,12 +21,6 @@
 
 */
 
-#ifdef USE_SDL_GRAPHICS
-#define HWTEX SDL_Texture*
-#else
-#define HWTEX void*
-#endif
-
 struct graphicstexture {
     // basic info
     char* name;
@@ -36,7 +30,14 @@ struct graphicstexture {
     int autodelete;
     void* threadingptr;
     // SDL info
-    HWTEX tex; // NULL if not loaded yet
+    union tex {
+#ifdef USE_SDL_GRAPHICS
+        SDL_Texture* sdltex;
+#endif
+#ifdef USE_OGRE_GRAPHICS
+        
+#endif
+    };
 #ifdef SDLRW
     SDL_RWops* rwops;
 #endif

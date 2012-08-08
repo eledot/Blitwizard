@@ -85,19 +85,19 @@ int graphics_IsFullscreen();
 void graphics_MinimizeWindow();
 // Minimize the window
 
-void graphics_StartFrame();
+void graphicsrender_StartFrame();
 // Clears the screen to prepare for the next frame.
 
-int graphics_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue);
+int graphicsrender_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue);
 // Draw a texture cropped. Returns 1 on success, 0 when there is no such texture.
 
-int graphics_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue);
+int graphicsrender_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue);
 // Draw a texture. Returns 1 on success, 0 when there is no such texture.
 
-void graphics_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a);
+void graphicsrender_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a);
 // Draw a colored rectangle.
 
-void graphics_CompleteFrame();
+void graphicsrender_CompleteFrame();
 // Update the current drawing changes to screen.
 // Use this always after completing one frame.
 
