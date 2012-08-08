@@ -685,7 +685,7 @@ AS_IF([test "x$OGRE_GRAPHICS_FEATURE_ENABLED" = xyes],[
         do
             FINAL_LD_FLAGS="$FINAL_LD_FLAGS -l`basename $f .a | sed -e 's/^lib//'`"
         done
-        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iogre/OgreMain/include"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iogre/include/ -Iogre/OgreMain/include"
     ])
 
     # Add OIS to include path:
