@@ -23,9 +23,7 @@
 
 #include "os.h"
 
-#ifdef __cplusplus
 extern "C" {
-#endif
 
 #if defined(USE_SDL_GRAPHICS) || defined(USE_OGRE_GRAPHICS)
 
@@ -53,10 +51,13 @@ extern "C" {
 #include "SDL_syswm.h"
 #endif
 #ifdef USE_OGRE_GRAPHICS
+extern "C++" {
 #include <OgreWindowEventUtilities.h>
 #include <OgreMaterialManager.h>
 #include <OgreMeshSerializer.h>
 #include <OgreMeshManager.h>
+#include "OIS.h"
+}
 #endif
 
 #include "graphicstexture.h"
@@ -71,12 +72,12 @@ int sdlvideoinit = 0;
 #endif
 #ifdef USE_OGRE_GRAPHICS
 Ogre::Root* mainogreroot = NULL;
-Ogre::Camera* maincamera = NULL;
-Ogre::SceneManager* mainscenemanager = NULL;
-Ogre::RenderWindow* mainwindow = NULL;
+Ogre::Camera* mainogrecamera = NULL;
+Ogre::SceneManager* mainogrescenemanager = NULL;
+Ogre::RenderWindow* mainogrewindow = NULL;
 OIS::InputManager* maininput = NULL;
-OIS::Mouse* mainmouse = NULL;
-OIS::Keyboard* mainkeyboard = NULL;
+OIS::Mouse* mainogremouse = NULL;
+OIS::Keyboard* mainogrekeyboard = NULL;
 #endif
 
 int graphicsactive = 0;  // whether graphics are active/opened (1) or not (0)
@@ -93,21 +94,23 @@ int graphics_HaveValidWindow() {
 
 #ifdef USE_OGRE_GRAPHICS
 // event receiver to be used by Ogre:
-class EventReceiver : public Ogre::FrameListener, public Ogre::WindowEventListener, public OIS::KeyListener, public OIS::MouseListener {
+extern "C++" {
+class EventReceiver : public Ogre::WindowEventListener, public OIS::KeyListener, public OIS::MouseListener {
 public:
     EventReceiver(void) {
     }
     ~EventReceiver(void) {
     }
 };
+}
 static EventReceiver* maineventreceiver = NULL;
 #endif
 
 void graphics_DestroyHWTexture(struct graphicstexture* gt) {
 #ifdef USE_SDL_GRAPHICS
     if (gt->tex.sdltex && !graphics3d) {
-        SDL_DestroyTexture(gt->tex);
-        gt->tex = NULL;
+        SDL_DestroyTexture(gt->tex.sdltex);
+        gt->tex.sdltex = NULL;
     }
 #endif
 #ifdef USE_OGRE_GRAPHICS
@@ -203,7 +206,7 @@ int graphics_TextureToHW(struct graphicstexture* gt) {
 }
 
 void graphics_TextureFromHW(struct graphicstexture* gt) {
-    if (!gt->tex || gt->threadingptr || !gt->name) {
+    if (!gt->tex.sdltex || gt->threadingptr || !gt->name) {
         return;
     }
 
@@ -211,8 +214,8 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
         gt->pixels = malloc(gt->width * gt->height * 4);
         if (!gt->pixels) {
             // wipe this texture
-            SDL_DestroyTexture(gt->tex);
-            gt->tex = NULL;
+            SDL_DestroyTexture(gt->tex.sdltex);
+            gt->tex.sdltex = NULL;
             graphicstexturelist_RemoveTextureFromHashmap(gt);
             free(gt->name);
             gt->name = NULL;
@@ -221,7 +224,7 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
 
         // Lock SDL Texture
         void* pixels;int pitch;
-        if (SDL_LockTexture(gt->tex, NULL, &pixels, &pitch) != 0) {
+        if (SDL_LockTexture(gt->tex.sdltex, NULL, &pixels, &pitch) != 0) {
             // success, the texture is now officially garbage.
             // can/should we do anything about this? (a purely visual problem)
             printf("Warning: SDL_LockTexture() failed\n");
@@ -231,13 +234,13 @@ void graphics_TextureFromHW(struct graphicstexture* gt) {
             memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
 
             // unlock texture again
-            SDL_UnlockTexture(gt->tex);
+            SDL_UnlockTexture(gt->tex.sdltex);
 
         }
     }
 
-    SDL_DestroyTexture(gt->tex);
-    gt->tex = NULL;
+    SDL_DestroyTexture(gt->tex.sdltex);
+    gt->tex.sdltex = NULL;
 }
 
 
@@ -832,7 +835,4 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 
 #endif // if defined(USE_SDL_GRAPHICS) || defined(USE_OGRE_GRAPHICS)
 
-#ifdef __cplusplus
-}
-#endif
 

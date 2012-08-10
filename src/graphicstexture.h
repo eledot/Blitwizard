@@ -30,14 +30,14 @@ struct graphicstexture {
     int autodelete;
     void* threadingptr;
     // SDL info
-    union tex {
+    union {
 #ifdef USE_SDL_GRAPHICS
         SDL_Texture* sdltex;
 #endif
 #ifdef USE_OGRE_GRAPHICS
         
 #endif
-    };
+    } tex;
 #ifdef SDLRW
     SDL_RWops* rwops;
 #endif
