@@ -698,7 +698,7 @@ int luafuncs_drawRectangle(lua_State* l) {
         if (alpha > 1) {alpha = 1;}
     }
 
-    graphics_DrawRectangle(x, y, width, height, r, g, b, alpha);
+    graphicsrender_DrawRectangle(x, y, width, height, r, g, b, alpha);
     return 0;
 #else // ifdef USE_GRAPHICS
     lua_pushstring(l, compiled_without_graphics);
@@ -916,7 +916,7 @@ int luafuncs_drawImage(lua_State* l) {
     unsigned int drawheight = (unsigned int)((float)(imgdrawh) * scaley + 0.5f);
 
     // draw:
-    if (!graphics_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle, horiflipped, red, green, blue)) {
+    if (!graphicsrender_DrawCropped(p, x, y, alpha, cutx, cuty, cutwidth, cutheight, drawwidth, drawheight, rotationcenterx, rotationcentery, rotationangle, horiflipped, red, green, blue)) {
         luafuncs_pushnosuchtex(l, p);
         return lua_error(l);
     }
@@ -932,6 +932,36 @@ int luafuncs_getcwd(lua_State* l) {
     lua_pushstring(l, p),
     free(p);
     return 1;
+}
+
+int luafuncs_trandom(lua_State* l) {
+    // try to get higher quality random numbers here
+    // (although still not cryptographically safe)
+#if defined(UNIX)
+    // on linux, we use /dev/urandom
+    double d;
+    FILE* f = fopen("/dev/urandom", f);
+    if (!f) {
+        // fallback to something simple
+        d = drand48();
+        lua_pushnumber(l, d);
+        return 1;
+    }
+    fread(&d, sizeof(d), 1, f);
+    fclose(f);
+    lua_pushnumber(l, d);
+    return 1;
+#else
+#ifdef WINDOWS
+    // on windows, we don't support this for now:
+    lua_pushnumber(l, drand48());
+    return 1;
+#else
+    // unknown system
+    lua_pushnumber(l, drand48());
+    return 1;
+#endif
+#endif
 }
 
 int luafuncs_chdir(lua_State* l) {

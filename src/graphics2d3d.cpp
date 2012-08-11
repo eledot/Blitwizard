@@ -80,9 +80,9 @@ OIS::Mouse* mainogremouse = NULL;
 OIS::Keyboard* mainogrekeyboard = NULL;
 #endif
 
-int graphicsactive = 0;  // whether graphics are active/opened (1) or not (0)
+extern int graphicsactive;  // whether graphics are active/opened (1) or not (0)
 int inbackground = 0;  // whether program has focus (1) or not (0)
-int graphics3d;  // 1: Ogre graphics, 0: SDL graphics
+int graphics3d = 0;  // 1: Ogre graphics, 0: SDL graphics
 int mainwindowfullscreen; // whether fullscreen (1) or not (0)
 
 int graphics_HaveValidWindow() {
@@ -193,6 +193,7 @@ int graphics_TextureToHW(struct graphicstexture* gt) {
 #endif
 
         gt->tex.sdltex = t;
+        return 1;
     }
 #endif
 #ifdef USE_OGRE_GRAPHICS
@@ -206,47 +207,51 @@ int graphics_TextureToHW(struct graphicstexture* gt) {
 }
 
 void graphics_TextureFromHW(struct graphicstexture* gt) {
-    if (!gt->tex.sdltex || gt->threadingptr || !gt->name) {
-        return;
-    }
-
-    if (!gt->pixels) {
-        gt->pixels = malloc(gt->width * gt->height * 4);
-        if (!gt->pixels) {
-            // wipe this texture
-            SDL_DestroyTexture(gt->tex.sdltex);
-            gt->tex.sdltex = NULL;
-            graphicstexturelist_RemoveTextureFromHashmap(gt);
-            free(gt->name);
-            gt->name = NULL;
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        if (!gt->tex.sdltex || gt->threadingptr || !gt->name) {
             return;
         }
 
-        // Lock SDL Texture
-        void* pixels;int pitch;
-        if (SDL_LockTexture(gt->tex.sdltex, NULL, &pixels, &pitch) != 0) {
-            // success, the texture is now officially garbage.
-            // can/should we do anything about this? (a purely visual problem)
-            printf("Warning: SDL_LockTexture() failed\n");
-        }else{
+        if (!gt->pixels) {
+            gt->pixels = malloc(gt->width * gt->height * 4);
+            if (!gt->pixels) {
+                // wipe this texture
+                SDL_DestroyTexture(gt->tex.sdltex);
+                gt->tex.sdltex = NULL;
+                graphicstexturelist_RemoveTextureFromHashmap(gt);
+                free(gt->name);
+                gt->name = NULL;
+                return;
+            }
 
-            // Copy texture
-            memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
+            // Lock SDL Texture
+            void* pixels;int pitch;
+            if (SDL_LockTexture(gt->tex.sdltex, NULL, &pixels, &pitch) != 0) {
+                // success, the texture is now officially garbage.
+                // can/should we do anything about this? (a purely visual problem)
+                printf("Warning: SDL_LockTexture() failed\n");
+            }else{
 
-            // unlock texture again
-            SDL_UnlockTexture(gt->tex.sdltex);
+                // Copy texture
+                memcpy(gt->pixels, pixels, gt->width * gt->height * 4);
 
+                // unlock texture again
+                SDL_UnlockTexture(gt->tex.sdltex);
+
+            }
         }
-    }
 
-    SDL_DestroyTexture(gt->tex.sdltex);
-    gt->tex.sdltex = NULL;
+        SDL_DestroyTexture(gt->tex.sdltex);
+        gt->tex.sdltex = NULL;
+    }
+#endif
 }
 
 
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
 #ifdef USE_SDL_GRAPHICS
-    if (mainwindow) {
+    if (!graphics3d && mainwindow) {
         int w,h;
         SDL_GetWindowSize(mainwindow, &w,&h);
         if (w < 0 || h < 0) {
@@ -263,26 +268,30 @@ int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height) {
 
 
 void graphics_Close(int preservetextures) {
-    // close graphics, and destroy textures if instructed to do so
-    graphicsactive = 0;
-    if (mainrenderer) {
-        if (preservetextures) {
-            // preserve textures if not instructed to destroy them
-            graphicstexturelist_TransferTexturesFromHW();
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        // close graphics, and destroy textures if instructed to do so
+        graphicsactive = 0;
+        if (mainrenderer) {
+            if (preservetextures) {
+                // preserve textures if not instructed to destroy them
+                graphicstexturelist_TransferTexturesFromHW();
+            }
+            SDL_DestroyRenderer(mainrenderer);
+            mainrenderer = NULL;
         }
-        SDL_DestroyRenderer(mainrenderer);
-        mainrenderer = NULL;
+        if (mainwindow) {
+            SDL_DestroyWindow(mainwindow);
+            mainwindow = NULL;
+        }
     }
-    if (mainwindow) {
-        SDL_DestroyWindow(mainwindow);
-        mainwindow = NULL;
-    }
+#endif
 }
 
 #ifdef ANDROID
 void graphics_ReopenForAndroid() {
     // throw away hardware textures:
-    graphicstexturelist_InvalidateSDLTextures();
+    graphicstexturelist_InvalidateHWTextures();
 
     // preserve old window size:
     int w,h;
@@ -322,19 +331,27 @@ void graphics_ReopenForAndroid() {
 #endif
 
 const char* graphics_GetWindowTitle() {
-    if (!mainrenderer || !mainwindow) {
-        return NULL;
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        if (!mainrenderer || !mainwindow) {
+            return NULL;
+        }
+        return SDL_GetWindowTitle(mainwindow);
     }
-    return SDL_GetWindowTitle(mainwindow);
+#endif
 }
 
 void graphics_Quit() {
     graphics_Close(0);
-    if (sdlvideoinit) {
-        SDL_VideoQuit();
-        sdlvideoinit = 0;
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        if (sdlvideoinit) {
+            SDL_VideoQuit();
+            sdlvideoinit = 0;
+        }
+        SDL_Quit();
     }
-    SDL_Quit();
+#endif
 }
 
 SDL_RendererInfo info;
@@ -342,19 +359,24 @@ SDL_RendererInfo info;
 static char openglstaticname[] = "opengl";
 #endif
 const char* graphics_GetCurrentRendererName() {
-    if (!mainrenderer) {
-        return NULL;
-    }
-    SDL_GetRendererInfo(mainrenderer, &info);
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        if (!mainrenderer) {
+            return NULL;
+        }
+        SDL_GetRendererInfo(mainrenderer, &info);
 #if defined(ANDROID)
-    if (strcasecmp(info.name, "opengles") == 0) {
-        // we return "opengl" here aswell, since we want "opengl" to represent
-        // the best opengl renderer consistently across all platforms, which is
-        // in fact opengles on Android (and opengl for normal desktop platforms).
-        return openglstaticname;
+        if (strcasecmp(info.name, "opengles") == 0) {
+            // we return "opengl" here aswell, since we want "opengl"
+            // to represent the best/default opengl renderer consistently
+            // across all platforms, which is opengles on Android (and
+            // regular opengl for normal desktop platforms).
+            return openglstaticname;
+        }
+#endif
+        return info.name;
     }
 #endif
-    return info.name;
 }
 
 int* videomodesx = NULL;
@@ -371,6 +393,8 @@ static void graphics_ReadVideoModes() {
         videomodesy = 0;
     }
 
+#ifdef USE_SDL_GRAPHICS
+    // -> read video modes with SDL per default! (even if using 3d/ogre)
     // allocate space for video modes
     int d = SDL_GetNumVideoDisplays();
     if (d < 1) {
@@ -421,6 +445,9 @@ static void graphics_ReadVideoModes() {
         }
         i++;
     }
+#else
+    // -> read video modes with ogre.
+#endif
 }
 
 int graphics_GetNumberOfVideoModes() {
@@ -434,7 +461,8 @@ int graphics_GetNumberOfVideoModes() {
     }
     graphics_ReadVideoModes();
     int i = 0;
-    while (videomodesx && videomodesx[i] > 0 && videomodesy && videomodesy[i] > 0) {
+    while (videomodesx && videomodesx[i] > 0
+            && videomodesy && videomodesy[i] > 0) {
         i++;
     }
     return i;
@@ -457,6 +485,8 @@ void graphics_GetDesktopVideoMode(int* x, int* y) {
         }
         return;
     }
+#ifdef USE_SDL_GRAPHICS
+    // -> do this with SDL per default
     SDL_DisplayMode m;
     if (SDL_GetDesktopDisplayMode(0, &m) == 0) {
         *x = m.w;
@@ -464,37 +494,53 @@ void graphics_GetDesktopVideoMode(int* x, int* y) {
     }else{
         printwarning("Unable to determine desktop video mode: %s", SDL_GetError());
     }
+#else
+    // -> find desktop mode using ogre
+
+#endif
 }
 
 void graphics_MinimizeWindow() {
-    if (!mainwindow) {
-        return;
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        if (!mainwindow) {
+            return;
+        }
+        SDL_MinimizeWindow(mainwindow);
     }
-    SDL_MinimizeWindow(mainwindow);
+#endif
 }
 
 int graphics_IsFullscreen() {
-    if (mainwindow) {
-        return mainwindowfullscreen;
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        if (mainwindow) {
+            return mainwindowfullscreen;
+        }
+        return 0;
     }
-    return 0;
+#endif
 }
 
 void graphics_ToggleFullscreen() {
-    if (!mainwindow) {
-        return;
-    }
-    SDL_bool wantfull = SDL_TRUE;
-    if (mainwindowfullscreen) {
-        wantfull = SDL_FALSE;
-    }
-    if (SDL_SetWindowFullscreen(mainwindow, wantfull) == 0) {
-        if (wantfull == SDL_TRUE) {
-            mainwindowfullscreen = 1;
-        }else{
-            mainwindowfullscreen = 0;
+#ifdef USE_SDL_GRAPHICS
+    if (!graphics3d) {
+        if (!mainwindow) {
+            return;
+        }
+        SDL_bool wantfull = SDL_TRUE;
+        if (mainwindowfullscreen) {
+            wantfull = SDL_FALSE;
+        }
+        if (SDL_SetWindowFullscreen(mainwindow, wantfull) == 0) {
+            if (wantfull == SDL_TRUE) {
+                mainwindowfullscreen = 1;
+            }else{
+                mainwindowfullscreen = 0;
+            }
         }
     }
+#endif
 }
 
 #ifdef WINDOWS
@@ -712,116 +758,125 @@ int lastfingerdownx,lastfingerdowny;
 
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background)) {
 #ifdef USE_SDL_GRAPHICS
-    SDL_Event e;
-    while (SDL_PollEvent(&e) == 1) {
-        if (e.type == SDL_QUIT) {
-            quitevent();
-        }
-        if (e.type == SDL_MOUSEMOTION) {
-            mousemoveevent(e.motion.x, e.motion.y);
-        }
-        if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_MINIMIZED || e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)) {
-            // app was put into background
-            if (!inbackground) {
-                putinbackground(1);
-                inbackground = 1;
+    if (!graphics3d) {
+        SDL_Event e;
+        while (SDL_PollEvent(&e) == 1) {
+            if (e.type == SDL_QUIT) {
+                quitevent();
             }
-        }
-        if (e.type == SDL_WINDOWEVENT && (e.window.event == SDL_WINDOWEVENT_RESTORED || e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)) {
-            // app is pulled back into foreground
-            if (inbackground) {
-                putinbackground(0);
-                inbackground = 0;
+            if (e.type == SDL_MOUSEMOTION) {
+                mousemoveevent(e.motion.x, e.motion.y);
             }
-        }
-        if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
-            int release = 0;
-            if (e.type == SDL_MOUSEBUTTONUP) {
-                release = 1;
+            if (e.type == SDL_WINDOWEVENT &&
+                (e.window.event == SDL_WINDOWEVENT_MINIMIZED
+                || e.window.event == SDL_WINDOWEVENT_FOCUS_LOST)) {
+                // app was put into background
+                if (!inbackground) {
+                    putinbackground(1);
+                    inbackground = 1;
+                }
             }
-            int button = e.button.button;
-            mousebuttonevent(button, release, e.button.x, e.button.y);
-        }
-        if (e.type == SDL_FINGERDOWN || e.type == SDL_FINGERUP) {
-            int release = 0;
-            int x,y;
-            if (e.type == SDL_FINGERUP) {
-                // take fingerdown coordinates on fingerup
-                x = lastfingerdownx;
-                y = lastfingerdowny;
-                release = 1;
-            }else{
-                // remember coordinates on fingerdown
-                x = e.tfinger.x;
-                y = e.tfinger.y;
-                lastfingerdownx = x;
-                lastfingerdowny = y;
+            if (e.type == SDL_WINDOWEVENT &&
+                (e.window.event == SDL_WINDOWEVENT_RESTORED
+                || e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED)) {
+                // app is pulled back into foreground
+                if (inbackground) {
+                    putinbackground(0);
+                    inbackground = 0;
+                }
             }
-            // swap coordinates for landscape mode
-            int temp = x;
-            x = y;
-            y = temp;
-            int button = SDL_BUTTON_LEFT;
-            mousebuttonevent(button, release, x, y);
-        }
-        if (e.type == SDL_TEXTINPUT) {
-            textevent(e.text.text);
-        }
-        if (e.type == SDL_WINDOWEVENT) {
-            if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
+            if (e.type == SDL_MOUSEBUTTONDOWN || e.type == SDL_MOUSEBUTTONUP) {
+                int release = 0;
+                if (e.type == SDL_MOUSEBUTTONUP) {
+                    release = 1;
+                }
+                int button = e.button.button;
+                mousebuttonevent(button, release, e.button.x, e.button.y);
+            }
+            if (e.type == SDL_FINGERDOWN || e.type == SDL_FINGERUP) {
+                int release = 0;
+                int x,y;
+                if (e.type == SDL_FINGERUP) {
+                    // take fingerdown coordinates on fingerup
+                    x = lastfingerdownx;
+                    y = lastfingerdowny;
+                    release = 1;
+                }else{
+                    // remember coordinates on fingerdown
+                    x = e.tfinger.x;
+                    y = e.tfinger.y;
+                    lastfingerdownx = x;
+                    lastfingerdowny = y;
+                }
+                // swap coordinates for landscape mode
+                int temp = x;
+                x = y;
+                y = temp;
+                int button = SDL_BUTTON_LEFT;
+                mousebuttonevent(button, release, x, y);
+            }
+            if (e.type == SDL_TEXTINPUT) {
+                textevent(e.text.text);
+            }
+            if (e.type == SDL_WINDOWEVENT) {
+                if (e.window.event == SDL_WINDOWEVENT_FOCUS_GAINED) {
 #ifndef WINDOWS
 #ifdef LINUX
-                // if we are a fullscreen window, ensure we are fullscreened
-                // FIXME: just a workaround for http:// bugzilla.libsdl.org/show_bug.cgi?id=1349
-                if (mainwindowfullscreen) {
-                    SDL_SetWindowFullscreen(mainwindow, SDL_FALSE);
-                    SDL_SetWindowFullscreen(mainwindow, SDL_TRUE);
+                    // if we are a fullscreen window, ensure we are
+                    // fullscreened
+                    // FIXME: just a workaround for
+                    // http://bugzilla.libsdl.org/show_bug.cgi?id=1349
+                    if (mainwindowfullscreen) {
+                        SDL_SetWindowFullscreen(mainwindow, SDL_FALSE);
+                        SDL_SetWindowFullscreen(mainwindow, SDL_TRUE);
+                    }
+#endif
+#endif
                 }
-#endif
-#endif
             }
-        }
-        if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
-            int release = 0;
-            if (e.type == SDL_KEYUP) {
-                release = 1;
-            }
-            char keybuf[30] = "";
-            if (e.key.keysym.sym >= SDLK_F1 && e.key.keysym.sym <= SDLK_F12) {
-                sprintf(keybuf, "f%d", (e.key.keysym.sym+1)-SDLK_F1);
-            }
-            if (e.key.keysym.sym >= SDLK_0 && e.key.keysym.sym <= SDLK_9) {
-                sprintf(keybuf, "%d", e.key.keysym.sym - SDLK_0);
-            }
-            if (e.key.keysym.sym >= SDLK_a && e.key.keysym.sym <= SDLK_z) {
-                sprintf(keybuf, "%c", e.key.keysym.sym - SDLK_a + 'a');
-            }
-            switch (e.key.keysym.sym) {
-                case SDLK_SPACE:
-                    sprintf(keybuf, "space");break;
-                case SDLK_BACKSPACE:
-                    sprintf(keybuf, "backspace");break;
-                case SDLK_RETURN:
-                    sprintf(keybuf, "return");break;
-                case SDLK_ESCAPE:
-                    sprintf(keybuf, "escape");break;
-                case SDLK_TAB:
-                    sprintf(keybuf, "tab");break;
-                case SDLK_LSHIFT:
-                    sprintf(keybuf, "lshift");break;
-                case SDLK_RSHIFT:
-                    sprintf(keybuf, "rshift");break;
-                case SDLK_UP:
-                    sprintf(keybuf,"up");break;
-                case SDLK_DOWN:
-                    sprintf(keybuf,"down");break;
-                case SDLK_LEFT:
-                    sprintf(keybuf,"left");break;
-                case SDLK_RIGHT:
-                    sprintf(keybuf,"right");break;
-            }
-            if (strlen(keybuf) > 0) {
-                keyboardevent(keybuf, release);
+            if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+                int release = 0;
+                if (e.type == SDL_KEYUP) {
+                    release = 1;
+                }
+                char keybuf[30] = "";
+                if (e.key.keysym.sym >= SDLK_F1 &&
+                    e.key.keysym.sym <= SDLK_F12) {
+                    sprintf(keybuf, "f%d", (e.key.keysym.sym+1)-SDLK_F1);
+                }
+                if (e.key.keysym.sym >= SDLK_0 && e.key.keysym.sym <= SDLK_9) {
+                    sprintf(keybuf, "%d", e.key.keysym.sym - SDLK_0);
+                }
+                if (e.key.keysym.sym >= SDLK_a && e.key.keysym.sym <= SDLK_z) {
+                    sprintf(keybuf, "%c", e.key.keysym.sym - SDLK_a + 'a');
+                }
+                switch (e.key.keysym.sym) {
+                    case SDLK_SPACE:
+                        sprintf(keybuf, "space");break;
+                    case SDLK_BACKSPACE:
+                        sprintf(keybuf, "backspace");break;
+                    case SDLK_RETURN:
+                        sprintf(keybuf, "return");break;
+                    case SDLK_ESCAPE:
+                        sprintf(keybuf, "escape");break;
+                    case SDLK_TAB:
+                        sprintf(keybuf, "tab");break;
+                    case SDLK_LSHIFT:
+                        sprintf(keybuf, "lshift");break;
+                    case SDLK_RSHIFT:
+                        sprintf(keybuf, "rshift");break;
+                    case SDLK_UP:
+                        sprintf(keybuf,"up");break;
+                    case SDLK_DOWN:
+                        sprintf(keybuf,"down");break;
+                    case SDLK_LEFT:
+                        sprintf(keybuf,"left");break;
+                    case SDLK_RIGHT:
+                        sprintf(keybuf,"right");break;
+                }
+                if (strlen(keybuf) > 0) {
+                    keyboardevent(keybuf, release);
+                }
             }
         }
     }
@@ -835,4 +890,5 @@ void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int 
 
 #endif // if defined(USE_SDL_GRAPHICS) || defined(USE_OGRE_GRAPHICS)
 
+} // extern "C"
 

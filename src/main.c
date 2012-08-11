@@ -780,7 +780,7 @@ int main(int argc, char** argv) {
 #endif
                 // start drawing
                 drawingallowed = 1;
-                graphics_StartFrame();
+                graphicsrender_StartFrame();
 
                 // call the drawing function
                 int ondrawdoesntexist = 0;
@@ -795,7 +795,7 @@ int main(int argc, char** argv) {
 
                 // complete the drawing
                 drawingallowed = 0;
-                graphics_CompleteFrame();
+                graphicsrender_CompleteFrame();
 #ifdef ANDROID
             }else{
                 blitwizondrawworked = 1;

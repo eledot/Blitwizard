@@ -70,13 +70,13 @@ extern SDL_Renderer* mainrenderer;
 extern int sdlvideoinit;
 #endif
 #ifdef USE_OGRE_GRAPHICS
-extern Ogre::Root* ogreroot;
-extern Ogre::Camera* maincamera;
-extern Ogre::SceneManager* mainscenemanager;
-extern Ogre::RenderWindow* mainwindow;
-extern OIS::InputManager* maininput;
-extern OIS::Mouse* mainmouse;
-extern OIS::Keyboard* mainkeyboard;
+extern Ogre::Root* mainogreroot;
+extern Ogre::Camera* mainogrecamera;
+extern Ogre::SceneManager* mainogrescenemanager;
+extern Ogre::RenderWindow* mainogrewindow;
+extern OIS::InputManager* mainogreinput;
+extern OIS::Mouse* mainogremouse;
+extern OIS::Keyboard* mainogrekeyboard;
 #endif
 
 extern int graphicsactive;
@@ -107,7 +107,7 @@ int graphicsrender_DrawCropped(const char* texname, int x, int y, float alpha, u
 #ifdef USE_SDL_GRAPHICS
     if (!graphics3d) {
         struct graphicstexture* gt = graphicstexturelist_GetTextureByName(texname);
-        if (!gt || gt->threadingptr || !gt->tex) {
+        if (!gt || gt->threadingptr || !gt->tex.sdltex) {
             return 0;
         }
 
@@ -144,7 +144,7 @@ int graphicsrender_DrawCropped(const char* texname, int x, int y, float alpha, u
 
         // render
         int i = (int)((float)255.0f * alpha);
-        if (SDL_SetTextureAlphaMod(gt->tex, i) < 0) {
+        if (SDL_SetTextureAlphaMod(gt->tex.sdltex, i) < 0) {
             printwarning("Warning: Cannot set texture alpha mod %d: %s\n",i,SDL_GetError());
         }
         SDL_Point p;
@@ -168,14 +168,14 @@ int graphicsrender_DrawCropped(const char* texname, int x, int y, float alpha, u
         if (green < 0) {
             green = 0;
         }
-        SDL_SetTextureColorMod(gt->tex, (red * 255.0f), (green * 255.0f), (blue * 255.0f));
+        SDL_SetTextureColorMod(gt->tex.sdltex, (red * 255.0f), (green * 255.0f), (blue * 255.0f));
         if (horiflipped) {
-            SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_HORIZONTAL);
+            SDL_RenderCopyEx(mainrenderer, gt->tex.sdltex, &src, &dest, rotationangle, &p, SDL_FLIP_HORIZONTAL);
         } else {
             if (rotationangle > 0.001 || rotationangle < -0.001) {
-                SDL_RenderCopyEx(mainrenderer, gt->tex, &src, &dest, rotationangle, &p, SDL_FLIP_NONE);
+                SDL_RenderCopyEx(mainrenderer, gt->tex.sdltex, &src, &dest, rotationangle, &p, SDL_FLIP_NONE);
             } else {
-                SDL_RenderCopy(mainrenderer, gt->tex, &src, &dest);
+                SDL_RenderCopy(mainrenderer, gt->tex.sdltex, &src, &dest);
             }
         }
         return 1;
@@ -191,8 +191,12 @@ void graphicsrender_StartFrame() {
 }
 
 void graphicsrender_CompleteFrame() {
+#ifdef USE_SDL_GRAPHICS
     SDL_RenderPresent(mainrenderer);
-    mainroot->renderOneFrame();
+#endif
+#ifdef USE_OGRE_GRAPHICS
+    mainogreroot->renderOneFrame();
+#endif
 }
 
 #endif // if defined(USE_SDL_GRAPHICS) || defined(USE_OGRE_GRAPHICS)

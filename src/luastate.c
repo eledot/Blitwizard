@@ -460,6 +460,17 @@ static lua_State* luastate_New() {
     // we still have the module "blitwiz" on the stack here
     lua_pop(l, 1);
 
+    // obtain math table
+    lua_getglobal(l, "math");
+    
+    // math namespace extensions
+    lua_pushstring(l, "trandom");
+    lua_pushcfunction(l, &luafuncs_trandom);
+    lua_settable(l, -3);
+
+    // remove math table from stack
+    lua_pop(l, 1);
+
     // obtain os table
     lua_getglobal(l, "os");
 

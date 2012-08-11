@@ -52,10 +52,10 @@
 #include "graphics.h"
 #include "graphicstexturelist.h"
 
-int graphicsvisible = 0;
+int graphicsactive = 0;
 
 int graphics_AreGraphicsRunning() {
-    return graphicsvisible;
+    return graphicsactive;
 }
 
 int graphicsrender_Draw(const char* texname, int x, int y, float alpha, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue) {
@@ -217,11 +217,6 @@ int graphics_LoadTextureInstantly(const char* texture) {
 
     // wait for loading to finish
     while (!img_CheckSuccess(gt->threadingptr)) {
-#ifdef SDLRW
-#ifdef NOTHREADEDSDLRW
-        main_ProcessNoThreadedReading();
-#endif
-#endif
     }
 
     // complete image
