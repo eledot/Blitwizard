@@ -940,7 +940,7 @@ int luafuncs_trandom(lua_State* l) {
 #if defined(UNIX)
     // on linux, we use /dev/urandom
     double d;
-    FILE* f = fopen("/dev/urandom", f);
+    FILE* f = fopen("/dev/urandom", "rb");
     if (!f) {
         // fallback to something simple
         d = drand48();
