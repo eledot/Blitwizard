@@ -46,7 +46,7 @@
 uint64_t lastunixtime;
 #else
 static struct timespec lastunixtime;
-uint64_t oldtimestamp = 0;
+uint64_t lasttimestamp = 0;
 #endif
 int startinitialised = 0;
 #endif
@@ -85,7 +85,7 @@ uint64_t time_GetMilliseconds() {
     if (!startinitialised) {
         clock_gettime(CLOCK_MONOTONIC, &lastunixtime);
         startinitialised = 1;
-        oldtimestamp = 0;
+        lasttimestamp = 0;
         return 0;
     }
     struct timespec current;
@@ -93,12 +93,16 @@ uint64_t time_GetMilliseconds() {
     int64_t seconds = current.tv_sec - lastunixtime.tv_sec;
     int64_t nseconds = current.tv_nsec - lastunixtime.tv_nsec;
     uint64_t i = (uint64_t)((double)((seconds) * 1000 + nseconds / 1000000.0) + 0.5);
+    // to avoid accuracy issues in our continuously increased timestamp due
+    // to all the rounding business happening above, we only update our old
+    // reference check time (lastunixtime/lasttimestamp) once a full second
+    // has passed:
     if (i > 1000) {
-        i += oldtimestamp;
-        oldtimestamp = i;
+        i += lasttimestamp;
+        lasttimestamp = i;
         memcpy(&lastunixtime, &current, sizeof(struct timespec));
     }else{
-        i += oldtimestamp;
+        i += lasttimestamp;
     }
 #endif // ifdef MAC
 #endif // ifdef HAVE_SDL

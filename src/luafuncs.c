@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
+#include <float.h>
 
 #include "luaheader.h"
 
@@ -939,17 +940,35 @@ int luafuncs_trandom(lua_State* l) {
     // (although still not cryptographically safe)
 #if defined(UNIX)
     // on linux, we use /dev/urandom
-    double d;
+    uint64_t d;
     FILE* f = fopen("/dev/urandom", "rb");
     if (!f) {
         // fallback to something simple
-        d = drand48();
-        lua_pushnumber(l, d);
+        lua_pushnumber(l, drand48());
         return 1;
     }
     fread(&d, sizeof(d), 1, f);
     fclose(f);
-    lua_pushnumber(l, d);
+
+    // limit to meaningful range:
+    // a double has 16 meaningful digits.
+    // that should cover 10^15 safely, which is roughly more than 2^49.
+    // therefore, null 64-49 leading bits:
+    int i = sizeof(d)*8;
+    while (i > 49) {
+        uint64_t nullmask = ~(0x8000000000000000 >> (64-i));
+        d = d & nullmask;
+        i--;
+    }
+    // we lose entropy here,
+    // but we could no longer safely distinguish such high numbers
+    // in a double anyway
+    
+    // convert to double in a 0, 1 range:
+    double d2 = d;
+    d2 /= (double)pow(2, 49);
+    
+    lua_pushnumber(l, d2);
     return 1;
 #else
 #ifdef WINDOWS
