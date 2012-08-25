@@ -21,6 +21,11 @@
 
 */
 
+#ifndef BLITWIZARD_LUAFUNCS_H_
+#define BLITWIZARD_LUAFUNCS_H_
+
+#include "luaheader.h"
+
 // os:
 int luafuncs_getcwd(lua_State* l);
 int luafuncs_chdir(lua_State* l);
@@ -72,4 +77,6 @@ int luafuncs_split(lua_State* l);
 
 // Math:
 int luafuncs_trandom(lua_State* l);
+
+#endif  // BLITWIZARD_LUAFUNCS_H_
 

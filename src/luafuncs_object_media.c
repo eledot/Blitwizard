@@ -1,7 +1,7 @@
 
 /* blitwizard 2d engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2012 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,21 +21,13 @@
 
 */
 
-#ifndef BLITWIZARD_LUAHEADER_H_
-#define BLITWIZARD_LUAHEADER_H_
+#include "luafuncs_object_media.h"
 
-#include "os.h"
+void luacfuncs_object_media_load(struct blitwizardobject* o) {
 
-#ifdef LUA_5_2_HEADER
-#include "lua5.2/lua.h"
-#include "lua5.2/lauxlib.h"
-#include "lua5.2/lualib.h"
-#else
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
-#endif
+}
 
-#endif  // BLITWIZARD_LUAHEADER_H_
+void luacfuncs_object_media_unload(struct blitwizardobject* o) {
 
+}
 

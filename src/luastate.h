@@ -53,6 +53,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 #define IDREF_PHYSICS2D 2
 #define IDREF_PHYSICS3D 3
 #define IDREF_NETSTREAM 4
+#define IDREF_BLITWIZARDOBJECT 5
 struct blitwizardobject; 
 struct luaidref {
     int magic;

@@ -1,7 +1,7 @@
 
 /* blitwizard 2d engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2012 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,21 +21,25 @@
 
 */
 
-#ifndef BLITWIZARD_LUAHEADER_H_
-#define BLITWIZARD_LUAHEADER_H_
+#ifndef BLITWIZARD_BLITWIZARDOBJECT_H_
+#define BLITWIZARD_BLITWIZARDOBJECT_H_
 
 #include "os.h"
 
-#ifdef LUA_5_2_HEADER
-#include "lua5.2/lua.h"
-#include "lua5.2/lauxlib.h"
-#include "lua5.2/lualib.h"
-#else
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
-#endif
+struct blitwizardobject {
+    int is3d;  // 0: 2d sprite with z-order value, 1: 3d mesh or sprite
+    double x,y;  // 2d: x,y, 3d: x,y,z with z pointing up
+    int deleted;  // 1: deleted (deletedobjects), 0: regular (objects)
+    int refcount;  // refcount of luaidref references
+    union {
+        double z;
+        int zindex;
+    } vpos;
+    struct blitwizardobject* prev,*next;
+};
 
-#endif  // BLITWIZARD_LUAHEADER_H_
+extern struct blitwizardobject* objects;
+extern struct blitwizardobject* deletedobjects;
 
+#endif  // BLITWIZARD_BLITWIZARDOBJECT_H_
 

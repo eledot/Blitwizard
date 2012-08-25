@@ -21,34 +21,24 @@
 
 */
 
+#include "os.h"
+#ifdef USE_SDL_GRAPHICS
+#include "SDL.h"
+#endif
+#include "graphicstexture.h"
 #include "graphics.h"
+#include "luaheader.h"
+#include "luastate.h"
+#include "luaerror.h"
+#include "luafuncs.h"
+#include "blitwizardobject.h"
 #include "luafuncs_object.h"
-
-struct blitwizardobject {
-    int 3d;  // 0: 2d sprite with z-order value, 1: 3d mesh or sprite
-    double x,y;  // 2d: x,y, 3d: x,y,z with z pointing up
-    int deleted;  // 1: deleted (deletedobjects), 0: regular (objects)
-    int refcount;  // refcount of luaidref references
-    union {
-        double z;
-        int zindex;
-    } vpos;
-    struct blitwizardobject* prev,*next;
-};
+#include "luafuncs_object_media.h"
 
 struct blitwizardobject* objects = NULL;
 struct blitwizardobject* deletedobjects = NULL;
 
-void luafuncs_pushbobjidref(lua_State* l, struct blitwizardobject* o) {
-    // create luaidref userdata struct which points to the blitwizard object
-    struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
-    memset(ref, 0, sizeof(*ref));
-    ref->magic = IDREF_MAGIC;
-    ref->type = IDREF_BLITWIZARDOBJECT;
-    ref->ref.bobj = o;
-}
-
-static int garbagecollect_blitwizobj(lua_State* l) {
+static int garbagecollect_blitwizobjref(lua_State* l) {
     // we need to decrease our reference count of the
     // blitwizard object we referenced to.
 
@@ -58,14 +48,14 @@ static int garbagecollect_blitwizobj(lua_State* l) {
     if (!idref || idref->magic != IDREF_MAGIC
     || idref->type != IDREF_BLITWIZARDOBJECT) {
         // either wrong magic (-> not a luaidref) or not a blitwizard object
-        lua_pushstring(l, invalid);
+        lua_pushstring(l, "internal error: invalid blitwizard object ref");
         lua_error(l);
-        return NULL;
+        return 0;
     }
 
     // it is a valid blitwizard object, decrease ref count:
     struct blitwizardobject* o = idref->ref.bobj;
-    ((struct blitwizardobject*)idref->ref.ptr)->refcount--;
+    o->refcount--;
 
     // if it's already deleted and ref count is zero, remove it
     // entirely and free it:
@@ -89,31 +79,79 @@ static int garbagecollect_blitwizobj(lua_State* l) {
     return 0;
 }
 
-int luafuncs_object_create2d() {
+void luafuncs_pushbobjidref(lua_State* l, struct blitwizardobject* o) {
+    // create luaidref userdata struct which points to the blitwizard object
+    struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
+    memset(ref, 0, sizeof(*ref));
+    ref->magic = IDREF_MAGIC;
+    ref->type = IDREF_BLITWIZARDOBJECT;
+    ref->ref.bobj = o;
+    luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_blitwizobjref);
+    o->refcount++;
+}
+
+static struct blitwizardobject* toblitwizardobject(lua_State* l, int index, int arg, const char* func) {
+    if (lua_type(l, index) != LUA_TUSERDATA) {
+        haveluaerror(l, badargument1, arg, func, "blitwizard object", lua_strtype(l, index));
+    }
+    if (lua_rawlen(l, index) != sizeof(struct luaidref)) {
+        haveluaerror(l, badargument2, arg, func, "not a valid blitwizard object");
+    }
+    struct luaidref* idref = lua_touserdata(l, index);
+    if (!idref || idref->magic != IDREF_MAGIC
+    || idref->type != IDREF_BLITWIZARDOBJECT) {
+        haveluaerror(l, badargument2, arg, func, "not a valid blitwizard object");
+    }
+    struct blitwizardobject* o = idref->ref.bobj;
+    if (o->deleted) {
+        haveluaerror(l, badargument2, arg, func, "this blitwizard object was deleted");
+    }
+    return o;
+}
+
+int luafuncs_object_create2d(lua_State* l) {
     // create new object on the two dimensional layer
     struct blitwizardobject* o = malloc(sizeof(*o));
     if (!o) {
         return haveluaerror(l, "Failed to allocate new object");
     }
     memset(o, 0, sizeof(*o));
-    o->3d = 0;    
-
-    luafuncs_pushbobjidref(l, o);
-    luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_blitwizobj);
+    o->is3d = 0;    
+    luacfuncs_object_media_load(o);
     return 1;
 }
 
-int luafuncs_object_create3d() {
+int luafuncs_object_create3d(lua_State* l) {
     // create new object in the 3d space
     struct blitwizardobject* o = malloc(sizeof(*o));
     if (!o) {
         return haveluaerror(l, "Failed to allocate new object");
     }
     memset(o, 0, sizeof(*o));
-    o->3d = 1;
-
-    luafuncs_pushbobjidref(l, o);
-    luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_blitwizobj);
+    o->is3d = 1;
+    luacfuncs_object_media_load(o);
     return 1;
 }
 
+int luafuncs_object_delete(lua_State* l) {
+    // delete the given object
+    struct blitwizardobject* o = toblitwizardobject(l, 1, 1, "blitwiz.object.delete");
+
+    // mark it deleted, and move it over to deletedobjects:
+    o->deleted = 1;
+    if (o->prev) {
+      o->prev->next = o->next;
+    } else {
+      objects = o->next;
+    }
+    if (o->next) {
+      o->next->prev = o->prev;
+    }
+    o->next = deletedobjects;
+    deletedobjects = o;
+    o->prev = NULL;
+
+    // destroy the drawing and physics things attached to it:
+    luacfuncs_object_media_unload(o);
+    return 0;
+}

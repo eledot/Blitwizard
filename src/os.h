@@ -21,9 +21,9 @@
 
 */
 
-#ifndef _BLITWIZARD_OS_H
+#ifndef BLITWIZARD_OS_H_
 
-#define _BLITWIZARD_OS_H
+#define BLITWIZARD_OS_H_
 
 #undef USE_FLAC_AUDIO
 
@@ -97,5 +97,5 @@
 #endif
 
 
-#endif // ifndef _BLITWIZARD_OS_H
+#endif  // BLITWIZARD_OS_H_
 
