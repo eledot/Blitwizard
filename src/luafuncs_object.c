@@ -109,28 +109,40 @@ static struct blitwizardobject* toblitwizardobject(lua_State* l, int index, int 
     return o;
 }
 
-int luafuncs_object_create2d(lua_State* l) {
+static int luacfuncs_object_create2d3d(lua_State* l, int is3d) {
     // create new object on the two dimensional layer
     struct blitwizardobject* o = malloc(sizeof(*o));
     if (!o) {
         return haveluaerror(l, "Failed to allocate new object");
     }
     memset(o, 0, sizeof(*o));
-    o->is3d = 0;    
+    o->is3d = is3d;
+
+    // add us to the object list:
+    o->next = objects;
+    if (objects) {
+        objects->prev = o;
+    }
+    objects = o;
+
     luacfuncs_object_media_load(o);
-    return 1;
+    return 0;
+}
+
+int luafuncs_object_create2d(lua_State* l) {
+    luacfuncs_object_create2d3d(l, 0);
+    return 0;
 }
 
 int luafuncs_object_create3d(lua_State* l) {
-    // create new object in the 3d space
-    struct blitwizardobject* o = malloc(sizeof(*o));
-    if (!o) {
-        return haveluaerror(l, "Failed to allocate new object");
-    }
-    memset(o, 0, sizeof(*o));
-    o->is3d = 1;
-    luacfuncs_object_media_load(o);
-    return 1;
+    luacfuncs_object_create2d3d(l, 1);
+    return 0;
+}
+
+// implicitely calls luafuncs_onError() when an error happened
+void luacfuncs_object_callEvent(struct blitwizardobject* o,
+const char* eventName) {
+
 }
 
 int luafuncs_object_delete(lua_State* l) {
@@ -148,6 +160,7 @@ int luafuncs_object_delete(lua_State* l) {
       o->next->prev = o->prev;
     }
     o->next = deletedobjects;
+    deletedobjects->prev = o;
     deletedobjects = o;
     o->prev = NULL;
 
@@ -155,3 +168,4 @@ int luafuncs_object_delete(lua_State* l) {
     luacfuncs_object_media_unload(o);
     return 0;
 }
+

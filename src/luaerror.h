@@ -21,6 +21,9 @@
 
 */
 
+#ifndef BLITWIZARD_LUAERROR_H_
+#define BLITWIZARD_LUAERROR_H_
+
 extern char badargument1[]; // "Bad argument #%d to `%s` (%s expected, got %s)"
 extern char badargument2[]; // "Bad argument #%d to `%s`: %s"
 extern char stackgrowfailure[]; // "Cannot grow stack size"
@@ -28,4 +31,6 @@ extern char stackgrowfailure[]; // "Cannot grow stack size"
 int haveluaerror(lua_State* l, const char* fmt, ...);
 void luatypetoname(int type, char* buf, size_t bufsize);
 const char* lua_strtype(lua_State* l, int stack);
+
+#endif  // BLITWIZARD_LUAERROR_H_
 
