@@ -21,6 +21,6 @@
 
 */
 
-const char* osinfo_GetSystemName();
-const char* osinfo_GetSystemVersion();
+const char* osinfo_GetSystemName(void);
+const char* osinfo_GetSystemVersion(void);
 

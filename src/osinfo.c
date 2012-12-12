@@ -119,7 +119,7 @@ int filecontains(const char* file, const char* name) {
     return 0;
 }
 static char distribuf[64] = "";
-static const char* osinfo_GetDistributionName() {
+static const char* osinfo_GetDistributionName(void) {
     if (strlen(distribuf) > 0) {
         return distribuf;
     }
@@ -160,7 +160,7 @@ static const char* osinfo_GetDistributionName() {
 }
 #endif
 
-const char* osinfo_GetSystemVersion() {
+const char* osinfo_GetSystemVersion(void) {
     // print out detailed system version
     if (strlen(versionbuf) > 0) {
         return versionbuf;
@@ -201,7 +201,7 @@ const char* osinfo_GetSystemVersion() {
 }
 
 static char osbuf[64] = "";
-const char* osinfo_GetSystemName() {
+const char* osinfo_GetSystemName(void) {
     if (strlen(osbuf) > 0) {
         return osbuf;
     }

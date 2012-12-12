@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-int graphics_AreGraphicsRunning();
+int graphics_AreGraphicsRunning(void);
 // Returns 1 if the graphics are open/active, otherwise 0.
 
 int graphics_SetMode(int width, int height, int fullscreen, int resizable, const char* title, const char* renderer, char** error);
@@ -37,11 +37,14 @@ int graphics_SetMode(int width, int height, int fullscreen, int resizable, const
 // Renderer can be NULL (for any), "software", "opengl" or "direct3d".
 // If you want the best for your system, go for NULL.
 
-const char* graphics_GetCurrentRendererName();
+// Return the name of the current renderer
+const char* graphics_GetCurrentRendererName(void);
 // Get the renderer currently used for the active graphics mode.
 // Returns NULL when no mode has been set.
 
-int graphics_Init(char** error);
+// Initialise the graphics:
+int graphics_Init(char** error, int use3dgraphics);
+// Specify if you want to use 3d graphics with the new device (1) or not (0).
 
 #ifdef WINDOWS
 HWND graphics_GetWindowHWND(); // get win32 HWND handle for the window
@@ -62,7 +65,7 @@ void graphics_CheckTextureLoading(void (*callback)(int success, const char* text
 // For the callback, success will be 1 for images loaded successfully,
 // otherwise 0. texture will contain the texure's name.
 
-int graphics_GetNumberOfVideoModes();
+int graphics_GetNumberOfVideoModes(void);
 // Get the number of supported video modes (= the modes usable in fullscreen)
 
 void graphics_GetVideoMode(int index, int* width, int* height);
@@ -75,17 +78,17 @@ void graphics_Close(int preservetextures);
 // Close the graphics. preservetextures 1: keep them available for use,
 // 0: dispose of them
 
-void graphics_Quit();
+void graphics_Quit(void);
 // Quit the graphics completely
 
-int graphics_IsFullscreen();
+int graphics_IsFullscreen(void);
 // Return if the graphics are currently running at full screen.
 // 1: yes, 0: no. Undefined result when no graphics mode set
 
-void graphics_MinimizeWindow();
+void graphics_MinimizeWindow(void);
 // Minimize the window
 
-void graphicsrender_StartFrame();
+void graphicsrender_StartFrame(void);
 // Clears the screen to prepare for the next frame.
 
 int graphicsrender_DrawCropped(const char* texname, int x, int y, float alpha, unsigned int sourcex, unsigned int sourcey, unsigned int sourcewidth, unsigned int sourceheight, unsigned int drawwidth, unsigned int drawheight, int rotationcenterx, int rotationcentery, double rotationangle, int horiflipped, double red, double green, double blue);
@@ -97,7 +100,7 @@ int graphicsrender_Draw(const char* texname, int x, int y, float alpha, unsigned
 void graphicsrender_DrawRectangle(int x, int y, int width, int height, float r, float g, float b, float a);
 // Draw a colored rectangle.
 
-void graphicsrender_CompleteFrame();
+void graphicsrender_CompleteFrame(void);
 // Update the current drawing changes to screen.
 // Use this always after completing one frame.
 
@@ -115,20 +118,20 @@ int graphics_GetTextureDimensions(const char* name, unsigned int* width, unsigne
 int graphics_GetWindowDimensions(unsigned int* width, unsigned int* height);
 // 1 on success, 0 on error (window not opened most likely)
 
-const char* graphics_GetWindowTitle();
+const char* graphics_GetWindowTitle(void);
 // Return the current title of the window
 
 void graphics_CheckEvents(void (*quitevent)(void), void (*mousebuttonevent)(int button, int release, int x, int y), void (*mousemoveevent)(int x, int y), void (*keyboardevent)(const char* button, int release), void (*textevent)(const char* text), void (*putinbackground)(int background));
 // Check for events and return info about them through the provided callbacks
 
-void graphics_TransferTexturesFromHW();
+void graphics_TransferTexturesFromHW(void);
 // Transfer textures from SDL, e.g. if app is in background
 
-int graphics_TransferTexturesToHW();
+int graphics_TransferTexturesToHW(void);
 // Transfer textures back to SDL
 
 #ifdef ANDROID
-void graphics_ReopenForAndroid();
+void graphics_ReopenForAndroid(void);
 // Reopen graphics and reupload textures. Required when coming back into foreground
 #endif
 
@@ -144,7 +147,7 @@ void graphics_DestroyHWTexture(struct graphicstexture* gt);
 int graphics_FreeTexture(struct graphicstexture* gt, struct graphicstexture* prev);
 // Free a texture
 
-int graphics_HaveValidWindow();
+int graphics_HaveValidWindow(void);
 // Returns 1 if a window is open, otherwise 0
 
 #ifdef __cplusplus

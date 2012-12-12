@@ -30,7 +30,7 @@ extern "C" {
 // Create and destroy worlds:
 struct physicsworld2d;
 struct physicsobject2d;
-struct physicsworld2d* physics2d_CreateWorld();
+struct physicsworld2d* physics2d_CreateWorld(void);
 void physics2d_DestroyWorld(struct physicsworld2d* world);
 void physics2d_Step(struct physicsworld2d* world);
 int physics2d_GetStepSize(struct physicsworld2d* world);

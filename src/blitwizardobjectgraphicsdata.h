@@ -1,7 +1,7 @@
 
 /* blitwizard 2d engine - source code file
 
-  Copyright (C) 2012 Jonas Thiem
+  Copyright (C) 2011-2012 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,15 +21,21 @@
 
 */
 
-#ifndef BLITWIZARD_THREADING_H_
-#define BLITWIZARD_THREADING_H_
+#ifndef BLITWIZARD_BLITWIZARDOBJECTGRAPHICSDATA_H_
+#define BLITWIZARD_BLITWIZARDOBJECTGRAPHICSDATA_H_
 
-struct mutex;
-typedef struct mutex mutex;
-mutex* mutex_Create(void);
-void mutex_Destroy(mutex* m);
-void mutex_Lock(mutex* m);
-void mutex_Release(mutex* m);
+#include "os.h"
 
-#endif  // BLITWIZARD_THREADING_H_
+struct blitwizardobjectgraphicsdata {
+#ifdef USE_GRAPHICS
+#ifdef USE_SDL_GRAPHICS
+
+#endif
+#ifdef USE_OGRE_GRAPHICS
+
+#endif
+#endif
+};
+
+#endif  // BLITWIZARD_BLITWIZARDOBJECTGRAPHICSDATA_H_
 

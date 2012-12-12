@@ -26,4 +26,5 @@ int luafuncs_netserver(lua_State* l);
 int luafuncs_netsend(lua_State* l);
 int luafuncs_netset(lua_State* l);
 int luafuncs_netclose(lua_State* l);
-int luafuncs_ProcessNetEvents();
+int luafuncs_ProcessNetEvents(void);
+

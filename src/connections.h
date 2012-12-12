@@ -92,7 +92,7 @@ void connections_Send(struct connection* c, const char* data, int datalength);
 void connections_Close(struct connection* c);
 
 // Returns 1 if no connections are open, otherwise 0.
-int connections_NoConnectionsOpen();
+int connections_NoConnectionsOpen(void);
 
 // Check if a connection is properly connected to a server and ready for normal use
 int connections_CheckIfConnected(struct connection* c);

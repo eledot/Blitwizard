@@ -69,12 +69,12 @@ struct soundchannel channels[MAXCHANNELS];
 char mixedaudiobuf[256];
 int mixedaudiobuflen = 0;
 
-void audiomixer_Init() {
+void audiomixer_Init(void) {
     memset(&channels,0,sizeof(struct soundchannel) * MAXCHANNELS);
 }
 
 // Check whether no sound is playing right now (1), or if some is playing (0):
-int audiomixer_NoSoundsPlaying() {
+int audiomixer_NoSoundsPlaying(void) {
     int i = 0;
     while (i < MAXCHANNELS) {
         if (channels[i].mixsource) {
@@ -134,7 +134,7 @@ static int audiomixer_GetChannelSlotById(int id) {
     return -1;
 }
 
-static int audiomixer_FreeSoundId() {
+static int audiomixer_FreeSoundId(void) {
     while (1) {
         lastusedsoundid++;
         if (lastusedsoundid >= INT_MAX-1) {

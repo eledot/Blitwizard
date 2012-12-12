@@ -23,7 +23,7 @@
 
 #ifdef USE_AUDIO
 
-const char* audio_GetCurrentBackendName();
+const char* audio_GetCurrentBackendName(void);
 // Get the name of the currently active audio backend, or NULL for none.
 
 #ifdef USE_SDL_AUDIO
@@ -41,16 +41,16 @@ int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersi
 // The raw audio data will be requested through the callback.
 // The amount of requested bytes is not guaranteed to be fitting to the samples.
 
-void audio_LockAudioThread();
+void audio_LockAudioThread(void);
 // Call this to make sure the audio callback you supply in audio_Init() isn't
 // currently running.
 // Will block and wait if the callback is currently running, then prevent it
 // from running until you unlock again.
 
-void audio_UnlockAudioThread();
+void audio_UnlockAudioThread(void);
 // Call this to unlock and allow the audio callback thread again (see above).
 
-void audio_Quit();
+void audio_Quit(void);
 // Quit audio backend completely
 
 #else

@@ -21,10 +21,10 @@
 
 */
 
-int audiosourceffmpeg_LoadFFmpeg();
+int audiosourceffmpeg_LoadFFmpeg(void);
 // Returns 1 when FFmpeg is available, otherwise 0
 
-void audiosourceffmpeg_DisableFFmpeg();
+void audiosourceffmpeg_DisableFFmpeg(void);
 // Call this before audiosourceffmpeg_LoadFFmpeg() is ever called, and FFmpeg
 // won't be loaded and supported (audiosourceffmpeg_LoadFFmpeg() will
 // return 0).

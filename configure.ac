@@ -4,7 +4,7 @@
 
 AC_PREREQ([2.60])
 
-AC_INIT([blitwizard], [0.4])
+AC_INIT([blitwizard], [0.4], [jonasthiem@googlemail.com])
 
 # Checks for programs:
 

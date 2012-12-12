@@ -21,9 +21,12 @@
 
 */
 
+#ifndef BLITWIZARD_FILE_H_
+#define BLITWIZARD_FILE_H_
+
 int file_Cwd(const char* path);
 
-char* file_GetCwd();
+char* file_GetCwd(void);
 
 char* file_GetAbsolutePathFromRelativePath(const char* path);
 
@@ -47,6 +50,9 @@ void file_StripComponentFromPath(char* path);
 
 void file_MakeSlashesNative(char* path);
 
-char* file_GetUserFileDir();
+char* file_GetUserFileDir(void);
 
 char* file_GetTempPath(const char* name);
+
+#endif  // BLITWIZARD_FILE_H_
+

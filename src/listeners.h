@@ -24,6 +24,6 @@
 int listeners_Create(int port, int ssl, void* userdata);
 int listeners_CheckForConnections(int (*newconnection)(int port, int socket, const char* ip, void* sslptr, void* userdata));
 int listeners_CloseByPort(int port);
-int listeners_HaveActiveListeners(); // 1: yes, at least one, 0: no, none
-void listeners_CloseAll();
+int listeners_HaveActiveListeners(void); // 1: yes, at least one, 0: no, none
+void listeners_CloseAll(void);
 

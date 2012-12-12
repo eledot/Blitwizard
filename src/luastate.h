@@ -27,13 +27,13 @@ int luastate_DoInitialFile(const char* file, int argcount, char** error);
 
 // Misc:
 
-char* luastate_GetPreferredAudioBackend();
-int luastate_GetWantFFmpeg();
-void luastate_PrintStackDebug();
+char* luastate_GetPreferredAudioBackend(void);
+int luastate_GetWantFFmpeg(void);
+void luastate_PrintStackDebug(void);
 void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)(void*));
-void luastate_GCCollect();
-void* luastate_GetStatePtr(); // pointer of the lua state
-void* internaltracebackfunc(); // function pointer of traceback function
+void luastate_GCCollect(void);
+void* luastate_GetStatePtr(void); // pointer of the lua state
+void* internaltracebackfunc(void); // function pointer of traceback function
 
 // Call functions:
 

@@ -143,7 +143,7 @@ static void loadorfail(void** ptr, void* lib, const char* name) {
     }
 }
 
-static int audiosourceffmpeg_LoadFFmpegFunctions() {
+static int audiosourceffmpeg_LoadFFmpegFunctions(void) {
     loadorfail((void**)(&ffmpeg_av_register_all), avformatptr, "av_register_all");
     loadorfail((void**)(&ffmpeg_avformat_alloc_context), avformatptr, "avformat_alloc_context");
     loadorfail((void**)(&ffmpeg_avcodec_alloc_context3), avcodecptr, "avcodec_alloc_context3");
@@ -199,7 +199,7 @@ static int ffmpegreader(void* data, uint8_t* buf, int buf_size) {
     return -1;
 }
 
-static int audiosourceffmpeg_InitFFmpeg() {
+static int audiosourceffmpeg_InitFFmpeg(void) {
     // Register all available codecs
     ffmpeg_av_register_all();
 
@@ -213,14 +213,14 @@ static int audiosourceffmpeg_InitFFmpeg() {
     return 1;
 }
 
-void audiosourceffmpeg_DisableFFmpeg() {
+void audiosourceffmpeg_DisableFFmpeg(void) {
     if (ffmpegopened != 0) {
         return;
     }
     ffmpegopened = -1;
 }
 
-int audiosourceffmpeg_LoadFFmpeg() {
+int audiosourceffmpeg_LoadFFmpeg(void) {
     if (ffmpegopened != 0) {
         if (ffmpegopened == 1) {
             return 1;

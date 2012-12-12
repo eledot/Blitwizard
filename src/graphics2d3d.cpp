@@ -108,7 +108,7 @@ static EventReceiver* maineventreceiver = NULL;
 
 void graphics_DestroyHWTexture(struct graphicstexture* gt) {
 #ifdef USE_SDL_GRAPHICS
-    if (gt->tex.sdltex && !graphics3d) {
+    if (!graphics3d && gt->tex.sdltex) {
         SDL_DestroyTexture(gt->tex.sdltex);
         gt->tex.sdltex = NULL;
     }
@@ -118,6 +118,7 @@ void graphics_DestroyHWTexture(struct graphicstexture* gt) {
 #endif
 }
 
+// initialize the video sub system, returns 1 on success or 0 on error:
 static int graphics_InitVideoSubsystem(char** error) {
 #ifdef USE_SDL_GRAPHICS
     char errormsg[512];
@@ -135,22 +136,31 @@ static int graphics_InitVideoSubsystem(char** error) {
     return 1;
 }
 
-int graphics_Init(char** error) {
+int graphics_Init(char** error, int use3dgraphics) {
     char errormsg[512];
+    graphics3d = (use3dgraphics ? 1 : 0);
 
 #ifdef USE_SDL_GRAPHICS
-    // set scaling settings
-    SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_NORMAL);
+    if (graphics3d) {
+        // set scaling settings
+        SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_NORMAL);
 
-    // initialize SDL
-    if (SDL_Init(SDL_INIT_TIMER) < 0) {
-        snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL: %s", SDL_GetError());
-        errormsg[sizeof(errormsg)-1] = 0;
-        *error = strdup(errormsg);
-        return 0;
+        // initialize SDL
+        if (SDL_Init(SDL_INIT_TIMER) < 0) {
+            snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL: %s", SDL_GetError());
+            errormsg[sizeof(errormsg)-1] = 0;
+            *error = strdup(errormsg);
+            return 0;
+        }
+        return 1;
     }
 #endif
-    return 1;
+#ifdef USE_OGRE_GRAPHICS
+    if (graphics3d) {
+
+    }
+#endif
+    return 0;
 }
 
 int graphics_TextureToHW(struct graphicstexture* gt) {

@@ -25,6 +25,7 @@
 #define BLITWIZARD_BLITWIZARDOBJECT_H_
 
 #include "os.h"
+#include "blitwizardobjectgraphicsdata.h"
 
 struct blitwizardobject {
     int is3d;  // 0: 2d sprite with z-order value, 1: 3d mesh or sprite
@@ -35,6 +36,9 @@ struct blitwizardobject {
         double z;
         int zindex;
     } vpos;
+#ifdef USE_GRAPHICS
+    struct blitwizardobjectgraphicsdata* graphics;
+#endif
     struct blitwizardobject* prev,*next;
 };
 
