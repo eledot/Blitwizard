@@ -66,11 +66,12 @@ automatically attempt to load and locate it if that is the case.
 A possibly incomplete list of places checked for FFmpeg:
  - Valve's Steam usually comes with FFmpeg which
    blitwizard attempts to detect and load (on Windows)
- - Blender also comes with FFmpeg which litwizard should
+ - Blender also comes with FFmpeg which blitwizard should
    find (on Windows)
- - On Linux, /usr/lib is scanned for a system-wide FFmpeg
-   installation
+ - On Linux, /usr/lib, /usr/lib64/ and other places are scanned
+   for a system-wide FFmpeg installation
 
 When FFmpeg is found and loaded, the additional formats will
 be automatically available to your blitwizard program.
+Otherwise, only playback for .ogg and .flac will be available.
 
