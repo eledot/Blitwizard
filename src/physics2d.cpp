@@ -31,7 +31,7 @@
 
 #define EPSILON 0.0001
 
-#include "physics2d.h"
+#include "physics.h"
 #include "mathhelpers.h"
 
 extern "C" {
