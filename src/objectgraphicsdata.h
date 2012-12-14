@@ -21,12 +21,12 @@
 
 */
 
-#ifndef BLITWIZARD_BLITWIZARDOBJECTGRAPHICSDATA_H_
-#define BLITWIZARD_BLITWIZARDOBJECTGRAPHICSDATA_H_
+#ifndef BLITWIZARD_OBJECTGRAPHICSDATA_H_
+#define BLITWIZARD_OBJECTGRAPHICSDATA_H_
 
 #include "os.h"
 
-struct blitwizardobjectgraphicsdata {
+struct objectgraphicsdata {
 #ifdef USE_GRAPHICS
 #ifdef USE_SDL_GRAPHICS
 
@@ -37,5 +37,5 @@ struct blitwizardobjectgraphicsdata {
 #endif
 };
 
-#endif  // BLITWIZARD_BLITWIZARDOBJECTGRAPHICSDATA_H_
+#endif  // BLITWIZARD_OBJECTGRAPHICSDATA_H_
 
