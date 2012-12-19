@@ -21,7 +21,7 @@
 
 */
 
-#ifdef USE_PHYSICS2D
+#ifdef (USE_PHYSICS2D || USE_PHYSICS3D)
 
 #include <string.h>
 #include <stdlib.h>
@@ -33,22 +33,10 @@
 #include "logging.h"
 #include "luaerror.h"
 #include "luastate.h"
-#include "luafuncs_physics2d.h"
-#include "physics2d.h"
+#include "physics.h"
+#include "physicsobjectdata.h"
+#include "objectphysics.h"
 #include "main.h"
-
-
-struct luaphysics2dobj {
-    int refcount;
-    int movable;
-    struct physicsobject2d* object;
-    double friction;
-    double restitution;
-    double lineardamping;
-    double angulardamping;
-    int rotationrestriction;
-    int deleted;
-};
 
 // attempt to convert the user data on the stack to a lua physics object
 static struct luaphysics2dobj* toluaphysics2dobj(lua_State* l, int index) {
