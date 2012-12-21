@@ -38,86 +38,12 @@
 #include "objectphysics.h"
 #include "main.h"
 
-// attempt to convert the user data on the stack to a lua physics object
-static struct luaphysics2dobj* toluaphysics2dobj(lua_State* l, int index) {
-    // define an error message
-    char invalid[] = "Not a valid physics object reference";
-
-    // it needs to be a userdata first:
-    if (lua_type(l, index) != LUA_TUSERDATA) {
-        lua_pushstring(l, invalid);
-        lua_error(l);
-        return NULL;
-    }
-
-    // since we use "luaidref" for everything (physics objects, sounds, ..),
-    // it needs to be of the size of that struct:
-    if (lua_rawlen(l, index) != sizeof(struct luaidref)) {
-        lua_pushstring(l, invalid);
-        lua_error(l);
-        return NULL;
-    }
-
-    // assume it is a valid luaidref and check what type it is:
-    struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
-    if (!idref || idref->magic != IDREF_MAGIC || idref->type != IDREF_PHYSICS2D) {
-        // either wrong magic (-> not a luaidref) or not a physics reference
-        lua_pushstring(l, invalid);
-        lua_error(l);
-        return NULL;
-    }
-
-    // it is a physics object -> return it
-    struct luaphysics2dobj* obj = idref->ref.ptr;
-    return obj;
-}
-
-static int garbagecollect_physobj(lua_State* l) {
-    // convert to a physics object:
-    struct luaphysics2dobj* pobj = toluaphysics2dobj(l, -1);
-
-    // if we garbage collect a non-physics object, all is screwed:
-    assert(pobj != NULL);
-
-    // decrease the ref count since we garbage collect a luaidref to our obj
-    pobj->refcount--;
-    if (pobj->refcount > 0) {
-        // object is still referenced -> do not delete it for now
-        return 0;
-    }
-    // -> we got the last reference
-    
-    // ... or things went very wrong and the supposed-to-be-last was already
-    // processed (which should never happen):
-    assert(pobj->refcount >= 0);
-  
-    // delete physics shape object if we can:
-    if (pobj->object) {
-        // void collision callback first:
-        char funcname[200];
-        snprintf(funcname, sizeof(funcname), "collisioncallback%p", pobj->object);
-        funcname[sizeof(funcname)-1] = 0;
-        lua_pushstring(l, funcname);
-        lua_pushnil(l);
-        lua_settable(l, LUA_REGISTRYINDEX);
-
-        // Close the associated physics object
-        physics2d_DestroyObject(pobj->object);
-    }
-
-    // free the lua physics object itself
-    free(pobj);
-
-    // the luaidref will be freed by the lua garbage collector
-    return 0;
-}
-
-// Attempt to trigger a user-defined collision callback for a given physics
-// object. When no callback is set by the user or if the callback succeeds,
-// 1 will be returned. In case of a lua error in the callback, 0 will be
-// returned and a traceback printed to stderr (and blitwizard should be
-// terminated by the calling function).
-static int luafuncs_trycollisioncallback(struct physicsobject2d* obj, struct physicsobject2d* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
+// Attempt to trigger a user-defined collision callback for a given object.
+// When no callback is set by the user or if the callback succeeds,
+// 1 will be returned. 
+// In case of a lua error in the callback, 0 will be returned and a
+// traceback printed to stderr.
+static int luafuncs_trycollisioncallback(struct blitwizardobject* obj, struct physicsobject2d* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
     // get global lua state we use for blitwizard (no support for multiple
     // states as of now):
     lua_State* l = luastate_GetStatePtr();

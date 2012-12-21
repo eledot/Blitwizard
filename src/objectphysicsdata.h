@@ -48,3 +48,4 @@ struct objectphysicsdata {
 #endif  // USE_PHYSICS2D || USE_PHYSICS3D
 
 #endif  // BLITWIZARD_OBJECTPHYSICSDATA_H_
+

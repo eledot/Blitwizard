@@ -57,6 +57,8 @@ static int garbagecollect_blitwizobjref(lua_State* l) {
     struct blitwizardobject* o = idref->ref.bobj;
     o->refcount--;
 
+    // free graphics data if any:
+
     // if it's already deleted and ref count is zero, remove it
     // entirely and free it:
     if (o->deleted && o->refcount <= 0) {
