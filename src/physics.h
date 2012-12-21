@@ -36,8 +36,12 @@ void physics_Step(struct physicsworld* world);
 int physics2d_GetStepSize(struct physicsworld* world);
 
 // Set a collision callback:
-void physics_Set2dCollisionCallback(struct physicsworld* world, int (*callback)(void* userdata, struct physicsobject2d* a, struct physicsobject2d* b, double x, double y, double normalx, double normaly, double force), void* userdata);
-void physics_Set3dCollisionCallback(struct physicsworld* world, int (*callback)(void* userdata, struct physicsobject2d* a, struct physicsobject2d* b, double x, double y, double z, double normalx, double normaly, double normalz, double force), void* userdata);
+#ifdef USE_PHYSICS2D
+void physics_Set2dCollisionCallback(struct physicsworld* world, int (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force), void* userdata);
+#endif
+#ifdef USE_PHYSICS3D
+void physics_Set3dCollisionCallback(struct physicsworld* world, int (*callback)(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double z, double normalx, double normaly, double normalz, double force), void* userdata);
+#endif
 // The callback receives your specified userdata, the collidion objects,
 // the position in the center of the collision/overlap,
 // the collision penetration normal pointing from object b to object a,
@@ -51,7 +55,7 @@ void physics_Set3dCollisionCallback(struct physicsworld* world, int (*callback)(
 
 // Obtain shape info struct (for use in object creation):
 struct physicsobjectshape;
-struct physicsobjectshape* physics_CreateEmptyShape();
+struct physicsobjectshape* physics_CreateEmptyShape(void);
 #ifdef USE_PHYSICS2D
 void physics_Set2dShapeRectangle(struct physicsobjectshape* shape, double width, double height);
 void physics_Set2dShapeOval(struct physicsobjectshape* shape, double width, double height);
@@ -62,6 +66,7 @@ void physics_Get2dShapeOffsetRotation(struct physicsobjectshape* shape, double* 
 #ifdef USE_PHYSICS3D
 
 #endif
+void physics_DestroyShape(struct physicsobjectshape* shape);
 
 // Create an object with a given pointer list to shape structs (ended with a NULL pointer):
 struct physicsobject* physics_CreateObject(struct physicsworld* world, void* userdata, int movable, double friction, struct physicsobjectshape* shapelist);
@@ -88,7 +93,7 @@ struct physicsobject* physics2d_Create3dObjectTriangles_End(struct physicsobject
 
 // Get/set various properties
 void physics_SetMass(struct physicsobject* obj, double mass);
-double physics_GetMass(struct physicsobject2d* obj);
+double physics_GetMass(struct physicsobject* obj);
 #ifdef USE_PHYSICS2D
 void physics_Set2dMassCenterOffset(struct physicsobject* obj, double offsetx, double offsety);
 void physics_Get2dMassCenterOffset(struct physicsobject* obj, double* offsetx, double* offsety);
@@ -111,10 +116,10 @@ void physics_Set2dRotationRestriction(struct physicsobject* obj, int restricted)
 void physics_Set3dRotationRestrictionAroundAxis(struct physicsobject* obj, int restrictedaxisx, int restrictedaxisy, int restrictedaxisz);
 void physics_Set3dRotationRestrictionAllAXis(struct physicsobject* obj, int restrictedtotally);
 #endif
-void physics_SetFriction(struct physicsobject2d* obj, double friction);
-void physics_SetAngularDamping(struct physicsobject2d* obj, double damping);
-void physics_SetLinearDamping(struct physicsobject2d* obj, double damping);
-void physics_SetRestitution(struct physicsobject2d* obj, double restitution);
+void physics_SetFriction(struct physicsobject* obj, double friction);
+void physics_SetAngularDamping(struct physicsobject* obj, double damping);
+void physics_SetLinearDamping(struct physicsobject* obj, double damping);
+void physics_SetRestitution(struct physicsobject* obj, double restitution);
 
 // Change and get position/rotation and apply impulses
 #ifdef USE_PHYSICS2D

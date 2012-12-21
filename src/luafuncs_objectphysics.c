@@ -21,7 +21,7 @@
 
 */
 
-#ifdef (USE_PHYSICS2D || USE_PHYSICS3D)
+#if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
 
 #include <string.h>
 #include <stdlib.h>
@@ -34,8 +34,8 @@
 #include "luaerror.h"
 #include "luastate.h"
 #include "physics.h"
-#include "physicsobjectdata.h"
-#include "objectphysics.h"
+#include "objectphysicsdata.h"
+#include "luafuncs_objectphysics.h"
 #include "main.h"
 
 // Attempt to trigger a user-defined collision callback for a given object.

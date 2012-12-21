@@ -24,7 +24,7 @@
 #ifndef BLITWIZARD_OBJECTPHYSICSDATA_H_
 #define BLITWIZARD_OBJECTPHYSICSDATA_H_
 
-#ifdef (USE_PHYSICS2D || USE_PHYSICS3D)
+#if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
 
 #include <string.h>
 #include <stdlib.h>

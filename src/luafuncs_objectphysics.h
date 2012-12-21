@@ -24,7 +24,7 @@
 #ifndef BLItWIZARD_OBJECTPHYSICS_H_
 #define BLITWIZARD_OBJECTPHYSICS_H_
 
-#ifdef (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
+#if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
 
 #include <string.h>
 #include <stdlib.h>
@@ -57,7 +57,7 @@ int luafuncs_warp(lua_State* l);
 int luafuncs_setGravity(lua_State* l);
 
 struct physicsobject2d;
-int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physicsobject2d* a, struct physicsobject2d* b, double x, double y, double normalx, double normaly, double force);
+int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
 
 #endif  // USE_PHYSICS2D || USE_PHYSICS3D
 
