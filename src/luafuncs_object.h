@@ -21,4 +21,10 @@
 
 */
 
+#ifndef BLITWIZARD_OBJECT_H_ 
+#define BLITWIZARD_OBJECT_H_
+
+void luafuncs_pushbobjidref(lua_State* l, struct blitwizardobject* o);
+
+#endif  // BLITWIZARD_OBJECT_H_
 

@@ -32,4 +32,5 @@ install:
 	chmod -R 775 ${datadir}/blitwizard
 	cp ../bin/blitwizard${EXEEXT} ${bindir}
 	chmod 755 ${bindir}/blitwizard${EXEEXT}
-
+count:
+	cloc *.c *.h imgloader/*.c imgloader/*.h *.cpp

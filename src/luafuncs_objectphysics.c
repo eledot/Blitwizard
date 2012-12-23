@@ -33,27 +33,34 @@
 #include "logging.h"
 #include "luaerror.h"
 #include "luastate.h"
+#include "blitwizardobject.h"
 #include "physics.h"
 #include "objectphysicsdata.h"
 #include "luafuncs_objectphysics.h"
 #include "main.h"
+
+// Put the collision callback of the given object on stack
+static void luafuncs_pushcollisioncallback(lua_State* l,
+struct blitwizardobject* obj) {
+    char funcname[200];
+    snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj);
+    funcname[sizeof(funcname)-1] = 0;
+    lua_pushstring(l, funcname);
+    lua_gettable(l, LUA_REGISTRYINDEX);
+}
 
 // Attempt to trigger a user-defined collision callback for a given object.
 // When no callback is set by the user or if the callback succeeds,
 // 1 will be returned. 
 // In case of a lua error in the callback, 0 will be returned and a
 // traceback printed to stderr.
-static int luafuncs_trycollisioncallback(struct blitwizardobject* obj, struct physicsobject2d* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
+static int luafuncs_trycollisioncallback2d(struct blitwizardobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
     // get global lua state we use for blitwizard (no support for multiple
     // states as of now):
     lua_State* l = luastate_GetStatePtr();
 
     // obtain the collision callback:
-    char funcname[200];
-    snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj);
-    funcname[sizeof(funcname)-1] = 0;
-    lua_pushstring(l, funcname);
-    lua_gettable(l, LUA_REGISTRYINDEX);
+    luafuncs_pushcollisioncallback(l, obj);
 
     // check if the collision callback is not nil (-> defined):
     if (lua_type(l, -1) != LUA_TNIL) {
@@ -61,38 +68,21 @@ static int luafuncs_trycollisioncallback(struct blitwizardobject* obj, struct ph
         lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc());
         lua_insert(l, -2);
 
-        // stack now looks like this: <traceback> <callback>
-
-        // create a new physics object ref on the stack which
-        // references the object we collided with
-        struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
-        ((struct luaphysics2dobj*)physics2d_GetObjectUserdata(otherobj))->refcount++;
-        assert(((struct luaphysics2dobj*)physics2d_GetObjectUserdata(otherobj))->refcount > 1);
-        // printf("new refcount: %d\n", ((struct luaphysics2dobj*)physics2d_GetObjectUserdata(otherobj))->refcount);
-        memset(ref, 0, sizeof(*ref));
-        ref->magic = IDREF_MAGIC;
-        ref->type = IDREF_PHYSICS2D;
-        ref->ref.ptr = (struct luaphysics2dobj*)physics2d_GetObjectUserdata(otherobj);
-
-        // the reference needs to be garbage collected:
-        luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
-
-        // push other information:
+        // push all args:
+        luafuncs_pushbobjidref(l, (struct blitwizardobject*)physics_GetObjectUserdata(otherobj));
         lua_pushnumber(l, x);
         lua_pushnumber(l, y);
         lua_pushnumber(l, normalx);
         lua_pushnumber(l, normaly);
         lua_pushnumber(l, force);
 
-        // stack now looks like this: <traceback> <callback> <6 args>
-
         // Call the function:
         int ret = lua_pcall(l, 6, 1, -8);
         if (ret != 0) {
-            printerror("Error: An error occured when running blitwiz.physics.setCollisionCallback callback: %s", lua_tostring(l, -1));
+            callbackerror("blitwiz.physics.setCollisionCallback", lua_tostring(l, -1));
             lua_pop(l, 2); // pop error string, error handling function
             return 0;
-        }else{
+        } else {
             // evaluate return result...
             if (!lua_toboolean(l, -1)) {
                 *enabled = 0;
@@ -101,13 +91,58 @@ static int luafuncs_trycollisioncallback(struct blitwizardobject* obj, struct ph
             // pop error handling function and return value:
             lua_pop(l, 2);
         }
-    }else{
+    } else {
         // callback was nil and not defined by user
         lua_pop(l, 1); // pop the nil value
     }
     return 1;
 }
 
+static int luafuncs_trycollisioncallback3d(struct blitwizardobject* obj, struct physicsobject* otherobj, double x, double y, double z, double normalx, double normaly, double normalz, double force, int* enabled) {
+    // get global lua state we use for blitwizard (no support for multiple
+    // states as of now):
+    lua_State* l = luastate_GetStatePtr();
+
+    // obtain the collision callback:
+    luafuncs_pushcollisioncallback(l, obj);
+
+    // check if the collision callback is not nil (-> defined):
+    if (lua_type(l, -1) != LUA_TNIL) {
+        // we got a collision callback for this object -> call it
+        lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc());
+        lua_insert(l, -2);
+
+        // push all args:
+        luafuncs_pushbobjidref(l, (struct blitwizardobject*)physics_GetObjectUserdata(otherobj));
+        lua_pushnumber(l, x);
+        lua_pushnumber(l, y);
+        lua_pushnumber(l, z);
+        lua_pushnumber(l, normalx);
+        lua_pushnumber(l, normaly);
+        lua_pushnumber(l, normalz);
+        lua_pushnumber(l, force);
+
+        // Call the function:
+        int ret = lua_pcall(l, 6, 1, -8);
+        if (ret != 0) {
+            callbackerror("blitwiz.physics.setCollisionCallback", lua_tostring(l, -1));
+            lua_pop(l, 2); // pop error string, error handling function
+            return 0;
+        } else {
+            // evaluate return result...
+            if (!lua_toboolean(l, -1)) {
+                *enabled = 0;
+            }
+
+            // pop error handling function and return value:
+            lua_pop(l, 2);
+        }
+    } else {
+        // callback was nil and not defined by user
+        lua_pop(l, 1); // pop the nil value
+    }
+    return 1;
+}
 // This function can throw lua out of memory errors (but no others) and should
 // therefore be pcall'ed. Since we don't handle out of memory sanely anyway,
 // it isn't pcalled for now: FIXME
@@ -118,22 +153,18 @@ static int luafuncs_trycollisioncallback(struct blitwizardobject* obj, struct ph
 // in which case this function will return 0. Otherwise, it will return 1.
 // If a lua error happens in the user callbacks (apart from out of memory),
 // it will instant-quit blitwizard with backtrace (it will never return).
-int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physicsobject2d* a, struct physicsobject2d* b, double x, double y, double normalx, double normaly, double force) {
+int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force) {
     // we want to track if any of the callbacks wants to ignore the collision:
     int enabled = 1;
 
     // call first object's callback:
     if (!luafuncs_trycollisioncallback(a, b, x, y, normalx, normaly, force, &enabled)) {
-        // a lua error happened and backtrace was spilled out -> simply quit
-        main_Quit(1);
-        return 1;
+        // a lua error happened and backtrace was spilled out -> ignore and continue
     }
 
     // call second object's callback:
     if (!luafuncs_trycollisioncallback(b, a, x, y, -normalx, -normaly, force, &enabled)) {
-        // a lua error happened in the callback was spilled out -> quit
-        main_Quit(1);
-        return 1;
+        // a lua error happened in the callback was spilled out -> ignore and continue
     }
 
     // if any of the callbacks wants to ignore the collision, return 0:
@@ -143,31 +174,26 @@ int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physic
     return 1;
 }
 
-static struct luaidref* createphysicsobj(lua_State* l) {
-    // Create a luaidref userdata struct which points to a luaphysics2dobj:
-    struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
-    struct luaphysics2dobj* obj = malloc(sizeof(*obj));
-    if (!obj) {
-        lua_pop(l, 1);
-        lua_pushstring(l, "Failed to allocate physics object wrap struct");
-        lua_error(l);
-        return NULL;
+int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double z, double normalx, double normaly, double normalz, double force) {
+    // we want to track if any of the callbacks wants to ignore the collision:
+    int enabled = 1;
+
+    // call first object's callback:
+    if (!luafuncs_trycollisioncallback(a, b, x, y, z, normalx, normaly, normalz, force, &enabled)) {
+        // a lua error happened and backtrace was spilled out -> ignore and continue
     }
 
-    // initialise structs:
-    memset(obj, 0, sizeof(*obj));
-    obj->refcount = 1;  // this is a new object,
-      // so there is only one new reference (our own)
-    memset(ref, 0, sizeof(*ref));
-    ref->magic = IDREF_MAGIC;
-    ref->type = IDREF_PHYSICS2D;
-    ref->ref.ptr = obj;
+    // call second object's callback:
+    if (!luafuncs_trycollisioncallback(b, a, x, y, z, -normalx, -normaly, -normalz, force, &enabled)) {
+        // a lua error happened in the callback was spilled out -> ignore and continue
+    }
 
-    // make sure it gets garbage collected lateron:
-    luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
-    return ref;
+    // if any of the callbacks wants to ignore the collision, return 0:
+    if (!enabled) {
+        return 0;
+    }
+    return 1;
 }
-
 
 int luafuncs_createMovableObject(lua_State* l) {
     struct luaidref* ref = createphysicsobj(l);
@@ -349,7 +375,7 @@ int luafuncs_setGravity(lua_State* l) {
     }
     if (set) {
         physics2d_SetGravity(obj->object, gx, gy);
-    }else{
+    } else {
         physics2d_UnsetGravity(obj->object);
     }
     return 0;
