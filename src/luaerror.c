@@ -88,3 +88,8 @@ const char* lua_strtype(lua_State* l, int stack) {
     luatypetoname(type, strtypebuf, sizeof(strtypebuf));
     return strtypebuf;
 }
+
+void callbackerror(lua_State* l, const char* function, const char* error, ...) {
+
+}
+

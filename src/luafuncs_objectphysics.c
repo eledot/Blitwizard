@@ -36,6 +36,7 @@
 #include "blitwizardobject.h"
 #include "physics.h"
 #include "objectphysicsdata.h"
+#include "luafuncs_object.h"
 #include "luafuncs_objectphysics.h"
 #include "main.h"
 
@@ -79,7 +80,7 @@ static int luafuncs_trycollisioncallback2d(struct blitwizardobject* obj, struct 
         // Call the function:
         int ret = lua_pcall(l, 6, 1, -8);
         if (ret != 0) {
-            callbackerror("blitwiz.physics.setCollisionCallback", lua_tostring(l, -1));
+            callbackerror(l, "blitwiz.physics.setCollisionCallback", lua_tostring(l, -1));
             lua_pop(l, 2); // pop error string, error handling function
             return 0;
         } else {
@@ -125,7 +126,7 @@ static int luafuncs_trycollisioncallback3d(struct blitwizardobject* obj, struct 
         // Call the function:
         int ret = lua_pcall(l, 6, 1, -8);
         if (ret != 0) {
-            callbackerror("blitwiz.physics.setCollisionCallback", lua_tostring(l, -1));
+            callbackerror(l, "blitwiz.physics.setCollisionCallback", lua_tostring(l, -1));
             lua_pop(l, 2); // pop error string, error handling function
             return 0;
         } else {
@@ -157,13 +158,16 @@ int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physic
     // we want to track if any of the callbacks wants to ignore the collision:
     int enabled = 1;
 
+    // get the associated blitwizard objects to the collision objects:
+    struct blitwizardobject* aobj = ((struct luaphysicsobject*)physics_GetObjectUserdata(a));
+    
     // call first object's callback:
-    if (!luafuncs_trycollisioncallback(a, b, x, y, normalx, normaly, force, &enabled)) {
+    if (!luafuncs_trycollisioncallback2d(a, b, x, y, normalx, normaly, force, &enabled)) {
         // a lua error happened and backtrace was spilled out -> ignore and continue
     }
 
     // call second object's callback:
-    if (!luafuncs_trycollisioncallback(b, a, x, y, -normalx, -normaly, force, &enabled)) {
+    if (!luafuncs_trycollisioncallback2d(b, a, x, y, -normalx, -normaly, force, &enabled)) {
         // a lua error happened in the callback was spilled out -> ignore and continue
     }
 
@@ -179,12 +183,12 @@ int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physic
     int enabled = 1;
 
     // call first object's callback:
-    if (!luafuncs_trycollisioncallback(a, b, x, y, z, normalx, normaly, normalz, force, &enabled)) {
+    if (!luafuncs_trycollisioncallback3d(a, b, x, y, z, normalx, normaly, normalz, force, &enabled)) {
         // a lua error happened and backtrace was spilled out -> ignore and continue
     }
 
     // call second object's callback:
-    if (!luafuncs_trycollisioncallback(b, a, x, y, z, -normalx, -normaly, -normalz, force, &enabled)) {
+    if (!luafuncs_trycollisioncallback3d(b, a, x, y, z, -normalx, -normaly, -normalz, force, &enabled)) {
         // a lua error happened in the callback was spilled out -> ignore and continue
     }
 
@@ -197,7 +201,7 @@ int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physic
 
 int luafuncs_createMovableObject(lua_State* l) {
     struct luaidref* ref = createphysicsobj(l);
-    ((struct luaphysics2dobj*)ref->ref.ptr)->movable = 1;
+    ((struct toblitwizardobject*)ref->ref.ptr)->movable = 1;
     return 1;
 }
 
@@ -208,7 +212,7 @@ int luafuncs_createStaticObject(lua_State* l) {
 
 int luafuncs_destroyObject(lua_State* l) {
     // destroy given physics object if possible
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     assert(obj->refcount > 0);
 
     obj->deleted = 1;
@@ -229,7 +233,7 @@ int luafuncs_destroyObject(lua_State* l) {
     return 0;
 }
 
-static void applyobjectsettings(struct luaphysics2dobj* obj) {
+static void applyobjectsettings(struct toblitwizardobject* obj) {
     if (!obj->object) {
         return;
     }
@@ -241,7 +245,7 @@ static void applyobjectsettings(struct luaphysics2dobj* obj) {
 }
 
 int luafuncs_impulse(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -278,7 +282,7 @@ int luafuncs_impulse(lua_State* l) {
     return 0;
 }
 
-int luafuncs_ray(lua_State* l) {
+int luafuncs_ray(lua_State* l, int use3d) {
     if (lua_type(l, 1) != LUA_TNUMBER) {
         lua_pushstring(l, "First parameter is not a valid start x position");
         return lua_error(l);
@@ -287,49 +291,82 @@ int luafuncs_ray(lua_State* l) {
         lua_pushstring(l, "Second parameter is not a valid start y position");
         return lua_error(l);
     }
-    if (lua_type(l, 3) != LUA_TNUMBER) {
+    if (use3d) {
+        if (lua_type(l, 3) != LUA_TNUMBER) {
+            lua_pushstring(l, "Fourth parameter is not a valid start z position");
+            return lua_error(l);
+        }
+    }
+    if (lua_type(l, 3 + use3d) != LUA_TNUMBER) {
         lua_pushstring(l, "Third parameter is not a valid target x position");
         return lua_error(l);
     }
-    if (lua_type(l, 4) != LUA_TNUMBER) {
+    if (lua_type(l, 4 + use3d) != LUA_TNUMBER) {
         lua_pushstring(l, "Fourth parameter is not a valid target y position");
         return lua_error(l);
     }
+    if (use3d) {
+        if (lua_type(l, 6) != LUA_TNUMBER) {
+            lua_pushstring(l, "Fourth parameter is not a valid target z position");
+            return lua_error(l);
+        }
+    }
+
     double startx = lua_tonumber(l, 1);
     double starty = lua_tonumber(l, 2);
-    double targetx = lua_tonumber(l, 3);
-    double targety = lua_tonumber(l, 4);
+    double startz;
+    if (use3d) {
+        startz = lua_tonumber(l, 3);
+    }
+    double targetx = lua_tonumber(l, 3+use3d);
+    double targety = lua_tonumber(l, 4+use3d);
+    double targetz;
+    if (use3d) {
+        targetz = lua_tonumber(l, 6);
+    }
 
     struct physicsobject2d* obj;
-    double hitpointx,hitpointy;
-    double normalx,normaly;
-    if (physics2d_Ray(main_DefaultPhysics2dPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly)) {
+    double hitpointx,hitpointy,hitpointz;
+    double normalx,normaly,normalz;
+
+    int returnvalue;
+    if (use3d) {
+        returnvalue = physics3d_Ray(main_DefaultPhysics2dPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly);
+    } else {
+        returnvalue = physics3d_Ray(main_DefaultPhysics2dPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly);
+    }
+    
+    if (returnvalue) {
         // create a new reference to the (existing) object the ray has hit:
-        struct luaidref* ref = lua_newuserdata(l, sizeof(*ref));
-        ((struct luaphysics2dobj*)physics2d_GetObjectUserdata(obj))->refcount++;
-        assert(((struct luaphysics2dobj*)physics2d_GetObjectUserdata(obj))
-        ->refcount >= 2);
-        memset(ref, 0, sizeof(*ref));
-        ref->magic = IDREF_MAGIC;
-        ref->type = IDREF_PHYSICS2D;
-        ref->ref.ptr = (struct luaphysics2dobj*)physics2d_GetObjectUserdata(obj);
-  
-        // the reference needs to be garbage collected:
-        luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_physobj);
+        luafuncs_pushbobjidref(l, (struct blitwizardobject*)physics2d_GetObjectUserdata(obj));
 
         // push the other information we also want to return:
         lua_pushnumber(l, hitpointx);
         lua_pushnumber(l, hitpointy);
+        if (use3d) {
+            lua_pushnumber(l, hitpointz);
+        }
         lua_pushnumber(l, normalx);
         lua_pushnumber(l, normaly);
-        return 5;  // return it all
+        if (use3d) {
+            lua_pushnumber(l, normalz);
+        }
+        return 5+2*use3d;  // return it all
     }
     lua_pushnil(l);
     return 1;
 }
 
+int luafuncs_ray2d(lua_State* l) {
+    return luafuncs_ray(l, 0);
+}
+
+int luafuncs_ray3d(lua_State* l) {
+    return luafuncs_ray(l, 1);
+}
+
 int luafuncs_restrictRotation(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct blitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -348,7 +385,7 @@ int luafuncs_restrictRotation(lua_State* l) {
 }
 
 int luafuncs_setGravity(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -382,7 +419,7 @@ int luafuncs_setGravity(lua_State* l) {
 }
 
 int luafuncs_setMass(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -430,7 +467,7 @@ void transferbodysettings(struct physicsobject2d* oldbody, struct physicsobject2
 }
 
 int luafuncs_warp(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -468,7 +505,7 @@ int luafuncs_warp(lua_State* l) {
 }
 
 int luafuncs_getPosition(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -485,7 +522,7 @@ int luafuncs_getPosition(lua_State* l) {
 }
 
 int luafuncs_setRestitution(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -500,7 +537,7 @@ int luafuncs_setRestitution(lua_State* l) {
 }
 
 int luafuncs_setFriction(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -515,7 +552,7 @@ int luafuncs_setFriction(lua_State* l) {
 }
 
 int luafuncs_setLinearDamping(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -530,7 +567,7 @@ int luafuncs_setLinearDamping(lua_State* l) {
 }
 
 int luafuncs_setAngularDamping(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -545,7 +582,7 @@ int luafuncs_setAngularDamping(lua_State* l) {
 }
 
 int luafuncs_getRotation(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -561,7 +598,7 @@ int luafuncs_getRotation(lua_State* l) {
 }
 
 int luafuncs_setShapeEdges(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -639,7 +676,7 @@ int luafuncs_setShapeEdges(lua_State* l) {
 }
 
 int luafuncs_setShapeCircle(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -670,7 +707,7 @@ int luafuncs_setShapeCircle(lua_State* l) {
 
 
 int luafuncs_setShapeOval(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -707,7 +744,7 @@ int luafuncs_setShapeOval(lua_State* l) {
 
 
 int luafuncs_setCollisionCallback(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);
@@ -736,7 +773,7 @@ int luafuncs_setCollisionCallback(lua_State* l) {
 
 
 int luafuncs_setShapeRectangle(lua_State* l) {
-    struct luaphysics2dobj* obj = toluaphysics2dobj(l, 1);
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
         return lua_error(l);

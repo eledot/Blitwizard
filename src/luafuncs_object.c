@@ -92,7 +92,7 @@ void luafuncs_pushbobjidref(lua_State* l, struct blitwizardobject* o) {
     o->refcount++;
 }
 
-static struct blitwizardobject* toblitwizardobject(lua_State* l, int index, int arg, const char* func) {
+struct blitwizardobject* toblitwizardobject(lua_State* l, int index, int arg, const char* func) {
     if (lua_type(l, index) != LUA_TUSERDATA) {
         haveluaerror(l, badargument1, arg, func, "blitwizard object", lua_strtype(l, index));
     }
