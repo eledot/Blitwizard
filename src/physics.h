@@ -55,7 +55,7 @@ void physics_Set3dCollisionCallback(struct physicsworld* world, int (*callback)(
 
 // Obtain shape info struct (for use in object creation):
 struct physicsobjectshape;
-struct physicsobjectshape* physics_CreateEmptyShape(void);
+struct physicsobjectshape* physics_CreateEmptyShapes(int count);
 #ifdef USE_PHYSICS2D
 void physics_Set2dShapeRectangle(struct physicsobjectshape* shape, double width, double height);
 void physics_Set2dShapeOval(struct physicsobjectshape* shape, double width, double height);

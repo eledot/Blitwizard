@@ -19,6 +19,11 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
+@author Jonas Thiem  (jonas.thiem@gmail.com)
+@copyright 2011-2012
+@license zlib
+@module blitwizard
+
 */
 
 #if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
@@ -40,6 +45,8 @@
 #include "luafuncs_objectphysics.h"
 #include "main.h"
 
+// @type object
+
 // Put the collision callback of the given object on stack
 static void luafuncs_pushcollisioncallback(lua_State* l,
 struct blitwizardobject* obj) {
@@ -55,7 +62,7 @@ struct blitwizardobject* obj) {
 // 1 will be returned. 
 // In case of a lua error in the callback, 0 will be returned and a
 // traceback printed to stderr.
-static int luafuncs_trycollisioncallback2d(struct blitwizardobject* obj, struct physicsobject* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
+static int luafuncs_trycollisioncallback(struct blitwizardobject* obj, struct blitwizardobject* otherobj, double x, double y, double z, double normalx, double normaly, double normalz, double force, int* enabled, int use3d) {
     // get global lua state we use for blitwizard (no support for multiple
     // states as of now):
     lua_State* l = luastate_GetStatePtr();
@@ -70,17 +77,23 @@ static int luafuncs_trycollisioncallback2d(struct blitwizardobject* obj, struct 
         lua_insert(l, -2);
 
         // push all args:
-        luafuncs_pushbobjidref(l, (struct blitwizardobject*)physics_GetObjectUserdata(otherobj));
+        luafuncs_pushbobjidref(l, otherobj);
         lua_pushnumber(l, x);
         lua_pushnumber(l, y);
+        if (use3d) {
+            lua_pushnumber(l, z);
+        }
         lua_pushnumber(l, normalx);
         lua_pushnumber(l, normaly);
+        if (use3d) {
+            lua_pushnumber(l, normalz);
+        }
         lua_pushnumber(l, force);
 
         // Call the function:
-        int ret = lua_pcall(l, 6, 1, -8);
+        int ret = lua_pcall(l, 6+2*use3d, 1, -(8+2*use3d));
         if (ret != 0) {
-            callbackerror(l, "blitwiz.physics.setCollisionCallback", lua_tostring(l, -1));
+            callbackerror(l, "<blitwizardobject>:onCollision", lua_tostring(l, -1));
             lua_pop(l, 2); // pop error string, error handling function
             return 0;
         } else {
@@ -99,51 +112,14 @@ static int luafuncs_trycollisioncallback2d(struct blitwizardobject* obj, struct 
     return 1;
 }
 
-static int luafuncs_trycollisioncallback3d(struct blitwizardobject* obj, struct physicsobject* otherobj, double x, double y, double z, double normalx, double normaly, double normalz, double force, int* enabled) {
-    // get global lua state we use for blitwizard (no support for multiple
-    // states as of now):
-    lua_State* l = luastate_GetStatePtr();
-
-    // obtain the collision callback:
-    luafuncs_pushcollisioncallback(l, obj);
-
-    // check if the collision callback is not nil (-> defined):
-    if (lua_type(l, -1) != LUA_TNIL) {
-        // we got a collision callback for this object -> call it
-        lua_pushcfunction(l, (lua_CFunction)internaltracebackfunc());
-        lua_insert(l, -2);
-
-        // push all args:
-        luafuncs_pushbobjidref(l, (struct blitwizardobject*)physics_GetObjectUserdata(otherobj));
-        lua_pushnumber(l, x);
-        lua_pushnumber(l, y);
-        lua_pushnumber(l, z);
-        lua_pushnumber(l, normalx);
-        lua_pushnumber(l, normaly);
-        lua_pushnumber(l, normalz);
-        lua_pushnumber(l, force);
-
-        // Call the function:
-        int ret = lua_pcall(l, 6, 1, -8);
-        if (ret != 0) {
-            callbackerror(l, "blitwiz.physics.setCollisionCallback", lua_tostring(l, -1));
-            lua_pop(l, 2); // pop error string, error handling function
-            return 0;
-        } else {
-            // evaluate return result...
-            if (!lua_toboolean(l, -1)) {
-                *enabled = 0;
-            }
-
-            // pop error handling function and return value:
-            lua_pop(l, 2);
-        }
-    } else {
-        // callback was nil and not defined by user
-        lua_pop(l, 1); // pop the nil value
-    }
-    return 1;
+static int luafuncs_trycollisioncallback3d(struct blitwizardobject* obj, struct blitwizardobject* otherobj, double x, double y, double z, double normalx, double normaly, double normalz, double force, int* enabled) {
+    return luafuncs_trycollisioncallback(obj, otherobj, x, y, z, normalx, normaly, normalz, force, enabled, 1);
 }
+
+static int luafuncs_trycollisioncallback2d(struct blitwizardobject* obj, struct blitwizardobject* otherobj, double x, double y, double normalx, double normaly, double force, int* enabled) {
+    return luafuncs_trycollisioncallback(obj, otherobj, x, y, 0, normalx, normaly, 0, force, enabled, 0);
+}
+
 // This function can throw lua out of memory errors (but no others) and should
 // therefore be pcall'ed. Since we don't handle out of memory sanely anyway,
 // it isn't pcalled for now: FIXME
@@ -159,15 +135,16 @@ int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physic
     int enabled = 1;
 
     // get the associated blitwizard objects to the collision objects:
-    struct blitwizardobject* aobj = ((struct luaphysicsobject*)physics_GetObjectUserdata(a));
+    struct blitwizardobject* aobj = (struct blitwizardobject*)physics_GetObjectUserdata(a);
+    struct blitwizardobject* bobj = (struct blitwizardobject*)physics_GetObjectUserdata(b);
     
     // call first object's callback:
-    if (!luafuncs_trycollisioncallback2d(a, b, x, y, normalx, normaly, force, &enabled)) {
+    if (!luafuncs_trycollisioncallback2d(aobj, bobj, x, y, normalx, normaly, force, &enabled)) {
         // a lua error happened and backtrace was spilled out -> ignore and continue
     }
 
     // call second object's callback:
-    if (!luafuncs_trycollisioncallback2d(b, a, x, y, -normalx, -normaly, force, &enabled)) {
+    if (!luafuncs_trycollisioncallback2d(bobj, aobj, x, y, -normalx, -normaly, force, &enabled)) {
         // a lua error happened in the callback was spilled out -> ignore and continue
     }
 
@@ -182,13 +159,17 @@ int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physic
     // we want to track if any of the callbacks wants to ignore the collision:
     int enabled = 1;
 
+    // get the associated blitwizard objects to the collision objects:
+    struct blitwizardobject* aobj = (struct blitwizardobject*)physics_GetObjectUserdata(a);
+    struct blitwizardobject* bobj = (struct blitwizardobject*)physics_GetObjectUserdata(b);
+
     // call first object's callback:
-    if (!luafuncs_trycollisioncallback3d(a, b, x, y, z, normalx, normaly, normalz, force, &enabled)) {
+    if (!luafuncs_trycollisioncallback3d(aobj, bobj, x, y, z, normalx, normaly, normalz, force, &enabled)) {
         // a lua error happened and backtrace was spilled out -> ignore and continue
     }
 
     // call second object's callback:
-    if (!luafuncs_trycollisioncallback3d(b, a, x, y, z, -normalx, -normaly, -normalz, force, &enabled)) {
+    if (!luafuncs_trycollisioncallback3d(bobj, aobj, x, y, z, -normalx, -normaly, -normalz, force, &enabled)) {
         // a lua error happened in the callback was spilled out -> ignore and continue
     }
 
@@ -199,20 +180,85 @@ int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physic
     return 1;
 }
 
-int luafuncs_createMovableObject(lua_State* l) {
+/// Enable the physics simulation on the given object and make it
+/// collide with others for which the simulation is enabled.
+// @function enableCollision
+int luafuncs_enableCollision(lua_State* l, int movable) {
+    struct blitwizardobject* obj = toblitwizardobject(l, 1),
+
+    // validate: parameters need to be a list of shape info tables
+    int argcount = lua_gettop(l)-1;
+    if (argcount <= 0) {
+        return haveluaerror(badargument1, 2,
+        "blitwizard.object:enableCollision", "table", nil);
+    } else {
+        // check for args to be a table
+        int i = 0;
+        while (i < argcount) {
+            if (lua_type(l, 2+i) != LUA_TTABLE &&
+            lua_type(l, 2+i) != LUA_TNIL) {
+                if (i == 0) {
+                    return haveluaerror(badargument1, 2+i,
+                    "blitwizard.object:enableCollision", "table",
+                    lua_strtype(l, 2+i));
+                } else {
+                    return haveluaerror(badargument1, 2+i,
+                    "blitwizard.object:enableCollision", "table or nil",
+                    lua_strtype(l, 2+i));
+                }
+            }
+            i++;
+        }
+    }
+
+    // construct a shape list from the given shape tables:
+    int i = 0;
+    while (i < argcount) {
+        lua_gettable(l, "type");
+        if (lua_type(l, -1) != LUA_TSTRING) {
+            return haveluaerror(badargument2, 2+i, "blitwizard.object:enableCollision", "Shape has invalid type: expected string");
+        } else {
+            const char* shapetype = lua_tostring(l, -1);
+
+            lua_pop(l, 1);  // pop shapetype string
+        }            
+        i++;
+    } 
+
+    // create a physics object from the shapes
+    if (!obj->physics) {
+        obj->physics = malloc(sizeof(struct objectphysicsdata));
+        memset(obj->physics);
+    }
+    if (obj->physics->object) {
+        physics_DestroyObject(obj->physics->object);
+    }
+    obj->physics->object = physics_CreateObject();
+ 
     struct luaidref* ref = createphysicsobj(l);
-    ((struct toblitwizardobject*)ref->ref.ptr)->movable = 1;
+    ((struct blitwizardobject*)ref->ref.ptr)->movable = 1;
     return 1;
 }
 
-int luafuncs_createStaticObject(lua_State* l) {
-    struct luaidref* ref = createphysicsobj(l);
-    return 1;
+int luafuncs_disableCollision(lua_State* l) {
+    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
+    assert(obj->refcount > 0);
+
+    if (!obj->physics) {
+        // no physics info was set, ignore
+        return 0;
+    }
+
+    if (obj->physics->object) {
+        physics_DestroyWorld(obj->physics->object);
+        obj->physics->object = NULL;
+    }
+    return 0;
 }
 
 int luafuncs_destroyObject(lua_State* l) {
     // destroy given physics object if possible
-    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
+    struct blitwizardobject* obj = toblitwizardobject(l, 1);
     assert(obj->refcount > 0);
 
     obj->deleted = 1;

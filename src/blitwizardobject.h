@@ -40,7 +40,7 @@ struct blitwizardobject {
     struct objectgraphicsdata* graphics;
 #endif
 #if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
-    struct physicsobject* obj;
+    struct physicsobject* physics;
 #endif
     struct blitwizardobject* prev,*next;
 };

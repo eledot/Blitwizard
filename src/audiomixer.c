@@ -317,7 +317,7 @@ static void audiomixer_RequestMix(unsigned int bytes) { // SOUND THREAD
                     if ((targetvalue < 0 && sourcevalue >= 0) || (targetvalue > 0 && sourcevalue <= 0)) {
                         // different sign -> simply add
                         result = sourcevalue + targetvalue;
-                    }else{
+                    } else {
                         // same sign -> do intelligent mix thing:
                         float reversed = 1;
                         if (sourcevalue < 0 || targetvalue < 0) {
