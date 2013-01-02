@@ -21,6 +21,12 @@
 
 */
 
+/// Blitwizard namespace
+// @author Jonas Thiem  (jonas.thiem@gmail.com)
+// @copyright 2011-2012
+// @license zlib
+// @module blitwizard
+
 #include "os.h"
 #ifdef USE_SDL_GRAPHICS
 #include "SDL.h"
@@ -37,6 +43,10 @@
 
 struct blitwizardobject* objects = NULL;
 struct blitwizardobject* deletedobjects = NULL;
+
+/// Blitwizard object which represents an 'entity' in the game world
+// with visual representation, behaviour code and collision shape.
+// @type object
 
 static int garbagecollect_blitwizobjref(lua_State* l) {
     // we need to decrease our reference count of the
@@ -147,6 +157,9 @@ const char* eventName) {
 
 }
 
+/// Delete the given object explicitely, to make it instantly disappear
+/// from the game world.
+// @function delete
 int luafuncs_object_delete(lua_State* l) {
     // delete the given object
     struct blitwizardobject* o = toblitwizardobject(l, 1, 1, "blitwiz.object.delete");

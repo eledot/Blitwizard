@@ -1,6 +1,10 @@
 
+.PHONY: docs
 SUBDIRS = scripts src tests
 
+docs:
+	./listsources.lua
+	ldoc .
 clean:
 	cd libs && rm -f libblitwizard*.a
 	cd libs && rm -f libimglib.a

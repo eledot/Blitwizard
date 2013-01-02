@@ -19,12 +19,13 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 
-@author Jonas Thiem  (jonas.thiem@gmail.com)
-@copyright 2011-2012
-@license zlib
-@module blitwizard
-
 */
+
+/// Blitwizard namespace
+// @author Jonas Thiem  (jonas.thiem@gmail.com)
+// @copyright 2011-2012
+// @license zlib
+// @module blitwizard
 
 #if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
 
@@ -45,6 +46,8 @@
 #include "luafuncs_objectphysics.h"
 #include "main.h"
 
+/// Blitwizard object which represents an 'entity' in the game world
+/// with visual representation, behaviour code and collision shape.
 // @type object
 
 // Put the collision callback of the given object on stack
@@ -180,9 +183,6 @@ int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physic
     return 1;
 }
 
-/// Enable the physics simulation on the given object and make it
-/// collide with others for which the simulation is enabled.
-// @function enableCollision
 int luafuncs_enableCollision(lua_State* l, int movable) {
     struct blitwizardobject* obj = toblitwizardobject(l, 1),
 
@@ -239,6 +239,43 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
     ((struct blitwizardobject*)ref->ref.ptr)->movable = 1;
     return 1;
 }
+
+/// This is how you should submit shape info to object:enableStaticCollision and object:enableMovableCollision (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)
+// @tfield string type The shape type, for 2d shapes: "quad", "polygon", "circle", "oval", "edge list" (simply a list of lines that don't need to be necessarily connected as it is for the polygon), for 3d shapes: "decal" (= 3d quad), "box", "ball", "elliptic ball" (deformed ball with possibly non-uniform radius, e.g. rather a capsule), "triangle mesh" (a list of 3d triangles)
+// @tfield number width required for "quad", "oval" and "decal"
+// @tfield number height required for "quad", "oval" and "decal"
+// @tfield number radius required for "circle" and "ball"
+// @tfield number x_size required for "box" and "elliptic ball"
+// @tfield number y_size required for "box" and "elliptic ball"
+// @tfield number z_size required for "box" and "elliptic ball"
+// @tfield table points required for "polygon": a list of two pair coordinates which specify the edge points of the polygon, e.g. [ [ 0, 0 ], [ 1, 0 ], [ 0, 1 ] ]
+// @tfield table edges required for "edge list": a list of edges, whereas an edge is itself a 2-item list of two 2d points, each 2d point being a list of two coordinates. Example: [ [ [ 0, 0 ], [ 1, 0 ] ], [ [ 0, 1 ], [ 1, 1 ] ] ] 
+// @tfield table triangles required for "triangle mesh": a list of triangles, whereas a triangle is itself a 3-item list of three 3d points, each 3d point being a list of three coordinates.
+// @table shape_info
+
+/// Enable the physics simulation on the given object and allow other
+// objects to collide with it. The object itself will remain static
+// - this is useful for immobile level geometry. You will be required to
+// provide shape information that specifies the desired collision shape
+// of the object (not necessarily similar to its visual appearance).
+// @function enableStaticCollision
+// @tparam table an object:shape_info table with a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
+int luafuncs_enableStaticCollision(lua_State* l) {
+
+}
+
+/// Enable the physics simulation on the given object and make it
+// movable and collide with other movable and static objects.
+// You will be required to
+// provide shape information that specifies the desired collision shape
+// of the object (not necessarily similar to its visual appearance).
+//
+// Note: some complex shape types are unavailable for
+// movable objects, and some shapes (very thin/long, very complex or
+// very tiny or huge) can be unstable. Create all your movable objects
+// roughly of sizes between 0.1 and 10 (the shape size) to avoid instability.
+// @function enableMovableCollision
+// @tparam table an object:shape_info table with a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
 
 int luafuncs_disableCollision(lua_State* l) {
     struct toblitwizardobject* obj = toblitwizardobject(l, 1);

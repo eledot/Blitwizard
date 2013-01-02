@@ -1,0 +1,9 @@
+-- LDoc configuration file
+file = { INSERT_FILES_HERE }
+title = "Blitwizard documentation"
+project = "blitwizard"
+description = [[
+Cross-platform 2d/3d Lua game engine
+]]
+
+
