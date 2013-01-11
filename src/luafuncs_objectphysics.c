@@ -45,6 +45,7 @@
 #include "luafuncs_object.h"
 #include "luafuncs_objectphysics.h"
 #include "main.h"
+#include "objectphysicsdata.h"
 
 /// Blitwizard object which represents an 'entity' in the game world
 /// with visual representation, behaviour code and collision shape.
@@ -184,13 +185,13 @@ int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physic
 }
 
 int luafuncs_enableCollision(lua_State* l, int movable) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1),
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1, "blitwizard.object:enableCollision");
 
     // validate: parameters need to be a list of shape info tables
     int argcount = lua_gettop(l)-1;
     if (argcount <= 0) {
-        return haveluaerror(badargument1, 2,
-        "blitwizard.object:enableCollision", "table", nil);
+        return haveluaerror(l, badargument1, 2,
+        "blitwizard.object:enableCollision", "table", "nil");
     } else {
         // check for args to be a table
         int i = 0;
@@ -198,11 +199,11 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
             if (lua_type(l, 2+i) != LUA_TTABLE &&
             lua_type(l, 2+i) != LUA_TNIL) {
                 if (i == 0) {
-                    return haveluaerror(badargument1, 2+i,
+                    return haveluaerror(l, badargument1, 2+i,
                     "blitwizard.object:enableCollision", "table",
                     lua_strtype(l, 2+i));
                 } else {
-                    return haveluaerror(badargument1, 2+i,
+                    return haveluaerror(l, badargument1, 2+i,
                     "blitwizard.object:enableCollision", "table or nil",
                     lua_strtype(l, 2+i));
                 }
@@ -214,9 +215,12 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
     // construct a shape list from the given shape tables:
     int i = 0;
     while (i < argcount) {
-        lua_gettable(l, "type");
+        lua_pushstring(l, "type");
+        lua_gettable(l, 2+i);
         if (lua_type(l, -1) != LUA_TSTRING) {
-            return haveluaerror(badargument2, 2+i, "blitwizard.object:enableCollision", "Shape has invalid type: expected string");
+            return haveluaerror(l, badargument2, 2+i,
+            "blitwizard.object:enableCollision",
+            "Shape has invalid type: expected string");
         } else {
             const char* shapetype = lua_tostring(l, -1);
 
@@ -225,18 +229,27 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
         i++;
     } 
 
-    // create a physics object from the shapes
+    // prepare physics data:
     if (!obj->physics) {
         obj->physics = malloc(sizeof(struct objectphysicsdata));
-        memset(obj->physics);
+        memset(obj->physics, 0, sizeof(obj->physics));
     }
+
+    // delete old physics representation if any:
     if (obj->physics->object) {
         physics_DestroyObject(obj->physics->object);
     }
-    obj->physics->object = physics_CreateObject();
- 
-    struct luaidref* ref = createphysicsobj(l);
-    ((struct blitwizardobject*)ref->ref.ptr)->movable = 1;
+
+    // create a physics object from the shapes:
+    if (obj->is3d) {
+        obj->physics->object = physics_CreateObject(main_DefaultPhysics3dPtr(),
+        1);
+    } else {
+        obj->physics->object = physics_CreateObject(main_DefaultPhysics2dPtr(),
+        0);
+    }
+
+    obj->physics->movable = 1;
     return 1;
 }
 
@@ -259,9 +272,9 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
 // provide shape information that specifies the desired collision shape
 // of the object (not necessarily similar to its visual appearance).
 // @function enableStaticCollision
-// @tparam table an object:shape_info table with a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
+// @tparam table shape_info an object:shape_info table with a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
 int luafuncs_enableStaticCollision(lua_State* l) {
-
+    return luafuncs_enableCollision(l, 0);
 }
 
 /// Enable the physics simulation on the given object and make it
@@ -275,8 +288,14 @@ int luafuncs_enableStaticCollision(lua_State* l) {
 // very tiny or huge) can be unstable. Create all your movable objects
 // roughly of sizes between 0.1 and 10 (the shape size) to avoid instability.
 // @function enableMovableCollision
-// @tparam table an object:shape_info table with a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
+// @tparam table shape_info an object:shape_info table with a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
+int luafuncs_enableMovableCollision(lua_State* l) {
+    return luafuncs_enableCollision(l, 1);
+}
 
+/// Disable the physics simulation on an object. It will no longer collide
+// with anything.
+// @function disableCollision
 int luafuncs_disableCollision(lua_State* l) {
     struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     assert(obj->refcount > 0);
@@ -293,14 +312,9 @@ int luafuncs_disableCollision(lua_State* l) {
     return 0;
 }
 
-int luafuncs_destroyObject(lua_State* l) {
-    // destroy given physics object if possible
-    struct blitwizardobject* obj = toblitwizardobject(l, 1);
-    assert(obj->refcount > 0);
-
-    obj->deleted = 1;
-
-    if (obj->object) {
+int luafuncs_freeObjectPhysicsData(struct objectphysicsdata* d) {
+    // free the given physics data
+    if (d->object) {
         // void collision callback
         char funcname[200];
         snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->object);

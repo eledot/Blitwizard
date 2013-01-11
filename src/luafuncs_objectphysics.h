@@ -56,6 +56,8 @@ int luafuncs_getPosition(lua_State* l);
 int luafuncs_warp(lua_State* l);
 int luafuncs_setGravity(lua_State* l);
 
+int luafuncs_freeObjectPhysicsData(struct objectphysicsdata* d);
+
 struct physicsobject;
 int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double normalx, double normaly, double force);
 int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physicsobject* a, struct physicsobject* b, double x, double y, double z, double normalx, double normaly, double normalz, double force);

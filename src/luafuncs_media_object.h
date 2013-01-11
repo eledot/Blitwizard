@@ -21,13 +21,13 @@
 
 */
 
-#include "luafuncs_object_media.h"
+#ifndef BLITWIZARD_LUAFUNCS_OBJECT_MEDIA_H_
+#define BLITWIZARD_LUAFUNCS_OBJECT_MEDIA_H_
 
-void luacfuncs_object_media_load(struct blitwizardobject* o) {
+#include "blitwizardobject.h"
 
-}
+void luacfuncs_media_object_new(struct blitwizardobject* o);
+void luacfuncs_media_object_destroy(struct blitwizardobject* o);
 
-void luacfuncs_object_media_unload(struct blitwizardobject* o) {
-
-}
+#endif  // BLITWIZARD_LUAFUNCS_OBJECT_MEDIA_H_
 

@@ -1,7 +1,7 @@
 
 /* blitwizard 2d engine - source code file
 
-  Copyright (C) 2011-2012 Jonas Thiem
+  Copyright (C) 2012 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,32 +21,12 @@
 
 */
 
-#ifndef BLITWIZARD_BLITWIZARDOBJECT_H_
-#define BLITWIZARD_BLITWIZARDOBJECT_H_
+#ifndef BLITWIZARD_LUAFUNCS_OBJECTGRAPHICS_H_
+#define BLITWIZARD_LUAFUNCS_OBJECTGRAPHICS_H_
 
-#include "os.h"
-#include "objectgraphicsdata.h"
+void luafuncs_objectgraphics_load(struct blitwizardobject* o,
+const char* resource);
+void luafuncs_objectgraphics_unload(struct blitwizardobject* o);
 
-struct blitwizardobject {
-    int is3d;  // 0: 2d sprite with z-order value, 1: 3d mesh or sprite
-    double x,y;  // 2d: x,y, 3d: x,y,z with z pointing up
-    int deleted;  // 1: deleted (deletedobjects), 0: regular (objects)
-    int refcount;  // refcount of luaidref references
-    union {
-        double z;
-        int zindex;
-    } vpos;
-#ifdef USE_GRAPHICS
-    struct objectgraphicsdata* graphics;
-#endif
-#if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
-    struct objectphysicsdata* physics;
-#endif
-    struct blitwizardobject* prev,*next;
-};
-
-extern struct blitwizardobject* objects;
-extern struct blitwizardobject* deletedobjects;
-
-#endif  // BLITWIZARD_BLITWIZARDOBJECT_H_
+#endif  // BLITWIZARD_LUAFUNCS_OBJECTGRAPHICS_H_
 
