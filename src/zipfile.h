@@ -60,7 +60,7 @@ size_t zipfile_FileRead(struct zipfilereader* reader, char* buffer,
 size_t bytes);  // returns amount of bytes read, or 0 on end of file/error
 void zipfile_FileClose(struct zipfilereader* reader);
 
-// Close the archive again:
+// Close the archive again (do not use if you still got open zipfilereader handles!):
 void zipfile_Close(struct zipfile* f);
 
 #endif  // USE_PHYSFS

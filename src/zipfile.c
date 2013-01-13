@@ -149,7 +149,7 @@ struct PHYSFS_Io* zipfile_Duplicate(struct PHYSFS_Io* io) {
 static void zipfile_RandomMountPoint(char* buffer) {
     buffer[0] = '/';
     int i = 1;
-    while (i < MOUNT_POINT_LEN) {
+    while (i < MOUNT_POINT_LEN-1) {
 #ifdef WINDOWS
         double d = (double)((double)rand())/RAND_MAX;
 #else
@@ -159,6 +159,7 @@ static void zipfile_RandomMountPoint(char* buffer) {
         buffer[i] = '0' + i;
         i++;
     }
+    buffer[MOUNT_POINT_LEN-1] = '/';
     buffer[MOUNT_POINT_LEN] = 0;
 }
 
@@ -220,7 +221,15 @@ size_t sizeinfile) {
 
     // mount the file to a random mount point:
     zipfile_RandomMountPoint(zf->mountpoint);
-     
+    if (!PHYSFS_mountIo(zf->physio, NULL, zf->mountpoint, 1)) {
+        zf->physio->destroy(zf->physio);
+        return 0;
+    }
+    return 1;
+}
+
+void zipfile_Close(struct zipfile* zf) {
+    PHYSFS_unmount(zf->mountpoint);
 }
 
 #endif  // USE_PHYSFS
