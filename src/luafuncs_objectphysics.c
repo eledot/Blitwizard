@@ -236,7 +236,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                     int width,height;
                     lua_pushstring(l, "width");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -244,9 +244,10 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " as a number");
                     }
                     width = lua_tonumber(l, -1);
+                    lua_pop(l, 1);
                     lua_pushstring(l, "height");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -254,7 +255,8 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " as a number");
                     }
                     height = lua_tonumber(l, -1);
-                    physics_Set3dShapeDecal(shapes+i,
+                    lua_pop(l, 1);
+                    physics_Set3dShapeDecal(GET_SHAPE(shapes, i),
                     width, height);
                 }
                 if (strcmp(shapetype, "ball") == 0) {
@@ -263,7 +265,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                     int diameter;
                     lua_pushstring(l, "diameter");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -271,7 +273,8 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " as a number");
                     }
                     diameter = lua_tonumber(l, -1);
-                    physics_Set3dShapeBall(shapes+i,
+                    lua_pop(l, 1);
+                    physics_Set3dShapeBall(GET_SHAPE(shapes, i),
                     diameter);
                 }
                 if (strcmp(shapetype, "box") == 0 ||
@@ -281,7 +284,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                     int x_size,y_size,z_size;
                     lua_pushstring(l, "x_size");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -289,9 +292,11 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " \"x_size\" specified as a number");
                     }
                     x_size = lua_tonumber(l, -1);
+                    lua_pop(l, 1);
+
                     lua_pushstring(l, "y_size");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -299,9 +304,11 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " \"y_size\" specified as a number");
                     }
                     y_size = lua_tonumber(l, -1);
+                    lua_pop(l, 1);
+
                     lua_pushstring(l, "y_size");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -309,11 +316,13 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " \"y_size\" specified as a number");
                     }
                     z_size = lua_tonumber(l, -1);
+                    lua_pop(l, 1);
+
                     if (strcmp(shapetype, "box") == 0) {
-                        physics_Set3dShapeBox(shapes+i,
+                        physics_Set3dShapeBox(GET_SHAPE(shapes, i),
                         x_size, y_size, z_size);
                     } else {
-                        physics_Set3dShapeBox(shapes+i,
+                        physics_Set3dShapeBox(GET_SHAPE(shapes, i),
                         x_size, y_size, z_size);
                     }
                 }
@@ -338,7 +347,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                     int width,height;
                     lua_pushstring(l, "width");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -346,9 +355,11 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " \"width\" specified as a number");
                     }
                     width = lua_tonumber(l, -1);
+                    lua_pop(l, 1);
+
                     lua_pushstring(l, "height");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -356,11 +367,13 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " \"height\" specified as a number");
                     }
                     height = lua_tonumber(l, -1);
+                    lua_pop(l, 1);
+
                     if (strcmp(shapetype, "oval") == 0) {
-                        physics_Set2dShapeOval(shapes+i,
+                        physics_Set2dShapeOval(GET_SHAPE(shapes, i),
                         width, height);
                     } else {
-                        physics_Set2dShapeRectangle(shapes+i,
+                        physics_Set2dShapeRectangle(GET_SHAPE(shapes, i),
                         width, height);
                     }
                 }
@@ -370,7 +383,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                     int diameter;
                     lua_pushstring(l, "diameter");
                     lua_gettable(l, 2+i);
-                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                    if (lua_type(l, -1) != LUA_TNUMBER) {
                         physics_DestroyShapes(shapes, argcount);
                         return haveluaerror(l, badargument2, 2+i,
                         "blitwizard.object:enableCollision",
@@ -378,7 +391,9 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                         " as a number");
                     }
                     diameter = lua_tonumber(l, -1);
-                    physics_Set2dShapeCircle(shapes+i,
+                    lua_pop(l, 1);
+
+                    physics_Set2dShapeCircle(GET_SHAPE(shapes, i),
                     diameter);
                 }
                 if (!isok) {
@@ -469,7 +484,8 @@ int luafuncs_enableMovableCollision(lua_State* l) {
 // with anything.
 // @function disableCollision
 int luafuncs_disableCollision(lua_State* l) {
-    struct toblitwizardobject* obj = toblitwizardobject(l, 1);
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    "blitwizard.object:disableCollision");
     assert(obj->refcount > 0);
 
     if (!obj->physics) {
@@ -478,7 +494,7 @@ int luafuncs_disableCollision(lua_State* l) {
     }
 
     if (obj->physics->object) {
-        physics_DestroyWorld(obj->physics->object);
+        physics_DestroyObject(obj->physics->object);
         obj->physics->object = NULL;
     }
     return 0;
@@ -488,12 +504,13 @@ int luafuncs_freeObjectPhysicsData(struct objectphysicsdata* d) {
     // free the given physics data
     if (d->object) {
         // void collision callback
-        char funcname[200];
-        snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->object);
+        /*char funcname[200];
+        snprintf(funcname, sizeof(funcname), "collisioncallback%p",
+        d->object);
         funcname[sizeof(funcname)-1] = 0;
         lua_pushstring(l, funcname);
         lua_pushnil(l);
-        lua_settable(l, LUA_REGISTRYINDEX);
+        lua_settable(l, LUA_REGISTRYINDEX);*/
 
         // delete physics body
         physics2d_DestroyObject(obj->object);
@@ -1012,7 +1029,7 @@ int luafuncs_setShapeOval(lua_State* l) {
 }
 
 
-int luafuncs_setCollisionCallback(lua_State* l) {
+/*int luafuncs_setCollisionCallback(lua_State* l) {
     struct toblitwizardobject* obj = toblitwizardobject(l, 1);
     if (obj->deleted) {
         lua_pushstring(l, "Physics object was deleted");
@@ -1031,14 +1048,14 @@ int luafuncs_setCollisionCallback(lua_State* l) {
     }
 
     char funcname[200];
-    snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->object);
+    snprintf(funcname, sizeof(funcname), "collisioncallback%p", obj->physics);
     funcname[sizeof(funcname)-1] = 0;
     lua_pushstring(l, funcname);
     lua_insert(l, -2);
     lua_settable(l, LUA_REGISTRYINDEX);
 
     return 0;
-}
+}*/
 
 
 int luafuncs_setShapeRectangle(lua_State* l) {

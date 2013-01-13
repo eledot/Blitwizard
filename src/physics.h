@@ -21,6 +21,9 @@
 
 */
 
+#ifndef BLITWIZARD_PHYSICS_H_
+#define BLITWIZARD_PHYSICS_H_
+
 #if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
 
 #ifdef __cplusplus
@@ -56,6 +59,9 @@ void physics_Set3dCollisionCallback(struct physicsworld* world, int (*callback)(
 // Obtain shape info struct (for use in object creation):
 struct physicsobjectshape;
 struct physicsobjectshape* physics_CreateEmptyShapes(int count);
+size_t physics_GetShapeSize(void);  // get size of one shape struct
+#define GET_SHAPE(shapes,x) (struct physicsobjectshape*) \
+      (((char*)shapes)+physics_GetShapeSize())
 #ifdef USE_PHYSICS2D
 // Set the given shape to one of those specified shapes:
 void physics_Set2dShapeRectangle(struct physicsobjectshape* shape, double width, double height);
@@ -73,10 +79,10 @@ void physics_Get2dShapeOffsetRotation(struct physicsobjectshape* shape, double* 
 void physics_Set3dShapeDecal(struct physicsobjectshape* shape,
 double width, double height);
 void physics_Set3dShapeBox(struct physicsobjectshape* shape, double x_size,
-double y_size, z_size);
+double y_size, double z_size);
 void physics_Set3dShapeBall(struct physicsobjectshape* shape, double diameter);
 void physics_Set3dShapeEllipticBall(struct physicsobjectshape* shape,
-double x_size, double y_size);
+double x_size, double y_size, double z_size);
 // Use those commands multiple times to construct those more complex shapes:
 void physics_Add3dShapeMeshTriangle(struct physicsobjectshape* shape,
 double x1, double y1, double z1,
@@ -96,22 +102,6 @@ struct physicsobject* physics_CreateObject(struct physicsworld* world, void* use
 // Destroy objects or obtain their userdata:
 void physics_DestroyObject(struct physicsobject* object);
 void* physics_GetObjectUserdata(struct physicsobject* object);
-
-// Create an edge list object (complex 2d geometry):
-#ifdef USE_PHYSICS2D
-struct physicsobjectedgecontext;
-struct physicsobjectedgecontext* physics_Create2dObjectEdges_Begin(struct physicsworld* world, void* userdata, int movable, double friction);
-void physics2d_Create2dObjectEdges_Do(struct physicsobjectedgecontext* context, double x1, double y1, double x2, double y2);
-struct physicsobject* physics2d_Create2dObjectEdges_End(struct physicsobjectedgecontext* context);
-#endif
-
-// Create a triangle list object (static complex 3d geometry):
-#ifdef USE_PHYSICS3D
-struct physicsobjecttrianglecontext;
-struct physicsobjecttrianglecontext* physics_Create3dObjectTriangles_Begin(struct physicsworld* world, void* userdata, int movable, double friction);
-void physics2d_Create3dObjectTriangles_Do(struct physicsobjecttrianglecontext* context, double x1, double y1, double x2, double y2);
-struct physicsobject* physics2d_Create3dObjectTriangles_End(struct physicsobjecttrianglecontext* context);
-#endif
 
 // Get/set various properties
 void physics_SetMass(struct physicsobject* obj, double mass);
@@ -169,5 +159,7 @@ int physics_Ray3d(struct physicsworld* world, double startx, double starty, doub
 }
 #endif
 
-#endif
+#endif  // USE_PHYSICS2D || USE_PHYSICS3D
+
+#endif  // BLITWIZARD_PHYSICS_H_
 
