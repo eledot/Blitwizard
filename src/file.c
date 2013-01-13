@@ -75,6 +75,23 @@ void file_MakeSlashesNative(char* path) {
     }
 }
 
+size_t file_GetSize(const char* name) {
+    // open file
+    FILE* r = fopen(name, "rb");
+    if (!r) {
+        return 0;
+    }
+
+    // obtain file size by seeking to end
+    fseek(r, 0L, SEEK_END);
+    size_t size = ftell(r);
+
+    // close file again
+    fclose(r);
+
+    return size;
+}
+
 int file_Cwd(const char* path) {
     while (path[0] == '.' && strlen(path) > 1 && file_IsDirectorySeparator(path[1])) {
         path += 2;
@@ -370,7 +387,7 @@ int file_ContentToBuffer(const char* path, char** buf, size_t* buflen) {
     }
     // obtain file size
     fseek(r, 0L, SEEK_END);
-    unsigned int size = ftell(r);
+    size_t size = ftell(r);
     fseek(r, 0L, SEEK_SET);
     // allocate buf
     char* fbuf = malloc(size+1);

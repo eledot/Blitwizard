@@ -23,7 +23,7 @@
 
 /// Blitwizard namespace
 // @author Jonas Thiem  (jonas.thiem@gmail.com)
-// @copyright 2011-2012
+// @copyright 2011-2013
 // @license zlib
 // @module blitwizard
 

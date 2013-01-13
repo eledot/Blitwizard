@@ -57,19 +57,41 @@ void physics_Set3dCollisionCallback(struct physicsworld* world, int (*callback)(
 struct physicsobjectshape;
 struct physicsobjectshape* physics_CreateEmptyShapes(int count);
 #ifdef USE_PHYSICS2D
+// Set the given shape to one of those specified shapes:
 void physics_Set2dShapeRectangle(struct physicsobjectshape* shape, double width, double height);
 void physics_Set2dShapeOval(struct physicsobjectshape* shape, double width, double height);
 void physics_Set2dShapeCircle(struct physicsobjectshape* shape, double diameter);
+// Use those commands multiple times to construct those more complex shapes:
+void physics_Add2dShapePolygonPoint(struct physicsobjectshape* shape, double xoffset, double yoffset);
+void physics_Add2dShapeEdgeList(struct physicsobjectshape* shape, double x1, double y1, double x2, double y2);
+// Use those commands to move your shapes around from the center:
 void physics_Set2dShapeOffsetRotation(struct physicsobjectshape* shape, double xoffset, double yoffset, double rotation);
 void physics_Get2dShapeOffsetRotation(struct physicsobjectshape* shape, double* xoffset, double* yoffset, double* rotation);
 #endif
 #ifdef USE_PHYSICS3D
-
+// Set the given shape to one of those specified shapes:
+void physics_Set3dShapeDecal(struct physicsobjectshape* shape,
+double width, double height);
+void physics_Set3dShapeBox(struct physicsobjectshape* shape, double x_size,
+double y_size, z_size);
+void physics_Set3dShapeBall(struct physicsobjectshape* shape, double diameter);
+void physics_Set3dShapeEllipticBall(struct physicsobjectshape* shape,
+double x_size, double y_size);
+// Use those commands multiple times to construct those more complex shapes:
+void physics_Add3dShapeMeshTriangle(struct physicsobjectshape* shape,
+double x1, double y1, double z1,
+double x2, double y2, double z2,
+double x3, double y3, double z3);
+// Use those commands to move your shapes around from the center:
+void physics_Set3dShapeOffsetRotation(struct physicsobjectshape* shape,
+double xoffset, double yoffset, double zoffset, double rotation);
+void physics_Get3dShapeOffsetRotation(struct physicsobjectshape* shape,
+double* xoffset, double* yoffset, double* zoffset, double* rotation);
 #endif
-void physics_DestroyShape(struct physicsobjectshape* shape);
+void physics_DestroyShapes(struct physicsobjectshape* shape, int count);
 
 // Create an object with a given pointer list to shape structs (ended with a NULL pointer):
-struct physicsobject* physics_CreateObject(struct physicsworld* world, void* userdata, int movable, double friction, struct physicsobjectshape* shapelist);
+struct physicsobject* physics_CreateObject(struct physicsworld* world, void* userdata, int movable, struct physicsobjectshape* shapelist);
 
 // Destroy objects or obtain their userdata:
 void physics_DestroyObject(struct physicsobject* object);

@@ -23,7 +23,7 @@
 
 /// Blitwizard namespace
 // @author Jonas Thiem  (jonas.thiem@gmail.com)
-// @copyright 2011-2012
+// @copyright 2011-2013
 // @license zlib
 // @module blitwizard
 
@@ -213,17 +213,186 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
     }
 
     // construct a shape list from the given shape tables:
+    struct physicsobjectshape* shapes =
+    physics_CreateEmptyShapes(argcount);
     int i = 0;
     while (i < argcount) {
         lua_pushstring(l, "type");
         lua_gettable(l, 2+i);
         if (lua_type(l, -1) != LUA_TSTRING) {
+            physics_DestroyShapes(shapes, argcount);
             return haveluaerror(l, badargument2, 2+i,
             "blitwizard.object:enableCollision",
-            "Shape has invalid type: expected string");
+            "shape has invalid type: expected string");
         } else {
+            // check the shape type being valid:
             const char* shapetype = lua_tostring(l, -1);
-
+            if (obj->is3d) {
+                // see if this is a usable 3d shape:
+                int isok = 0;
+                if (strcmp(shapetype, "decal") == 0) {
+                    isok = 1;
+                    // flat 3d decal with width and height
+                    int width,height;
+                    lua_pushstring(l, "width");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"decal\" needs \"width\" specified"
+                        " as a number");
+                    }
+                    width = lua_tonumber(l, -1);
+                    lua_pushstring(l, "height");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"decal\" needs \"height\" specified"
+                        " as a number");
+                    }
+                    height = lua_tonumber(l, -1);
+                    physics_Set3dShapeDecal(shapes+i,
+                    width, height);
+                }
+                if (strcmp(shapetype, "ball") == 0) {
+                    isok = 1;
+                    // 3d ball with diameter
+                    int diameter;
+                    lua_pushstring(l, "diameter");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"ball\" needs \"diameter\" specified"
+                        " as a number");
+                    }
+                    diameter = lua_tonumber(l, -1);
+                    physics_Set3dShapeBall(shapes+i,
+                    diameter);
+                }
+                if (strcmp(shapetype, "box") == 0 ||
+                strcmp(shapetype, "elliptic ball") == 0) {
+                    isok = 1;
+                    // box or elliptic ball with x/y/z_size
+                    int x_size,y_size,z_size;
+                    lua_pushstring(l, "x_size");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"box\" or \"elliptic ball\" needs"
+                        " \"x_size\" specified as a number");
+                    }
+                    x_size = lua_tonumber(l, -1);
+                    lua_pushstring(l, "y_size");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"box\" or \"elliptic ball\" needs"
+                        " \"y_size\" specified as a number");
+                    }
+                    y_size = lua_tonumber(l, -1);
+                    lua_pushstring(l, "y_size");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"box\" or \"elliptic ball\" needs"
+                        " \"y_size\" specified as a number");
+                    }
+                    z_size = lua_tonumber(l, -1);
+                    if (strcmp(shapetype, "box") == 0) {
+                        physics_Set3dShapeBox(shapes+i,
+                        x_size, y_size, z_size);
+                    } else {
+                        physics_Set3dShapeBox(shapes+i,
+                        x_size, y_size, z_size);
+                    }
+                }
+                if (!isok) {
+                    // not a valid shape for a 3d object
+                    char invalidshape[50];
+                    snprintf(invalidshape, sizeof(invalidshape),
+                    "not a valid shape for a 3d object: \"%s\"", shapetype);
+                    invalidshape[sizeof(invalidshape)-1] = 0;
+                    physics_DestroyShapes(shapes, argcount);
+                    return haveluaerror(l, badargument2, 2+i,
+                    "blitwizard.object:enableCollision",
+                    invalidshape);
+                }
+            } else {
+                // see if this is a usable 2d shape:
+                int isok = 0;
+                if (strcmp(shapetype, "rectangle") == 0 ||
+                strcmp(shapetype, "oval") == 0) {
+                    isok = 1;
+                    // rectangle or oval with width and height
+                    int width,height;
+                    lua_pushstring(l, "width");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"rectangle\" or \"oval\" needs"
+                        " \"width\" specified as a number");
+                    }
+                    width = lua_tonumber(l, -1);
+                    lua_pushstring(l, "height");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"rectangle\" or \"oval\" needs"
+                        " \"height\" specified as a number");
+                    }
+                    height = lua_tonumber(l, -1);
+                    if (strcmp(shapetype, "oval") == 0) {
+                        physics_Set2dShapeOval(shapes+i,
+                        width, height);
+                    } else {
+                        physics_Set2dShapeRectangle(shapes+i,
+                        width, height);
+                    }
+                }
+                if (strcmp(shapetype, "circle") == 0) {
+                    isok = 1;
+                    // rectangle or oval with width and height
+                    int diameter;
+                    lua_pushstring(l, "diameter");
+                    lua_gettable(l, 2+i);
+                    if (lua_table(l, -1) != LUA_TNUMBER) {
+                        physics_DestroyShapes(shapes, argcount);
+                        return haveluaerror(l, badargument2, 2+i,
+                        "blitwizard.object:enableCollision",
+                        "shape \"circle\" needs \"diameter\" specified"
+                        " as a number");
+                    }
+                    diameter = lua_tonumber(l, -1);
+                    physics_Set2dShapeCircle(shapes+i,
+                    diameter);
+                }
+                if (!isok) {
+                    // not a valid shape for a 2d object
+                    char invalidshape[50];
+                    snprintf(invalidshape, sizeof(invalidshape),
+                    "not a valid shape for a 2d object: \"%s\"", shapetype);
+                    invalidshape[sizeof(invalidshape)-1] = 0;
+                    physics_DestroyShapes(shapes, argcount);
+                    return haveluaerror(l, badargument2, 2+i,
+                    "blitwizard.object:enableCollision",
+                    invalidshape);
+                }
+            }
             lua_pop(l, 1);  // pop shapetype string
         }            
         i++;
@@ -241,29 +410,32 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
     }
 
     // create a physics object from the shapes:
-    if (obj->is3d) {
-        obj->physics->object = physics_CreateObject(main_DefaultPhysics3dPtr(),
-        1);
-    } else {
-        obj->physics->object = physics_CreateObject(main_DefaultPhysics2dPtr(),
-        0);
-    }
+    obj->physics->object = physics_CreateObject(main_DefaultPhysics3dPtr(),
+    obj, movable, shapes);
+    physics_DestroyShapes(shapes, argcount);
 
     obj->physics->movable = 1;
     return 1;
 }
 
 /// This is how you should submit shape info to object:enableStaticCollision and object:enableMovableCollision (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)
-// @tfield string type The shape type, for 2d shapes: "quad", "polygon", "circle", "oval", "edge list" (simply a list of lines that don't need to be necessarily connected as it is for the polygon), for 3d shapes: "decal" (= 3d quad), "box", "ball", "elliptic ball" (deformed ball with possibly non-uniform radius, e.g. rather a capsule), "triangle mesh" (a list of 3d triangles)
-// @tfield number width required for "quad", "oval" and "decal"
-// @tfield number height required for "quad", "oval" and "decal"
-// @tfield number radius required for "circle" and "ball"
+// @tfield string type The shape type, for 2d shapes: "rectangle", "circle", "oval", "polygon" (needs to be convex!), "edge list" (simply a list of lines that don't need to be necessarily connected as it is for the polygon), for 3d shapes: "decal" (= 3d rectangle), "box", "ball", "elliptic ball" (deformed ball with possibly non-uniform radius, e.g. rather a capsule), "triangle mesh" (a list of 3d triangles)
+// @tfield number width required for "rectangle", "oval" and "decal"
+// @tfield number height required for "rectangle", "oval" and "decal"
+// @tfield number diameter required for "circle" and "ball"
 // @tfield number x_size required for "box" and "elliptic ball"
 // @tfield number y_size required for "box" and "elliptic ball"
 // @tfield number z_size required for "box" and "elliptic ball"
-// @tfield table points required for "polygon": a list of two pair coordinates which specify the edge points of the polygon, e.g. [ [ 0, 0 ], [ 1, 0 ], [ 0, 1 ] ]
+// @tfield table points required for "polygon": a list of two pair coordinates which specify the corner points of the polygon, e.g. [ [ 0, 0 ], [ 1, 0 ], [ 0, 1 ] ]  (keep in mind the polygon needs to be convex!)
 // @tfield table edges required for "edge list": a list of edges, whereas an edge is itself a 2-item list of two 2d points, each 2d point being a list of two coordinates. Example: [ [ [ 0, 0 ], [ 1, 0 ] ], [ [ 0, 1 ], [ 1, 1 ] ] ] 
 // @tfield table triangles required for "triangle mesh": a list of triangles, whereas a triangle is itself a 3-item list of three 3d points, each 3d point being a list of three coordinates.
+// @tfield number x_offset (optional) x coordinate offset for any 2d or 3d shape, defaults to 0
+// @tfield number y_offset (optional) y coordinate offset for any 2d or 3d shape, defaults to 0
+// @tfield number z_offset (optional) z coordinate offset for any 3d shape, defaults to 0
+// @tfield number rotation (optional) rotation of any 2d shape 0..360 degree (defaults to 0)
+// @tfield number rotation_pan (optional) rotation of any 3d shape 0..360 degree left and right (horizontally)
+// @tfield number rotation_tilt (optional) rotation of any 3d shape 0..360 degree up and down, applied after horizontal rotation
+// @tfield number rotation_roll (optional) rotation of any 3d shape 0..360 degree around itself while remaining faced forward (basically overturning/leaning on the side), applied after the horizontal and vertical rotations
 // @table shape_info
 
 /// Enable the physics simulation on the given object and allow other
