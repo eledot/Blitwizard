@@ -126,7 +126,8 @@ void physics_Set2dRotationRestriction(struct physicsobject* obj, int restricted)
 #endif
 #ifdef USE_PHYSICS3D
 void physics_Set3dRotationRestrictionAroundAxis(struct physicsobject* obj, int restrictedaxisx, int restrictedaxisy, int restrictedaxisz);
-void physics_Set3dRotationRestrictionAllAXis(struct physicsobject* obj, int restrictedtotally);
+void physics_Set3dRotationRestrictionAllAxis(struct physicsobject* obj);
+void physics_Set3dNoRotationRestriction(void);
 #endif
 void physics_SetFriction(struct physicsobject* obj, double friction);
 void physics_SetAngularDamping(struct physicsobject* obj, double damping);

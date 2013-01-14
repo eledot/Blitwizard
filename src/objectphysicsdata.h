@@ -37,12 +37,18 @@ struct objectphysicsdata {
     int refcount;
     int movable;
     struct physicsobject* object;
+    int deleted;
+
     double friction;
     double restitution;
     double lineardamping;
     double angulardamping;
-    int rotationrestriction;
-    int deleted;
+    int rotationrestriction2d;
+    int rotationrestriction3dfull;
+    int rotationrestriction3daxis;
+    double rotationrestriction3daxisx;
+    double rotationrestriction3daxisy;
+    double rotationrestriction3daxisz;
 };
 
 #endif  // USE_PHYSICS2D || USE_PHYSICS3D
