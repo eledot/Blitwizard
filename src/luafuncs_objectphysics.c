@@ -459,7 +459,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
 // provide shape information that specifies the desired collision shape
 // of the object (not necessarily similar to its visual appearance).
 // @function enableStaticCollision
-// @tparam table shape_info an object:shape_info table with a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
+// @tparam table shape_info a @{object:shape_info|shape_info} table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
 int luafuncs_enableStaticCollision(lua_State* l) {
     return luafuncs_enableCollision(l, 0);
 }
@@ -473,9 +473,9 @@ int luafuncs_enableStaticCollision(lua_State* l) {
 // Note: some complex shape types are unavailable for
 // movable objects, and some shapes (very thin/long, very complex or
 // very tiny or huge) can be unstable. Create all your movable objects
-// roughly of sizes between 0.1 and 10 (the shape size) to avoid instability.
+// roughly of sizes between 0.1 and 10 to avoid instability.
 // @function enableMovableCollision
-// @tparam table shape_info an object:shape_info table with a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
+// @tparam table shape_info a @{object:shape_info|shape_info} table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
 int luafuncs_enableMovableCollision(lua_State* l) {
     return luafuncs_enableCollision(l, 1);
 }
@@ -513,9 +513,10 @@ int luafuncs_freeObjectPhysicsData(struct objectphysicsdata* d) {
         lua_settable(l, LUA_REGISTRYINDEX);*/
 
         // delete physics body
-        physics2d_DestroyObject(obj->object);
-        obj->object = NULL;
+        physics2d_DestroyObject(d->object);
+        d->object = NULL;
     }
+    free(d);
     return 0;
 }
 
