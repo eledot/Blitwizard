@@ -437,7 +437,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
     return 1;
 }
 
-/// This is how you should submit shape info to object:enableStaticCollision and object:enableMovableCollision (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)
+/// This is how you should submit shape info to @{object:enableStaticCollision} and @{object:enableMovableCollision} (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)
 // @tfield string type The shape type, for 2d shapes: "rectangle", "circle", "oval", "polygon" (needs to be convex!), "edge list" (simply a list of lines that don't need to be necessarily connected as it is for the polygon), for 3d shapes: "decal" (= 3d rectangle), "box", "ball", "elliptic ball" (deformed ball with possibly non-uniform radius, e.g. rather a capsule), "triangle mesh" (a list of 3d triangles)
 // @tfield number width required for "rectangle", "oval" and "decal"
 // @tfield number height required for "rectangle", "oval" and "decal"
@@ -476,7 +476,7 @@ int luafuncs_enableStaticCollision(lua_State* l) {
 //
 // Note: some complex shape types are unavailable for
 // movable objects, and some shapes (very thin/long, very complex or
-// very tiny or huge) can be unstable. Create all your movable objects
+// very tiny or huge) can be unstable for movables. Create all your movable objects
 // roughly of sizes between 0.1 and 10 to avoid instability.
 // @function enableMovableCollision
 // @tparam table shape_info a @{object:shape_info|shape_info} table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
@@ -558,9 +558,21 @@ static void applyobjectsettings(struct blitwizardobject* obj) {
     obj->physics->lineardamping);
 }
 
+/// Apply a physics impulse onto an object (which will make it move,
+// for example as if someone had pushed it).
+// This will only work if the object has movable collision enabled through @{object:enableMovableCollision|object:enableMovableCollision}.
+// IMPORTANT: Some parameters are not present for 2d objects, see list below.
+// @function impulse
+// @tparam number source_x the x source coordinate from where the push will be given
+// @tparam number source_y the y source coordinate
+// @tparam number source_z (parameter only present for 3d objects) the z source coordinate
+// @tparam number force_x the x coordinate of the force vector applied through the impulse
+// @tparam number force_y the y coordinate of the force vector
+// @tparam number force_z (parameter only present for 3d objects) the z coordinate of the force vector
 int luafuncs_impulse(lua_State* l) {
     struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
     "blitwizard.object:impulse");
+    char funcname[] = "blitwizard.object.impulse";
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
         return lua_error(l);
@@ -573,27 +585,53 @@ int luafuncs_impulse(lua_State* l) {
         lua_pushstring(l, "Impulse can be only applied to movable objects");
         return lua_error(l);
     }
-    if (lua_type(l, 2) != LUA_TNUMBER) {
-        lua_pushstring(l, "Second parameter is not a valid source x number");
-        return lua_error(l);
+    if (lua_type(l, 2) != LUA_TNUMBER) {  // source x
+        return haveluaerror(l, badargument1, 2, funcname, "number",
+        lua_strtype(l, 2));
     }
-    if (lua_type(l, 3) != LUA_TNUMBER) {
-        lua_pushstring(l, "Third parameter is not a valid source y number");
-        return lua_error(l);
+    if (lua_type(l, 3) != LUA_TNUMBER) {  // source y
+        return haveluaerror(l, badargument1, 3, funcname, "number",
+        lua_strtype(l, 3));
     }
-    if (lua_type(l, 4) != LUA_TNUMBER) {
-        lua_pushstring(l, "Fourth parameter is not a valid force x number");
-        return lua_error(l);
+    if (obj->is3d) {
+        if (lua_type(l, 4) != LUA_TNUMBER) {  // source z
+            return haveluaerror(l, badargument1, 4, funcname,
+            "number", lua_strtype(l, 4));
+        }
     }
-    if (lua_type(l, 5) != LUA_TNUMBER) {
-        lua_pushstring(l, "Fifth parameter is not a valid force y number");
-        return lua_error(l);
+    if (lua_type(l, 4+obj->is3d) != LUA_TNUMBER) { // force x
+        return haveluaerror(l, badargument1, 4+obj->is3d, funcname, "number",
+        lua_strtype(l, 4+obj->is3d));
     }
-    double sourcex = lua_tonumber(l, 2);
-    double sourcey = lua_tonumber(l, 3);
-    double forcex = lua_tonumber(l, 4);
-    double forcey = lua_tonumber(l, 5);
-    physics2d_ApplyImpulse(obj->object, forcex, forcey, sourcex, sourcey);
+    if (lua_type(l, 5+obj->is3d) != LUA_TNUMBER) { // force y
+        return haveluaerror(l, badargument1, 5+obj->is3d, funcname, "number",
+        lua_strtype(l, 5+obj->is3d));
+    }
+    if (obj->is3d) {
+        if (lua_type(l, 7) != LUA_TNUMBER) { // force z
+            return haveluaerror(l, badargument1, 7, funcname, "number",
+            lua_strtype(l, 7));
+        }
+    }
+    double sourcex,sourcey,sourcez;
+    double forcex, forcey, forcez;
+    sourcex = lua_tonumber(l, 2);
+    sourcey = lua_tonumber(l, 3);
+    if (obj->is3d) {
+        sourcez = lua_tonumber(l, 4);
+    }
+    forcex = lua_tonumber(l, 4+obj->is3d);
+    forcey = lua_tonumber(l, 5+obj->is3d);
+    if (obj->is3d) {
+        forcez = lua_tonumber(l, 7);
+    }
+    if (obj->is3d) {
+        physics_Apply3dImpulse(obj->physics->object,
+        forcex, forcey, forcez, sourcex, sourcey, sourcez);
+    } else {
+        physics_Apply2dImpulse(obj->physics->object,
+        forcex, forcey, sourcex, sourcez);
+    }
     return 0;
 }
 
@@ -640,20 +678,30 @@ int luafuncs_ray(lua_State* l, int use3d) {
         targetz = lua_tonumber(l, 6);
     }
 
-    struct physicsobject2d* obj;
+    struct physicsobject* obj;
     double hitpointx,hitpointy,hitpointz;
     double normalx,normaly,normalz;
 
     int returnvalue;
     if (use3d) {
-        returnvalue = physics3d_Ray(main_DefaultPhysics2dPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly);
+        returnvalue = physics_Ray3d(main_DefaultPhysics2dPtr(),
+        startx, starty, startz,
+        targetx, targety, targetz,
+        &hitpointx, &hitpointy, &hitpointz,
+        &obj,
+        &normalx, &normaly, &normalz);
     } else {
-        returnvalue = physics3d_Ray(main_DefaultPhysics2dPtr(), startx, starty, targetx, targety, &hitpointx, &hitpointy, &obj, &normalx, &normaly);
+        returnvalue = physics_Ray2d(main_DefaultPhysics2dPtr(),
+        startx, starty,
+        targetx, targety,
+        &hitpointx, &hitpointy,
+        &obj,
+        &normalx, &normaly);
     }
     
     if (returnvalue) {
         // create a new reference to the (existing) object the ray has hit:
-        luafuncs_pushbobjidref(l, (struct blitwizardobject*)physics2d_GetObjectUserdata(obj));
+        luafuncs_pushbobjidref(l, (struct blitwizardobject*)physics_GetObjectUserdata(obj));
 
         // push the other information we also want to return:
         lua_pushnumber(l, hitpointx);
@@ -752,6 +800,7 @@ int luafuncs_setMass(lua_State* l) {
     }
     double centerx = 0;
     double centery = 0;
+    double centerz = 0;
     double mass = lua_tonumber(l, 2);
     if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
         if (lua_type(l, 3) != LUA_TNUMBER) {
@@ -759,20 +808,30 @@ int luafuncs_setMass(lua_State* l) {
             return lua_error(l);
         }
         centerx = lua_tonumber(l, 3);
-    }
-    if (lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL) {
+
         if (lua_type(l, 4) != LUA_TNUMBER) {
             lua_pushstring(l, "Fourth parameter is not a valid y center offset number");
             return lua_error(l);
         }
         centery = lua_tonumber(l, 4);
+
+        if (lua_type(l, 5) != LUA_TNUMBER) {
+            return haveluaerror(l, badargument1, 5, "blitwiz.object:setMass", "number", lua_strtype(l, 5));
+        }
+        centerz = lua_tonumber(l, 5);
     }
-    if (!obj->object) {
+    if (!obj->physics->object) {
         lua_pushstring(l, "Object has no shape");
         return lua_error(l);
     }
-    physics2d_SetMass(obj->object, mass);
-    physics2d_SetMassCenterOffset(obj->object, centerx, centery);
+    physics_SetMass(obj->physicsobject, mass);
+    if (obj->is3d) {
+        physics_Set3dMassCenterOffset(obj->physics->object,
+        centerx, centery, centerz);
+    } else {
+        physics_Set2dMassCenterOffset(obj->physics->object,
+        centerx, centery);
+    }
     return 0;
 }
 

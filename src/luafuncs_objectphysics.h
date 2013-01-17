@@ -35,15 +35,13 @@
 #include "physics.h"
 #include "objectphysicsdata.h"
 
-int luafuncs_createMovableObject(lua_State* l);
-int luafuncs_createStaticObject(lua_State* l);
+int luafuncs_enableStaticCollision(lua_State* l);
+int luafuncs_enableMovableCollision(lua_State* l);
 int luafuncs_destroyObject(lua_State* l);
-int luafuncs_setShapeRectangle(lua_State* l);
-int luafuncs_setShapeEdges(lua_State* l);
-int luafuncs_setShapeCircle(lua_State* l);
-int luafuncs_setShapeOval(lua_State* l);
-int luafuncs_ray(lua_State* l);
+int luafuncs_ray2d(lua_State* l);
+int luafuncs_ray3d(lua_State* l);
 int luafuncs_restrictRotation(lua_State* l);
+int luafuncs_restrictRotationAroundAxis(lua_State* l);
 int luafuncs_impulse(lua_State* l);
 int luafuncs_setMass(lua_State* l);
 int luafuncs_setRestitution(lua_State* l);

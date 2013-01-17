@@ -145,7 +145,7 @@ void physics_Apply2dImpulse(struct physicsobject* obj, double forcex, double for
 void physics_Get3dPosition(struct physicsobject* obj, double* x, double* y, double* z);
 void physics_Get3dRotationQuaternion(struct physicsobject* obj, double* qx, double* qy, double* qz, double* qrot);
 void physics_Warp3d(struct physicsobject* obj, double x, double y, double qx, double qy, double qz, double qrot);
-void physics_Apply3dImpulse(struct physicsobject* obj, double forcex, double forcey, double sourcex, double sourcey);
+void physics_Apply3dImpulse(struct physicsobject* obj, double forcex, double forcey, double forcez, double sourcex, double sourcey, double sourcez);
 #endif
 
 // Collision test ray
