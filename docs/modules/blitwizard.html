@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Blitwizard documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>blitwizard</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Class_object">Class object</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul>
+  <li><strong>blitwizard</strong></li>
+  <li><strong>blitwizard</strong></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>blitwizard</code></h1>
+
+<p>Blitwizard namespace</p>
+<p></p>
+    <h3>Info:</h3>
+    <ul>
+        <li><strong>Copyright</strong>: 2011-2013</li>
+        <li><strong>License</strong>: zlib</li>
+        <li><strong>Author</strong>: Jonas Thiem  (jonas.thiem@gmail.com)</li>
+    </ul>
+
+
+<h2><a href="#Class_object">Class object</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#object:shape_info">object:shape_info</a></td>
+	<td class="summary">This is how you should submit shape info to <a href="../modules/blitwizard.html#object:enableStaticCollision">object:enableStaticCollision</a> and <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a> (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:enableStaticCollision">object:enableStaticCollision&nbsp;(shape_info)</a></td>
+	<td class="summary">Enable the physics simulation on the given object and allow other
+ objects to collide with it.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:enableMovableCollision">object:enableMovableCollision&nbsp;(shape_info)</a></td>
+	<td class="summary">Enable the physics simulation on the given object and make it
+ movable and collide with other movable and static objects.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:disableCollision">object:disableCollision&nbsp;()</a></td>
+	<td class="summary">Disable the physics simulation on an object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:impulse">object:impulse&nbsp;(source_x, source_y, source_z, force_x, force_y, force_z)</a></td>
+	<td class="summary">Apply a physics impulse onto an object (which will make it move,
+ for example as if someone had pushed it).</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2><a name="Class_object"></a>Class object</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "object:shape_info"></a>
+    <strong>object:shape_info</strong>
+    </dt>
+    <dd>
+    This is how you should submit shape info to <a href="../modules/blitwizard.html#object:enableStaticCollision">object:enableStaticCollision</a> and <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a> (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)
+
+    <h3>Fields:</h3>
+    <ul>
+      <li><span class="parameter">type</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+       The shape type, for 2d shapes: "rectangle", "circle", "oval", "polygon" (needs to be convex!), "edge list" (simply a list of lines that don't need to be necessarily connected as it is for the polygon), for 3d shapes: "decal" (= 3d rectangle), "box", "ball", "elliptic ball" (deformed ball with possibly non-uniform radius, e.g. rather a capsule), "triangle mesh" (a list of 3d triangles)</li>
+      <li><span class="parameter">width</span>
+        <span class="types"><span class="type">number</span></span>
+       required for "rectangle", "oval" and "decal"</li>
+      <li><span class="parameter">height</span>
+        <span class="types"><span class="type">number</span></span>
+       required for "rectangle", "oval" and "decal"</li>
+      <li><span class="parameter">diameter</span>
+        <span class="types"><span class="type">number</span></span>
+       required for "circle" and "ball"</li>
+      <li><span class="parameter">x_size</span>
+        <span class="types"><span class="type">number</span></span>
+       required for "box" and "elliptic ball"</li>
+      <li><span class="parameter">y_size</span>
+        <span class="types"><span class="type">number</span></span>
+       required for "box" and "elliptic ball"</li>
+      <li><span class="parameter">z_size</span>
+        <span class="types"><span class="type">number</span></span>
+       required for "box" and "elliptic ball"</li>
+      <li><span class="parameter">points</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+       required for "polygon": a list of two pair coordinates which specify the corner points of the polygon, e.g. [ [ 0, 0 ], [ 1, 0 ], [ 0, 1 ] ]  (keep in mind the polygon needs to be convex!)</li>
+      <li><span class="parameter">edges</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+       required for "edge list": a list of edges, whereas an edge is itself a 2-item list of two 2d points, each 2d point being a list of two coordinates. Example: [ [ [ 0, 0 ], [ 1, 0 ] ], [ [ 0, 1 ], [ 1, 1 ] ] ]</li>
+      <li><span class="parameter">triangles</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+       required for "triangle mesh": a list of triangles, whereas a triangle is itself a 3-item list of three 3d points, each 3d point being a list of three coordinates.</li>
+      <li><span class="parameter">x_offset</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) x coordinate offset for any 2d or 3d shape, defaults to 0</li>
+      <li><span class="parameter">y_offset</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) y coordinate offset for any 2d or 3d shape, defaults to 0</li>
+      <li><span class="parameter">z_offset</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) z coordinate offset for any 3d shape, defaults to 0</li>
+      <li><span class="parameter">rotation</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) rotation of any 2d shape 0..360 degree (defaults to 0)</li>
+      <li><span class="parameter">rotation_pan</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) rotation of any 3d shape 0..360 degree left and right (horizontally)</li>
+      <li><span class="parameter">rotation_tilt</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) rotation of any 3d shape 0..360 degree up and down, applied after horizontal rotation</li>
+      <li><span class="parameter">rotation_roll</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) rotation of any 3d shape 0..360 degree around itself while remaining faced forward (basically overturning/leaning on the side), applied after the horizontal and vertical rotations</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:enableStaticCollision"></a>
+    <strong>object:enableStaticCollision&nbsp;(shape_info)</strong>
+    </dt>
+    <dd>
+    Enable the physics simulation on the given object and allow other
+ objects to collide with it.  The object itself will remain static
+ - this is useful for immobile level geometry. You will be required to
+ provide shape information that specifies the desired collision shape
+ of the object (not necessarily similar to its visual appearance).
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">shape_info</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+       a <a href="../modules/blitwizard.html#object:shape_info">shape_info</a> table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:enableMovableCollision"></a>
+    <strong>object:enableMovableCollision&nbsp;(shape_info)</strong>
+    </dt>
+    <dd>
+    Enable the physics simulation on the given object and make it
+ movable and collide with other movable and static objects.
+ You will be required to
+ provide shape information that specifies the desired collision shape
+ of the object (not necessarily similar to its visual appearance).
+
+ Note: some complex shape types are unavailable for
+ movable objects, and some shapes (very thin/long, very complex or
+ very tiny or huge) can be unstable for movables. Create all your movable objects
+ roughly of sizes between 0.1 and 10 to avoid instability.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">shape_info</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+       a <a href="../modules/blitwizard.html#object:shape_info">shape_info</a> table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:disableCollision"></a>
+    <strong>object:disableCollision&nbsp;()</strong>
+    </dt>
+    <dd>
+    Disable the physics simulation on an object.  It will no longer collide
+ with anything.
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:impulse"></a>
+    <strong>object:impulse&nbsp;(source_x, source_y, source_z, force_x, force_y, force_z)</strong>
+    </dt>
+    <dd>
+    Apply a physics impulse onto an object (which will make it move,
+ for example as if someone had pushed it).
+ This will only work if the object has movable collision enabled through <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a>.
+ IMPORTANT: Some parameters are not present for 2d objects, see list below.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">source_x</span>
+        <span class="types"><span class="type">number</span></span>
+       the x source coordinate from where the push will be given</li>
+      <li><span class="parameter">source_y</span>
+        <span class="types"><span class="type">number</span></span>
+       the y source coordinate</li>
+      <li><span class="parameter">source_z</span>
+        <span class="types"><span class="type">number</span></span>
+       (parameter only present for 3d objects) the z source coordinate</li>
+      <li><span class="parameter">force_x</span>
+        <span class="types"><span class="type">number</span></span>
+       the x coordinate of the force vector applied through the impulse</li>
+      <li><span class="parameter">force_y</span>
+        <span class="types"><span class="type">number</span></span>
+       the y coordinate of the force vector</li>
+      <li><span class="parameter">force_z</span>
+        <span class="types"><span class="type">number</span></span>
+       (parameter only present for 3d objects) the z coordinate of the force vector</li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.3</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>
