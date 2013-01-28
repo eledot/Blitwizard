@@ -720,10 +720,28 @@ int luafuncs_ray(lua_State* l, int use3d) {
     return 1;
 }
 
+/// Do a ray collision test by shooting out a ray and checking where it hits
+// in 2d realm.
+// @function ray2d
+// @tparam number startx Ray starting point, x coordinate (please note the starting point shouldn't be inside the collision shape of an object)
+// @tparam number starty Ray starting point, y coordinate
+// @tparam number targetx Ray target point, x coordinate
+// @tparam number targety Ray target point, y coordinate
+// @treturn userdata Returns a @{object|blitwizard object} if an object was hit by the ray (the closest object that was hit), or otherwise it returns nil
 int luafuncs_ray2d(lua_State* l) {
     return luafuncs_ray(l, 0);
 }
 
+/// Do a ray collision test by shooting out a ray and checking where it hits
+// in 3d realm.
+// @function ray3d
+// @tparam number startx Ray starting point, x coordinate (please note the starting point shouldn't be inside the collision shape of an object)
+// @tparam number starty Ray starting point, y coordinate
+// @tparam number startz Ray starting point, z coordinate
+// @tparam number targetx Ray target point, x coordinate
+// @tparam number targety Ray target point, y coordinate
+// @tparam number targetz Ray target point, z coordinate
+// @treturn userdata Returns a @{object|blitwizard object} if an object was hit by the ray (the closest object that was hit), or otherwise it returns nil
 int luafuncs_ray3d(lua_State* l) {
     return luafuncs_ray(l, 1);
 }
@@ -748,8 +766,16 @@ int luafuncs_restrictRotation(lua_State* l) {
     return 0;
 }
 
+/// Set a gravity vector onto an object with movable collision enabled
+// (see @{object:enableMovableCollision|object:enableMovableCollision}).
+// If no parameters are provided,
+// the object gravity will be removed again.
+// @function setGravity
+// @tparam number gravity_x x coordinate of gravity vector
+// @tparam number gravity_y y coordinate of gravity vector
+// @tparam number gravity_z (only for 3d objects) z coordinate of gravity vector
 int luafuncs_setGravity(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:restrictRotation");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -762,14 +788,22 @@ int luafuncs_setGravity(lua_State* l) {
 
     int set = 0;
     double gx,gy;
-    if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
+
+    // if the necessary amount of vector coordinates is given,
+    // set new gravity vector:
+    if ((!obj->is3d && lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) ||
+    (obj->is3d && lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL)) {
         if (lua_type(l, 2) != LUA_TNUMBER) {
-            lua_pushstring(l, "Second parameter is not a valid gravity x number");
-            return lua_error(l);
+            return haveluaerror(l, badargument1, 2,
+            "blitwizard.object:setGravity", "number", lua_strtype(l, 1));
         }
         if (lua_type(l, 3) != LUA_TNUMBER) {
-            lua_pushstring(l, "Third parameter is not a valid gravity y number");
-            return lua_error(l);
+            return haveluaerror(l, badargument1, 3,
+            "blitwizard.object:setGravity", "number", lua_strtype(l, 2));
+        }
+        if (obj->is3d && lua_type(l, 4) != LUA_TNUMBER) {
+            return haveluaerror(l, badargument1, 4,
+            "blitwizard.object:setGravity", "number", lua_strtype(l, 3));
         }
         gx = lua_tonumber(l, 2);
         gy = lua_tonumber(l, 3);

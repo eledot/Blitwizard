@@ -89,6 +89,21 @@
 	<td class="summary">Apply a physics impulse onto an object (which will make it move,
  for example as if someone had pushed it).</td>
 	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:ray2d">object:ray2d&nbsp;(startx, starty, targetx, targety)</a></td>
+	<td class="summary">Do a ray collision test by shooting out a ray and checking where it hits
+ in 2d realm.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:ray3d">object:ray3d&nbsp;(startx, starty, startz, targetx, targety, targetz)</a></td>
+	<td class="summary">Do a ray collision test by shooting out a ray and checking where it hits
+ in 3d realm.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:setGravity">object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</a></td>
+	<td class="summary">Set a gravity vector onto an object with movable collision enabled
+ (see <a href="index.html#object:enableMovableCollision">object:enableMovableCollision</a>).</td>
+	</tr>
 </table>
 
 <br/>
@@ -304,6 +319,110 @@
       <li><span class="parameter">force_z</span>
         <span class="types"><span class="type">number</span></span>
        (parameter only present for 3d objects) the z coordinate of the force vector</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:ray2d"></a>
+    <strong>object:ray2d&nbsp;(startx, starty, targetx, targety)</strong>
+    </dt>
+    <dd>
+    Do a ray collision test by shooting out a ray and checking where it hits
+ in 2d realm.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">startx</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, x coordinate (please note the starting point shouldn't be inside the collision shape of an object)</li>
+      <li><span class="parameter">starty</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, y coordinate</li>
+      <li><span class="parameter">targetx</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, x coordinate</li>
+      <li><span class="parameter">targety</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, y coordinate</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">userdata</span></span>
+        Returns a <a href="index.html#Class_object">blitwizard object</a> if an object was hit by the ray (the closest object that was hit), or otherwise it returns nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:ray3d"></a>
+    <strong>object:ray3d&nbsp;(startx, starty, startz, targetx, targety, targetz)</strong>
+    </dt>
+    <dd>
+    Do a ray collision test by shooting out a ray and checking where it hits
+ in 3d realm.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">startx</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, x coordinate (please note the starting point shouldn't be inside the collision shape of an object)</li>
+      <li><span class="parameter">starty</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, y coordinate</li>
+      <li><span class="parameter">startz</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, z coordinate</li>
+      <li><span class="parameter">targetx</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, x coordinate</li>
+      <li><span class="parameter">targety</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, y coordinate</li>
+      <li><span class="parameter">targetz</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, z coordinate</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">userdata</span></span>
+        Returns a <a href="index.html#Class_object">blitwizard object</a> if an object was hit by the ray (the closest object that was hit), or otherwise it returns nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:setGravity"></a>
+    <strong>object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</strong>
+    </dt>
+    <dd>
+    Set a gravity vector onto an object with movable collision enabled
+ (see <a href="index.html#object:enableMovableCollision">object:enableMovableCollision</a>).
+ If no parameters are provided,
+ the object gravity will be removed again.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">gravity_x</span>
+        <span class="types"><span class="type">number</span></span>
+       x coordinate of gravity vector</li>
+      <li><span class="parameter">gravity_y</span>
+        <span class="types"><span class="type">number</span></span>
+       y coordinate of gravity vector</li>
+      <li><span class="parameter">gravity_z</span>
+        <span class="types"><span class="type">number</span></span>
+       (only for 3d objects) z coordinate of gravity vector</li>
     </ul>
 
 
