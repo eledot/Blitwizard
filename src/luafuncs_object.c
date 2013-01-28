@@ -137,9 +137,9 @@ struct blitwizardobject* toblitwizardobject(lua_State* l, int index, int arg, co
 /// Objects can have behaviour and collision info attached and move
 /// around. They are what eventually makes the action in your game!
 // @function new
-// @tparam boolean 3-dimensional specify 'true' if you wish this object to be a 3d object, or 'false' if you want it to be a flat 2d object
+// @tparam boolean 3d specify 'true' if you wish this object to be a 3d object, or 'false' if you want it to be a flat 2d object
 // @tparam string resource (optional) if you specify the file path to a resource here (optional), this resource will be loaded and used as a visual representation for the object. The resource must be a supported graphical object, e.g. an image (.png) or a 3d model (.mesh). You can also specify nil here if you don't want any resource to be used.
-// @tparam function behaviour the behaviour function which will be executed immediately after object creation.
+// @tparam function behaviour (optional) the behaviour function which will be executed immediately after object creation.
 static int luacfuncs_object_new(lua_State* l) {
     // first argument needs to be 2d/3d boolean:
     if (lua_type(l, 1) != LUA_TBOOLEAN) {
