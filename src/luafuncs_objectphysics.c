@@ -21,7 +21,10 @@
 
 */
 
-/// Blitwizard namespace
+/// Blitwizard namespace containing the generic
+// @{blitwizard.object|blitwizard game entity object} and various sub
+// namespaces for @{blitwizard.physics|physics},
+// @{blitwizard.graphics|graphics} and more.
 // @author Jonas Thiem  (jonas.thiem@gmail.com)
 // @copyright 2011-2013
 // @license zlib
@@ -488,7 +491,7 @@ int luafuncs_enableMovableCollision(lua_State* l) {
 // with anything.
 // @function disableCollision
 int luafuncs_disableCollision(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:disableCollision");
     assert(obj->refcount > 0);
 
@@ -570,7 +573,7 @@ static void applyobjectsettings(struct blitwizardobject* obj) {
 // @tparam number force_y the y coordinate of the force vector
 // @tparam number force_z (parameter only present for 3d objects) the z coordinate of the force vector
 int luafuncs_impulse(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:impulse");
     char funcname[] = "blitwizard.object.impulse";
     if (obj->deleted) {
@@ -586,30 +589,30 @@ int luafuncs_impulse(lua_State* l) {
         return lua_error(l);
     }
     if (lua_type(l, 2) != LUA_TNUMBER) {  // source x
-        return haveluaerror(l, badargument1, 2, funcname, "number",
+        return haveluaerror(l, badargument1, 1, funcname, "number",
         lua_strtype(l, 2));
     }
     if (lua_type(l, 3) != LUA_TNUMBER) {  // source y
-        return haveluaerror(l, badargument1, 3, funcname, "number",
+        return haveluaerror(l, badargument1, 2, funcname, "number",
         lua_strtype(l, 3));
     }
     if (obj->is3d) {
         if (lua_type(l, 4) != LUA_TNUMBER) {  // source z
-            return haveluaerror(l, badargument1, 4, funcname,
+            return haveluaerror(l, badargument1, 3, funcname,
             "number", lua_strtype(l, 4));
         }
     }
     if (lua_type(l, 4+obj->is3d) != LUA_TNUMBER) { // force x
-        return haveluaerror(l, badargument1, 4+obj->is3d, funcname, "number",
+        return haveluaerror(l, badargument1, 3+obj->is3d, funcname, "number",
         lua_strtype(l, 4+obj->is3d));
     }
     if (lua_type(l, 5+obj->is3d) != LUA_TNUMBER) { // force y
-        return haveluaerror(l, badargument1, 5+obj->is3d, funcname, "number",
+        return haveluaerror(l, badargument1, 4+obj->is3d, funcname, "number",
         lua_strtype(l, 5+obj->is3d));
     }
     if (obj->is3d) {
         if (lua_type(l, 7) != LUA_TNUMBER) { // force z
-            return haveluaerror(l, badargument1, 7, funcname, "number",
+            return haveluaerror(l, badargument1, 6, funcname, "number",
             lua_strtype(l, 7));
         }
     }
@@ -636,9 +639,15 @@ int luafuncs_impulse(lua_State* l) {
 }
 
 int luafuncs_ray(lua_State* l, int use3d) {
+    char func[64];
+    if (use3d) {
+        strcpy(func, "blitwizard.physics.ray3d");
+    } else {
+        strcpy(func, "blitwizard.physics.ray2d");
+    }
     if (lua_type(l, 1) != LUA_TNUMBER) {
-        lua_pushstring(l, "First parameter is not a valid start x position");
-        return lua_error(l);
+        return haveluaerror(l, badargument1, 1, func, "number",
+        lua_strtype(l, 1));
     }
     if (lua_type(l, 2) != LUA_TNUMBER) {
         lua_pushstring(l, "Second parameter is not a valid start y position");
@@ -720,32 +729,6 @@ int luafuncs_ray(lua_State* l, int use3d) {
     return 1;
 }
 
-/// Do a ray collision test by shooting out a ray and checking where it hits
-// in 2d realm.
-// @function ray2d
-// @tparam number startx Ray starting point, x coordinate (please note the starting point shouldn't be inside the collision shape of an object)
-// @tparam number starty Ray starting point, y coordinate
-// @tparam number targetx Ray target point, x coordinate
-// @tparam number targety Ray target point, y coordinate
-// @treturn userdata Returns a @{object|blitwizard object} if an object was hit by the ray (the closest object that was hit), or otherwise it returns nil
-int luafuncs_ray2d(lua_State* l) {
-    return luafuncs_ray(l, 0);
-}
-
-/// Do a ray collision test by shooting out a ray and checking where it hits
-// in 3d realm.
-// @function ray3d
-// @tparam number startx Ray starting point, x coordinate (please note the starting point shouldn't be inside the collision shape of an object)
-// @tparam number starty Ray starting point, y coordinate
-// @tparam number startz Ray starting point, z coordinate
-// @tparam number targetx Ray target point, x coordinate
-// @tparam number targety Ray target point, y coordinate
-// @tparam number targetz Ray target point, z coordinate
-// @treturn userdata Returns a @{object|blitwizard object} if an object was hit by the ray (the closest object that was hit), or otherwise it returns nil
-int luafuncs_ray3d(lua_State* l) {
-    return luafuncs_ray(l, 1);
-}
-
 int luafuncs_restrictRotation(lua_State* l) {
     struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
     "blitwizard.object:restrictRotation");
@@ -818,7 +801,7 @@ int luafuncs_setGravity(lua_State* l) {
 }
 
 int luafuncs_setMass(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:setMass");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -878,7 +861,7 @@ void transferbodysettings(struct physicsobject2d* oldbody, struct physicsobject2
 }
 
 int luafuncs_warp(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:warp");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -917,7 +900,7 @@ int luafuncs_warp(lua_State* l) {
 }
 
 int luafuncs_getPosition(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:getPosition");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -935,7 +918,7 @@ int luafuncs_getPosition(lua_State* l) {
 }
 
 int luafuncs_setRestitution(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:setRestitution");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -951,7 +934,7 @@ int luafuncs_setRestitution(lua_State* l) {
 }
 
 int luafuncs_setFriction(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:setFriction");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -967,7 +950,7 @@ int luafuncs_setFriction(lua_State* l) {
 }
 
 int luafuncs_setLinearDamping(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:setLinearDamping");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -983,7 +966,7 @@ int luafuncs_setLinearDamping(lua_State* l) {
 }
 
 int luafuncs_setAngularDamping(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:setAngularDamping");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -999,7 +982,7 @@ int luafuncs_setAngularDamping(lua_State* l) {
 }
 
 int luafuncs_getRotation(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:getRotation");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -1015,8 +998,8 @@ int luafuncs_getRotation(lua_State* l) {
     return 1;
 }
 
-int luafuncs_setShapeEdges(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+/*int luafuncs_setShapeEdges(lua_State* l) {
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:setShapeEdges");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
@@ -1092,7 +1075,7 @@ int luafuncs_setShapeEdges(lua_State* l) {
     }
     applyobjectsettings(obj);
     return 0;
-}
+}*/
 
 
 /*int luafuncs_setCollisionCallback(lua_State* l) {
@@ -1122,5 +1105,7 @@ int luafuncs_setShapeEdges(lua_State* l) {
 
     return 0;
 }*/
+
+
 
 

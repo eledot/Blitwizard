@@ -39,7 +39,8 @@
 <h2>Modules</h2>
 <ul>
   <li><strong>blitwizard</strong></li>
-  <li><strong>blitwizard</strong></li>
+  <li><a href="../modules/blitwizard.graphics.html">blitwizard.graphics</a></li>
+  <li><a href="../modules/blitwizard.physics.html">blitwizard.physics</a></li>
 </ul>
 
 </div>
@@ -48,7 +49,10 @@
 
 <h1>Module <code>blitwizard</code></h1>
 
-<p>Blitwizard namespace</p>
+<p>Blitwizard namespace containing the generic
+ <a href="../modules/blitwizard.html#Class_object">blitwizard game entity object</a> and various sub
+ namespaces for <a href="../modules/blitwizard.physics.html#">physics</a>,
+ <a href="../modules/blitwizard.graphics.html#">graphics</a> and more.</p>
 <p></p>
     <h3>Info:</h3>
     <ul>
@@ -60,6 +64,16 @@
 
 <h2><a href="#Class_object">Class object</a></h2>
 <table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#object:new">object:new&nbsp;(3d, resource, behaviour)</a></td>
+	<td class="summary">Create a new blitwizard object which is represented as a 2d or
+ 3d object in the game world.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:delete">object:delete&nbsp;()</a></td>
+	<td class="summary">Delete the given object explicitely, to make it instantly disappear
+ from the game world.</td>
+	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#object:shape_info">object:shape_info</a></td>
 	<td class="summary">This is how you should submit shape info to <a href="../modules/blitwizard.html#object:enableStaticCollision">object:enableStaticCollision</a> and <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a> (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)</td>
@@ -83,6 +97,11 @@
 	<td class="summary">Apply a physics impulse onto an object (which will make it move,
  for example as if someone had pushed it).</td>
 	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:setGravity">object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</a></td>
+	<td class="summary">Set a gravity vector onto an object with movable collision enabled
+ (see <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a>).</td>
+	</tr>
 </table>
 
 <br/>
@@ -92,6 +111,50 @@
     <h2><a name="Class_object"></a>Class object</h2>
 
     <dl class="function">
+    <dt>
+    <a name = "object:new"></a>
+    <strong>object:new&nbsp;(3d, resource, behaviour)</strong>
+    </dt>
+    <dd>
+    Create a new blitwizard object which is represented as a 2d or
+ 3d object in the game world.
+ 2d objects are on a separate 2d plane, and 3d objects are inside
+ the 3d world.
+ Objects can have behaviour and collision info attached and move
+ around. They are what eventually makes the action in your game!
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">3d</span>
+        <span class="types"><span class="type">boolean</span></span>
+       specify 'true' if you wish this object to be a 3d object, or 'false' if you want it to be a flat 2d object</li>
+      <li><span class="parameter">resource</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+       (optional) if you specify the file path to a resource here (optional), this resource will be loaded and used as a visual representation for the object. The resource must be a supported graphical object, e.g. an image (.png) or a 3d model (.mesh). You can also specify nil here if you don't want any resource to be used.</li>
+      <li><span class="parameter">behaviour</span>
+        <span class="types"><span class="type">function</span></span>
+       (optional) the behaviour function which will be executed immediately after object creation.</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:delete"></a>
+    <strong>object:delete&nbsp;()</strong>
+    </dt>
+    <dd>
+    Delete the given object explicitely, to make it instantly disappear
+ from the game world.
+
+
+
+
+
+
+</dd>
     <dt>
     <a name = "object:shape_info"></a>
     <strong>object:shape_info</strong>
@@ -254,6 +317,34 @@
       <li><span class="parameter">force_z</span>
         <span class="types"><span class="type">number</span></span>
        (parameter only present for 3d objects) the z coordinate of the force vector</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:setGravity"></a>
+    <strong>object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</strong>
+    </dt>
+    <dd>
+    Set a gravity vector onto an object with movable collision enabled
+ (see <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a>).
+ If no parameters are provided,
+ the object gravity will be removed again.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">gravity_x</span>
+        <span class="types"><span class="type">number</span></span>
+       x coordinate of gravity vector</li>
+      <li><span class="parameter">gravity_y</span>
+        <span class="types"><span class="type">number</span></span>
+       y coordinate of gravity vector</li>
+      <li><span class="parameter">gravity_z</span>
+        <span class="types"><span class="type">number</span></span>
+       (only for 3d objects) z coordinate of gravity vector</li>
     </ul>
 
 

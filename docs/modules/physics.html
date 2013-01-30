@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Blitwizard documentation</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>blitwizard</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Functions">Functions</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul>
+  <li><a href="../modules/blitwizard.html">blitwizard</a></li>
+  <li><strong>physics</strong></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>physics</code></h1>
+
+<p>Blitwizard namespace</p>
+<p></p>
+    <h3>Info:</h3>
+    <ul>
+        <li><strong>Copyright</strong>: 2011-2013</li>
+        <li><strong>License</strong>: zlib</li>
+        <li><strong>Author</strong>: Jonas Thiem  (jonas.thiem@gmail.com)</li>
+    </ul>
+
+
+<h2><a href="#Functions">Functions</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" nowrap><a href="#ray2d">ray2d&nbsp;(startx, starty, targetx, targety)</a></td>
+	<td class="summary">Do a ray collision test by shooting out a ray and checking where it hits
+ in 2d realm.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#ray3d">ray3d&nbsp;(startx, starty, startz, targetx, targety, targetz)</a></td>
+	<td class="summary">Do a ray collision test by shooting out a ray and checking where it hits
+ in 3d realm.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2><a name="Functions"></a>Functions</h2>
+
+    <dl class="function">
+    <dt>
+    <a name = "ray2d"></a>
+    <strong>ray2d&nbsp;(startx, starty, targetx, targety)</strong>
+    </dt>
+    <dd>
+    Do a ray collision test by shooting out a ray and checking where it hits
+ in 2d realm.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">startx</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, x coordinate (please note the starting point shouldn't be inside the collision shape of an object)</li>
+      <li><span class="parameter">starty</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, y coordinate</li>
+      <li><span class="parameter">targetx</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, x coordinate</li>
+      <li><span class="parameter">targety</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, y coordinate</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">userdata</span></span>
+        Returns a <a href="../modules/blitwizard.html#Class_object">blitwizard object</a> if an object was hit by the ray (the closest object that was hit), or otherwise it returns nil
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "ray3d"></a>
+    <strong>ray3d&nbsp;(startx, starty, startz, targetx, targety, targetz)</strong>
+    </dt>
+    <dd>
+    Do a ray collision test by shooting out a ray and checking where it hits
+ in 3d realm.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">startx</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, x coordinate (please note the starting point shouldn't be inside the collision shape of an object)</li>
+      <li><span class="parameter">starty</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, y coordinate</li>
+      <li><span class="parameter">startz</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray starting point, z coordinate</li>
+      <li><span class="parameter">targetx</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, x coordinate</li>
+      <li><span class="parameter">targety</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, y coordinate</li>
+      <li><span class="parameter">targetz</span>
+        <span class="types"><span class="type">number</span></span>
+       Ray target point, z coordinate</li>
+    </ul>
+
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">userdata</span></span>
+        Returns a <a href="../modules/blitwizard.html#Class_object">blitwizard object</a> if an object was hit by the ray (the closest object that was hit), or otherwise it returns nil
+    </ol>
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.3</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

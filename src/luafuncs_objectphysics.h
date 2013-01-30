@@ -21,8 +21,8 @@
 
 */
 
-#ifndef BLItWIZARD_OBJECTPHYSICS_H_
-#define BLITWIZARD_OBJECTPHYSICS_H_
+#ifndef BLItWIZARD_LUAFUNCS_OBJECTPHYSICS_H_
+#define BLITWIZARD_LUAFUNCS_OBJECTPHYSICS_H_
 
 #if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
 
@@ -62,5 +62,5 @@ int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physic
 
 #endif  // USE_PHYSICS2D || USE_PHYSICS3D
 
-#endif  // BLITWIZARD_OBJECTPHYSICS_H_
+#endif  // BLITWIZARD_LUAFUNCS_OBJECTPHYSICS_H_
 

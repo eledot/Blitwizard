@@ -21,7 +21,10 @@
 
 */
 
-/// Blitwizard namespace
+/// Blitwizard namespace containing the generic
+// @{blitwizard.object|blitwizard game entity object} and various sub
+// namespaces for @{blitwizard.physics|physics},
+// @{blitwizard.graphics|graphics} and more.
 // @author Jonas Thiem  (jonas.thiem@gmail.com)
 // @copyright 2011-2013
 // @license zlib
