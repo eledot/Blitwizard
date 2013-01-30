@@ -30,6 +30,9 @@
 // @license zlib
 // @module blitwizard
 
+#include <stdlib.h>
+#include <string.h>
+
 #include "os.h"
 #ifdef USE_SDL_GRAPHICS
 #include "SDL.h"
@@ -54,10 +57,12 @@ struct blitwizardobject* deletedobjects = NULL;
 
 void cleanupobject(struct blitwizardobject* o) {
     luafuncs_objectgraphics_unload(o);
+#if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
     if (o->physics) {
         luafuncs_freeObjectPhysicsData(o->physics);
         o->physics = NULL;
     }
+#endif
 }
 
 static int garbagecollect_blitwizobjref(lua_State* l) {

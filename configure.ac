@@ -839,7 +839,8 @@ AS_IF([test -z "$maybeos"],[
     # Check Xaw headers for Ogre3D:
     AS_IF([test "x$COMPILE_OGRE" = xyes], [
         AC_CHECK_HEADERS([X11/Xaw/Form.h],,[
-            AC_MSG_ERROR([Cannot find Xaw header files required for Ogre3D. Please install them or compile with --disable-ogre-graphics])
+            AC_WARN([Cannot find Xaw header files required for Ogre3D. No Ogre support possible.])
+            OGRE_GRAPHICS_FEATURE_ENABLED="no, need Xaw headers"
         ])
     ])
 
@@ -852,11 +853,15 @@ AS_IF([test -z "$maybeos"],[
         NEED_XHEADERS="yes"
     ])
     AC_CHECK_HEADERS([X11/Xlib.h],,[
-        AC_MSG_ERROR([Cannot find Xlib header files required for Ogre3D and SDL2. Please install them or compile with --disable-ogre-graphics and --disable-sdl-graphics])
+        AC_WARN([Cannot find Xlib header files required for Ogre3D and SDL2. No Ogre or SDL2 support possible.])
+        OGRE_GRAPHICS_FEATURE_ENABLED="no, need X11 headers"
+        SDL_GRAPHICS_FEATURE_ENABLED="no, need X11 headers"
     ])
     AS_IF([test "x$NEED_XHEADERS" = xyes], [
         AC_CHECK_HEADERS([X11/extensions/Xext.h],,[
-            AC_MSG_ERROR([Cannot find Xext header files required for Ogre3D and SDL2. Please install them or compile with --disable-ogre-graphics and --disable-sdl-graphics])
+            AC_MSG_ERROR([Cannot find Xext header files required for Ogre3D and SDL2. No Ogre3D or SDL2 support possible.])
+            OGRE_GRAPHICS_FEATURE_ENABLED="no, need Xext headers"
+            SDL_GRAPHICS_FEATURE_ENABLED="no, need Xext headers"
         ],[
 #include <X11/Xlib.h>
         ])

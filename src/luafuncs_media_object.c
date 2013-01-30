@@ -21,7 +21,7 @@
 
 */
 
-#include "luafuncs_object_media.h"
+#include "luafuncs_media_object.h"
 
 void luacfuncs_media_object_new(struct blitwizardobject* o) {
 

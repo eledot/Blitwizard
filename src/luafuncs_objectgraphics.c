@@ -21,7 +21,7 @@
 
 */
 
-#include "luafuncs_object_media.h"
+#include "luafuncs_objectgraphics.h"
 
 void luafuncs_objectgraphics_load(struct blitwizardobject* o,
 const char* resource) {

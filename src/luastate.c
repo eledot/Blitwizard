@@ -25,7 +25,8 @@
 #include "luaheader.h"
 #include "luastate.h"
 #include "luafuncs.h"
-#include "luafuncs_physics2d.h"
+#include "physics.h"
+#include "luafuncs_physics.h"
 #include "luafuncs_net.h"
 #include "luaerror.h"
 

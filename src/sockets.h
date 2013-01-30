@@ -49,7 +49,7 @@
 
 
 // start sockets
-int so_Startup(); // initialize socket system
+int so_Startup(void); // initialize socket system
 
 // basic socket creation & handling
 int so_CreateSocket(int addToSelect, int iptype);
@@ -58,7 +58,7 @@ int so_ConnectSocketToIP(int socket, const char* ip, unsigned int port);
 void so_CloseSocket(int socket);
 
 // the maximum length of a buffer that can hold all ips in string representation
-int so_GetIPLen();
+int so_GetIPLen(void);
 
 // === select() things ===
 
@@ -127,7 +127,7 @@ int so_ResolveBlocking(const char* host, int iptype, char* ipbuf, int ipbuflen);
 
 // === SSL initialization ===
 int so_StartupWithSSL(const char* pathtocertificate, const char* pathtokey); // initialize with SSL
-const char* so_SSLNotAvailable(); // if not NULL, then this contains an error message why there is no SSL
+const char* so_SSLNotAvailable(void); // if not NULL, then this contains an error message why there is no SSL
 
 // === SSL socket handling ===
 // NOTE: all those functions perfectly work on normal sockets if you simply
@@ -143,4 +143,5 @@ void so_CloseSSLSocket(int socket, void** sslptr);
 #define IPTYPE_IPV4 1
 #define IPTYPE_IPV6 2
 
-#endif
+#endif  // USE_SOCKETS
+

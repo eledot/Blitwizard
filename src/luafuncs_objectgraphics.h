@@ -24,6 +24,8 @@
 #ifndef BLITWIZARD_LUAFUNCS_OBJECTGRAPHICS_H_
 #define BLITWIZARD_LUAFUNCS_OBJECTGRAPHICS_H_
 
+#include "blitwizardobject.h"
+
 void luafuncs_objectgraphics_load(struct blitwizardobject* o,
 const char* resource);
 void luafuncs_objectgraphics_unload(struct blitwizardobject* o);

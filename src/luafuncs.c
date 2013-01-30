@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <float.h>
+#include <math.h>
 
 #include "luaheader.h"
 
