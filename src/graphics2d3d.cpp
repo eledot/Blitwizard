@@ -141,7 +141,7 @@ int graphics_Init(char** error, int use3dgraphics) {
     graphics3d = (use3dgraphics ? 1 : 0);
 
 #ifdef USE_SDL_GRAPHICS
-    if (graphics3d) {
+    if (!graphics3d) {
         // set scaling settings
         SDL_SetHintWithPriority(SDL_HINT_RENDER_SCALE_QUALITY, "2", SDL_HINT_NORMAL);
 
@@ -158,8 +158,12 @@ int graphics_Init(char** error, int use3dgraphics) {
 #ifdef USE_OGRE_GRAPHICS
     if (graphics3d) {
 
+    } else {
+
     }
 #endif
+
+    *error = strdup("3d graphics not available");
     return 0;
 }
 

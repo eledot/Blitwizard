@@ -55,7 +55,7 @@ extern int drawingallowed; // stored in luafuncs.c, checks if we come from an on
 #include "audiomixer.h"
 #include "logging.h"
 #include "audiosourceffmpeg.h"
-#include "physics2d.h"
+#include "physics.h"
 #include "connections.h"
 #include "listeners.h"
 #ifdef USE_SDL_GRAPHICS
@@ -96,14 +96,14 @@ void main_Quit(int returncode) {
     exit(returncode);
 }
 
-void fatalscripterror() {
+void fatalscripterror(void) {
     wantquit = 1;
     suppressfurthererrors = 1;
 }
 
 int simulateaudio = 0;
 int audioinitialised = 0;
-void main_InitAudio() {
+void main_InitAudio(void) {
 #ifdef USE_AUDIO
     if (audioinitialised) {
         return;
@@ -326,7 +326,7 @@ void attemptTemplateLoad(const char* path) {
 }
 
 
-int luafuncs_ProcessNetEvents();
+int luafuncs_ProcessNetEvents(void);
 
 #define MAXSCRIPTARGS 1024
 
@@ -490,7 +490,7 @@ int main(int argc, char** argv) {
         script = filenamebuf;
     }
 
-#if defined(ANDROID) || defined(__ANDROID__)
+/*#if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Preparing graphics framework...");
 #endif
 
@@ -504,7 +504,7 @@ int main(int argc, char** argv) {
         return 1;
     }
     sdlinitialised = 1;
-#endif
+#endif*/
 
 #if defined(ANDROID) || defined(__ANDROID__)
     printinfo("Blitwizard startup: Initialising physics...");

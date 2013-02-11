@@ -1149,6 +1149,6 @@ int luafuncs_getRotation(lua_State* l) {
     return 0;
 }*/
 
-
+#endif  // USE_PHYSICS2D || USE_PHYSICS3D
 
 

@@ -52,7 +52,7 @@ static unsigned int nulldevicewidth = 0;
 static unsigned int nulldeviceheight = 0;
 static unsigned int nulldevicefullscreen = 0;
 static char* nulldevicetitle = NULL;
-extern int graphicsvisible;
+int graphicsvisible;
 
 int graphics_HaveValidWindow() {
     if (nulldevicewidth && nulldeviceheight) {
@@ -69,7 +69,8 @@ void graphics_DestroyHWTexture(struct graphicstexture* gt) {
     return;
 }
 
-int graphics_Init(char** error) {
+int graphics_Init(char** error, int use3dgraphics) {
+    *error = strdup("3d graphics not available");
     return 1;
 }
 
