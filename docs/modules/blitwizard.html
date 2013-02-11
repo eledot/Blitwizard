@@ -98,6 +98,10 @@
  for example as if someone had pushed it).</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#object:restrictRotation">object:restrictRotation&nbsp;(total_or_axis_x, axis_y, axis_z, axis_point_x, axis_point_y, axis_point_z)</a></td>
+	<td class="summary">Restrict the ability to rotate for a given object.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#object:setGravity">object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</a></td>
 	<td class="summary">Set a gravity vector onto an object with movable collision enabled
  (see <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a>).</td>
@@ -317,6 +321,48 @@
       <li><span class="parameter">force_z</span>
         <span class="types"><span class="type">number</span></span>
        (parameter only present for 3d objects) the z coordinate of the force vector</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:restrictRotation"></a>
+    <strong>object:restrictRotation&nbsp;(total_or_axis_x, axis_y, axis_z, axis_point_x, axis_point_y, axis_point_z)</strong>
+    </dt>
+    <dd>
+    Restrict the ability to rotate for a given object.  For 2d, the rotation
+ can be totally restricted or not, for 3d it can be restricted around a specific
+ axis (e.g. like a door), completely (object can not rotate at all), or not at all.
+
+ For 2d and complete 3d restriction, specify 'true'. For no restriction, 'false'.
+
+ For 3d restriction around a specific axis (only available for 3d objects obviously),
+ specify 3 coordinates for an axis direction vector, then optionally an additional 3 coordinates
+ for the point where the axis should go through (if not specified the object's center).
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">total_or_axis_x</span>
+        <span class="types"><span class="type">number/boolean</span></span>
+       Specify true or false for either full restriction or none, or the first coordinate of an axis</li>
+      <li><span class="parameter">axis_y</span>
+        <span class="types"><span class="type">number</span></span>
+       If the first parameter was the first coordinate of an axis, specify the second here</li>
+      <li><span class="parameter">axis_z</span>
+        <span class="types"><span class="type">number</span></span>
+       If the first parameter was the first coordinate of an axis, specify the third here</li>
+      <li><span class="parameter">axis_point_x</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) If you want to specify a point the axis goes through, specify its x coordinate here</li>
+      <li><span class="parameter">axis_point_y</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) y coordinate</li>
+      <li><span class="parameter">axis_point_z</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) z coordinate</li>
     </ul>
 
 

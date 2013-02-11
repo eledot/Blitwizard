@@ -729,23 +729,66 @@ int luafuncs_ray(lua_State* l, int use3d) {
     return 1;
 }
 
+/// Restrict the ability to rotate for a given object. For 2d, the rotation
+// can be totally restricted or not, for 3d it can be restricted around a specific
+// axis (e.g. like a door), completely (object can not rotate at all), or not at all.
+//
+// For 2d and complete 3d restriction, specify 'true'. For no restriction, 'false'.
+//
+// For 3d restriction around a specific axis (only available for 3d objects obviously),
+// specify 3 coordinates for an axis direction vector, then optionally an additional 3 coordinates
+// for the point where the axis should go through (if not specified the object's center).
+// @function restrictRotation
+// @tparam number/boolean total_or_axis_x Specify true or false for either full restriction or none, or the first coordinate of an axis
+// @tparam number axis_y If the first parameter was the first coordinate of an axis, specify the second here
+// @tparam number axis_z If the first parameter was the first coordinate of an axis, specify the third here
+// @tparam number axis_point_x (optional) If you want to specify a point the axis goes through, specify its x coordinate here
+// @tparam number axis_point_y (optional) y coordinate
+// @tparam number axis_point_z (optional) z coordinate
 int luafuncs_restrictRotation(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 1,
+    char func[] = "blitwizard.object:restrictRotation";
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:restrictRotation");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
         return lua_error(l);
     }
-    if (lua_type(l, 2) != LUA_TBOOLEAN) {
-        lua_pushstring(l, "Second parameter is not a valid rotation restriction boolean");
-        return lua_error(l);
+    if (!obj->is3d) {
+        if (lua_type(l, 2) != LUA_TBOOLEAN) {
+            lua_pushstring(l, "Second parameter is not a valid rotation restriction boolean");
+            return lua_error(l);
+        }
+        if (!obj->physics->movable) {
+            lua_pushstring(l, "Rotation restriction can be only set on movable objects");
+            return lua_error(l);
+        }
+        obj->physics->rotationrestriction2d = lua_toboolean(l, 2);
+        applyobjectsettings(obj);
+    } else {
+        if (lua_type(l, 2) != LUA_TBOOLEAN && lua_type(l, 2) != LUA_TNUMBER) {
+            return haveluaerror(l, badargument2, 1, func, "string or number", lua_strtype(l, 2));
+        }
+        if (!obj->physics->movable) {
+            return haveluaerror(l, "Rotation restriction can only be set on movable objects");
+        }
+        if (lua_type(l, 2) == LUA_TBOOLEAN) {
+            obj->physics->rotationrestriction3dfull = lua_toboolean(l, 2);
+            obj->physics->rotationrestriction3daxis = 0;
+        } else {
+            if (lua_type(l, 3) != LUA_TNUMBER) {
+                return haveluaerror(l, badargument2, 2, func, "number", lua_strtype(l, 3));
+            }
+            if (lua_type(l, 4) != LUA_TNUMBER) {
+                return haveluaerror(l, badargument2, 3, func, "number", lua_strtype(l, 3));
+            }
+            obj->physics->rotationrestriction3dfull = 0;
+            obj->physics->rotationrestriction3daxis = 1;
+            obj->physics->rotationrestriction3daxisx = lua_tonumber(l, 2);
+            obj->physics->rotationrestriction3daxisy = lua_tonumber(l, 3);
+            obj->physics->rotationrestriction3daxisz = lua_tonumber(l, 4);
+        }
+        applyobjectsettings(obj);
     }
-    if (!obj->physics->movable) {
-        lua_pushstring(l, "Mass can be only set on movable objects");
-        return lua_error(l);
-    }
-    obj->rotationrestriction = lua_toboolean(l, 2);
-    applyobjectsettings(obj);
     return 0;
 }
 
