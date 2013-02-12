@@ -139,16 +139,17 @@ struct blitwizardobject* toblitwizardobject(lua_State* l, int index, int arg, co
 }
 
 /// Create a new blitwizard object which is represented as a 2d or
-/// 3d object in the game world.
-/// 2d objects are on a separate 2d plane, and 3d objects are inside
-/// the 3d world.
-/// Objects can have behaviour and collision info attached and move
-/// around. They are what eventually makes the action in your game!
+// 3d object in the game world.
+// 2d objects are on a separate 2d plane, and 3d objects are inside
+// the 3d world.
+// Objects can have behaviour and collision info attached and move
+// around. They are what eventually makes the action in your game!
 // @function new
 // @tparam boolean 3d specify 'true' if you wish this object to be a 3d object, or 'false' if you want it to be a flat 2d object
 // @tparam string resource (optional) if you specify the file path to a resource here (optional), this resource will be loaded and used as a visual representation for the object. The resource must be a supported graphical object, e.g. an image (.png) or a 3d model (.mesh). You can also specify nil here if you don't want any resource to be used.
 // @tparam function behaviour (optional) the behaviour function which will be executed immediately after object creation.
-static int luacfuncs_object_new(lua_State* l) {
+// @treturn userdata Returns a @{blitwizard.object|blitwizard object}
+int luafuncs_object_new(lua_State* l) {
     // first argument needs to be 2d/3d boolean:
     if (lua_type(l, 1) != LUA_TBOOLEAN) {
         return haveluaerror(l, badargument1, 1, "blitwizard.object:new",
@@ -198,6 +199,10 @@ const char* eventName) {
 int luafuncs_object_delete(lua_State* l) {
     // delete the given object
     struct blitwizardobject* o = toblitwizardobject(l, 1, 1, "blitwiz.object.delete");
+    if (o->deleted) {
+        lua_pushstring(l, "Object was deleted");
+        return lua_error(l);
+    }
 
     // mark it deleted, and move it over to deletedobjects:
     o->deleted = 1;
@@ -217,5 +222,29 @@ int luafuncs_object_delete(lua_State* l) {
     // destroy the drawing and physics things attached to it:
     cleanupobject(o);
     return 0;
+}
+
+/// Get the current position of the given object.
+// Returns two coordinates for a 2d object, and three coordinates
+// for a 3d object.
+// @function getPosition
+// @treturn number x coordinate
+// @treturn number y coordinate
+// @treturn number (if 3d object) z coordinate
+int luafuncs_getPosition(lua_State* l) {
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
+    "blitwizard.object:getPosition");
+    if (obj->deleted) {
+        return haveluaerror(l, "Object was deleted");
+    }
+    double x,y,z;
+    objectphysics_getPosition(obj, &x, &y, &z);
+    lua_pushnumber(l, x);
+    lua_pushnumber(l, y);
+    if (obj->is3d) {
+        lua_pushnumber(l, z);
+        return 3;
+    }
+    return 2;
 }
 

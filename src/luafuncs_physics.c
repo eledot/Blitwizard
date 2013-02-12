@@ -75,5 +75,11 @@ int luafuncs_ray3d(lua_State* l) {
     return luafuncs_ray(l, 1);
 }
 
+/// Set the world gravity for all 2d objects.
+// @function set2dGravity
+
+/// Set the world gravity for all 3d objects.
+// @function set3dGravity
+
 #endif  // USE_PHYSICS2D || USE_PHYSICS3D
 

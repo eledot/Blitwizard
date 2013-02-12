@@ -75,13 +75,16 @@
  from the game world.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:shape_info">object:shape_info</a></td>
-	<td class="summary">This is how you should submit shape info to <a href="../modules/blitwizard.html#object:enableStaticCollision">object:enableStaticCollision</a> and <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a> (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)</td>
+	<td class="name" nowrap><a href="#object:getPosition">object:getPosition&nbsp;()</a></td>
+	<td class="summary">Get the current position of the given object.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:enableStaticCollision">object:enableStaticCollision&nbsp;(shape_info)</a></td>
-	<td class="summary">Enable the physics simulation on the given object and allow other
- objects to collide with it.</td>
+	<td class="name" nowrap><a href="#object:disableCollision">object:disableCollision&nbsp;()</a></td>
+	<td class="summary">Disable the physics simulation on an object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:shape_info">object:shape_info</a></td>
+	<td class="summary">This is how you should submit shape info to <a href="../modules/blitwizard.html#object:enableStaticCollision">object:enableStaticCollision</a> and <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a> (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#object:enableMovableCollision">object:enableMovableCollision&nbsp;(shape_info)</a></td>
@@ -89,8 +92,9 @@
  movable and collide with other movable and static objects.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:disableCollision">object:disableCollision&nbsp;()</a></td>
-	<td class="summary">Disable the physics simulation on an object.</td>
+	<td class="name" nowrap><a href="#object:enableStaticCollision">object:enableStaticCollision&nbsp;(shape_info)</a></td>
+	<td class="summary">Enable the physics simulation on the given object and allow other
+ objects to collide with it.</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#object:impulse">object:impulse&nbsp;(source_x, source_y, source_z, force_x, force_y, force_z)</a></td>
@@ -102,9 +106,25 @@
 	<td class="summary">Restrict the ability to rotate for a given object.</td>
 	</tr>
 	<tr>
+	<td class="name" nowrap><a href="#object:setAngularDamping">object:setAngularDamping&nbsp;(damping)</a></td>
+	<td class="summary">Set the angular damping factor.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:setFriction">object:setFriction&nbsp;(friction)</a></td>
+	<td class="summary">Set the surface friction on the given object.</td>
+	</tr>
+	<tr>
 	<td class="name" nowrap><a href="#object:setGravity">object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</a></td>
 	<td class="summary">Set a gravity vector onto an object with movable collision enabled
  (see <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a>).</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:setLinearDamping">object:setLinearDamping&nbsp;(damping)</a></td>
+	<td class="summary">Set the linear damping factor.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:setMass">object:setMass&nbsp;(mass, mass_center_x, mass_center_y, mass_center_z)</a></td>
+	<td class="summary">Set the mass and the center of an object.</td>
 	</tr>
 </table>
 
@@ -140,6 +160,12 @@
        (optional) the behaviour function which will be executed immediately after object creation.</li>
     </ul>
 
+    <h3>Returns:</h3>
+    <ol>
+
+          <span class="types"><span class="type">userdata</span></span>
+        Returns a <a href="../modules/blitwizard.html#Class_object">blitwizard object</a>
+    </ol>
 
 
 
@@ -152,6 +178,47 @@
     <dd>
     Delete the given object explicitely, to make it instantly disappear
  from the game world.
+
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:getPosition"></a>
+    <strong>object:getPosition&nbsp;()</strong>
+    </dt>
+    <dd>
+    Get the current position of the given object.
+ Returns two coordinates for a 2d object, and three coordinates
+ for a 3d object.
+
+
+    <h3>Returns:</h3>
+    <ol>
+        <li>
+          <span class="types"><span class="type">number</span></span>
+        x coordinate</li>
+        <li>
+          <span class="types"><span class="type">number</span></span>
+        y coordinate</li>
+        <li>
+          <span class="types"><span class="type">number</span></span>
+        (if 3d object) z coordinate</li>
+    </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:disableCollision"></a>
+    <strong>object:disableCollision&nbsp;()</strong>
+    </dt>
+    <dd>
+    Disable the physics simulation on an object.  It will no longer collide
+ with anything.
 
 
 
@@ -227,29 +294,6 @@
 
 </dd>
     <dt>
-    <a name = "object:enableStaticCollision"></a>
-    <strong>object:enableStaticCollision&nbsp;(shape_info)</strong>
-    </dt>
-    <dd>
-    Enable the physics simulation on the given object and allow other
- objects to collide with it.  The object itself will remain static
- - this is useful for immobile level geometry. You will be required to
- provide shape information that specifies the desired collision shape
- of the object (not necessarily similar to its visual appearance).
-
-    <h3>Parameters:</h3>
-    <ul>
-      <li><span class="parameter">shape_info</span>
-        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
-       a <a href="../modules/blitwizard.html#object:shape_info">shape_info</a> table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes</li>
-    </ul>
-
-
-
-
-
-</dd>
-    <dt>
     <a name = "object:enableMovableCollision"></a>
     <strong>object:enableMovableCollision&nbsp;(shape_info)</strong>
     </dt>
@@ -278,13 +322,22 @@
 
 </dd>
     <dt>
-    <a name = "object:disableCollision"></a>
-    <strong>object:disableCollision&nbsp;()</strong>
+    <a name = "object:enableStaticCollision"></a>
+    <strong>object:enableStaticCollision&nbsp;(shape_info)</strong>
     </dt>
     <dd>
-    Disable the physics simulation on an object.  It will no longer collide
- with anything.
+    Enable the physics simulation on the given object and allow other
+ objects to collide with it.  The object itself will remain static
+ - this is useful for immobile level geometry. You will be required to
+ provide shape information that specifies the desired collision shape
+ of the object (not necessarily similar to its visual appearance).
 
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">shape_info</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.5">table</a></span>
+       a <a href="../modules/blitwizard.html#object:shape_info">shape_info</a> table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes</li>
+    </ul>
 
 
 
@@ -371,6 +424,50 @@
 
 </dd>
     <dt>
+    <a name = "object:setAngularDamping"></a>
+    <strong>object:setAngularDamping&nbsp;(damping)</strong>
+    </dt>
+    <dd>
+    Set the angular damping factor.  Angular damping
+ is a 'slow down' which is constantly applied to rotation speed,
+ so rotating objects with high angular damping will stop rotating
+ after a while, even if not colliding with other objects.
+ Angular damping is meaningless for objects without movable collision
+ enabled.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">damping</span>
+        <span class="types"><span class="type">number</span></span>
+       Angular damping factor from 0 (none) to 1 (full)</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:setFriction"></a>
+    <strong>object:setFriction&nbsp;(friction)</strong>
+    </dt>
+    <dd>
+    Set the surface friction on the given object.
+ Only useful on objects with collision enabled.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">friction</span>
+        <span class="types"><span class="type">number</span></span>
+       Friction value from 0 to 1 (0 is no friction, 1 is full friction)</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
     <a name = "object:setGravity"></a>
     <strong>object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</strong>
     </dt>
@@ -379,6 +476,10 @@
  (see <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a>).
  If no parameters are provided,
  the object gravity will be removed again.
+ Please note you would normally want to use
+ <a href="../modules/blitwizard.physics.html#set2dGravity">blitwizard.physics.set2dGravity</a> or
+ <a href="../modules/blitwizard.physics.html#set3dGravity">blitwizard.physics.set3dGravity</a>
+ instead.
 
     <h3>Parameters:</h3>
     <ul>
@@ -391,6 +492,61 @@
       <li><span class="parameter">gravity_z</span>
         <span class="types"><span class="type">number</span></span>
        (only for 3d objects) z coordinate of gravity vector</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:setLinearDamping"></a>
+    <strong>object:setLinearDamping&nbsp;(damping)</strong>
+    </dt>
+    <dd>
+    Set the linear damping factor.  Linear damping
+ is a 'slow down' which is constantly applied to the movement speed
+ so moving objects with high linear damping will eventually stop moving
+ even if never colliding with any other objects (assuming there is no
+ notable gravity).
+ Linear damping is meaningless for objects without movable collision
+ enabled.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">damping</span>
+        <span class="types"><span class="type">number</span></span>
+       Linear damping factor from 0 (none) to 1 (full). Default: 0</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:setMass"></a>
+    <strong>object:setMass&nbsp;(mass, mass_center_x, mass_center_y, mass_center_z)</strong>
+    </dt>
+    <dd>
+    Set the mass and the center of an object.  Only applicable for
+ objects with movable collision enabled. (objects with static
+ collision have infinite mass since they're not movable)
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">mass</span>
+        <span class="types"><span class="type">number</span></span>
+       Set the mass of the object in kilograms. You should experiment and pick mass here which works well for you (it shouldn't be very small or very large), rather than using the most truthful numbers.</li>
+      <li><span class="parameter">mass_center_x</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) Set the x coordinate of the mass center (default: 0)</li>
+      <li><span class="parameter">mass_center_y</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) Set the y coordinate of the mass center (default: 0)</li>
+      <li><span class="parameter">mass_center_z</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) Set the z coordinate of the mass center (default: 0)</li>
     </ul>
 
 

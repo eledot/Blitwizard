@@ -52,6 +52,9 @@
 /// with visual representation, behaviour code and collision shape.
 // @type object
 
+void transferbodysettings(struct physicsobject* oldbody,
+struct physicsobject* newbody);
+
 // Put the collision callback of the given object on stack
 static void luafuncs_pushcollisioncallback(lua_State* l,
 struct blitwizardobject* obj) {
@@ -183,6 +186,30 @@ int luafuncs_globalcollision3dcallback_unprotected(void* userdata, struct physic
         return 0;
     }
     return 1;
+}
+
+/// Disable the physics simulation on an object. It will no longer collide
+// with anything.
+// @function disableCollision
+int luafuncs_disableCollision(lua_State* l) {
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
+    "blitwizard.object:disableCollision");
+    assert(obj->refcount > 0);
+
+    if (obj->deleted) {
+        lua_pushstring(l, "Object was deleted");
+        return lua_error(l);
+    }
+    if (!obj->physics) {
+        // no physics info was set, ignore
+        return 0;
+    }
+
+    if (obj->physics->object) {
+        physics_DestroyObject(obj->physics->object);
+        obj->physics->object = NULL;
+    }
+    return 0;
 }
 
 int luafuncs_enableCollision(lua_State* l, int movable) {
@@ -426,15 +453,19 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
         memset(obj->physics, 0, sizeof(obj->physics));
     }
 
-    // delete old physics representation if any:
-    if (obj->physics->object) {
-        physics_DestroyObject(obj->physics->object);
-    }
+    // remember the old representation if any::
+    struct physicsobject* old = obj->physics->object;
 
     // create a physics object from the shapes:
     obj->physics->object = physics_CreateObject(main_DefaultPhysics3dPtr(),
     obj, movable, shapes);
     physics_DestroyShapes(shapes, argcount);
+
+    // destroy old representation after transferring settings:
+    if (old) {
+        transferbodysettings(old, obj->physics->object); 
+        physics_DestroyObject(old);
+    }
 
     obj->physics->movable = 1;
     return 1;
@@ -460,17 +491,6 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
 // @tfield number rotation_roll (optional) rotation of any 3d shape 0..360 degree around itself while remaining faced forward (basically overturning/leaning on the side), applied after the horizontal and vertical rotations
 // @table shape_info
 
-/// Enable the physics simulation on the given object and allow other
-// objects to collide with it. The object itself will remain static
-// - this is useful for immobile level geometry. You will be required to
-// provide shape information that specifies the desired collision shape
-// of the object (not necessarily similar to its visual appearance).
-// @function enableStaticCollision
-// @tparam table shape_info a @{object:shape_info|shape_info} table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
-int luafuncs_enableStaticCollision(lua_State* l) {
-    return luafuncs_enableCollision(l, 0);
-}
-
 /// Enable the physics simulation on the given object and make it
 // movable and collide with other movable and static objects.
 // You will be required to
@@ -487,28 +507,15 @@ int luafuncs_enableMovableCollision(lua_State* l) {
     return luafuncs_enableCollision(l, 1);
 }
 
-/// Disable the physics simulation on an object. It will no longer collide
-// with anything.
-// @function disableCollision
-int luafuncs_disableCollision(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
-    "blitwizard.object:disableCollision");
-    assert(obj->refcount > 0);
-
-    if (obj->deleted) {
-        lua_pushstring(l, "Object was deleted");
-        return lua_error(l);
-    }
-    if (!obj->physics) {
-        // no physics info was set, ignore
-        return 0;
-    }
-
-    if (obj->physics->object) {
-        physics_DestroyObject(obj->physics->object);
-        obj->physics->object = NULL;
-    }
-    return 0;
+/// Enable the physics simulation on the given object and allow other
+// objects to collide with it. The object itself will remain static
+// - this is useful for immobile level geometry. You will be required to
+// provide shape information that specifies the desired collision shape
+// of the object (not necessarily similar to its visual appearance).
+// @function enableStaticCollision
+// @tparam table shape_info a @{object:shape_info|shape_info} table with info for a given physics shape. Note: you can add more shape info tables as additional parameters following this one - the final collision shape will consist of all overlapping shapes
+int luafuncs_enableStaticCollision(lua_State* l) {
+    return luafuncs_enableCollision(l, 0);
 }
 
 int luafuncs_freeObjectPhysicsData(struct objectphysicsdata* d) {
@@ -532,7 +539,7 @@ int luafuncs_freeObjectPhysicsData(struct objectphysicsdata* d) {
 }
 
 static void applyobjectsettings(struct blitwizardobject* obj) {
-    if (!obj->physics->object) {
+    if (!obj->physics || !obj->physics->object) {
         return;
     }
     if (obj->is3d) {
@@ -580,8 +587,8 @@ int luafuncs_impulse(lua_State* l) {
         lua_pushstring(l, "Object was deleted");
         return lua_error(l);
     }
-    if (!obj->physics->object) {
-        lua_pushstring(l, "Object has no physics shape");
+    if (!obj->physics || !obj->physics->object) {
+        lua_pushstring(l, "Object has no shape");
         return lua_error(l);
     }
     if (!obj->physics->movable) {
@@ -620,6 +627,7 @@ int luafuncs_impulse(lua_State* l) {
     double forcex, forcey, forcez;
     sourcex = lua_tonumber(l, 2);
     sourcey = lua_tonumber(l, 3);
+    sourcez = 0;
     if (obj->is3d) {
         sourcez = lua_tonumber(l, 4);
     }
@@ -753,6 +761,10 @@ int luafuncs_restrictRotation(lua_State* l) {
         lua_pushstring(l, "Object was deleted");
         return lua_error(l);
     }
+    if (!obj->physics || !obj->physics->object) {
+        lua_pushstring(l, "Object has no shape");
+        return lua_error(l);
+    }
     if (!obj->is3d) {
         if (lua_type(l, 2) != LUA_TBOOLEAN) {
             lua_pushstring(l, "Second parameter is not a valid rotation restriction boolean");
@@ -792,10 +804,64 @@ int luafuncs_restrictRotation(lua_State* l) {
     return 0;
 }
 
+/// Set the angular damping factor. Angular damping
+// is a 'slow down' which is constantly applied to rotation speed,
+// so rotating objects with high angular damping will stop rotating
+// after a while, even if not colliding with other objects.
+// Angular damping is meaningless for objects without movable collision
+// enabled.
+// @function setAngularDamping
+// @tparam number damping Angular damping factor from 0 (none) to 1 (full)
+int luafuncs_setAngularDamping(lua_State* l) {
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
+    "blitwizard.object:setAngularDamping");
+    if (obj->deleted) {
+        lua_pushstring(l, "Object was deleted");
+        return lua_error(l);
+    }
+    if (!obj->physics) {
+        lua_pushstring(l, "Object has no shape");
+        return lua_error(l);
+    }
+    if (lua_type(l, 2) != LUA_TNUMBER) {
+        return haveluaerror(l, badargument1, 1,
+        "blitwizard.object:setAngularDamping",
+        "number", lua_strtype(l, 2));
+    }
+    obj->physics->angulardamping = lua_tonumber(l, 2);
+    applyobjectsettings(obj);
+    return 0;
+}
+
+/// Set the surface friction on the given object.
+// Only useful on objects with collision enabled.
+// @function setFriction
+// @tparam number friction Friction value from 0 to 1 (0 is no friction, 1 is full friction)
+int luafuncs_setFriction(lua_State* l) {
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
+    "blitwizard.object:setFriction");
+    if (obj->deleted) {
+        lua_pushstring(l, "Object was deleted");
+        return lua_error(l);
+    }
+    if (lua_type(l, 2) != LUA_TNUMBER) {
+        return haveluaerror(l, badargument1, 1,
+        "blitwizard.object:setFriction",
+        "number", lua_strtype(l, 2));
+    }
+    obj->physics->friction = lua_tonumber(l, 2);
+    applyobjectsettings(obj);
+    return 0;
+}
+
 /// Set a gravity vector onto an object with movable collision enabled
 // (see @{object:enableMovableCollision|object:enableMovableCollision}).
 // If no parameters are provided,
 // the object gravity will be removed again.
+// Please note you would normally want to use
+// @{blitwizard.physics.set2dGravity|blitwizard.physics.set2dGravity} or
+// @{blitwizard.physics.set3dGravity|blitwizard.physics.set3dGravity}
+// instead.
 // @function setGravity
 // @tparam number gravity_x x coordinate of gravity vector
 // @tparam number gravity_y y coordinate of gravity vector
@@ -807,42 +873,87 @@ int luafuncs_setGravity(lua_State* l) {
         lua_pushstring(l, "Object was deleted");
         return lua_error(l);
     }
-    if (!obj->object) {
+    if (!obj->physics || !obj->physics->object) {
         lua_pushstring(l, "Object has no shape");
         return lua_error(l);
     }
 
     int set = 0;
-    double gx,gy;
+    double gx,gy,gz;
 
     // if the necessary amount of vector coordinates is given,
     // set new gravity vector:
     if ((!obj->is3d && lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) ||
     (obj->is3d && lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL)) {
         if (lua_type(l, 2) != LUA_TNUMBER) {
-            return haveluaerror(l, badargument1, 2,
-            "blitwizard.object:setGravity", "number", lua_strtype(l, 1));
-        }
-        if (lua_type(l, 3) != LUA_TNUMBER) {
-            return haveluaerror(l, badargument1, 3,
+            return haveluaerror(l, badargument1, 1,
             "blitwizard.object:setGravity", "number", lua_strtype(l, 2));
         }
-        if (obj->is3d && lua_type(l, 4) != LUA_TNUMBER) {
-            return haveluaerror(l, badargument1, 4,
+        if (lua_type(l, 3) != LUA_TNUMBER) {
+            return haveluaerror(l, badargument1, 2,
             "blitwizard.object:setGravity", "number", lua_strtype(l, 3));
+        }
+        if (obj->is3d && lua_type(l, 4) != LUA_TNUMBER) {
+            return haveluaerror(l, badargument1, 3,
+            "blitwizard.object:setGravity", "number", lua_strtype(l, 4));
         }
         gx = lua_tonumber(l, 2);
         gy = lua_tonumber(l, 3);
+        if (obj->is3d) {
+            gz = lua_tonumber(l, 4);
+        }
         set = 1;
     }
     if (set) {
-        physics2d_SetGravity(obj->object, gx, gy);
+        if (obj->is3d) {
+            physics_Set3dGravity(obj->physics->object, gx, gy, gz);
+        } else {
+            physics_Set2dGravity(obj->physics->object, gx, gy);
+        }
     } else {
-        physics2d_UnsetGravity(obj->object);
+        physics_UnsetGravity(obj->physics->object);
     }
     return 0;
 }
 
+/// Set the linear damping factor. Linear damping
+// is a 'slow down' which is constantly applied to the movement speed
+// so moving objects with high linear damping will eventually stop moving
+// even if never colliding with any other objects (assuming there is no
+// notable gravity).
+// Linear damping is meaningless for objects without movable collision
+// enabled.
+// @function setLinearDamping
+// @tparam number damping Linear damping factor from 0 (none) to 1 (full). Default: 0
+int luafuncs_setLinearDamping(lua_State* l) {
+    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
+    "blitwizard.object:setLinearDamping");
+    if (obj->deleted) {
+        lua_pushstring(l, "Object was deleted");
+        return lua_error(l);
+    }
+    if (!obj->physics) {
+        lua_pushstring(l, "Object has no shape");
+        return lua_error(l);
+    }
+    if (lua_type(l, 2) != LUA_TNUMBER) {
+        return haveluaerror(l, badargument1, 1,
+        "blitwizard.object:setLinearDamping",
+        "number", lua_strtype(l, 2));
+    }
+    obj->physics->lineardamping = lua_tonumber(l, 2);
+    applyobjectsettings(obj);
+    return 0;
+}
+
+/// Set the mass and the center of an object. Only applicable for
+// objects with movable collision enabled. (objects with static
+// collision have infinite mass since they're not movable)
+// @function setMass
+// @tparam number mass Set the mass of the object in kilograms. You should experiment and pick mass here which works well for you (it shouldn't be very small or very large), rather than using the most truthful numbers.
+// @tparam number mass_center_x (optional) Set the x coordinate of the mass center (default: 0)
+// @tparam number mass_center_y (optional) Set the y coordinate of the mass center (default: 0)
+// @tparam number mass_center_z (optional) Set the z coordinate of the mass center (default: 0)
 int luafuncs_setMass(lua_State* l) {
     struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:setMass");
@@ -850,13 +961,17 @@ int luafuncs_setMass(lua_State* l) {
         lua_pushstring(l, "Object was deleted");
         return lua_error(l);
     }
+    if (!obj->physics || !obj->physics->object) {
+        lua_pushstring(l, "Object has no shape");
+        return lua_error(l);
+    }
     if (!obj->physics->movable) {
         lua_pushstring(l, "Mass can be only set on movable objects");
         return lua_error(l);
     }
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TNUMBER || lua_tonumber(l, 2) <= 0) {
-        lua_pushstring(l, "Second parameter is not a valid mass number");
-        return lua_error(l);
+        return haveluaerror(l, badargument1, 1, "blitwizard.object:setMass",
+        "number", lua_strtype(l, 2));
     }
     double centerx = 0;
     double centery = 0;
@@ -864,27 +979,23 @@ int luafuncs_setMass(lua_State* l) {
     double mass = lua_tonumber(l, 2);
     if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
         if (lua_type(l, 3) != LUA_TNUMBER) {
-            lua_pushstring(l, "Third parameter is not a valid x center offset number");
-            return lua_error(l);
+            return haveluaerror(l, badargument1, 2, "blitwizard.object:setMass",
+            "number", lua_strtype(l, 3));
         }
         centerx = lua_tonumber(l, 3);
 
         if (lua_type(l, 4) != LUA_TNUMBER) {
-            lua_pushstring(l, "Fourth parameter is not a valid y center offset number");
-            return lua_error(l);
+            return haveluaerror(l, badargument1, 3, "blitwizard.object:setMass",
+            "number", lua_strtype(l, 4));
         }
         centery = lua_tonumber(l, 4);
 
         if (lua_type(l, 5) != LUA_TNUMBER) {
-            return haveluaerror(l, badargument1, 5, "blitwiz.object:setMass", "number", lua_strtype(l, 5));
+            return haveluaerror(l, badargument1, 4, "blitwiz.object:setMass", "number", lua_strtype(l, 5));
         }
         centerz = lua_tonumber(l, 5);
     }
-    if (!obj->physics->object) {
-        lua_pushstring(l, "Object has no shape");
-        return lua_error(l);
-    }
-    physics_SetMass(obj->physicsobject, mass);
+    physics_SetMass(obj->physics->object, mass);
     if (obj->is3d) {
         physics_Set3dMassCenterOffset(obj->physics->object,
         centerx, centery, centerz);
@@ -895,71 +1006,6 @@ int luafuncs_setMass(lua_State* l) {
     return 0;
 }
 
-void transferbodysettings(struct physicsobject2d* oldbody, struct physicsobject2d* newbody) {
-    double mass = physics2d_GetMass(oldbody);
-    double massx,massy;
-    physics2d_GetMassCenterOffset(oldbody, &massx, &massy);
-    physics2d_SetMass(newbody, mass);
-    physics2d_SetMassCenterOffset(newbody, massx, massy);
-}
-
-int luafuncs_warp(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
-    "blitwizard.object:warp");
-    if (obj->deleted) {
-        lua_pushstring(l, "Object was deleted");
-        return lua_error(l);
-    }
-    if (!obj->object) {
-        lua_pushstring(l, "Object doesn't have a shape");
-        return lua_error(l);
-    }
-    double warpx,warpy,warpangle;
-    physics2d_GetPosition(obj->object, &warpx, &warpy);
-    physics2d_GetRotation(obj->object, &warpangle);
-    if (lua_gettop(l) >= 2 && lua_type(l, 2) != LUA_TNIL) {
-        if (lua_type(l, 2) != LUA_TNUMBER) {
-            lua_pushstring(l, "Second parameter not a valid warp x position number");
-            return lua_error(l);
-        }
-        warpx = lua_tonumber(l, 2);
-    }
-    if (lua_gettop(l) >= 3 && lua_type(l, 3) != LUA_TNIL) {
-        if (lua_type(l, 3) != LUA_TNUMBER) {
-            lua_pushstring(l, "Third parameter not a valid warp y position number");
-            return lua_error(l);
-        }
-        warpy = lua_tonumber(l, 3);
-    }
-    if (lua_gettop(l) >= 4 && lua_type(l, 4) != LUA_TNIL) {
-        if (lua_type(l, 4) != LUA_TNUMBER) {
-            lua_pushstring(l, "Fourth parameter not a valid warp angle number");
-            return lua_error(l);
-        }
-        warpangle = lua_tonumber(l, 4);
-    }
-    physics2d_Warp(obj->object, warpx, warpy, warpangle);
-    return 0;
-}
-
-int luafuncs_getPosition(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
-    "blitwizard.object:getPosition");
-    if (obj->deleted) {
-        lua_pushstring(l, "Object was deleted");
-        return lua_error(l);
-    }
-    if (!obj->object) {
-        lua_pushstring(l, "Object doesn't have a shape");
-        return lua_error(l);
-    }
-    double x,y;
-    physics2d_GetPosition(obj->object, &x, &y);
-    lua_pushnumber(l, x);
-    lua_pushnumber(l, y);
-    return 2;
-}
-
 int luafuncs_setRestitution(lua_State* l) {
     struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
     "blitwizard.object:setRestitution");
@@ -967,78 +1013,109 @@ int luafuncs_setRestitution(lua_State* l) {
         lua_pushstring(l, "Object was deleted");
         return lua_error(l);
     }
-    if (lua_type(l, 2) != LUA_TNUMBER) {
-        lua_pushstring(l, "Second parameter not a valid restitution number");
+    if (!obj->physics || !obj->physics->object) {
+        lua_pushstring(l, "Object has no shape");
         return lua_error(l);
     }
-    obj->restitution = lua_tonumber(l, 2);
+    if (lua_type(l, 2) != LUA_TNUMBER) {
+        return haveluaerror(l, badargument1, 1,
+        "blitwizard.object:setRestitution",
+        "number", lua_strtype(l, 2));
+    }
+    obj->physics->restitution = lua_tonumber(l, 2);
     applyobjectsettings(obj);
     return 0;
 }
 
-int luafuncs_setFriction(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
-    "blitwizard.object:setFriction");
-    if (obj->deleted) {
-        lua_pushstring(l, "Object was deleted");
-        return lua_error(l);
-    }
-    if (lua_type(l, 2) != LUA_TNUMBER) {
-        lua_pushstring(l, "Second parameter not a valid friction number");
-        return lua_error(l);
-    }
-    obj->friction = lua_tonumber(l, 2);
-    applyobjectsettings(obj);
-    return 0;
-}
 
-int luafuncs_setLinearDamping(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
-    "blitwizard.object:setLinearDamping");
-    if (obj->deleted) {
-        lua_pushstring(l, "Object was deleted");
-        return lua_error(l);
+void transferbodysettings(struct physicsobject* oldbody,
+struct physicsobject* newbody) {
+    // transfer position, mass etc from an old physics body
+    // to a new one
+    if (((struct blitwizardobject*)physics_GetObjectUserdata(oldbody))->is3d
+    != ((struct blitwizardobject*)physics_GetObjectUserdata(newbody))->is3d) {
+        return;
     }
-    if (lua_type(l, 2) != LUA_TNUMBER) {
-        lua_pushstring(l, "Second parameter not a valid angular damping number");
-        return lua_error(l);
-    }
-    obj->lineardamping = lua_tonumber(l, 2);
-    applyobjectsettings(obj);
-    return 0;
-}
-
-int luafuncs_setAngularDamping(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
-    "blitwizard.object:setAngularDamping");
-    if (obj->deleted) {
-        lua_pushstring(l, "Object was deleted");
-        return lua_error(l);
-    }
-    if (lua_type(l, 2) != LUA_TNUMBER) {
-        lua_pushstring(l, "Second parameter not a valid angular damping number");
-        return lua_error(l);
-    }
-    obj->angulardamping = lua_tonumber(l, 2);
-    applyobjectsettings(obj);
-    return 0;
-}
-
-int luafuncs_getRotation(lua_State* l) {
-    struct blitwizardobject* obj = toblitwizardobject(l, 1, 0,
-    "blitwizard.object:getRotation");
-    if (obj->deleted) {
-        lua_pushstring(l, "Object was deleted");
-        return lua_error(l);
-    }
-    if (!obj->object) {
-        lua_pushstring(l, "Object doesn't have a shape");
-        return lua_error(l);
-    }
+    int is3d = ((struct blitwizardobject*)physics_GetObjectUserdata(oldbody))
+    ->is3d;
+    double mass = physics_GetMass(oldbody);
+    double massx,massy,massz;
+    double x,y,z;
     double angle;
-    physics2d_GetRotation(obj->object, &angle);
-    lua_pushnumber(l, angle);
-    return 1;
+    double qx,qy,qz,qrot;
+    if (is3d) {
+        physics_Get3dMassCenterOffset(oldbody, &massx, &massy, &massz);
+        physics_Get3dPosition(oldbody, &x, &y, &z);
+        physics_Get3dRotationQuaternion(oldbody, &qx, &qy, &qz, &qrot);
+    } else {
+        physics_Get2dMassCenterOffset(oldbody, &massx, &massy);
+        physics_Get2dPosition(oldbody, &x, &y);
+        physics_Get2dRotation(oldbody, &angle);
+    }
+    physics_SetMass(newbody, mass);
+    if (is3d) {
+        physics_Set3dMassCenterOffset(newbody, massx, massy, massz);
+        physics_Warp3d(newbody, x, y, z, qx, qy, qz, qrot);
+    } else {
+        physics_Set2dMassCenterOffset(newbody, massx, massy);
+        physics_Warp2d(newbody, x, y, angle);
+    }
+}
+
+void objectphysics_warp3d(struct blitwizardobject* obj, double x, double y,
+double z, double qx, double qy, double qz, double qrot, int anglespecified) {
+    if (!anglespecified) {
+        physics_Get3dRotationQuaternion(obj->physics->object,
+        &qx, &qy, &qz, &qrot);
+    }
+    physics_Warp3d(obj->physics->object, x, y, z, qx, qy, qz, qrot);
+}
+
+void objectphysics_warp2d(struct blitwizardobject* obj, double x, double y,
+double angle, int anglespecified) {
+    if (!anglespecified) {
+        physics_Get2dRotation(obj->physics->object, &angle);
+    }
+    physics_Warp2d(obj->physics->object, x, y, angle);
+}
+
+void objectphysics_getPosition(struct blitwizardobject* obj,
+double* x, double* y, double* z) {
+    if (!obj->physics || !obj->physics->object) {
+        *x = obj->x;
+        *y = obj->y;
+        if (obj->is3d) {
+            *z = obj->vpos.z;
+        }
+        return;
+    }
+    if (obj->is3d) {
+        physics_Get3dPosition(obj->physics->object, x, y, z);
+    } else {
+        physics_Get2dPosition(obj->physics->object, x, y);
+    }
+}
+
+void objectphysics_get2dRotation(struct blitwizardobject* obj,
+double* angle) {
+    if (obj->physics && obj->physics->object) {
+        physics_Get2dRotation(obj->physics->object, angle);
+    } else {
+        *angle = obj->rotation.angle;
+    }
+}
+
+void objectphysics_get3dRotation(struct blitwizardobject* obj,
+double* qx, double* qy, double* qz, double* qrot) {
+    if (obj->physics && obj->physics->object) {
+        physics_Get3dRotationQuaternion(obj->physics->object,
+        qx, qy, qz, qrot);
+    } else {
+        *qx = obj->rotation.quaternion.x;
+        *qy = obj->rotation.quaternion.y;
+        *qz = obj->rotation.quaternion.z;
+        *qrot = obj->rotation.quaternion.r;
+    }
 }
 
 /*int luafuncs_setShapeEdges(lua_State* l) {
@@ -1046,10 +1123,6 @@ int luafuncs_getRotation(lua_State* l) {
     "blitwizard.object:setShapeEdges");
     if (obj->deleted) {
         lua_pushstring(l, "Object was deleted");
-        return lua_error(l);
-    }
-    if (obj->object) {
-        lua_pushstring(l, "Object already has a shape");
         return lua_error(l);
     }
     if (lua_gettop(l) < 2 || lua_type(l, 2) != LUA_TTABLE) {

@@ -26,8 +26,8 @@
 
 #include "blitwizardobject.h"
 
-void luacfuncs_media_object_new(struct blitwizardobject* o);
-void luacfuncs_media_object_destroy(struct blitwizardobject* o);
+void luafuncs_media_object_new(struct blitwizardobject* o);
+void luafuncs_media_object_destroy(struct blitwizardobject* o);
 
 #endif  // BLITWIZARD_LUAFUNCS_OBJECT_MEDIA_H_
 

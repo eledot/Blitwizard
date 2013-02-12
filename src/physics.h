@@ -115,10 +115,10 @@ void physics_Set3dMassCenterOffset(struct physicsobject* obj, double offsetx, do
 void physics_Get3dMassCenterOffset(struct physicsobject* obj, double* offsetx, double* offsety, double* offsetz);
 #endif
 #ifdef USE_PHYSICS2D
-void physics_Set2dGravity(struct physicsobject* obj, float x, float y);
+void physics_Set2dGravity(struct physicsobject* obj, double x, double y);
 #endif
 #ifdef USE_PHYSICS3D
-void physics_Set3dGravity(struct physicsobject* obj, float x, float y);
+void physics_Set3dGravity(struct physicsobject* obj, double x, double y, double z);
 #endif
 void physics_UnsetGravity(struct physicsobject* obj);
 #ifdef USE_PHYSICS2D
@@ -144,7 +144,7 @@ void physics_Apply2dImpulse(struct physicsobject* obj, double forcex, double for
 #ifdef USE_PHYSICS3D
 void physics_Get3dPosition(struct physicsobject* obj, double* x, double* y, double* z);
 void physics_Get3dRotationQuaternion(struct physicsobject* obj, double* qx, double* qy, double* qz, double* qrot);
-void physics_Warp3d(struct physicsobject* obj, double x, double y, double qx, double qy, double qz, double qrot);
+void physics_Warp3d(struct physicsobject* obj, double x, double y, double z, double qx, double qy, double qz, double qrot);
 void physics_Apply3dImpulse(struct physicsobject* obj, double forcex, double forcey, double forcez, double sourcex, double sourcey, double sourcez);
 #endif
 

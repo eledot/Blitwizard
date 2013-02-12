@@ -23,11 +23,11 @@
 
 #include "luafuncs_media_object.h"
 
-void luacfuncs_media_object_new(struct blitwizardobject* o) {
+void luafuncs_media_object_new(struct blitwizardobject* o) {
 
 }
 
-void luacfuncs_media_object_destroy(struct blitwizardobject* o) {
+void luafuncs_media_object_destroy(struct blitwizardobject* o) {
 
 }
 

@@ -51,8 +51,18 @@ int luafuncs_setCollisionCallback(lua_State* l);
 int luafuncs_setLinearDamping(lua_State* l);
 int luafuncs_getRotation(lua_State* l);
 int luafuncs_getPosition(lua_State* l);
-int luafuncs_warp(lua_State* l);
 int luafuncs_setGravity(lua_State* l);
+
+void objectphysics_get2dRotation(struct blitwizardobject* obj,
+double* angle);
+void objectphysics_get3dRotation(struct blitwizardobject* obj,
+double* qx, double* qy, double* qz, double* qrot);
+void objectphysics_getPosition(struct blitwizardobject* obj,
+double* x, double* y, double* z);
+void objectphysics_warp2d(struct blitwizardobject* obj, double x, double y,
+double angle, int anglespecified);
+void objectphysics_warp3d(struct blitwizardobject* obj, double x, double y,
+double z, double qx, double qy, double qz, double qrot, int anglespecified);
 
 int luafuncs_freeObjectPhysicsData(struct objectphysicsdata* d);
 
