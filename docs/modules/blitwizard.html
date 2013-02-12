@@ -76,7 +76,15 @@
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#object:getPosition">object:getPosition&nbsp;()</a></td>
-	<td class="summary">Get the current position of the given object.</td>
+	<td class="summary">Get the current position of the object.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:setPosition">object:setPosition&nbsp;(pos_x, pos_y, pos_z)</a></td>
+	<td class="summary">Set the object to a new position.</td>
+	</tr>
+	<tr>
+	<td class="name" nowrap><a href="#object:setZIndex">object:setZIndex&nbsp;(z_index)</a></td>
+	<td class="summary">Set the z-index of the object (only for 2d objects).</td>
 	</tr>
 	<tr>
 	<td class="name" nowrap><a href="#object:disableCollision">object:disableCollision&nbsp;()</a></td>
@@ -190,7 +198,7 @@
     <strong>object:getPosition&nbsp;()</strong>
     </dt>
     <dd>
-    Get the current position of the given object.
+    Get the current position of the object.
  Returns two coordinates for a 2d object, and three coordinates
  for a 3d object.
 
@@ -207,6 +215,56 @@
           <span class="types"><span class="type">number</span></span>
         (if 3d object) z coordinate</li>
     </ol>
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:setPosition"></a>
+    <strong>object:setPosition&nbsp;(pos_x, pos_y, pos_z)</strong>
+    </dt>
+    <dd>
+    Set the object to a new position.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">pos_x</span>
+        <span class="types"><span class="type">number</span></span>
+       x coordinate</li>
+      <li><span class="parameter">pos_y</span>
+        <span class="types"><span class="type">number</span></span>
+       y coordinate</li>
+      <li><span class="parameter">pos_z</span>
+        <span class="types"><span class="type">number</span></span>
+       (only for 3d objects) z coordinate</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "object:setZIndex"></a>
+    <strong>object:setZIndex&nbsp;(z_index)</strong>
+    </dt>
+    <dd>
+    Set the z-index of the object (only for 2d objects).
+ An object with a higher z index will be drawn above
+ others with a lower z index. If two objects have the same
+ z index, the newer object will be drawn on top.
+
+ The z index will be internally set to an integer,
+ so use numbers like 1, 2, 3, 99, ...
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">z_index</span>
+        <span class="types"><span class="type">number</span></span>
+       New z index</li>
+    </ul>
+
 
 
 

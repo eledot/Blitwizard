@@ -224,7 +224,7 @@ int luafuncs_object_delete(lua_State* l) {
     return 0;
 }
 
-/// Get the current position of the given object.
+/// Get the current position of the object.
 // Returns two coordinates for a 2d object, and three coordinates
 // for a 3d object.
 // @function getPosition
@@ -247,4 +247,27 @@ int luafuncs_getPosition(lua_State* l) {
     }
     return 2;
 }
+
+/// Set the object to a new position.
+// @function setPosition
+// @tparam number pos_x x coordinate
+// @tparam number pos_y y coordinate
+// @tparam number pos_z (only for 3d objects) z coordinate
+int luafuncs_setPosition(lua_State* l) {
+
+}
+
+/// Set the z-index of the object (only for 2d objects).
+// An object with a higher z index will be drawn above
+// others with a lower z index. If two objects have the same
+// z index, the newer object will be drawn on top.
+//
+// The z index will be internally set to an integer,
+// so use numbers like 1, 2, 3, 99, ...
+// @function setZIndex
+// @tparam number z_index New z index
+int luafuncs_setZIndex(lua_State* l) {
+
+}
+
 
