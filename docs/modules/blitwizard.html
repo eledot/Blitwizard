@@ -65,73 +65,73 @@
 <h2><a href="#Class_object">Class object</a></h2>
 <table class="function_list">
 	<tr>
-	<td class="name" nowrap><a href="#object:new">object:new&nbsp;(3d, resource, behaviour)</a></td>
+	<td class="name" ><a href="#object:new">object:new&nbsp;(3d, resource, behaviour)</a></td>
 	<td class="summary">Create a new blitwizard object which is represented as a 2d or
  3d object in the game world.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:delete">object:delete&nbsp;()</a></td>
+	<td class="name" ><a href="#object:delete">object:delete&nbsp;()</a></td>
 	<td class="summary">Delete the given object explicitely, to make it instantly disappear
  from the game world.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:getPosition">object:getPosition&nbsp;()</a></td>
+	<td class="name" ><a href="#object:getPosition">object:getPosition&nbsp;()</a></td>
 	<td class="summary">Get the current position of the object.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:setPosition">object:setPosition&nbsp;(pos_x, pos_y, pos_z)</a></td>
+	<td class="name" ><a href="#object:setPosition">object:setPosition&nbsp;(pos_x, pos_y, pos_z)</a></td>
 	<td class="summary">Set the object to a new position.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:setZIndex">object:setZIndex&nbsp;(z_index)</a></td>
+	<td class="name" ><a href="#object:setZIndex">object:setZIndex&nbsp;(z_index)</a></td>
 	<td class="summary">Set the z-index of the object (only for 2d objects).</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:disableCollision">object:disableCollision&nbsp;()</a></td>
+	<td class="name" ><a href="#object:disableCollision">object:disableCollision&nbsp;()</a></td>
 	<td class="summary">Disable the physics simulation on an object.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:shape_info">object:shape_info</a></td>
+	<td class="name" ><a href="#object:shape_info">object:shape_info</a></td>
 	<td class="summary">This is how you should submit shape info to <a href="../modules/blitwizard.html#object:enableStaticCollision">object:enableStaticCollision</a> and <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a> (THIS TABLE DOESN'T EXIST, it is just a guide on how to construct it yourself)</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:enableMovableCollision">object:enableMovableCollision&nbsp;(shape_info)</a></td>
+	<td class="name" ><a href="#object:enableMovableCollision">object:enableMovableCollision&nbsp;(shape_info)</a></td>
 	<td class="summary">Enable the physics simulation on the given object and make it
  movable and collide with other movable and static objects.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:enableStaticCollision">object:enableStaticCollision&nbsp;(shape_info)</a></td>
+	<td class="name" ><a href="#object:enableStaticCollision">object:enableStaticCollision&nbsp;(shape_info)</a></td>
 	<td class="summary">Enable the physics simulation on the given object and allow other
  objects to collide with it.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:impulse">object:impulse&nbsp;(source_x, source_y, source_z, force_x, force_y, force_z)</a></td>
+	<td class="name" ><a href="#object:impulse">object:impulse&nbsp;(source_x, source_y, source_z, force_x, force_y, force_z)</a></td>
 	<td class="summary">Apply a physics impulse onto an object (which will make it move,
  for example as if someone had pushed it).</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:restrictRotation">object:restrictRotation&nbsp;(total_or_axis_x, axis_y, axis_z, axis_point_x, axis_point_y, axis_point_z)</a></td>
+	<td class="name" ><a href="#object:restrictRotation">object:restrictRotation&nbsp;(total_or_axis_x, axis_y, axis_z, axis_point_x, axis_point_y, axis_point_z)</a></td>
 	<td class="summary">Restrict the ability to rotate for a given object.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:setAngularDamping">object:setAngularDamping&nbsp;(damping)</a></td>
+	<td class="name" ><a href="#object:setAngularDamping">object:setAngularDamping&nbsp;(damping)</a></td>
 	<td class="summary">Set the angular damping factor.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:setFriction">object:setFriction&nbsp;(friction)</a></td>
+	<td class="name" ><a href="#object:setFriction">object:setFriction&nbsp;(friction)</a></td>
 	<td class="summary">Set the surface friction on the given object.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:setGravity">object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</a></td>
+	<td class="name" ><a href="#object:setGravity">object:setGravity&nbsp;(gravity_x, gravity_y, gravity_z)</a></td>
 	<td class="summary">Set a gravity vector onto an object with movable collision enabled
  (see <a href="../modules/blitwizard.html#object:enableMovableCollision">object:enableMovableCollision</a>).</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:setLinearDamping">object:setLinearDamping&nbsp;(damping)</a></td>
+	<td class="name" ><a href="#object:setLinearDamping">object:setLinearDamping&nbsp;(damping)</a></td>
 	<td class="summary">Set the linear damping factor.</td>
 	</tr>
 	<tr>
-	<td class="name" nowrap><a href="#object:setMass">object:setMass&nbsp;(mass, mass_center_x, mass_center_y, mass_center_z)</a></td>
+	<td class="name" ><a href="#object:setMass">object:setMass&nbsp;(mass, mass_center_x, mass_center_y, mass_center_z)</a></td>
 	<td class="summary">Set the mass and the center of an object.</td>
 	</tr>
 </table>

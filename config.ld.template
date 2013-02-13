@@ -1,4 +1,5 @@
 -- LDoc configuration file
+wrap = true
 merge = true
 file = { INSERT_FILES_HERE }
 title = "Blitwizard documentation"
