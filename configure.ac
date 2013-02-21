@@ -170,6 +170,12 @@ AS_IF([test -e "src/ffmpeg/libavcodec/avcodec.h"],[
         CONFIGUREFFMPEG="cd src/ffmpeg && ./configure --disable-libgsm --enable-runtime-cpudetect  --enable-version3 --disable-gpl --enable-shared --disable-doc --disable-ffmpeg --disable-avconv --disable-ffplay --disable-ffprobe --disable-ffserver --disable-protocols --disable-devices;"
         eval $CONFIGUREFFMPEG || { FFMPEG_CONFIG_FAILED="yes"; }
         cd ../../
+        # Recent versions of FFmpeg no longer know about --disable-avconf:
+        AS_IF([test "x$FFMPEG_CONFIG_FAILED" = xyes], [ 
+            CONFIGUREFFMPEG="cd src/ffmpeg && ./configure --disable-libgsm --enable-runtime-cpudetect --enable-version3 --disable-gpl --enable-shared --disable-doc --disable-ffmpeg --disable-ffplay --disable-ffprobe --disable-ffserver --disable-protocols --disable-devices;"
+            eval $CONFIGUREFFMPEG || { FFMPEG_CONFIG_FAILED="yes"; }
+            cd ../../
+        ]) 
     ])
     AS_IF([test "x$FFMPEG_CONFIG_FAILED" = xno],[
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
