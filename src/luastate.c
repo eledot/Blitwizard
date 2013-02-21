@@ -38,6 +38,21 @@
 
 #include "file.h"
 
+// If USE_PHYSICS2D, or USE_PHYSICS3D respectively, isn't defined we wouldn't want to
+// actually have a function call to luastate_register2dphysics_do/luastate_register3dphysics_do
+// with the physics function pointer get evaluated by gcc.
+// This way, we can avoid linker errors due to the physics functions not being present.
+#ifdef USE_PHYSICS2D
+#define luastate_register2dphysics luastate_register2dphysics_do
+#else
+#define luastate_register2dphysics(X, Y, Z) (luastate_register2dphysics_do(X, NULL, Z))
+#endif
+#ifdef USE_PHYSICS23
+#define luastate_register3dphysics luastate_register2dphysics_do
+#else
+#define luastate_register3dphysics(X, Y, Z) (luastate_register2dphysics_do(X, NULL, Z))
+#endif
+
 static lua_State* scriptstate = NULL;
 
 void* luastate_GetStatePtr() {
@@ -116,70 +131,40 @@ void luastate_SetGCCallback(void* luastate, int tablestackindex, int (*callback)
     if (tablestackindex < 0) {tablestackindex++;}
 }
 
-static void luastate_CreatePhysics2dTable(lua_State* l) {
-    lua_newtable(l);
+int functionalitymissing_2dphysics(lua_State* l) {
+    return haveluaerror(l, "%s", error_nophysics2d);
+}
+
+int functionalitymissing_3dphysics(lua_State* l) {
+    return haveluaerror(l, "%s", error_nophysics3d);
+}
+
+void luastate_register2dphysics_do(lua_State* l, int (*func)(lua_State*), const char* name) {
+    lua_pushstring(l, name);
 #ifdef USE_PHYSICS2D
-    lua_pushstring(l, "setGravity");
-    lua_pushcfunction(l, &luafuncs_setGravity);
-    lua_settable(l, -3);
-    lua_pushstring(l, "createMovableObject");
-    lua_pushcfunction(l, &luafuncs_createMovableObject);
-    lua_settable(l, -3);
-    lua_pushstring(l, "createStaticObject");
-    lua_pushcfunction(l, &luafuncs_createStaticObject);
-    lua_settable(l, -3);
-    lua_pushstring(l, "destroyObject");
-    lua_pushcfunction(l, &luafuncs_destroyObject);
-    lua_settable(l, -3);
-    lua_pushstring(l, "restrictRotation");
-    lua_pushcfunction(l, &luafuncs_restrictRotation);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setShapeRectangle");
-    lua_pushcfunction(l, &luafuncs_setShapeRectangle);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setShapeCircle");
-    lua_pushcfunction(l, &luafuncs_setShapeCircle);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setShapeOval");
-    lua_pushcfunction(l, &luafuncs_setShapeOval);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setShapeEdges");
-    lua_pushcfunction(l, &luafuncs_setShapeEdges);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setCollisionCallback");
-    lua_pushcfunction(l, &luafuncs_setCollisionCallback);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setMass");
-    lua_pushcfunction(l, &luafuncs_setMass);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setFriction");
-    lua_pushcfunction(l, &luafuncs_setFriction);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setRestitution");
-    lua_pushcfunction(l, &luafuncs_setRestitution);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setAngularDamping");
-    lua_pushcfunction(l, &luafuncs_setAngularDamping);
-    lua_settable(l, -3);
-    lua_pushstring(l, "setLinearDamping");
-    lua_pushcfunction(l, &luafuncs_setLinearDamping);
-    lua_settable(l, -3);
-    lua_pushstring(l, "getRotation");
-    lua_pushcfunction(l, &luafuncs_getRotation);
-    lua_settable(l, -3);
-    lua_pushstring(l, "getPosition");
-    lua_pushcfunction(l, &luafuncs_getPosition);
-    lua_settable(l, -3);
-    lua_pushstring(l, "warp");
-    lua_pushcfunction(l, &luafuncs_warp);
-    lua_settable(l, -3);
-    lua_pushstring(l, "impulse");
-    lua_pushcfunction(l, &luafuncs_impulse);
-    lua_settable(l, -3);
-    lua_pushstring(l, "ray");
-    lua_pushcfunction(l, &luafuncs_ray);
-    lua_settable(l, -3);
+    lua_pushcfunction(l, func);
+#else
+    lua_pushcfunction(l, functionalitymissing_2dphysics);
 #endif
+    lua_settable(l, -3);
+}
+
+void luastate_register3dphysics_do(lua_State* l, int (*func)(lua_State*), const char* name) {
+    lua_pushstring(l, name);
+#ifdef USE_PHYSICS2D
+    lua_pushcfunction(l, func);
+#else
+    lua_pushcfunction(l, functionalitymissing_3dphysics);
+#endif
+    lua_settable(l, -3);
+}
+
+static void luastate_CreatePhysicsTable(lua_State* l) {
+    lua_newtable(l);
+    luastate_register2dphysics(l, &luafuncs_set2dGravity, "set2dGravity");
+    luastate_register2dphysics(l, &luafuncs_ray2d, "ray2d");
+    luastate_register3dphysics(l, &luafuncs_set3dGravity, "set3dGravity");
+    luastate_register3dphysics(l, &luafuncs_ray3d, "ray3d");
 }
 
 static void luastate_CreateNetTable(lua_State* l) {
@@ -404,7 +389,7 @@ static void luastate_VoidDebug(lua_State* l) {
     // should we void binary loaders to avoid loading a debug.so?
 }
 
-static lua_State* luastate_New() {
+static lua_State* luastate_New(void) {
     lua_State* l = luaL_newstate();
 
     lua_gc(l, LUA_GCSETPAUSE, 110);
@@ -456,8 +441,8 @@ static lua_State* luastate_New() {
     luastate_CreateTimeTable(l);
     lua_settable(l, -3);
 
-    lua_pushstring(l, "physics2d");
-    luastate_CreatePhysics2dTable(l);
+    lua_pushstring(l, "physics");
+    luastate_CreatePhysicsTable(l);
     lua_settable(l, -3);
 
     // we still have the module "blitwiz" on the stack here

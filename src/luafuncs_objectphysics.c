@@ -30,8 +30,6 @@
 // @license zlib
 // @module blitwizard
 
-#if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
-
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,6 +49,8 @@
 /// Blitwizard object which represents an 'entity' in the game world
 /// with visual representation, behaviour code and collision shape.
 // @type object
+
+#if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
 
 void transferbodysettings(struct physicsobject* oldbody,
 struct physicsobject* newbody);
@@ -1062,26 +1062,36 @@ struct physicsobject* newbody) {
     }
 }
 
+#endif  // USE_PHYSICS2D || USE_PHYSICS3D
+
 void objectphysics_warp3d(struct blitwizardobject* obj, double x, double y,
 double z, double qx, double qy, double qz, double qrot, int anglespecified) {
+#ifdef USE_PHYSICS3D
     if (!anglespecified) {
         physics_Get3dRotationQuaternion(obj->physics->object,
         &qx, &qy, &qz, &qrot);
     }
     physics_Warp3d(obj->physics->object, x, y, z, qx, qy, qz, qrot);
+#endif
 }
 
 void objectphysics_warp2d(struct blitwizardobject* obj, double x, double y,
 double angle, int anglespecified) {
+#ifdef USE_PHYSICS2D
     if (!anglespecified) {
         physics_Get2dRotation(obj->physics->object, &angle);
     }
     physics_Warp2d(obj->physics->object, x, y, angle);
+#endif
 }
 
 void objectphysics_getPosition(struct blitwizardobject* obj,
 double* x, double* y, double* z) {
+#if (defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D))
     if (!obj->physics || !obj->physics->object) {
+#else
+    if (1) {
+#endif
         *x = obj->x;
         *y = obj->y;
         if (obj->is3d) {
@@ -1089,33 +1099,47 @@ double* x, double* y, double* z) {
         }
         return;
     }
+#if defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D)
     if (obj->is3d) {
+#ifdef USE_PHYSICS3D
         physics_Get3dPosition(obj->physics->object, x, y, z);
+#endif
     } else {
+#ifdef USE_PHYSICS2D
         physics_Get2dPosition(obj->physics->object, x, y);
+#endif
     }
+#endif
 }
 
 void objectphysics_get2dRotation(struct blitwizardobject* obj,
 double* angle) {
+#ifdef USE_PHYSICS2D
     if (obj->physics && obj->physics->object) {
         physics_Get2dRotation(obj->physics->object, angle);
     } else {
+#endif
         *angle = obj->rotation.angle;
+#ifdef USE_PHYSICS2D
     }
+#endif
 }
 
 void objectphysics_get3dRotation(struct blitwizardobject* obj,
 double* qx, double* qy, double* qz, double* qrot) {
+#ifdef USE_PHYSICS3D
     if (obj->physics && obj->physics->object) {
         physics_Get3dRotationQuaternion(obj->physics->object,
         qx, qy, qz, qrot);
     } else {
+#endif
         *qx = obj->rotation.quaternion.x;
         *qy = obj->rotation.quaternion.y;
         *qz = obj->rotation.quaternion.z;
         *qrot = obj->rotation.quaternion.r;
+#ifdef USE_PHYSICS3D
     }
+#endif
 }
 
 /*int luafuncs_setShapeEdges(lua_State* l) {
@@ -1222,6 +1246,5 @@ double* qx, double* qy, double* qz, double* qrot) {
     return 0;
 }*/
 
-#endif  // USE_PHYSICS2D || USE_PHYSICS3D
 
 

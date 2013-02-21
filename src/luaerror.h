@@ -34,5 +34,8 @@ const char* lua_strtype(lua_State* l, int stack);
 
 void callbackerror(lua_State* l, const char* function, const char* error, ...);
 
+#define error_nophysics2d "functionality not available - blitwizard was compiled without 2d physics support"
+#define error_nophysics3d "functionality not available - blitwizard was compiled without 3d physics support"
+
 #endif  // BLITWIZARD_LUAERROR_H_
 
