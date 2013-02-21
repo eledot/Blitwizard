@@ -21,6 +21,7 @@ scripts/.depsarebuilt_flags
 scripts/.depsarebuilt_luatarget
 libtool
 m4
+confdefs.h
 config.ld
 deps
 autom4te.cache/
