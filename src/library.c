@@ -237,7 +237,6 @@ strcasecmp(name, "ffmpegsumo") == 0
         const char* chromepath = mac_GetPathForApplication("Google Chrome");
 #else
         const char* chromepath = win32_GetPathForChrome();
-        printf("chromepath: %s\n", chromepath);
 #endif
         if (chromepath && strlen(chromepath) > 0) {
 #ifdef FFMPEGLOCATEDEBUG
