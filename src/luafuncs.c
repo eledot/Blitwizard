@@ -21,8 +21,9 @@
 
 */
 
-#include <stdint.h>
+#include "os.h"
 #include <stdlib.h>
+#include <stdint.h>
 #include <string.h>
 #include <stdarg.h>
 #include <float.h>
@@ -638,7 +639,7 @@ int luafuncs_drawRectangle(lua_State* l) {
     int x,y;
     float alpha = 1;
     if (lua_type(l, 1) != LUA_TNUMBER) {
-        lua_pushstring(l, "First parameter is not a valid x position number");
+       lua_pushstring(l, "First parameter is not a valid x position number");
         return lua_error(l);
     }
     if (lua_type(l, 2) != LUA_TNUMBER) {
@@ -973,8 +974,9 @@ int luafuncs_trandom(lua_State* l) {
     return 1;
 #else
 #ifdef WINDOWS
-    // on windows, we don't support this for now:
-    lua_pushnumber(l, drand48());
+    // on windows, use cheap random numbers for now
+    double d = (double)rand() / ((double)RAND_MAX+1);
+    lua_pushnumber(l, d);
     return 1;
 #else
     // unknown system

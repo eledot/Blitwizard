@@ -30,9 +30,11 @@
 #include "os.h"
 #ifdef WINDOWS
 #include <windows.h>
+#ifdef USE_SDL_GRAPHICS
 #include "SDL.h"
 #include "graphicstexture.h"
 #include "graphics.h"
+#endif
 #endif
 
 #define MEMORYLOGBUFCHUNK (1024 * 10)
