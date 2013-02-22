@@ -25,14 +25,20 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// valid sound buffer sizes for audio:
+#define DEFAULTSOUNDBUFFERSIZE (4096)
+#define MINSOUNDBUFFERSIZE 512
+#define MAXSOUNDBUFFERSIZE (1024 * 10)
+
+// since waveout is shit, we'll need a bigger buffer for it:
+#define WAVEOUTMINBUFFERSIZE 1024
+// how often we'll poll waveout (in milliseconds):
+#define WAVEOUTPOLL 20
+
 #ifdef USE_AUDIO
 #ifdef USE_SDL_AUDIO
 
 #include "SDL.h"
-
-#define DEFAULTSOUNDBUFFERSIZE (4096)
-#define MINSOUNDBUFFERSIZE 512
-#define MAXSOUNDBUFFERSIZE (1024 * 10)
 
 static void*(*samplecallbackptr)(unsigned int) = NULL;
 static int soundenabled = 0;
@@ -86,7 +92,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
     }
 #ifdef ANDROID
     if (!s16) {
-        *error = strdup("No 32bit audio available on Android");
+        *error = strdup("No 32bit float audio available on Android");
         return 0;
     }
 #endif
@@ -178,10 +184,217 @@ void audio_UnlockAudioThread() {
 
 #else // USE_SDL_AUDIO
 
+#ifdef WINDOWS
+
+// waveout audio.
+// waveout is a pretty stupid api,
+// but it will be sufficient to get a bit of sound out.
+#include <stdlib.h>
+#include <windows.h>
+#include <mmsystem.h>
+
+#include "threading.h"
+#include "timefuncs.h"
+
+HWAVEOUT waveoutdev;
+WAVEFORMATEX waveoutfmt;
+mutex* waveoutlock = NULL;
+int threadcontrol = -1;  // 1 - thread runs, 0 - shutdown signal, -1 thread is off
+int waveoutstate = -1;  // -1 not running, 0 starting, 1 running
+int waveoutbytes;
+
+// this is used by the sound thread;
+WAVEHDR waveheader;
+int unprepareheader = 0;
+
+// audio mixer callback and global sound enabled info:
+static void*(*samplecallbackptr)(unsigned int) = NULL;
+static int soundenabled = 0;
+
+const char* audio_GetCurrentBackendName() {
+    return "waveout";
+}
+
+void audiocallback(HWAVEOUT dev, UINT uMsg,
+DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2) {
+	// waveOut callback (SOUND THREAD)
+	if (uMsg == WOM_DONE) {
+		// output new audio
+		mutex_Lock(waveoutlock);
+		
+		if (!samplecallbackptr) {
+			return;
+		}
+		
+		if (unprepareheader) {
+			while (waveOutUnprepareHeader(
+			waveoutdev, &waveheader, sizeof(waveheader)
+			) == WAVERR_STILLPLAYING) {
+				time_Sleep(50);
+			}
+		}
+		
+		memset(&waveheader, 0, sizeof(waveheader));
+		waveheader.dwBufferLength = waveoutbytes;
+		
+		char* p = samplecallbackptr((unsigned int)waveoutbytes);
+		waveheader.lpData = p;
+		
+		waveOutPrepareHeader(waveoutdev, &waveheader,
+		sizeof(waveheader));
+		waveOutWrite(waveoutdev, &waveheader, sizeof(waveheader));
+		
+		mutex_Release(waveoutlock);
+	}
+}
+
+void audio_SoundThread(void* userdata) {
+	// sound thread function (SOUND THREAD)
+	mutex_Lock(waveoutlock);
+	threadcontrol = 1;
+	
+	MMRESULT r = waveOutOpen(&waveoutdev, WAVE_MAPPER,
+	&waveoutfmt, (DWORD_PTR)&audiocallback, 0,
+	(DWORD)CALLBACK_FUNCTION);
+	if (r != MMSYSERR_NOERROR) {
+		threadcontrol = -1;
+		mutex_Release(waveoutlock);
+	}
+	
+	mutex_Release(waveoutlock);
+	while (1) {
+		time_Sleep(100);
+		mutex_Lock(waveoutlock);
+		if (threadcontrol == 0) {
+			// we are supposed to shutdown
+			waveOutClose(waveoutdev);
+			waveoutdev = NULL;
+			threadcontrol = -1;
+			mutex_Release(waveoutlock);
+			return;
+		}
+		mutex_Release(waveoutlock);
+	}
+}
+
+static void audio_StopWaveoutThread(void) {
+    mutex_Lock(waveoutlock);
+	if (threadcontrol <= 0) {
+		if (threadcontrol == 0) {
+			// wait for thread to shut down:
+			while (threadcontrol == 0) {
+				mutex_Release(waveoutlock);
+				time_Sleep(50);
+				mutex_Lock(waveoutlock);
+			}
+		}
+		mutex_Release(waveoutlock);
+		return;
+	}
+	
+	// tell thread to shutdown:
+	threadcontrol = 0;
+	
+	// wait for thread to shutdown:
+	while (threadcontrol == 0) {
+		mutex_Release(waveoutlock);
+		time_Sleep(50);
+		mutex_Lock(waveoutlock);
+	}
+	mutex_Release(waveoutlock);
+}
+
+static void waveout_LaunchWaveoutThread(void) {
+	mutex_Lock(waveoutlock);
+	if (threadcontrol >= 0) {
+		// thread is already running
+		mutex_Release(waveoutlock);
+		return;
+	}
+	mutex_Release(waveoutlock);
+
+	// launch our sound thread which will operate the waveOut device:
+	threadinfo* t = thread_CreateInfo();
+	if (!t) {
+		return;
+	}
+	thread_Spawn(t, audio_SoundThread, NULL);
+	thread_FreeInfo(t);
+}
+
+void audio_Quit(void) {
+    if (soundenabled) {
+		audio_StopWaveoutThread();
+        soundenabled = 0;
+    }
+}
+
+
+
+int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
+	if (!s16) {
+        *error = strdup("WaveOut doesn't support 32bit float audio");
+        return 0;
+	}
+	
+	if (!waveoutlock) {
+		waveoutlock = mutex_Create();
+	}
+	
+	if (soundenabled) {
+		// quit old sound first
+		audio_StopWaveoutThread();
+		soundenabled = 0;
+	}
+	
+	memset(&waveoutfmt, 0, sizeof(waveoutfmt));
+	waveoutfmt.nSamplesPerSec = 48000;
+	waveoutfmt.wBitsPerSample = 16;
+	waveoutfmt.nChannels = 2;
+	
+	waveoutfmt.cbSize = 0;
+	waveoutfmt.wFormatTag = WAVE_FORMAT_PCM;
+	waveoutfmt.nBlockAlign = (2 * 16) / 8;
+	waveoutfmt.nAvgBytesPerSec = waveoutfmt.nSamplesPerSec * waveoutfmt.nBlockAlign;
+	
+	int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
+    if (buffersize > 0) {
+        if (buffersize < MINSOUNDBUFFERSIZE) {
+            buffersize = MINSOUNDBUFFERSIZE;
+        }
+        if (buffersize > MAXSOUNDBUFFERSIZE) {
+            buffersize = MAXSOUNDBUFFERSIZE;
+        }
+        custombuffersize = buffersize;
+    }
+	waveoutbytes = custombuffersize;
+	samplecallbackptr = samplecallback;
+	waveout_LaunchWaveoutThread();
+	
+	time_Sleep(50);
+	mutex_Lock(waveoutlock);
+	while (threadcontrol == 0) {
+		mutex_Release(waveoutlock);
+		time_Sleep(50);
+		mutex_Release(waveoutlock);
+	}
+	
+	if (threadcontrol < 0) {
+		*error = strdup("WaveOut returned an error");
+        return 0;
+	}
+	return 1;
+}
+
+#else  // WINDOWS
+
+// no audio support
+
 const char* audio_GetCurrentBackendName() {
     return NULL;
 }
 
-#endif // USE_SDL_AUDIO
-#endif // USE_AUDIO
+#endif  // WINDOWS
+#endif  // USE_SDL_AUDIO
+#endif  // USE_AUDIO
 

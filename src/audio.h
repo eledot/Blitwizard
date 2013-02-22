@@ -26,7 +26,9 @@
 const char* audio_GetCurrentBackendName(void);
 // Get the name of the currently active audio backend, or NULL for none.
 
-#ifdef USE_SDL_AUDIO
+#include "os.h"
+
+#if defined(USE_SDL_AUDIO) || defined(WINDOWS)
 
 int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersize, const char* backend, int s16, char** error);
 // Initialise audio. Returns 1 on success, 0 on error (in which case
@@ -53,14 +55,14 @@ void audio_UnlockAudioThread(void);
 void audio_Quit(void);
 // Quit audio backend completely
 
-#else
+#else  // USE_SDL_AUDIO || WINDOWS
 
 #define compiled_without_audio "No audio available - this binary was compiled with audio (including null device) disabled"
 
 #endif
-#else
+#else  // USE_AUDIO
 
 #define compiled_without_audio "No audio available - this binary was compiled with audio (including null device) disabled"
 
-#endif
+#endif  // USE_AUDIO
 

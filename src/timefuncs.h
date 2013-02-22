@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,6 +21,8 @@
 
 */
 
+#ifndef BLITWIZARD_TIMEFUNCS_H_
+#define BLITWIZARD_TIMEFUNCS_H_
 
 uint64_t time_GetMilliseconds(void);
 // Timestamp derived from SDL_GetTicks(),
@@ -37,4 +39,6 @@ uint64_t time_GetMilliseconds(void);
 
 void time_Sleep(uint32_t milliseconds);
 // Sleep for a specified amount of time.
+
+#endif  // BLITWIZARD_TIMEFUNCS_H_
 

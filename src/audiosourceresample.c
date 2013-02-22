@@ -80,7 +80,9 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
     as->position = &audiosourceresample_Position;
     as->length = &audiosourceresample_Length;
     as->seek = &audiosourceresample_Seek;
-
+	as->samplerate = targetrate;
+    as->channels = source->channels;
+    as->format = source->format;
     return as;
 }
 
