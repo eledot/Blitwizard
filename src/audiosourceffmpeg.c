@@ -173,7 +173,7 @@ static int audiosourceffmpeg_LoadFFmpegFunctions(void) {
     loadorwarn((void**)(&ffmpeg_av_find_best_stream), avformatptr, "av_find_best_stream");
     loadorfail((void**)(&ffmpeg_avcodec_open2), avcodecptr, "avcodec_open2");
     loadorfail((void**)(&ffmpeg_avformat_open_input), avformatptr, "avformat_open_input");
-    loadorwarn((void**)(&ffmpeg_avcodec_decode_audio4), avcodecptr, "avcodec_decode_audio4");
+    loadorwarn((void**)(&ffmpeg_avcodec_decode_audio3), avcodecptr, "avcodec_decode_audio3");
 	if (!ffmpeg_avcodec_decode_audio4) {
 		loadorfail((void**)(&ffmpeg_avcodec_decode_audio4), avcodecptr, "avcodec_decode_audio4");
 		loadorfail((void**)(&ffmpeg_av_samples_get_buffer_size), avutilptr, "av_samples_get_buffer_size");
