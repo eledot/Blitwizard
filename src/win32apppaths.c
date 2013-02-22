@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2012 Nicolas Haunold, Jonas Thiem
+  Copyright (C) 2012-2013 Nicolas Haunold, Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -46,7 +46,6 @@ static char* queryregstring(HKEY key, const char* path, const char* name) {
     }
     data[datalen] = 0;
     RegCloseKey(khandle);
-
     return strdup(data);
 }
 
@@ -81,26 +80,21 @@ const char* win32_GetPathForChrome() {
         return chromepath;
     }
 
-    // the registry knows where chrome is:
-    char* path = queryregstring(HKEY_CURRENT_USER, "Software\\\\Google\\\\Update", "path");
+    // try the app paths for chrome:
+    char* path = queryregstring(HKEY_LOCAL_MACHINE, "Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\chrome.exe", "Path");
     if (!path) {
         return NULL;
     }
-    file_MakeSlashesNative(path); // now: C:\Users\Jonas\AppData\Local\Google\Update\GoogleUpdate.exe
-    char* p2 = file_GetDirectoryPathFromFilePath(path); // now: C:\Users\Jonas\AppData\Local\Google\Update
-    free(path);
-    if (!p2) {
-        return NULL;
+
+    file_MakeSlashesNative(path); // now: C:\Program Files (x86)\Google\Chrome\Application
+    // copy and remember the path:
+    unsigned int copylen = strlen(path);
+    if (copylen >= sizeof(chromepath)) {
+        copylen = sizeof(chromepath) - 1;
     }
-    path = p2;
-    file_StripComponentFromPath(path); // now: C:\Users\Jonas\AppData\Local\Google
-    char sep[] = "/";
-    if (strlen(path) > 0 && (path[strlen(path) - 1] == '/' || path[strlen(path) - 1] == '\\')) {
-        sep[0] = 0;
-    }
-    snprintf(chromepath, sizeof(chromepath), "%s%sChrome/Application", path, sep); // now: C:\Users\Jonas\AppData\Local\Google\Chrome\Application
+    memcpy(chromepath, path, copylen);
+    chromepath[copylen] = 0;
     free(path);
-    file_MakeSlashesNative(chromepath);
 
     return chromepath;
 }

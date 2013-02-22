@@ -42,7 +42,7 @@
 #include "win32apppaths.h"
 #endif
 
-// #define FFMPEGLOCATEDEBUG
+ #define FFMPEGLOCATEDEBUG
 
 char fileext[10] = "";
 
@@ -226,10 +226,9 @@ void* library_LoadSearch(const char* name) {
     // For Mac OS X/Windows, we will attempt to obtain FFmpeg from Chrome or Steam:
 #if defined(WINDOWS) || defined(MAC)
     if (
-#ifdef MAC
 strcasecmp(name, "ffmpegsumo") == 0
-#else
-strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcasecmp(name, "avutil") == 0
+#ifdef WINDOWS
+|| strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcasecmp(name, "avutil") == 0
 #endif
 ) {
         // Reference (mac os x): [/Applications/Google Chrome.app]/Contents/Versions/20.0.1132.11/Google Chrome Framework.framework/Libraries/ffmpegsumo.so
@@ -238,8 +237,12 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
         const char* chromepath = mac_GetPathForApplication("Google Chrome");
 #else
         const char* chromepath = win32_GetPathForChrome();
+        printf("chromepath: %s\n", chromepath);
 #endif
         if (chromepath && strlen(chromepath) > 0) {
+#ifdef FFMPEGLOCATEDEBUG
+            printinfo("[FFmpeg-locate] Google Chrome install detected");
+#endif
             // Find out the version folder:
             struct filelistcontext* fctx = filelist_Create(chromepath);
             char versionfolder[512];
@@ -311,6 +314,9 @@ strcasecmp(name, "avformat") == 0 || strcasecmp(name, "avcodec") == 0 || strcase
         const char* steampath = win32_GetPathForSteam();
 #endif
         if (steampath && strlen(steampath) > 0) {
+#ifdef FFMPEGLOCATEDEBUG
+            printinfo("[FFmpeg-locate] Valve Steam install detected");
+#endif
             // Compose final path:
             char pathbuf[512];
             char sep[2] = "/";
