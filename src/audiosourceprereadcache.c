@@ -53,7 +53,7 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
     }
     if (idata->prereadcachesize == 0) {
         // cache was not initialised yet - initialise with standard size
-        idata->prereadcachesize = (1024 * 20);
+        idata->prereadcachesize = (1024 * 10);
         idata->prereadcache = malloc(idata->prereadcachesize);
         if (!idata->prereadcache) {
             return -1;
@@ -66,7 +66,8 @@ static int audiosourceprereadcache_Read(struct audiosource* source, char* buffer
     unsigned int writtenbytes = 0;
     while (bytes > 0) {
         // first, refill our cache if it cannot satisfy the demands
-        if (bytes > idata->prereadcachebytes && idata->prereadcachebytes < idata->prereadcachesize/4 && !idata->sourceeof) {
+        if (bytes > idata->prereadcachebytes/2 && (idata->prereadcachebytes < idata->prereadcachesize/4
+            || bytes > idata->prereadcachebytes) && !idata->sourceeof) {
             int i;
             i = idata->source->read(idata->source, idata->prereadcache + idata->prereadcachebytes, idata->prereadcachesize - idata->prereadcachebytes);
             if (i > 0) {

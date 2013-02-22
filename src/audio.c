@@ -38,12 +38,12 @@ static void*(*samplecallbackptr)(unsigned int) = NULL;
 static int soundenabled = 0;
 
 void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
-    memset(stream, 0, (size_t)len);
+    //memset(stream, 0, (size_t)len);
     if (!samplecallbackptr) {
         return;
     }
-    SDL_MixAudio(stream, samplecallbackptr((unsigned int)len), (unsigned int)len, SDL_MIX_MAXVOLUME);
-    // memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
+    //SDL_MixAudio(stream, samplecallbackptr((unsigned int)len), (unsigned int)len, SDL_MIX_MAXVOLUME);
+    memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
 }
 
 const char* audio_GetCurrentBackendName() {
