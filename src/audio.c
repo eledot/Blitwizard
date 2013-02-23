@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -204,7 +204,7 @@ volatile int waveoutstate = -1;  // -1 not running, 0 starting, 1 running
 int waveoutbytes;
 
 // this is used by the sound thread;
-#define AUDIOBLOCKS 3
+#define AUDIOBLOCKS 4
 WAVEHDR waveheader[AUDIOBLOCKS];
 volatile int unprepareheader[AUDIOBLOCKS];
 int nextaudioblock = 0;
@@ -218,217 +218,217 @@ const char* audio_GetCurrentBackendName(void) {
 }
 
 static void queueBlock(void) {
-	// output new audio (SOUND THREAD)
-	mutex_Lock(waveoutlock);
-	
-	// find out which block we want to queue up:
-	int i = nextaudioblock;
-	nextaudioblock++;
-	if (nextaudioblock >= AUDIOBLOCKS) {nextaudioblock = 0;}
-	int previousaudioblock = i-(AUDIOBLOCKS-1);
-	while (previousaudioblock < 0) {previousaudioblock += AUDIOBLOCKS;}
-	
-	if (!samplecallbackptr) {
-		mutex_Release(waveoutlock);
-		return;
-	}
-	
-	memset(&waveheader[i], 0, sizeof(WAVEHDR));
-	
-	// set block length
-	waveheader[i].dwBufferLength = waveoutbytes;
-	waveheader[i].dwLoops = 0;
-	
-	// set block audio data:
-	char* p = samplecallbackptr((unsigned int)waveoutbytes);
-	waveheader[i].lpData = p;
-	
-	// queue up block:
-	int r;
-	if ((r = waveOutPrepareHeader(waveoutdev, &waveheader[i],
-	sizeof(WAVEHDR))) != MMSYSERR_NOERROR) {
-		mutex_Release(waveoutlock);
-		return;
-	}
-	
-	if (waveOutWrite(waveoutdev, &waveheader[i],
-	sizeof(WAVEHDR)) != MMSYSERR_NOERROR) {
-		mutex_Release(waveoutlock);
-		return;
-	}
-	unprepareheader[i] = 1;
-	fflush(stdout);
-	
-	// remove previously queued blocks so we can reuse them:
-	if (unprepareheader[previousaudioblock]) {
-		while (waveOutUnprepareHeader(
-		waveoutdev, &waveheader[previousaudioblock], sizeof(WAVEHDR)
-		) == WAVERR_STILLPLAYING) {
-			break;
-		}
-		unprepareheader[previousaudioblock] = 0;
-	}
-	mutex_Release(waveoutlock);
+    // output new audio (SOUND THREAD)
+    mutex_Lock(waveoutlock);
+    
+    // find out which block we want to queue up:
+    int i = nextaudioblock;
+    nextaudioblock++;
+    if (nextaudioblock >= AUDIOBLOCKS) {nextaudioblock = 0;}
+    int previousaudioblock = i-(AUDIOBLOCKS-1);
+    while (previousaudioblock < 0) {previousaudioblock += AUDIOBLOCKS;}
+    
+    if (!samplecallbackptr) {
+        mutex_Release(waveoutlock);
+        return;
+    }
+    
+    memset(&waveheader[i], 0, sizeof(WAVEHDR));
+    
+    // set block length
+    waveheader[i].dwBufferLength = waveoutbytes;
+    waveheader[i].dwLoops = 0;
+    
+    // set block audio data:
+    char* p = samplecallbackptr((unsigned int)waveoutbytes);
+    waveheader[i].lpData = p;
+    
+    // queue up block:
+    int r;
+    if ((r = waveOutPrepareHeader(waveoutdev, &waveheader[i],
+    sizeof(WAVEHDR))) != MMSYSERR_NOERROR) {
+        mutex_Release(waveoutlock);
+        return;
+    }
+    
+    if (waveOutWrite(waveoutdev, &waveheader[i],
+    sizeof(WAVEHDR)) != MMSYSERR_NOERROR) {
+        mutex_Release(waveoutlock);
+        return;
+    }
+    unprepareheader[i] = 1;
+    fflush(stdout);
+    
+    // remove previously queued blocks so we can reuse them:
+    if (unprepareheader[previousaudioblock]) {
+        while (waveOutUnprepareHeader(
+        waveoutdev, &waveheader[previousaudioblock], sizeof(WAVEHDR)
+        ) == WAVERR_STILLPLAYING) {
+            break;
+        }
+        unprepareheader[previousaudioblock] = 0;
+    }
+    mutex_Release(waveoutlock);
 }
 
 static void CALLBACK audioCallback(HWAVEOUT hwo, UINT uMsg,
 DWORD dwInstance, DWORD dwParam1, DWORD dwParam2) {
-	if (uMsg == WOM_DONE) {
-		queueBlock();
-	}
+    if (uMsg == WOM_DONE) {
+        queueBlock();
+    }
 }
 
 void audio_SoundThread(void* userdata) {
-	// sound thread function (SOUND THREAD)
-	
-	int i = 0;
-	while (i < AUDIOBLOCKS) {
-		unprepareheader[i] = 0;
-		i++;
-	}
-	
-	MMRESULT r = waveOutOpen(&waveoutdev, WAVE_MAPPER,
-	&waveoutfmt, (DWORD_PTR)&audioCallback, (DWORD_PTR)0,
-	(DWORD)CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
-	mutex_Lock(waveoutlock);
-	if (r != MMSYSERR_NOERROR) {
-		threadcontrol = -1;
-		mutex_Release(waveoutlock);
-		return;
-	}
-	threadcontrol = 1;
-	
-	mutex_Release(waveoutlock);
-	
-	// queue up the initial blocks:
-	i = 0;
-	while (i < AUDIOBLOCKS) {
-		queueBlock();
-		i++;
-	}
-	
-	while (1) {
-		time_Sleep(100);
-		mutex_Lock(waveoutlock);
-		if (threadcontrol == 0) {
-			// we are supposed to shutdown
-			waveOutClose(waveoutdev);
-			waveoutdev = NULL;
-			threadcontrol = -1;
-			mutex_Release(waveoutlock);
-			return;
-		}
-		mutex_Release(waveoutlock);
-	}
+    // sound thread function (SOUND THREAD)
+    
+    int i = 0;
+    while (i < AUDIOBLOCKS) {
+        unprepareheader[i] = 0;
+        i++;
+    }
+    
+    MMRESULT r = waveOutOpen(&waveoutdev, WAVE_MAPPER,
+    &waveoutfmt, (DWORD_PTR)&audioCallback, (DWORD_PTR)0,
+    (DWORD)CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
+    mutex_Lock(waveoutlock);
+    if (r != MMSYSERR_NOERROR) {
+        threadcontrol = -1;
+        mutex_Release(waveoutlock);
+        return;
+    }
+    threadcontrol = 1;
+    
+    mutex_Release(waveoutlock);
+    
+    // queue up the initial blocks:
+    i = 0;
+    while (i < AUDIOBLOCKS) {
+        queueBlock();
+        i++;
+    }
+    
+    while (1) {
+        time_Sleep(100);
+        mutex_Lock(waveoutlock);
+        if (threadcontrol == 0) {
+            // we are supposed to shutdown
+            waveOutClose(waveoutdev);
+            waveoutdev = NULL;
+            threadcontrol = -1;
+            mutex_Release(waveoutlock);
+            return;
+        }
+        mutex_Release(waveoutlock);
+    }
 }
 
 static void audio_StopWaveoutThread(void) {
     mutex_Lock(waveoutlock);
-	if (threadcontrol <= 0) {
-		if (threadcontrol == 0) {
-			// wait for thread to shut down:
-			while (threadcontrol == 0) {
-				mutex_Release(waveoutlock);
-				time_Sleep(50);
-				mutex_Lock(waveoutlock);
-			}
-		}
-		mutex_Release(waveoutlock);
-		return;
-	}
-	
-	// tell thread to shutdown:
-	threadcontrol = 0;
-	
-	// wait for thread to shutdown:
-	while (threadcontrol == 0) {
-		mutex_Release(waveoutlock);
-		time_Sleep(50);
-		mutex_Lock(waveoutlock);
-	}
-	mutex_Release(waveoutlock);
+    if (threadcontrol <= 0) {
+        if (threadcontrol == 0) {
+            // wait for thread to shut down:
+            while (threadcontrol == 0) {
+                mutex_Release(waveoutlock);
+                time_Sleep(50);
+                mutex_Lock(waveoutlock);
+            }
+        }
+        mutex_Release(waveoutlock);
+        return;
+    }
+    
+    // tell thread to shutdown:
+    threadcontrol = 0;
+    
+    // wait for thread to shutdown:
+    while (threadcontrol == 0) {
+        mutex_Release(waveoutlock);
+        time_Sleep(50);
+        mutex_Lock(waveoutlock);
+    }
+    mutex_Release(waveoutlock);
 }
 
 static void waveout_LaunchWaveoutThread(void) {
-	mutex_Lock(waveoutlock);
-	if (threadcontrol >= 0) {
-		// thread is already running
-		mutex_Release(waveoutlock);
-		return;
-	}
-	threadcontrol = 0;
-	mutex_Release(waveoutlock);
+    mutex_Lock(waveoutlock);
+    if (threadcontrol >= 0) {
+        // thread is already running
+        mutex_Release(waveoutlock);
+        return;
+    }
+    threadcontrol = 0;
+    mutex_Release(waveoutlock);
 
-	// launch our sound thread which will operate the waveOut device:
-	threadinfo* t = thread_CreateInfo();
-	if (!t) {
-		return;
-	}
-	thread_Spawn(t, audio_SoundThread, NULL);
-	thread_FreeInfo(t);
+    // launch our sound thread which will operate the waveOut device:
+    threadinfo* t = thread_CreateInfo();
+    if (!t) {
+        return;
+    }
+    thread_Spawn(t, audio_SoundThread, NULL);
+    thread_FreeInfo(t);
 }
 
 void audio_Quit(void) {
     if (soundenabled) {
-		audio_StopWaveoutThread();
+        audio_StopWaveoutThread();
         soundenabled = 0;
     }
 }
 
 int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
-	if (!s16) {
+    if (!s16) {
         *error = strdup("WaveOut doesn't support 32bit float audio");
         return 0;
-	}
-	
-	if (!waveoutlock) {
-		waveoutlock = mutex_Create();
-	}
-	
-	if (soundenabled) {
-		// quit old sound first
-		audio_StopWaveoutThread();
-		soundenabled = 0;
-	}
-	
-	memset(&waveoutfmt, 0, sizeof(waveoutfmt));
-	waveoutfmt.nSamplesPerSec = 48000;
-	waveoutfmt.wBitsPerSample = 16;
-	waveoutfmt.nChannels = 2;
-	
-	waveoutfmt.cbSize = 0;
-	waveoutfmt.wFormatTag = WAVE_FORMAT_PCM;
-	waveoutfmt.nBlockAlign = (2 * 16) / 8;
-	waveoutfmt.nAvgBytesPerSec = waveoutfmt.nSamplesPerSec * waveoutfmt.nBlockAlign;
-	
-	int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
+    }
+        
+    if (!waveoutlock) {
+        waveoutlock = mutex_Create();
+    }
+        
+    if (soundenabled) {
+        // quit old sound first
+        audio_StopWaveoutThread();
+        soundenabled = 0;
+    }
+    
+    memset(&waveoutfmt, 0, sizeof(waveoutfmt));
+    waveoutfmt.nSamplesPerSec = 48000;
+    waveoutfmt.wBitsPerSample = 16;
+    waveoutfmt.nChannels = 2;
+    
+    waveoutfmt.cbSize = 0;
+    waveoutfmt.wFormatTag = WAVE_FORMAT_PCM;
+    waveoutfmt.nBlockAlign = (2 * 16) / 8;
+    waveoutfmt.nAvgBytesPerSec = waveoutfmt.nSamplesPerSec * waveoutfmt.nBlockAlign;
+    
+    int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
     if (buffersize > 0) {
-		custombuffersize = buffersize;
-	}
-	if (custombuffersize < WAVEOUTMINBUFFERSIZE) {
-		custombuffersize = WAVEOUTMINBUFFERSIZE;
-	}
-	if (custombuffersize > MAXSOUNDBUFFERSIZE) {
-		custombuffersize = MAXSOUNDBUFFERSIZE;
-	}
-	waveoutbytes = custombuffersize;
-	samplecallbackptr = samplecallback;
-	waveout_LaunchWaveoutThread();
-	
-	time_Sleep(50);
-	mutex_Lock(waveoutlock);
-	while (threadcontrol == 0) {
-		mutex_Release(waveoutlock);
-		time_Sleep(50);
-		mutex_Lock(waveoutlock);
-	}
-	mutex_Release(waveoutlock);
-	
-	if (threadcontrol < 0) {
-		*error = strdup("WaveOut returned an error");
+        custombuffersize = buffersize;
+    }
+    if (custombuffersize < WAVEOUTMINBUFFERSIZE) {
+        custombuffersize = WAVEOUTMINBUFFERSIZE;
+    }
+    if (custombuffersize > MAXSOUNDBUFFERSIZE) {
+        custombuffersize = MAXSOUNDBUFFERSIZE;
+    }
+    waveutbytes = custombuffersize;
+    samplecallbackptr = samplecallback;
+    waveout_LaunchWaveoutThread();
+    
+    time_Sleep(50);
+    mutex_Lock(waveoutlock);
+    while (threadcontrol == 0) {
+        mutex_Release(waveoutlock);
+        time_Sleep(50);
+        mutex_Lock(waveoutlock);
+    }
+    mutex_Release(waveoutlock);
+    
+    if (threadcontrol < 0) {
+        *error = strdup("WaveOut returned an error");
         return 0;
-	}
-	return 1;
+    }
+    return 1;
 }
 
 #else  // WINDOWS
