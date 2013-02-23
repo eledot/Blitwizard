@@ -199,6 +199,7 @@ void audio_UnlockAudioThread() {
 HWAVEOUT waveoutdev;
 WAVEFORMATEX waveoutfmt;
 mutex* waveoutlock = NULL;
+semaphore* newblocksignal = NULL;  // semaphore is "post"'ed to signal that a new block shall be pushed
 volatile int threadcontrol = -1;  // 1 - thread runs, 0 - shutdown signal, -1 thread is off
 volatile int waveoutstate = -1;  // -1 not running, 0 starting, 1 running
 int waveoutbytes;
@@ -206,7 +207,8 @@ int waveoutbytes;
 // this is used by the sound thread;
 #define AUDIOBLOCKS 4
 WAVEHDR waveheader[AUDIOBLOCKS];
-volatile int unprepareheader[AUDIOBLOCKS];
+char* blockbuffer[AUDIOBLOCKS];
+volatile int headerprepared[AUDIOBLOCKS];
 int nextaudioblock = 0;
 
 // audio mixer callback and global sound enabled info:
@@ -228,46 +230,41 @@ static void queueBlock(void) {
     int previousaudioblock = i-(AUDIOBLOCKS-1);
     while (previousaudioblock < 0) {previousaudioblock += AUDIOBLOCKS;}
     
+    // with no sample callback there is nothing we can do:
     if (!samplecallbackptr) {
         mutex_Release(waveoutlock);
         return;
     }
-    
-    memset(&waveheader[i], 0, sizeof(WAVEHDR));
     
     // set block length
     waveheader[i].dwBufferLength = waveoutbytes;
     waveheader[i].dwLoops = 0;
     
     // set block audio data:
-    char* p = samplecallbackptr((unsigned int)waveoutbytes);
-    waveheader[i].lpData = p;
+    memcpy(blockbuffer[i], samplecallbackptr((unsigned int)waveoutbytes),
+    waveoutbytes);
+    waveheader[i].lpData = blockbuffer[i];
     
     // queue up block:
     int r;
-    if ((r = waveOutPrepareHeader(waveoutdev, &waveheader[i],
-    sizeof(WAVEHDR))) != MMSYSERR_NOERROR) {
-        mutex_Release(waveoutlock);
-        return;
+    if (!headerprepared[i]) {
+        if ((r = waveOutPrepareHeader(waveoutdev, &waveheader[i],
+        sizeof(WAVEHDR))) != MMSYSERR_NOERROR) {
+            printf("prepare failed! %d\n", r);fflush(stdout);
+            mutex_Release(waveoutlock);
+            return;
+        }
+        headerprepared[i] = 1;
     }
     
-    if (waveOutWrite(waveoutdev, &waveheader[i],
-    sizeof(WAVEHDR)) != MMSYSERR_NOERROR) {
+    if ((r = waveOutWrite(waveoutdev, &waveheader[i],
+    sizeof(WAVEHDR))) != MMSYSERR_NOERROR) {
+        printf("writeout failed!\n");fflush(stdout);
         mutex_Release(waveoutlock);
         return;
     }
-    unprepareheader[i] = 1;
     fflush(stdout);
     
-    // remove previously queued blocks so we can reuse them:
-    if (unprepareheader[previousaudioblock]) {
-        while (waveOutUnprepareHeader(
-        waveoutdev, &waveheader[previousaudioblock], sizeof(WAVEHDR)
-        ) == WAVERR_STILLPLAYING) {
-            break;
-        }
-        unprepareheader[previousaudioblock] = 0;
-    }
     mutex_Release(waveoutlock);
 }
 
@@ -275,18 +272,34 @@ static void CALLBACK audioCallback(HWAVEOUT hwo, UINT uMsg,
 DWORD dwInstance, DWORD dwParam1, DWORD dwParam2) {
     if (uMsg == WOM_DONE) {
         queueBlock();
+        //semaphore_Post(newblocksignal);
     }
 }
 
 void audio_SoundThread(void* userdata) {
     // sound thread function (SOUND THREAD)
     
+    // initialise audio blocks:
     int i = 0;
     while (i < AUDIOBLOCKS) {
-        unprepareheader[i] = 0;
+        // keep in mind we still need to waveout-prepare this block:
+        headerprepared[i] = 0;
+        
+        // zero out the block:
+        memset(&waveheader[i], 0, sizeof(WAVEHDR));
+        
+        // initialise new block data:
+        blockbuffer[i] = malloc(waveoutbytes);
         i++;
     }
     
+    // initialise signal semaphore:
+    if (newblocksignal) {
+        semaphore_Destroy(newblocksignal);
+    }
+    newblocksignal = semaphore_Create(0);
+    
+    // open audio device
     MMRESULT r = waveOutOpen(&waveoutdev, WAVE_MAPPER,
     &waveoutfmt, (DWORD_PTR)&audioCallback, (DWORD_PTR)0,
     (DWORD)CALLBACK_FUNCTION | WAVE_ALLOWSYNC);
@@ -308,12 +321,35 @@ void audio_SoundThread(void* userdata) {
     }
     
     while (1) {
+        // the waveOut callback will wake us up when there
+        // is stuff to do:
+        //semaphore_Wait(newblocksignal);
+        //queueBlock();
         time_Sleep(100);
         mutex_Lock(waveoutlock);
         if (threadcontrol == 0) {
             // we are supposed to shutdown
+            // clean up all buffers
+            int i = 0;
+            while (i < AUDIOBLOCKS) {
+                if (headerprepared[i]) {
+                    if (waveOutUnprepareHeader(
+                    waveoutdev, &waveheader[i],
+                    sizeof(WAVEHDR)) != MMSYSERR_NOERROR) {
+                        // buffer might be still playing, sleep a bit:
+                        time_Sleep(100);
+                    }
+                    headerprepared[i] = 0;
+                    // delete buffer contents:
+                    free(blockbuffer[i]);
+                    blockbuffer[i] = NULL;
+                }
+                i++;
+            }
+            // close device:
             waveOutClose(waveoutdev);
             waveoutdev = NULL;
+            // tell main thread we're done:
             threadcontrol = -1;
             mutex_Release(waveoutlock);
             return;
@@ -391,6 +427,12 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
         soundenabled = 0;
     }
     
+    int i = 0;
+    while (i < AUDIOBLOCKS) {
+        blockbuffer[i] = NULL;
+        i++;
+    }
+    
     memset(&waveoutfmt, 0, sizeof(waveoutfmt));
     waveoutfmt.nSamplesPerSec = 48000;
     waveoutfmt.wBitsPerSample = 16;
@@ -411,7 +453,7 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
     if (custombuffersize > MAXSOUNDBUFFERSIZE) {
         custombuffersize = MAXSOUNDBUFFERSIZE;
     }
-    waveutbytes = custombuffersize;
+    waveoutbytes = custombuffersize;
     samplecallbackptr = samplecallback;
     waveout_LaunchWaveoutThread();
     
