@@ -21,6 +21,17 @@ AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
 
 
+# Evaluate target os:
+
+maybeos=`echo $EXEEXT | grep exe`
+AS_IF([test -z "$maybeos"],[
+	# Unix
+	WINDOWS="no"
+],[
+	# Windows
+	WINDOWS="yes"
+])
+
 # Check for ar:
 
 AC_CHECK_TOOL(AR, ar)
@@ -129,9 +140,6 @@ AC_ARG_ENABLE([speex],
 # cmake -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off
 
 
-# Evaluate target os:
-
-maybeos=`echo $EXEEXT | grep exe`
 
 
 # Remember which libs we want to build ourselves for static use:
@@ -144,7 +152,7 @@ STATIC_LIBS_USE=""
 SDL_GRAPHICS_FEATURE_ENABLED="yes"
 OGRE_GRAPHICS_FEATURE_ENABLED="yes"
 NULL_GRAPHICS_FEATURE_ENABLED="yes"
-AUDIO_FEATURE_ENABLED="yes"
+AUDIO_FEATURE_ENABLED="yes (SDL2)"
 NULL_AUDIO_FEATURE_ENABLED="yes"
 FLAC_FEATURE_ENABLED="yes"
 SPEEX_RESAMPLING_FEATURE_ENABLED="yes"
@@ -218,7 +226,12 @@ AS_IF([test "x$NEEDSDL" = xyes],[
             LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   SDL2: no"
             SDL_GRAPHICS_FEATURE_ENABLED="no, need SDL2"
-            AUDIO_FEATURE_ENABLED="no, need SDL2"
+			# Windows can do audio without SDL (WaveOut):
+			AS_IF([test "x$WINDOWS" = xno],[
+				AUDIO_FEATURE_ENABLED="no, need SDL2"
+			],[
+				AUDIO_FEATURE_ENABLED="yes (waveOut)"
+			])
         ])
     ],[
         AC_MSG_RESULT([yes])
@@ -313,7 +326,12 @@ AS_IF([test "x$enable_sdlgraphics" = xno],[
     SDL_GRAPHICS_FEATURE_ENABLED="no, disabled"
 ])
 AS_IF([test "x$enable_sdlaudio" = xno],[
-    AUDIO_FEATURE_ENABLED="no, disabled"
+	# Windows can do audio without SDL (WaveOut):
+	AS_IF([test "x$WINDOWS" = xno],[
+		AUDIO_FEATURE_ENABLED="no, disabled"
+	],[
+		AUDIO_FEATURE_ENABLED="yes (waveOut)"
+	])
 ])
 AS_IF([test "x$enable_ogregraphics" = xno],[
     OGRE_GRAPHICS_FEATURE_ENABLED="no, disabled"
