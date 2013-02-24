@@ -1,6 +1,13 @@
-This README should be shipped with all blitwizard builds
+
+This file contains required license information on libraries
+used by the blitwizard game engine.
+
+This README file should be shipped with all blitwizard builds
 that statically link the dependencies (which is the default
-for the regular builds from the website).
+for the regular builds from the website). Alternatively, show
+the following information in a 'credits' or 'about' screen in
+your application.
+
 
 Blitwizard contains Speex, libogg and
 libvorbis/libvorbisfile (xiph.org):
@@ -35,6 +42,7 @@ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 
+
 Blitwizard contains libFLAC:
 
 Copyright (C) 2000,2001,2002,2003,2004,2005,2006,2007  Josh Coalson
@@ -66,6 +74,7 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 Blitwizard contains Lua (www.lua.org):
 
 Lua Copyright (c) 1994-2011 Lua.org, PUC-Rio.
@@ -89,6 +98,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 
+
 Blitwizard contains OGRE (www.ogre3d.org):
 
 Copyright (c) 2000-2009 Torus Knot Software Ltd
@@ -111,4 +121,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
+
+Portions of this software are copyright © 2006 The FreeType Project
+(www.freetype.org).  All rights reserved.
  

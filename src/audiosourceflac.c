@@ -21,12 +21,12 @@
 
 */
 
-#include "os.h"
+//#include "os.h"
 
 #ifdef USE_AUDIO
 
 #ifdef USE_FLAC_AUDIO
-#include "FLAC/all.h"
+#include "FLAC/stream_decoder.h"
 #endif
 #include <string.h>
 #include <stdio.h>
@@ -51,7 +51,68 @@ struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     return NULL;
 }
 
+#warning "NO FLAC"
+
 #else // ifdef USE_FLAC_AUDIO
+
+// FLAC decoder using libFLAC
+
+struct audiosourceflac_internaldata {
+    // file source (or whereever the undecoded audio comes from):
+    struct audiosource* source;
+    int filesourceeof;  // "file" audio source has given us an EOF
+    
+    // buffer for raw files requested from the file source:
+    char fetchedbuf[4096];
+    unsigned int fetchedbytes;
+    unsigned int fetchedbufreadoffset;
+    
+    // EOF information of this file source:
+    int eof;  // we have spilled out an EOF
+    int returnerroroneof;  // keep errors in mind
+    
+    // buffer for decoded bytes:
+    char decodedbuf[512];
+    unsigned int decodedbytes;
+
+    // FLAC decoder information:
+    int flacopened;
+    int flaceof;  // FLAC decoder has signaled end of stream
+};
+
+static void audiosourceogg_Rewind(struct audiosource* source) {
+    struct audiosourceogg_internaldata* idata = source->internaldata;
+    if (!idata->eof || !idata->returnerroroneof) {
+        // free libFLAC decoder data:
+        if (idata->flacopened) {
+            
+            
+            
+            idata->flacopened = 0;
+        }
+        
+        // rewind file source:
+        idata->filesource->rewind(idata->filesource);
+        idata->filesourceeof = 0;
+        idata->eof = 0;
+        idata->returnerroroneof = 0;
+        
+        // reset buffers:
+        idata->fetchedbufreadoffset = 0;
+        idata->fetchedbytes = 0;
+        idata->decodedbytes = 0;
+    }
+}
+
+struct audiosource* audiosourceflac_Create(struct audiosource* source) {
+    // we need a working input source obviously:
+    if (!source) {
+        return NULL;
+    }
+    
+    // allocate internal data structure:
+    return NULL;
+}
 
 #endif // ifdef USE_FLAC_AUDIO
 

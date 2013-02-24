@@ -25,8 +25,6 @@
 
 #define BLITWIZARD_OS_H_
 
-#undef USE_FLAC_AUDIO
-
 #define USE_SOCKETS
 
 // Detect operating system:

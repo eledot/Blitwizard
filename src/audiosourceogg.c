@@ -33,16 +33,24 @@
 #include "audiosourceogg.h"
 
 struct audiosourceogg_internaldata {
+    // our source of to-be-decoded data:
     struct audiosource* filesource;
     int filesourceeof;
+    
+    // buffer for fetching from the file source:
     char fetchedbuf[4096];
     unsigned int fetchedbytes;
     unsigned int fetchedbufreadoffset;
+    
+    // remember if we spilled out an end of file:
     int eof;
     int returnerroroneof;
+    
+    // buffer for decoded data we may return:
     char decodedbuf[512];
     unsigned int decodedbytes;
-
+    
+    // vorbis decoder info:
     int vorbisopened;
     OggVorbis_File vorbisfile;
     int vbitstream; // required by libvorbisfile internally
@@ -52,19 +60,26 @@ struct audiosourceogg_internaldata {
 static void audiosourceogg_Rewind(struct audiosource* source) {
     struct audiosourceogg_internaldata* idata = source->internaldata;
     if (!idata->eof || !idata->returnerroroneof) {
+        // close vorbis decoder:
         if (idata->vorbisopened) {
             ov_clear(&idata->vorbisfile);
             idata->vorbisopened = 0;
             idata->vbitstream = 0;
+            idata->vorbiseof = 0;
         }
+        
+        // reset file source:
         idata->filesource->rewind(idata->filesource);
         idata->filesourceeof = 0;
+        
+        // reset end of file info:
         idata->eof = 0;
         idata->returnerroroneof = 0;
         idata->fetchedbufreadoffset = 0;
+        
+        // reset buffers:
         idata->fetchedbytes = 0;
         idata->decodedbytes = 0;
-        idata->vorbiseof = 0;
     }
 }
 
