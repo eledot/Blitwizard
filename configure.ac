@@ -1,6 +1,7 @@
 
 # blitwizard configure.ac - autoconf generated, extended by Jonas Thiem
-# Process this file with autoconf to produce a configure script.
+# Process this file with autoreconf to produce a configure script
+# (see autogen.sh)
 
 AC_PREREQ([2.60])
 

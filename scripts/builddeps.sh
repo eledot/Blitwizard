@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# blitwizard game engine - dependency build script
+
 cd ..
 
 luatarget=`cat scripts/.buildinfo | grep luatarget | sed -e 's/^luatarget\=//'`
