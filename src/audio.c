@@ -39,16 +39,11 @@
 
 #include "SDL.h"
 
-static void*(*samplecallbackptr)(unsigned int) = NULL;
+static void (*samplecallbackptr)(void*, unsigned int) = NULL;
 static int soundenabled = 0;
 
 void audiocallback(void *intentionally_unused, Uint8 *stream, int len) {
-    //memset(stream, 0, (size_t)len);
-    if (!samplecallbackptr) {
-        return;
-    }
-    //SDL_MixAudio(stream, samplecallbackptr((unsigned int)len), (unsigned int)len, SDL_MIX_MAXVOLUME);
-    memcpy(stream, samplecallbackptr((unsigned int)len), (unsigned int)len);
+    samplecallbackptr(stream, (unsigned int)len);
 }
 
 const char* audio_GetCurrentBackendName() {
@@ -70,7 +65,8 @@ void audio_Quit() {
 #ifndef USE_SDL_GRAPHICS
 static int sdlvideoinit = 1;
 #endif
-int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
+int audio_Init(void (*samplecallback)(void*, unsigned int),
+unsigned int buffersize, const char* backend, int s16, char** error) {
 #ifndef USE_SDL_GRAPHICS
     if (!sdlvideoinit) {
         if (SDL_VideoInit(NULL) < 0) {
@@ -95,6 +91,10 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
         return 0;
     }
 #endif
+    if (!samplecallback) {
+        *error = strdup("Need sample callback");
+        return 0;
+    }
     char errbuf[512];
     char preferredbackend[20] = "";
 #ifdef WINDOWS
@@ -212,7 +212,7 @@ volatile int headerprepared[AUDIOBLOCKS];
 int nextaudioblock = 0;
 
 // audio mixer callback and global sound enabled info:
-static void*(*samplecallbackptr)(unsigned int) = NULL;
+static void (*samplecallbackptr)(void*, unsigned int) = NULL;
 static int soundenabled = 0;
 
 const char* audio_GetCurrentBackendName(void) {
@@ -230,19 +230,12 @@ static void queueBlock(void) {
     int previousaudioblock = i-(AUDIOBLOCKS-1);
     while (previousaudioblock < 0) {previousaudioblock += AUDIOBLOCKS;}
     
-    // with no sample callback there is nothing we can do:
-    if (!samplecallbackptr) {
-        mutex_Release(waveoutlock);
-        return;
-    }
-    
     // set block length
     waveheader[i].dwBufferLength = waveoutbytes;
     waveheader[i].dwLoops = 0;
     
     // set block audio data:
-    memcpy(blockbuffer[i], samplecallbackptr((unsigned int)waveoutbytes),
-    waveoutbytes);
+    samplecallbackptr(blockbuffer[i], (unsigned int)waveoutbytes);
     waveheader[i].lpData = blockbuffer[i];
     
     // queue up block:
@@ -411,7 +404,8 @@ void audio_Quit(void) {
     }
 }
 
-int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, const char* backend, int s16, char** error) {
+int audio_Init(void (*samplecallback)(void*, unsigned int),
+unsigned int buffersize, const char* backend, int s16, char** error) {
     if (!s16) {
         *error = strdup("WaveOut doesn't support 32bit float audio");
         return 0;
@@ -425,6 +419,11 @@ int audio_Init(void*(*samplecallback)(unsigned int), unsigned int buffersize, co
         // quit old sound first
         audio_StopWaveoutThread();
         soundenabled = 0;
+    }
+    
+    if (!samplecallback) {
+        *error = strdup("Need sample callback");
+        return 0;
     }
     
     int i = 0;

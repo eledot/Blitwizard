@@ -357,31 +357,14 @@ static void audiomixer_RequestMix(unsigned int bytes) { // SOUND THREAD
 
 int s16mixmode = 0;
 
-char* streambuf = NULL;
-unsigned int streambuflen = 0;
-void* audiomixer_GetBuffer(unsigned int len) { // SOUND THREAD
-    unsigned int s16downmixlen = 0;
-    if (s16mixmode) {
-        len *= 2; // get twice the amount of float 32 samples
-        s16downmixlen = len;
-    }
-
-    if (streambuflen != len && (streambuflen < len || streambuflen > len * 2)) {
-        if (streambuf) {
-            free(streambuf);
-        }
-        streambuf = malloc(len);
-        streambuflen = len;
-    }
-    memset(streambuf, 0, len);
-
-    char* p = streambuf;
+void audiomixer_GetBuffer(void* buf, unsigned int len) { // SOUND THREAD
+    char* p = buf;
     while (len > 0) {
         audiomixer_RequestMix(len);
 
         // see how much bytes we can get
         unsigned int filledbytes = filledmixpartial + filledmixfull * sizeof(MIXTYPE);
-        unsigned int amount = len;
+        unsigned int amount = len+len*s16mixmode;  // doubled for s16mixmode
         if (amount > filledbytes) {
             amount = filledbytes;
         }
@@ -390,9 +373,24 @@ void* audiomixer_GetBuffer(unsigned int len) { // SOUND THREAD
         }
 
         // copy the amount of bytes we have
-        memcpy(p, mixbuf, amount);
-        len -= amount;
-        p += amount;
+        if (s16mixmode) {
+            // copy them and convert them to S16 on the fly
+            // FIXME: this doesn't work properly with partial samples
+            unsigned int i = 0;
+            while (i <= amount-sizeof(MIXTYPE)) {
+                MIXTYPE fval = *((MIXTYPE*)((char*)mixbuf+i));
+                fval *= 32767;
+                *((int16_t*)((char*)p)) = (int16_t)fastdoubletoint32(fval);
+                p += sizeof(int16_t);
+                len -= sizeof(int16_t);
+                i += sizeof(MIXTYPE);
+            }
+        } else {
+            // copy them as float 32:
+            memcpy(p, mixbuf, amount);
+            len -= amount;
+            p += amount;
+        }
 
         // trim mix buffer:
         if (amount >= filledbytes) {
@@ -423,22 +421,6 @@ void* audiomixer_GetBuffer(unsigned int len) { // SOUND THREAD
             }
         }
     }
-
-    // FIXME: this assumes that only complete samples are fetched
-    //  (which isn't guaranteed)
-    if (s16mixmode) {
-        unsigned int i = 0;
-        unsigned int i2 = 0;
-        while (i + sizeof(MIXTYPE) <= s16downmixlen) {
-            double fval = *((float*)((char*)streambuf+i));
-            fval *= 32767;
-            *((int16_t*)((char*)streambuf+i2)) = (int16_t)fastdoubletoint32(fval);
-            i += sizeof(MIXTYPE);
-            i2 += sizeof(int16_t);
-        }
-    }
-
-    return streambuf;
 }
 
 #endif // ifdef USE_AUDIO

@@ -30,7 +30,8 @@ const char* audio_GetCurrentBackendName(void);
 
 #if defined(USE_SDL_AUDIO) || defined(WINDOWS)
 
-int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersize, const char* backend, int s16, char** error);
+int audio_Init(void (*samplecallback)(void*, unsigned int bytes),
+unsigned int buffersize, const char* backend, int s16, char** error);
 // Initialise audio. Returns 1 on success, 0 on error (in which case
 // error will be modified so *error points at an error message you
 // must free() yourself).

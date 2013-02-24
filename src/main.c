@@ -160,7 +160,7 @@ void main_InitAudio(void) {
 }
 
 
-static void quitevent() {
+static void quitevent(void) {
     char* error;
     if (!luastate_CallFunctionInMainstate("blitwiz.on_close", 0, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_close: %s",error);
@@ -707,7 +707,8 @@ int main(int argc, char** argv) {
         // simulate audio
         if (simulateaudio) {
             while (simulateaudiotime < time_GetMilliseconds()) {
-                audiomixer_GetBuffer(48 * 4 * 2);
+                char buf[48 * 4 * 2];
+                audiomixer_GetBuffer(buf, 48 * 4 * 2);
                 simulateaudiotime += 1; // 48 * 1000 times * 4 bytes * 2 channels per second = simulated 48kHz 32bit stereo audio
             }
         }
