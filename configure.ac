@@ -20,7 +20,6 @@ AC_PROG_OBJC
 AC_CANONICAL_HOST
 AC_CONFIG_MACRO_DIR([m4])
 
-
 # Evaluate target os:
 
 maybeos=`echo $EXEEXT | grep exe`
