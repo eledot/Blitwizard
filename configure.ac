@@ -106,7 +106,7 @@ AS_IF([test "x$enable_audio" = xno], [
 ])
 
 AC_ARG_ENABLE([physics2d],
-    [AS_HELP_STRING([--disable-physics2d],[disable physics simulation support based on Box2D (default is enabled)])],
+    [AS_HELP_STRING([--disable-physics2d],[disable physics simulation support based on Box2D for 2d objects (default is enabled)])],
 [case "${enableval}" in
      yes | no ) enable_physics2d="${enableval}" ;;
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics2d) ;;
@@ -114,12 +114,27 @@ AC_ARG_ENABLE([physics2d],
 [enable_physics2d=yes])
 
 AC_ARG_ENABLE([physics3d],
-    [AS_HELP_STRING([--disable-physics3d],[disable physics simulation support based on bullet physics (default is enabled)])],
+    [AS_HELP_STRING([--disable-physics3d],[disable physics simulation support based on bullet physics for 3d objects (default is enabled)])],
 [case "${enableval}" in
      yes | no ) enable_physics3d="${enableval}" ;;
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics3d) ;;
  esac],
 [enable_physics3d=yes])
+
+AC_ARG_ENABLE([physics],
+    [AS_HELP_STRING([--disable-physics],[disable physics simulation support completely])],
+[case "${enableval}" in
+    yes | no ) enable_physics="${enableval}" ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics) ;;
+ esac],
+[enable_physics=yes])
+
+
+AS_IF([test "x$enable_physics" = xno], [
+    enable_physics2d="no"
+    enable_physics3d="no"
+])
+
 
 AC_ARG_ENABLE([flac],
     [AS_HELP_STRING([--disable-flac],[disable optional FLAC audio support.])],
