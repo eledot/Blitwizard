@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -112,9 +112,7 @@ void main_InitAudio(void) {
     audioinitialised = 1;
 
     // get audio backend
-#ifdef USE_SDL_AUDIO
     char* p = luastate_GetPreferredAudioBackend();
-#endif
 
     // load FFmpeg if we happen to want it
     if (luastate_GetWantFFmpeg()) {
@@ -123,7 +121,7 @@ void main_InitAudio(void) {
         audiosourceffmpeg_DisableFFmpeg();
     }
 
-#ifdef USE_SDL_AUDIO
+#if defined(USE_SDL_AUDIO) || defined(WINDOWS)
     char* error;
 
     // initialise audio - try 32bit first
@@ -151,18 +149,18 @@ void main_InitAudio(void) {
     if (p) {
         free(p);
     }
-#else
+#else  // USE_SDL_AUDIO || WINDOWS
     // simulate audio:
     simulateaudio = 1;
     s16mixmode = 0;
-#endif
+#endif  // USE_SDL_AUDIO || WINDOWS
 #else // ifdef USE_AUDIO
     return;
-#endif // ifdef USE_AUDIO
+#endif  // ifdef USE_AUDIO
 }
 
 
-static void quitevent() {
+static void quitevent(void) {
     char* error;
     if (!luastate_CallFunctionInMainstate("blitwiz.on_close", 0, 1, 1, &error, NULL)) {
         printerror("Error when calling blitwiz.on_close: %s",error);
@@ -392,14 +390,22 @@ int main(int argc, char** argv) {
                 if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
                 || strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
                 || strcasecmp(argv[i],"-h") == 0) {
-                    printf("blitwizard %s\n",VERSION);
-                    printf("Usage: blitwizard [blitwizard options] [lua script] [script options]\n\n");
-                    printf("The lua script should be a .lua file containing Lua source code.\n\n");
-                    printf("The script options (optional) are passed through to the script.\n\n");
-                    printf("The blitwizard options (optional) can be some of those:\n");
-                    printf("   -changedir             Change working directory to the dir of the lua script path\n");
+                    printf("blitwizard %s - http://www.blitwizard.de/\n",VERSION);
+                    printf("Usage:\n   blitwizard [blitwizard options] [script name] [script options]\n\n");
+                    printf("The script name should be a .lua file containing\n"
+					"Lua source code for use with blitwizard.\n\n");
+                    printf("The script options (optional) are passed through\n"
+					"to the script.\n\n");
+                    printf("Supported blitwizard options:\n");
+                    printf("   -changedir             Change working directory to "
+						   "the\n"
+					       "                          folder of the script\n");
                     printf("   -help                  Show this help text and quit\n");
-                    printf("   -templatepath [path]   Check another place for templates, not \"templates/\"\n");
+                    printf("   -templatepath [path]   Check another place for "
+						   "templates\n"
+						   "                          (not the default "
+						   "\"templates/\")\n");
+					printf("   -version               Show extended version info and quit\n");
                     return 0;
                 }
                 if (strcasecmp(argv[i],"-changedir") == 0) {
@@ -412,6 +418,37 @@ int main(int argc, char** argv) {
                     i++;
                     continue;
                 }
+				if (strcmp(argv[i], "-v") == 0 || strcasecmp(argv[i], "-version") == 0
+				|| strcasecmp(argv[i], "--version") == 0) {
+					printf("blitwizard %s - http://www.blitwizard.de/\n",VERSION);
+					printf("\nSupported features of this build:\n\n");
+					
+					#ifdef USE_SDL_AUDIO
+                    printf("  Full audio support: yes\n");
+					#else
+					printf("  Full audio support: no\n");
+					#ifdef USE_AUDIO
+                    printf("  Virtual null device audio support: yes\n");
+					#else
+					printf("  Virtual null device audio support: no\n");
+					#endif
+					#endif
+					
+					#ifdef USE_SDL_GRAPHICS
+                    printf("  2d graphics support: yes\n");
+					#else
+					#ifdef USE_GRAPHICS
+					printf("  2d graphics support: no\n");
+					printf("  Virtual null device 2d graphics support: yes\n");
+					#else
+					printf("  2d graphics support: no\n");
+					printf("  Virtual null device 2d graphics support: no\n");
+					#endif
+					#endif
+					
+					fflush(stdout);
+					exit(0);
+				}
                 printwarning("Warning: Unknown Blitwizard option: %s", argv[i]);
             }else{
                 scriptargfound = 1;
@@ -670,7 +707,8 @@ int main(int argc, char** argv) {
         // simulate audio
         if (simulateaudio) {
             while (simulateaudiotime < time_GetMilliseconds()) {
-                audiomixer_GetBuffer(48 * 4 * 2);
+                char buf[48 * 4 * 2];
+                audiomixer_GetBuffer(buf, 48 * 4 * 2);
                 simulateaudiotime += 1; // 48 * 1000 times * 4 bytes * 2 channels per second = simulated 48kHz 32bit stereo audio
             }
         }

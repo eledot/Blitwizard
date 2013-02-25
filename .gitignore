@@ -35,6 +35,7 @@ config.log
 config.guess
 config.sub
 configure
+compile
 Makefile.in
 depcomp
 install-sh

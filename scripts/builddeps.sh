@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# blitwizard game engine - dependency build script
+
 cd ..
 
 luatarget=`cat scripts/.buildinfo | grep luatarget | sed -e 's/^luatarget\=//'`
@@ -228,6 +230,15 @@ if [ ! -e libs/libblitwizardFLAC.a ]; then
         if [ "$MACBUILD" = "yes" ]; then
             # This doesn't work on Mac OS X as it seems
             asmoption="--disable-asm-optimizations"
+        fi
+        if [ ! -e "src/flac/configure" ]; then
+            # we need to run autogen.sh first
+            cd src/flac
+            autoreconf -ivf || { if [ ! e "src/flac/configure" ]; then
+                    echo "Failed to compile libFLAC - you might need to install autoconf/automake/libtool"; exit 1;
+                fi
+            }
+            cd "$dir"
         fi
         if [ -n "`echo $static_libs_use | grep ogg`" ]; then
             # Build flac and tell it where ogg is

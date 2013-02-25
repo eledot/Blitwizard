@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,9 +26,12 @@
 const char* audio_GetCurrentBackendName(void);
 // Get the name of the currently active audio backend, or NULL for none.
 
-#ifdef USE_SDL_AUDIO
+#include "os.h"
 
-int audio_Init(void*(*samplecallback)(unsigned int bytes), unsigned int buffersize, const char* backend, int s16, char** error);
+#if defined(USE_SDL_AUDIO) || defined(WINDOWS)
+
+int audio_Init(void (*samplecallback)(void*, unsigned int bytes),
+unsigned int buffersize, const char* backend, int s16, char** error);
 // Initialise audio. Returns 1 on success, 0 on error (in which case
 // error will be modified so *error points at an error message you
 // must free() yourself).
@@ -53,14 +56,14 @@ void audio_UnlockAudioThread(void);
 void audio_Quit(void);
 // Quit audio backend completely
 
-#else
+#else  // USE_SDL_AUDIO || WINDOWS
 
 #define compiled_without_audio "No audio available - this binary was compiled with audio (including null device) disabled"
 
 #endif
-#else
+#else  // USE_AUDIO
 
 #define compiled_without_audio "No audio available - this binary was compiled with audio (including null device) disabled"
 
-#endif
+#endif  // USE_AUDIO
 

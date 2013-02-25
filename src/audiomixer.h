@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@
 
 
 extern int s16mixmode; // 1: output s16 samples, 0: output float32 samples (default)
-void* audiomixer_GetBuffer(unsigned int len);
+void audiomixer_GetBuffer(void* buf, unsigned int len);
 void audiomixer_Init(void);
 int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, float panning, float fadeinseconds, int loop);
 void audiomixer_StopSound(int id);

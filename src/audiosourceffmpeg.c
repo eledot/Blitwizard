@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011-2012 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -773,6 +773,9 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     if (!idata->decodedframe) {
         free(idata);
         free(a);
+        if (source) {
+            source->close(source);
+        }
         return NULL;
     }
     a->format = AUDIOSOURCEFORMAT_S16LE;
@@ -784,7 +787,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     // ensure proper initialisation of sample rate + channels variables
     audiosourceffmpeg_Read(a, NULL, 0);
     if (idata->eof && idata->returnerroroneof) {
-        // There was an error reading this ogg file - probably not ogg (or broken ogg)
+        // There was an error reading this audio file - probably not a supported format
         audiosourceffmpeg_Close(a);
         return NULL;
     }
