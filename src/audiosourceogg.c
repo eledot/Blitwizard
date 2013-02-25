@@ -168,7 +168,8 @@ static int audiosourceogg_InitOgg(struct audiosource* source) {
 }
 
 static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
-    struct audiosourceogg_internaldata* idata = source->internaldata;
+    struct audiosourceogg_internaldata* idata =
+    source->internaldata;
     if (idata->eof) {
         return -1;
     }
