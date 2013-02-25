@@ -32,7 +32,7 @@
 // Detect operating system:
 
 // We don't want Cygwin:
-#if defined(__CYGWIN__)
+#if defined(__CYGWIN__) || defined(CYGWIN32) || defined(_CYGWIN32_) || defined(_CYGWIN64_)
 #error "You should compile blitwizard natively for Windows, not using Cygwin."
 #endif
 
