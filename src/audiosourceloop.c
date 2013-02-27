@@ -98,7 +98,7 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
     return byteswritten;
 }
 
-static size_t audiosource_Length(struct audiosource* source) {
+static size_t audiosourceloop_Length(struct audiosource* source) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
     
     // if our audio source supports telling its length, delegate:
@@ -108,7 +108,7 @@ static size_t audiosource_Length(struct audiosource* source) {
     return 0;
 }
 
-static size_t audiosource_Position(struct audiosource* source) {
+static size_t audiosourceloop_Position(struct audiosource* source) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
     
     // if our audio source supports telling the position, delegate:
@@ -118,12 +118,19 @@ static size_t audiosource_Position(struct audiosource* source) {
     return 0;
 }
 
-static int audiosource_Seek(struct audiosource* source, size_t pos) {
+static int audiosourceloop_Seek(struct audiosource* source, size_t pos) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
     
+    if (idata->eof && idata->returnerroroneof) {
+        return 0;
+    }
+    
     // if our audio source supports seeking, delegate:
-    if (idata->source->seek) {
-        return idata->source->seek(idata->source);
+    if (idata->source->seeksupport) {
+        if (idata->source->seek(idata->source, pos)) {
+            source->eof = 0;
+            return 1;
+        }
     }
     return 0;
 }
@@ -181,9 +188,9 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
     a->read = &audiosourceloop_Read;
     a->close = &audiosourceloop_Close;
     a->rewind = &audiosourceloop_Rewind;
-    a->position = &audiosource_Position;
-    a->length = &audiosource_Length;
-    a->seek = &audiosource_Seek;
+    a->position = &audiosourceloop_Position;
+    a->length = &audiosourceloop_Length;
+    a->seek = &audiosourceloop_Seek;
     
     // if our source can seek, we can do so too:
     a->seekingsupport = source->seekingsupport;

@@ -196,16 +196,19 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
 }
 
 static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned int pos) {
-    // Forward the seke to our audio source if possible:
+    // Forward the seek to our audio source if possible:
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
-    if (idata->sourceeof) {
+    if (!idata->source->seeksupport) {
         return 0;
     }
-    if (!idata->source->seek) {
-        return 0;
+  
+    if (idata->source->seek(idata->source, pos)) {
+        idata->eof = 0;
+        idata->sourceeof = 0;
+        return 1;
     }
-    return idata->source->seek(idata->source, pos);
+    return 0;
 }
 
 static unsigned int audiosourceformatconvert_Position(struct audiosource* source) {

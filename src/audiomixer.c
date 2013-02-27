@@ -189,20 +189,38 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
     }
 
     // try ogg format:
-    struct audiosource* decodesource = audiosourceogg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path)));
+    struct audiosource* decodesource = NULL;
+    if (!decodesource && strlen(path) > ".ogg" &&
+    strcasecmp(path+strlen(path)-strlen(".ogg"), ".ogg") == 0) {
+        decodesource = audiosourceogg_Create(
+        audiosourceprereadcache_Create(audiosourcefile_Create(path))
+        );
+    }
+    
+    // try flac format:
+    if (!decodesource && strlen(path) > ".flac" &&
+    strcasecmp(path+strlen(path)-strlen(".flac"), ".flac") == 0) {
+        decodesource = audiosourceformatconvert_Create(
+            audiosourceflac_Create(
+            audiosourceprereadcache_Create(audiosourcefile_Create(path))
+            ),
+            AUDIOSOURCEFORMAT_F32LE
+        );
+    }
+    
+    // try FFmpeg:
     if (!decodesource) {
-        // try flac format:
-        decodesource = audiosourceformatconvert_Create(audiosourceflac_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path))), AUDIOSOURCEFORMAT_F32LE);
-
-        if (!decodesource) {
-            // try FFmpeg:
-            decodesource = audiosourceformatconvert_Create(audiosourceffmpeg_Create(audiosourceprereadcache_Create(audiosourcefile_Create(path))), AUDIOSOURCEFORMAT_F32LE);
-            if (!decodesource) {
-                // unsupported audio format
-                audio_UnlockAudioThread();
-                return -1;
-            }
-        }
+        decodesource = audiosourceformatconvert_Create(
+        audiosourceffmpeg_Create(
+        audiosourceprereadcache_Create(audiosourcefile_Create(path))),
+        AUDIOSOURCEFORMAT_F32LE);
+    }
+    
+    // if we got no decode source at this point, the audio file is unsupported:
+    if (!decodesource) {
+        // unsupported audio format
+        audio_UnlockAudioThread();
+        return -1;
     }
 
     // wrap up the decoded audio into the resampler and fade/pan/vol modifier

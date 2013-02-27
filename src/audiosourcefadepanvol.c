@@ -48,6 +48,36 @@ struct audiosourcefadepanvol_internaldata {
     unsigned int processedsamplesbytes;
 };
 
+static size_t audiosourcefadepanvol_Position(struct audiosource* source) {
+    struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
+    return idata->source->position(idata->source);
+}
+
+static size_t audiosourcefadepanvol_Length(struct audiosource* source) {
+    struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
+    return idata->source->position(idata->source);
+}
+
+static int audiosourcefadepanvol_Seek(struct audiosource* source) {
+    struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
+    if (idata->eof && idata->returnerroroneof) {
+        return 0;
+    }
+    if (idata->source->seekable) {
+        // source supports seeking -> attempt to seek:
+        if (idata->source->seek(idata->source)) {
+            // it worked!
+            idata->eof = 0;
+            // reset our buffer to empty:
+            idata->processedsamplesbytes = 0;
+            return 1;
+        }
+        return 0;
+    } else {
+        return 0;
+    }
+}
+
 static void audiosourcefadepanvol_Rewind(struct audiosource* source) {
     struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
     if (!idata->eof || !idata->returnerroroneof) {

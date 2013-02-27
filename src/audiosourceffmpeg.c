@@ -734,6 +734,18 @@ static void audiosourceffmpeg_Close(struct audiosource* source) {
     free(source);
 }
 
+static size_t audiosourceffmpeg_Length(struct audiosource* source) {
+    return 0;
+}
+
+static size_t audiosourceffmpeg_Position(struct audiosource* source) {
+    return 0;
+}
+
+static int audiosourceffmpeg_Seek(struct audiosource* source, size_t pos) {
+    return 0;
+}
+
 struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     // without an audio source we can't do anything senseful
     if (!source) {
@@ -782,7 +794,10 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     a->read = &audiosourceffmpeg_Read;
     a->close = &audiosourceffmpeg_Close;
     a->rewind = &audiosourceffmpeg_Rewind;
-    a->seek = NULL;
+    a->seek = &audiosourceffmpeg_Seek;
+    a->position = &audiosourceffmpeg_Position;
+    a->length = &audiosourceffmpeg_Length;
+    a->seeksupport = 0;
 
     // ensure proper initialisation of sample rate + channels variables
     audiosourceffmpeg_Read(a, NULL, 0);

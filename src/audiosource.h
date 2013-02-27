@@ -40,8 +40,6 @@ struct audiosource {
     // Seek:
     int (*seek)(struct audiosource* source, size_t pos);
     // Seek to the given sample position.
-    // (Seek only in multiples of channels for all channel-aware
-    // audio sources! E.g. 2,4,6,.. for stereo streams)
     // Returns 0 when seeking fails, 1 when seeking succeeds.
 
     // Pos:
@@ -57,7 +55,11 @@ struct audiosource {
 
     // Query stream length:
     size_t (*length)(struct audiosource* source);
-    // Query the total song length. Returns length in total samples.
+    // Query the total song length. Returns length in total samples
+    // (it doesn't count one sample per channel but one for all, so
+    // 48kHz audio will always have 48000 samples per second, no matter if
+    // mono or stereo or something else)
+    // If you need the length in seconds, divide this through the samplerate.
     // Returns 0 if peeking at length is not supported or length is unknown.
 
     // Close audio source:
