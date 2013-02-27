@@ -102,7 +102,7 @@ static void* avutilptr;
 
 static void (*ffmpeg_av_register_all)(void);
 static AVFormatContext* (*ffmpeg_avformat_alloc_context)(void);
-static AVCodecContext* (*ffmpeg_avcodec_alloc_context)();
+static AVCodecContext* (*ffmpeg_avcodec_alloc_context)(void);
 static AVCodecContext* (*ffmpeg_avcodec_alloc_context3)(AVCodec*);
 static AVFrame* (*ffmpeg_avcodec_alloc_frame)(void);
 static void (*ffmpeg_av_free)(void*);
@@ -797,7 +797,7 @@ struct audiosource* audiosourceffmpeg_Create(struct audiosource* source) {
     a->seek = &audiosourceffmpeg_Seek;
     a->position = &audiosourceffmpeg_Position;
     a->length = &audiosourceffmpeg_Length;
-    a->seeksupport = 0;
+    a->seekable = 0;
 
     // ensure proper initialisation of sample rate + channels variables
     audiosourceffmpeg_Read(a, NULL, 0);

@@ -82,7 +82,7 @@ struct audiosource {
     // This is set to the sample format.
     
     // Supports seeking:
-    int seekingsupport;
+    int seekable;
     // Set to 1 if seeking support is available, otherwise 0.
 
     void* internaldata; // DON'T TOUCH, used for internal purposes.

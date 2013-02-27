@@ -64,16 +64,6 @@ static void audiosourceformatconvert_Rewind(struct audiosource* source) {
 }
 
 
-static unsigned int audiosource_Position(struct audiosource* source) {
-    struct audiosourcefile_internaldata* idata = source->internaldata;
-    if (idata->eof) {
-        return source->length(source);
-    }
-    long pos = ftell(idata->file);
-    return pos;
-}
-
-
 static int audiosourceformatconvert_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
@@ -199,13 +189,14 @@ static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned in
     // Forward the seek to our audio source if possible:
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
-    if (!idata->source->seeksupport) {
+    if (!idata->source->seekable) {
         return 0;
     }
   
     if (idata->source->seek(idata->source, pos)) {
         idata->eof = 0;
         idata->sourceeof = 0;
+        idata->convertbufbytes = 0;
         return 1;
     }
     return 0;
@@ -280,6 +271,9 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
     a->close = &audiosourceformatconvert_Close;
     a->seek = &audiosourceformatconvert_Seek;
     a->rewind = &audiosourceformatconvert_Rewind;
+    
+    // if our source is seekable, we are so too:
+    a->seekable = source->seekable;
     return a;
 }
 

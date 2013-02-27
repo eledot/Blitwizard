@@ -190,7 +190,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
 
     // try ogg format:
     struct audiosource* decodesource = NULL;
-    if (!decodesource && strlen(path) > ".ogg" &&
+    if (!decodesource && strlen(path) > strlen(".ogg") &&
     strcasecmp(path+strlen(path)-strlen(".ogg"), ".ogg") == 0) {
         decodesource = audiosourceogg_Create(
         audiosourceprereadcache_Create(audiosourcefile_Create(path))
@@ -198,7 +198,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
     }
     
     // try flac format:
-    if (!decodesource && strlen(path) > ".flac" &&
+    if (!decodesource && strlen(path) > strlen(".flac") &&
     strcasecmp(path+strlen(path)-strlen(".flac"), ".flac") == 0) {
         decodesource = audiosourceformatconvert_Create(
             audiosourceflac_Create(

@@ -734,17 +734,21 @@ AS_IF([test "x$OGRE_GRAPHICS_FEATURE_ENABLED" = xyes],[
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_OGRE_GRAPHICS"
 ])
 AS_IF([test "x$AUDIO_FEATURE_ENABLED" = xyes],[
-    AS_IF([test "x$SDLADDED" = xno],[
-        statictest=`echo $STATIC_LIBS_USE | grep SDL2`
-        SDLADDED=yes
-        AS_IF([test -z "$statictest"], [
-            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lSDL2"
-        ], [
-            FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardSDL"
-            FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Isdl/include"
+    AS_IF([test "x$AUDIO_FEATURE_ENABLED_TYPE" = xSDL2],[
+        # make sure SDL 2 is linked for audio:
+        AS_IF([test "x$SDLADDED" = xno],[
+            statictest=`echo $STATIC_LIBS_USE | grep SDL2`
+            SDLADDED=yes
+            AS_IF([test -z "$statictest"], [
+                FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lSDL2"
+            ], [
+                FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardSDL"
+                FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Isdl/include"
+            ])
         ])
+        
+        FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_SDL_AUDIO"
     ])
-    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_SDL_AUDIO"
 ])
 
 AS_IF([test "x$NULL_GRAPHICS_FEATURE_ENABLED" = xyes],[

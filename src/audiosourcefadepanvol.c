@@ -58,14 +58,14 @@ static size_t audiosourcefadepanvol_Length(struct audiosource* source) {
     return idata->source->position(idata->source);
 }
 
-static int audiosourcefadepanvol_Seek(struct audiosource* source) {
+static int audiosourcefadepanvol_Seek(struct audiosource* source, size_t pos) {
     struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
     if (idata->eof && idata->returnerroroneof) {
         return 0;
     }
     if (idata->source->seekable) {
         // source supports seeking -> attempt to seek:
-        if (idata->source->seek(idata->source)) {
+        if (idata->source->seek(idata->source, pos)) {
             // it worked!
             idata->eof = 0;
             // reset our buffer to empty:
@@ -252,6 +252,12 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
     a->read = &audiosourcefadepanvol_Read;
     a->close = &audiosourcefadepanvol_Close;
     a->rewind = &audiosourcefadepanvol_Rewind;
+    a->position = &audiosourcefadepanvol_Position;
+    a->length = &audiosourcefadepanvol_Length;
+    a->seek = &audiosourcefadepanvol_Seek;
+    
+    // if our source is seekable, we are so too:
+    a->seekable = source->seekable;
 
     return a;
 }

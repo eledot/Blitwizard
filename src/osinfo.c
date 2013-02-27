@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -34,7 +34,7 @@ static char versionbuf[512] = "";
 #ifdef WINDOWS
 #include <windows.h>
 static char staticwindowsbuf[] = "Windows";
-static int osinfo_DetectWine() {
+static int osinfo_DetectWine(void) {
     HMODULE lib = GetModuleHandle("ntdll.dll");
     if (lib) {
         void* p = (void*)GetProcAddress(lib, "wine_get_version");
@@ -46,17 +46,17 @@ static int osinfo_DetectWine() {
     return 0;
 }
 static char wineversionbuf[] = "";
-static const char* osinfo_GetWineVersion() {
+static const char* osinfo_GetWineVersion(void) {
     if (strlen(wineversionbuf) > 0) {
         return wineversionbuf;
     }
 
     return wineversionbuf;
 }
-const char* osinfo_GetSystemName() {
+const char* osinfo_GetSystemName(void) {
     return staticwindowsbuf;
 }
-const char* osinfo_GetSystemVersion() {
+const char* osinfo_GetSystemVersion(void) {
     if (strlen(versionbuf) > 0) {
         return versionbuf;
     }

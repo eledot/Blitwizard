@@ -126,9 +126,9 @@ static int audiosourceloop_Seek(struct audiosource* source, size_t pos) {
     }
     
     // if our audio source supports seeking, delegate:
-    if (idata->source->seeksupport) {
+    if (idata->source->seekable) {
         if (idata->source->seek(idata->source, pos)) {
-            source->eof = 0;
+            idata->eof = 0;
             return 1;
         }
     }
@@ -193,7 +193,7 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
     a->seek = &audiosourceloop_Seek;
     
     // if our source can seek, we can do so too:
-    a->seekingsupport = source->seekingsupport;
+    a->seekable = source->seekable;
 
     return a;
 }
