@@ -38,14 +38,14 @@ struct audiosource {
     // In case of 0/-1, you should close the audio resource.
 
     // Seek:
-    int (*seek)(struct audiosource* source, unsigned int pos);
+    int (*seek)(struct audiosource* source, size_t pos);
     // Seek to the given sample position.
-    // (Seek only in multiples of channels! E.g. 2,4,6,.. for stereo streams)
-    // Note this function may be NULL! Not all sources support seeking.
+    // (Seek only in multiples of channels for all channel-aware
+    // audio sources! E.g. 2,4,6,.. for stereo streams)
     // Returns 0 when seeking fails, 1 when seeking succeeds.
 
     // Pos:
-    unsigned int (*position)(struct audiosource* source);
+    size_t (*position)(struct audiosource* source);
     // Get the current playback position in the stream in samples.
 
     // Rewind:
@@ -56,7 +56,7 @@ struct audiosource {
     // Some streams will support rewind, whereas seeking is not supported.
 
     // Query stream length:
-    unsigned int (*length)(struct audiosource* source);
+    size_t (*length)(struct audiosource* source);
     // Query the total song length. Returns length in total samples.
     // Returns 0 if peeking at length is not supported or length is unknown.
 
@@ -78,6 +78,10 @@ struct audiosource {
     // Audio sample format:
     unsigned int format;
     // This is set to the sample format.
+    
+    // Supports seeking:
+    int seekingsupport;
+    // Set to 1 if seeking support is available, otherwise 0.
 
     void* internaldata; // DON'T TOUCH, used for internal purposes.
 };

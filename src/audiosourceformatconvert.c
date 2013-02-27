@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011-2012 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -47,6 +47,7 @@ static void audiosourceformatconvert_Close(struct audiosource* source) {
     if (idata->source) {
         idata->source->close(idata->source);
     }
+    free(source);
     return;
 }
 
@@ -60,6 +61,16 @@ static void audiosourceformatconvert_Rewind(struct audiosource* source) {
     idata->sourceeof = 0;
     idata->eof = 0;
     idata->convertbufbytes = 0;
+}
+
+
+static unsigned int audiosource_Position(struct audiosource* source) {
+    struct audiosourcefile_internaldata* idata = source->internaldata;
+    if (idata->eof) {
+        return source->length(source);
+    }
+    long pos = ftell(idata->file);
+    return pos;
 }
 
 
@@ -127,8 +138,8 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         if (idata->source->format == AUDIOSOURCEFORMAT_S16LE &&
         idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
             double intmax_big = 32768;
-            // convert s16le > f32le
-            int16_t old = *(int16_t*)((int16_t*)bytebuf);
+            // convert s16le -> f32le
+            int16_t old = *((int16_t*)bytebuf);
             double convert = old;
             convert /= intmax_big;
             float new = convert;
@@ -140,7 +151,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         if (idata->source->format == AUDIOSOURCEFORMAT_F32LE &&
         idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
             double intmax_small = 32767;
-            // convert f32le > s16le
+            // convert f32le -> s16le
             float old = *((float*)bytebuf);
             double convert = old;
             convert *= intmax_small;
@@ -214,13 +225,24 @@ static unsigned int audiosourceformatconvert_Length(struct audiosource* source) 
 struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, unsigned int newformat) {
     // Check some obvious cases
     if (newformat == AUDIOSOURCEFORMAT_UNKNOWN) {
+        if (source) {source->close(source);}
         return NULL;
     }
     if (!source || source->format == AUDIOSOURCEFORMAT_UNKNOWN || source->samplerate == 0) {
+        if (source) {source->close(source);}
         return NULL;
     }
     if (source->format == newformat) {
         return source;
+    }
+    
+    // whitelist of supported formats:
+    if (
+    source->format != AUDIOSOURCEFORMAT_S16LE &&
+    source->format != AUDIOSOURCEFORMAT_F32LE &&
+    1) {
+        source->close(source);
+        return NULL;
     }
 
     // Allocate audio source struct

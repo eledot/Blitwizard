@@ -99,6 +99,54 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 }
 
 
+static int audiosourcefile_Seek(struct audiosource* source, size_t pos); {
+    struct audiosourcefile_internaldata* idata = source->internaldata;
+    
+    // don't seek if we encountered an error:
+    if (idata->returnerroroneof && idata->eof) {
+        return 0;
+    }
+    
+    // don't allow seeking beyond end of file:
+    size_t length = source->length(source);
+    if (pos > length) {pos = length;}
+    
+    // seek:
+    fseek(idata->file, pos, SEEK_SET);
+    
+    // update our own eof marker:
+    if (pos < length) {
+        idata->eof = 0;
+    } else {
+        idata->eof = 1;
+    }
+    return 1;
+}
+
+static size_t audiosource_Length(struct audiosource* source) {
+    struct audiosourcefile_internaldata* idata = source->internaldata;
+    
+    // remember current pos:
+    long pos = ftell(idata->file, 0L, SEEK_SET);
+    
+    // seek to end of file to get length:
+    fseek(idata->file, 0L, SEEK_END);
+    size_t size = ftell(r);
+    
+    // seek back to current pos:
+    fseek(idata->file, pos, SEEK_SET);
+    return size;
+}
+
+static size_t audiosource_Position(struct audiosource* source) {
+    struct audiosourcefile_internaldata* idata = source->internaldata;
+    if (idata->eof) {
+        return source->length(source);
+    }
+    long pos = ftell(idata->file);
+    return pos;
+}
+
 static void audiosourcefile_Close(struct audiosource* source) {
     struct audiosourcefile_internaldata* idata = source->internaldata;
     if (!idata) {
@@ -150,6 +198,10 @@ struct audiosource* audiosourcefile_Create(const char* path) {
     a->read = &audiosourcefile_Read;
     a->close = &audiosourcefile_Close;
     a->rewind = &audiosourcefile_Rewind;
+    a->seek = &audiosourcefile_Seek;
+    a->length = &audiosourcefile_Length;
+    a->position = &audiosourcefile_Position;
+    a->seekingsupport = 1;
 
     return a;
 }
