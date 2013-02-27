@@ -44,7 +44,7 @@ fi
 # Enable/disable features:
 
 AC_ARG_ENABLE([sdl-graphics],
-    [AS_HELP_STRING([--disable-sdl-graphics],[disable 2d graphics support through SDL (default is enabled)])],
+    [AS_HELP_STRING([--disable-sdl-graphics],[disable 2d graphics support through SDL (default is enabled). If you compile with Ogre, you can still use 2d graphics through Ogre])],
 [case "${enableval}" in
     yes | no ) enable_sdlgraphics="${enableval}" ;;
     *) AC_MSG_ERROR(bad value ${enableval} for --disable-sdl-graphics) ;;
@@ -106,7 +106,7 @@ AS_IF([test "x$enable_audio" = xno], [
 ])
 
 AC_ARG_ENABLE([physics2d],
-    [AS_HELP_STRING([--disable-physics2d],[disable physics simulation support based on Box2D (default is enabled)])],
+    [AS_HELP_STRING([--disable-physics2d],[disable physics simulation support based on Box2D for 2d objects (default is enabled)])],
 [case "${enableval}" in
      yes | no ) enable_physics2d="${enableval}" ;;
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics2d) ;;
@@ -114,15 +114,30 @@ AC_ARG_ENABLE([physics2d],
 [enable_physics2d=yes])
 
 AC_ARG_ENABLE([physics3d],
-    [AS_HELP_STRING([--disable-physics3d],[disable physics simulation support based on bullet physics (default is enabled)])],
+    [AS_HELP_STRING([--disable-physics3d],[disable physics simulation support based on bullet physics for 3d objects (default is enabled)])],
 [case "${enableval}" in
      yes | no ) enable_physics3d="${enableval}" ;;
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics3d) ;;
  esac],
 [enable_physics3d=yes])
 
+AC_ARG_ENABLE([physics],
+    [AS_HELP_STRING([--disable-physics],[disable physics simulation support completely])],
+[case "${enableval}" in
+    yes | no ) enable_physics="${enableval}" ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --disable-physics) ;;
+ esac],
+[enable_physics=yes])
+
+
+AS_IF([test "x$enable_physics" = xno], [
+    enable_physics2d="no"
+    enable_physics3d="no"
+])
+
+
 AC_ARG_ENABLE([flac],
-    [AS_HELP_STRING([--disable-flac],[disable optional FLAC audio support.])],
+    [AS_HELP_STRING([--disable-flac],[disable optional FLAC audio support through libFLAC. If FFmpeg support is enabled and FFmpeg is available at runtime, you might still be able to play FLAC audio])],
 [case "${enableval}" in
      yes | no ) enable_flac="${enableval}" ;;
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-flac) ;;
@@ -130,7 +145,7 @@ AC_ARG_ENABLE([flac],
 [enable_flac=yes])
 
 AC_ARG_ENABLE([speex],
-    [AS_HELP_STRING([--disable-speex],[disable optional Speex audio support.])],
+    [AS_HELP_STRING([--disable-speex],[disable optional Speex support for proper resampling. Use only if you want to supply all your audio in 48kHz to avoid the need for resampling entirely])],
 [case "${enableval}" in
      yes | no ) enable_speex="${enableval}" ;;
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-speex) ;;
@@ -152,7 +167,8 @@ STATIC_LIBS_USE=""
 SDL_GRAPHICS_FEATURE_ENABLED="yes"
 OGRE_GRAPHICS_FEATURE_ENABLED="yes"
 NULL_GRAPHICS_FEATURE_ENABLED="yes"
-AUDIO_FEATURE_ENABLED="yes (SDL2)"
+AUDIO_FEATURE_ENABLED="yes"
+AUDIO_FEATURE_ENABLED_TYPE="SDL2"
 NULL_AUDIO_FEATURE_ENABLED="yes"
 FLAC_FEATURE_ENABLED="yes"
 SPEEX_RESAMPLING_FEATURE_ENABLED="yes"
@@ -230,7 +246,8 @@ AS_IF([test "x$NEEDSDL" = xyes],[
 			AS_IF([test "x$WINDOWS" = xno],[
 				AUDIO_FEATURE_ENABLED="no, need SDL2"
 			],[
-				AUDIO_FEATURE_ENABLED="yes (waveOut)"
+				AUDIO_FEATURE_ENABLED="yes"
+                AUDIO_FEATURE_ENABLED_TYPE="waveOut"
 			])
         ])
     ],[
@@ -330,7 +347,8 @@ AS_IF([test "x$enable_sdlaudio" = xno],[
 	AS_IF([test "x$WINDOWS" = xno],[
 		AUDIO_FEATURE_ENABLED="no, disabled"
 	],[
-		AUDIO_FEATURE_ENABLED="yes (waveOut)"
+		AUDIO_FEATURE_ENABLED="yes"
+        AUDIO_FEATURE_ENABLED_TYPE="waveOut"
 	])
 ])
 AS_IF([test "x$enable_ogregraphics" = xno],[
@@ -656,23 +674,6 @@ AS_IF([test "x$enable_physics2d" = xyes],[
     PHYSICS2D_FEATURE_ENABLED="no, disabled"
 ])
 
-# Prepare final deps info output:
-
-DEPS_INFO_OUTPUT="
-This results in the following feature set:
-  SDL Graphics (2d only): ${SDL_GRAPHICS_FEATURE_ENABLED}
-  Ogre Graphics (2d or 3d): ${OGRE_GRAPHICS_FEATURE_ENABLED}
-  Null device graphics: ${NULL_GRAPHICS_FEATURE_ENABLED}
-  Audio: ${AUDIO_FEATURE_ENABLED}
-  Null device audio: ${NULL_AUDIO_FEATURE_ENABLED}
-  Flac decoding: ${FLAC_FEATURE_ENABLED}
-  Speex-based resampling: ${SPEEX_RESAMPLING_FEATURE_ENABLED}
-  Runtime FFmpeg support: ${FFMPEG_FEATURE_ENABLED}
-  2D physics simulation support: ${PHYSICS2D_FEATURE_ENABLED}
-  3D physics simulation support: ${PHYSICS3D_FEATURE_ENABLED}
-  Fast float-to-int conversion: ${FAST_FLOAT2INT_FEATURE_ENABLED}
-"
-
 
 # Compose ld/include/define flags:
 
@@ -993,6 +994,31 @@ AC_CONFIG_FILES([Makefile
                  src/Makefile
                  tests/Makefile])
 AC_OUTPUT
+
+# Prepare final deps info output:
+
+AS_IF([test ! "x$AUDIO_FEATURE_ENABLED" = xyes],[
+    AUDIO_FEATURE_ENABLED_TYPE=""
+],[
+    AUDIO_FEATURE_ENABLED_TYPE="($AUDIO_FEATURE_ENABLED_TYPE)"
+])
+
+DEPS_INFO_OUTPUT="
+This results in the following feature set:
+  SDL Graphics (2d only): ${SDL_GRAPHICS_FEATURE_ENABLED}
+  Ogre Graphics (2d or 3d): ${OGRE_GRAPHICS_FEATURE_ENABLED}
+  Null device graphics: ${NULL_GRAPHICS_FEATURE_ENABLED}
+  Audio: ${AUDIO_FEATURE_ENABLED} ${AUDIO_FEATURE_ENABLED_TYPE}
+  Null device audio: ${NULL_AUDIO_FEATURE_ENABLED}
+  Flac decoding: ${FLAC_FEATURE_ENABLED}
+  Speex-based resampling: ${SPEEX_RESAMPLING_FEATURE_ENABLED}
+  Runtime FFmpeg support: ${FFMPEG_FEATURE_ENABLED}
+  2D physics simulation support: ${PHYSICS2D_FEATURE_ENABLED}
+  3D physics simulation support: ${PHYSICS3D_FEATURE_ENABLED}
+  Fast float-to-int conversion: ${FAST_FLOAT2INT_FEATURE_ENABLED}
+"
+
+
 
 echo "$LIBS_DEP_INFO_TEXT"
 echo "$DEPS_INFO_OUTPUT"
