@@ -350,6 +350,7 @@ int main(int argc, char** argv) {
     char* option_templatepath = NULL;
     int option_templatepathset = 0;
     int nextoptionistemplatepath = 0;
+    int nextoptionisscriptarg = 0;
     int gcframecount = 0;
 
 #ifdef WINDOWS
@@ -386,7 +387,15 @@ int main(int argc, char** argv) {
             }
 
             // various options:
-            if (argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0) {
+            if ((argv[i][0] == '-' || strcasecmp(argv[i],"/?") == 0)
+            && !nextoptionisscriptarg) {
+                if (strcasecmp(argv[i], "--") == 0) {
+                    // this enforces the next arg to be the script name:
+                    nextoptionisscriptarg = 1;
+                    i++;
+                    continue;
+                }
+
                 if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
                 || strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
                 || strcasecmp(argv[i],"-h") == 0) {
