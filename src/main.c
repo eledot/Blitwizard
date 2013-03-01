@@ -460,7 +460,7 @@ int main(int argc, char** argv) {
                     #ifndef USE_FLAC_AUDIO
                     ", FLAC (FFmpeg), mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n     resulting in FFmpeg playback support not working)"
                     #else
-                    ", mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n      resulting in FFmpeg playback support not working)\n"
+                    ", mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n      resulting in FFmpeg playback support not working)"
                     #endif
                     #else
                     ""
