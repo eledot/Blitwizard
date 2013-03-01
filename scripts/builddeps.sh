@@ -45,7 +45,7 @@ if [ "$REBUILDALL" = "yes" ]; then
 fi
 if [ "$REBUILDCORE" = "yes" ]; then
     echo "Core will be rebuilt to match different build flags or target.";
-    rm src/*.o > /dev/null 2>&1
+    rm -y src/*.o > /dev/null 2>&1
 fi
 
 CC=`cat scripts/.buildinfo | grep CC | sed -e 's/^.*\=//'`

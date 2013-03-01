@@ -420,8 +420,8 @@ int main(int argc, char** argv) {
                 }
 				if (strcmp(argv[i], "-v") == 0 || strcasecmp(argv[i], "-version") == 0
 				|| strcasecmp(argv[i], "--version") == 0) {
-					printf("blitwizard %s - http://www.blitwizard.de/\n",VERSION);
-					printf("\nSupported features of this build:\n\n");
+					printf("blitwizard %s (C) 2011-2013 Jonas Thiem et al\n",VERSION);
+					printf("Supported features of this build:\n\n");
 					
 					#ifdef USE_SDL_AUDIO
                     printf("  Audio device: SDL 2\n");
@@ -448,9 +448,9 @@ int main(int argc, char** argv) {
                     ,
                     #if defined(USE_FFMPEG_AUDIO)
                     #ifndef USE_FLAC_AUDIO
-                    ", FLAC (FFmpeg), mp3 (FFmpeg), many more.. (FFmpeg)"
+                    ", FLAC (FFmpeg), mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)"
                     #else
-                    ", mp3 (FFmpeg), many more.. (FFmpeg)"
+                    ", mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)"
                     #endif
                     #else
                     ""
@@ -458,18 +458,29 @@ int main(int argc, char** argv) {
 					);
                     #endif
 
+                    #ifdef USE_GRAPHICS
 					#ifdef USE_SDL_GRAPHICS
-                    printf("  2d graphics support: yes\n");
+                    #ifdef USE_OGRE_GRAPHICS
+                    printf("  Graphics device: SDL 2, Ogre\n");
+                    printf("    2d graphics support: SDL 2, Ogre\n");
+                    printf("    3d graphics support: Ogre\n");
+                    #else
+                    printf("  Graphics device: SDL 2\n");
+                    printf("    2d graphics support: SDL 2\n");
+                    printf("    3d graphics support: none\n");
+                    #endif
 					#else
-					#ifdef USE_GRAPHICS
-					printf("  2d graphics support: no\n");
-					printf("  Virtual null device 2d graphics support: yes\n");
-					#else
-					printf("  2d graphics support: no\n");
-					printf("  Virtual null device 2d graphics support: no\n");
+                    printf("  Graphics device: only virtual (not visible)\n");
+					printf("    2d graphics support: virtual\n");
+                    printf("    3d graphics support: none\n");
 					#endif
-					#endif
-					
+				    printf("Check out http://www.blitwizard.de/ for info.\n");	
+                    #else
+                    printf("  Graphics device: none\n");
+                    printf("    2d graphics support: none, graphics disabled\n");
+                    printf("    3d graphics support: none, graphics disalbed\n");
+                    #endif
+
 					fflush(stdout);
 					exit(0);
 				}
