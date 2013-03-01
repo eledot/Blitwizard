@@ -88,7 +88,7 @@ PHYSFS_uint64 offset) {
 
     if (offset > zf->sizeinfile) {
         return 0;  // out of bounds
-    } 
+    }
 
     // attempt to seek:
     int i = fseek(zf->f, offset, SEEK_SET);
@@ -172,7 +172,9 @@ size_t sizeinfile) {
 
     // allocate our basic zip info struct:
     struct zipfile* zf = malloc(sizeof(*zf));
-    if (!zf) {return NULL;}
+    if (!zf) {
+        return NULL;
+    }
     memset(zf, 0, sizeof(*zf));
     zf->offsetinfile = offsetinfile;
     zf->sizeinfile = sizeinfile;

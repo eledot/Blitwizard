@@ -21,7 +21,7 @@
 
 */
 
-#ifndef BLITWIZARD_OBJECT_H_ 
+#ifndef BLITWIZARD_OBJECT_H_
 #define BLITWIZARD_OBJECT_H_
 
 int luafuncs_object_new(lua_State* l);

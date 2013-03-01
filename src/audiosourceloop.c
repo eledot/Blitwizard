@@ -100,7 +100,7 @@ static int audiosourceloop_Read(struct audiosource* source, char* buffer, unsign
 
 static size_t audiosourceloop_Length(struct audiosource* source) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
-    
+
     // if our audio source supports telling its length, delegate:
     if (idata->source->length) {
         return idata->source->length(idata->source);
@@ -110,7 +110,7 @@ static size_t audiosourceloop_Length(struct audiosource* source) {
 
 static size_t audiosourceloop_Position(struct audiosource* source) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
-    
+
     // if our audio source supports telling the position, delegate:
     if (idata->source->position) {
         return idata->source->position(idata->source);
@@ -120,11 +120,11 @@ static size_t audiosourceloop_Position(struct audiosource* source) {
 
 static int audiosourceloop_Seek(struct audiosource* source, size_t pos) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
-    
+
     if (idata->eof && idata->returnerroroneof) {
         return 0;
     }
-    
+
     // if our audio source supports seeking, delegate:
     if (idata->source->seekable) {
         if (idata->source->seek(idata->source, pos)) {
@@ -191,7 +191,7 @@ struct audiosource* audiosourceloop_Create(struct audiosource* source) {
     a->position = &audiosourceloop_Position;
     a->length = &audiosourceloop_Length;
     a->seek = &audiosourceloop_Seek;
-    
+
     // if our source can seek, we can do so too:
     a->seekable = source->seekable;
 

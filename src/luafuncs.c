@@ -965,11 +965,11 @@ int luafuncs_trandom(lua_State* l) {
     // we lose entropy here,
     // but we could no longer safely distinguish such high numbers
     // in a double anyway
-    
+
     // convert to double in a 0, 1 range:
     double d2 = d;
     d2 /= (double)pow(2, 49);
-    
+
     lua_pushnumber(l, d2);
     return 1;
 #else

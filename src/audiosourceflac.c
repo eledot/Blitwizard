@@ -21,7 +21,7 @@
 
 */
 
-//#include "os.h"
+// #include "os.h"
 
 #ifdef USE_AUDIO
 
@@ -63,11 +63,11 @@ struct audiosourceflac_internaldata {
     // file source (or whereever the undecoded audio comes from):
     struct audiosource* source;
     int filesourceeof;  // "file" audio source has given us an EOF
-    
+
     // EOF information of this file source:
     int eof;  // we have spilled out an EOF
     int returnerroroneof;  // keep errors in mind
-    
+
     // buffer for decoded bytes:
     char decodedbuf[DECODE_BUFFER];
     unsigned int decodedbytes;
@@ -89,13 +89,13 @@ struct audiosource* source) {
             idata->decoder = NULL;
             idata->flacopened = 0;
         }
-        
+
         // rewind file source:
         idata->source->rewind(idata->source);
         idata->filesourceeof = 0;
         idata->eof = 0;
         idata->returnerroroneof = 0;
-        
+
         // reset buffers:
         idata->decodedbytes = 0;
     }
@@ -113,11 +113,11 @@ size_t* bytes, void* client_data) {
     // read data for the FLAC decoder:
     struct audiosourceflac_internaldata* idata =
     ((struct audiosource*)client_data)->internaldata;
-    
+
     if (idata->filesourceeof) {
         return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
     }
-    
+
     int r = idata->source->read(idata->source,
     (char*)buffer, *bytes);
     if (r <= 0) {
@@ -138,7 +138,7 @@ void *client_data) {
     struct audiosource* source = (struct audiosource*)client_data;
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     // if we still need format info, grab it now:
     if (source->samplerate == 0) {
         int channels = FLAC__stream_decoder_get_channels(idata->decoder);
@@ -154,13 +154,13 @@ void *client_data) {
         }
         source->samplerate = samplerate;
         source->channels = channels;
-        
+
         // check if we can deal with the audio format:
-        
+
     }
-    
+
     // write the data we got:
-    //memcpy(idata->
+    // memcpy(idata->
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
@@ -170,7 +170,7 @@ FLAC__uint64* stream_length, void* client_data) {
     struct audiosource* source = (struct audiosource*)client_data;
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     size_t length = idata->source->length(idata->source);
     if (length > 0) {
         *stream_length = length;
@@ -185,13 +185,13 @@ FLAC__uint64* absolute_byte_offset, void* client_data) {
     struct audiosource* source = (struct audiosource*)client_data;
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     if (idata->source->seekable) {
         size_t pos = idata->source->position(idata->source);
         *absolute_byte_offset = pos;
         return FLAC__STREAM_DECODER_TELL_STATUS_OK;
     }
-    
+
     // assume it is streamed and position is unsupported:
     return FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED;
 }
@@ -203,7 +203,7 @@ void* client_data) {
     struct audiosource* source = (struct audiosource*)client_data;
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     if (idata->source->seekable) {
         // attempt to seek our audio source:
         if (!idata->source->seek(idata->source, absolute_byte_offset)) {
@@ -225,7 +225,7 @@ void* client_data) {
 static size_t audiosourceflac_Length(struct audiosource* source) {
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     if (idata->eof && idata->returnerroroneof) {
         return 0;
     }
@@ -238,14 +238,14 @@ static size_t audiosourceflac_Length(struct audiosource* source) {
 static int audiosourceflac_Seek(struct audiosource* source, size_t pos) {
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     if (idata->eof && idata->returnerroroneof) {
         return 0;
     }
     if (!idata->flacopened) {
         return 0;
     }
-    
+
     // don't allow seeking beyond file end:
     size_t length = audiosourceflac_Length(source);
     if (length == 0) {
@@ -254,7 +254,7 @@ static int audiosourceflac_Seek(struct audiosource* source, size_t pos) {
     if (pos > length) {
         pos = length;
     }
-    
+
     if (source->seekable) {
         if (FLAC__stream_decoder_seek_absolute(idata->decoder, pos) == true) {
             idata->eof = 0;
@@ -268,14 +268,14 @@ static int audiosourceflac_Seek(struct audiosource* source, size_t pos) {
 static size_t audiosourceflac_Position(struct audiosource* source) {
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     if (idata->eof && idata->returnerroroneof) {
         return 0;
     }
     if (!idata->flacopened) {
         return 0;
     }
-    
+
     if (source->seekable) {
         uint64_t pos;
         if (FLAC__stream_decoder_get_decode_position(
@@ -289,13 +289,13 @@ static size_t audiosourceflac_Position(struct audiosource* source) {
 void audiosourceflac_Close(struct audiosource* source) {
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     if (idata->flacopened) {
         FLAC__stream_decoder_delete(idata->decoder);
         idata->decoder = NULL;
         idata->flacopened = 0;
     }
-    
+
     if (idata->source) {
         idata->source->close(idata->source);
         idata->source = NULL;
@@ -306,13 +306,13 @@ void audiosourceflac_Close(struct audiosource* source) {
 static int audiosourceflac_InitFLAC(struct audiosource* source) {
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
-    
+
     // open up FLAC decoder:
     idata->decoder = FLAC__stream_decoder_new();
     if (!idata->decoder) {
         return 0;
     }
-    
+
     // initialise decoder:
     if (FLAC__stream_decoder_init_stream(idata->decoder,
     flacread,
@@ -327,7 +327,7 @@ static int audiosourceflac_InitFLAC(struct audiosource* source) {
     ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
         return 0;
     }
-    
+
     // run decoder up to first audio frame:
     while(idata->decodedbytes == 0) {
         if (FLAC__stream_decoder_process_single(idata->decoder) == false
@@ -336,7 +336,7 @@ static int audiosourceflac_InitFLAC(struct audiosource* source) {
             return 0;
         }
     }
-    
+
     // we should have some information now
     return 1;
 }
@@ -350,7 +350,7 @@ unsigned int bytes) {
         idata->returnerroroneof = 1;
         return -1;
     }
-    
+
     // open up flac file if we don't have one yet
     if (!idata->flacopened) {
         if (!audiosourceflac_InitFLAC(source)) {
@@ -362,7 +362,7 @@ unsigned int bytes) {
         }
         idata->flacopened = 1;
     }
-    
+
     int byteswritten = 0;
     while (bytes > 0) {
         if (idata->decodedbytes <= 0) {
@@ -381,7 +381,9 @@ unsigned int bytes) {
             }
         }
         unsigned int i = idata->decodedbytes;
-        if (i > bytes) {i = bytes;}
+        if (i > bytes) {
+            i = bytes;
+        }
         // write bytes
         memcpy(buffer, idata->decodedbuf, i);
         buffer += i;
@@ -402,7 +404,7 @@ struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     if (!source) {
         return NULL;
     }
-    
+
     // main data structure
     struct audiosource* a = malloc(sizeof(*a));
     if (!a) {
@@ -420,7 +422,7 @@ struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     }
     struct audiosourceflac_internaldata* idata =
     a->internaldata;
-    
+
     // function pointers
     a->read = &audiosourceflac_Read;
     a->close = &audiosourceflac_Close;
@@ -428,10 +430,10 @@ struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     a->length = &audiosourceflac_Length;
     a->position = &audiosourceflac_Position;
     a->seek = &audiosourceflac_Seek;
-    
+
     // if our source is seekable, we are so too:
     a->seekable = source->seekable;
-    
+
     // take an initial peek at the file:
     audiosourceflac_Read(a, NULL, 0);
     if (idata->eof && idata->returnerroroneof) {

@@ -190,7 +190,9 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
         }
         // move away processed & returned samples
         if (returnbytes > 0) {
-            memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + returnbytes, sizeof(idata->processedsamplesbuf) - returnbytes);
+            if (idata->processedsamplesbytes - returnbytes > 0) {
+                memmove(idata->processedsamplesbuf, idata->processedsamplesbuf + returnbytes, sizeof(idata->processedsamplesbuf) - returnbytes);
+            }
             idata->processedsamplesbytes -= returnbytes;
         }
     }
@@ -255,7 +257,7 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
     a->position = &audiosourcefadepanvol_Position;
     a->length = &audiosourcefadepanvol_Length;
     a->seek = &audiosourcefadepanvol_Seek;
-    
+
     // if our source is seekable, we are so too:
     a->seekable = source->seekable;
 

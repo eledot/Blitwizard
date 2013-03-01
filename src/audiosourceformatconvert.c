@@ -192,7 +192,7 @@ static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned in
     if (!idata->source->seekable) {
         return 0;
     }
-  
+
     if (idata->source->seek(idata->source, pos)) {
         idata->eof = 0;
         idata->sourceeof = 0;
@@ -219,17 +219,21 @@ static unsigned int audiosourceformatconvert_Length(struct audiosource* source) 
 struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, unsigned int newformat) {
     // Check some obvious cases
     if (newformat == AUDIOSOURCEFORMAT_UNKNOWN) {
-        if (source) {source->close(source);}
+        if (source) {
+            source->close(source);
+        }
         return NULL;
     }
     if (!source || source->format == AUDIOSOURCEFORMAT_UNKNOWN || source->samplerate == 0) {
-        if (source) {source->close(source);}
+        if (source) {
+            source->close(source);
+        }
         return NULL;
     }
     if (source->format == newformat) {
         return source;
     }
-    
+
     // whitelist of supported formats:
     if (
     source->format != AUDIOSOURCEFORMAT_S16LE &&
@@ -271,7 +275,7 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
     a->close = &audiosourceformatconvert_Close;
     a->seek = &audiosourceformatconvert_Seek;
     a->rewind = &audiosourceformatconvert_Rewind;
-    
+
     // if our source is seekable, we are so too:
     a->seekable = source->seekable;
     return a;

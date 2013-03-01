@@ -16,9 +16,9 @@ if WIN_APP_PATHS
 blitwizard_SOURCES += win32apppaths.c
 endif
 
-AM_CFLAGS = $(FINAL_INCLUDE_FLAGS) -fno-PIC -O3 -ffast-math  -DSYSTEM_TEMPLATE_PATH="\"${datadir}/blitwizard/templates/\"" -DUSE_LIB_FLAGS="\"$(FINAL_USE_LIB_FLAGS)\"" -fno-strict-aliasing -Werror-implicit-function-declaration -Wstrict-prototypes -Wall -Wextra -g -fomit-frame-pointer -L../libs/ $(FINAL_USE_LIB_FLAGS)
-AM_CXXFLAGS = $(FINAL_INCLUDE_FLAGS) $(STATICSTDCXX) -fno-PIC -O3 -ffast-math -fno-strict-aliasing -Wall -Wextra -g -fexceptions -fomit-frame-pointer -L ../libs/ $(FINAL_USE_LIB_FLAGS)
-AM_OBJCFLAGS = -fno-PIC -Wall -O3 -g -fno-exceptions -fomit-frame-pointer
+AM_CFLAGS = $(FINAL_INCLUDE_FLAGS) -fno-PIC -O3 -ffast-math  -DSYSTEM_TEMPLATE_PATH="\"${datadir}/blitwizard/templates/\"" -DUSE_LIB_FLAGS="\"$(FINAL_USE_LIB_FLAGS)\"" -fno-strict-aliasing -Werror-implicit-function-declaration -Wstrict-prototypes -Wall -Wextra -g -fno-omit-frame-pointer -L../libs/ $(FINAL_USE_LIB_FLAGS)
+AM_CXXFLAGS = $(FINAL_INCLUDE_FLAGS) $(STATICSTDCXX) -fno-PIC -O3 -ffast-math -fno-strict-aliasing -Wall -Wextra -g -fexceptions -fno-omit-frame-pointer -L ../libs/ $(FINAL_USE_LIB_FLAGS)
+AM_OBJCFLAGS = -fno-PIC -Wall -O3 -g -fno-exceptions -fno-omit-frame-pointer
 
 # -fno-PIC is only added for some extra speed, same as -O2.
 

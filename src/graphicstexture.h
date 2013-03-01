@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -35,7 +35,7 @@ struct graphicstexture {
         SDL_Texture* sdltex;
 #endif
 #ifdef USE_OGRE_GRAPHICS
-        
+
 #endif
     } tex;
 #ifdef SDLRW

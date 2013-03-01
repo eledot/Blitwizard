@@ -101,14 +101,16 @@ static int audiosourcefile_Read(struct audiosource* source, char* buffer, unsign
 
 static int audiosourcefile_Seek(struct audiosource* source, size_t pos) {
     struct audiosourcefile_internaldata* idata = source->internaldata;
-    
+
     // don't allow seeking beyond end of file:
     size_t length = source->length(source);
-    if (pos > length) {pos = length;}
-    
+    if (pos > length) {
+        pos = length;
+    }
+
     // seek:
     fseek(idata->file, pos, SEEK_SET);
-    
+
     // update our own eof marker:
     if (pos < length) {
         idata->eof = 0;
@@ -120,14 +122,14 @@ static int audiosourcefile_Seek(struct audiosource* source, size_t pos) {
 
 static size_t audiosourcefile_Length(struct audiosource* source) {
     struct audiosourcefile_internaldata* idata = source->internaldata;
-    
+
     // remember current pos:
     long pos = ftell(idata->file);
-    
+
     // seek to end of file to get length:
     fseek(idata->file, 0L, SEEK_END);
     size_t size = ftell(idata->file);
-    
+
     // seek back to current pos:
     fseek(idata->file, pos, SEEK_SET);
     return size;

@@ -222,22 +222,26 @@ const char* audio_GetCurrentBackendName(void) {
 static void queueBlock(void) {
     // output new audio (SOUND THREAD)
     mutex_Lock(waveoutlock);
-    
+
     // find out which block we want to queue up:
     int i = nextaudioblock;
     nextaudioblock++;
-    if (nextaudioblock >= AUDIOBLOCKS) {nextaudioblock = 0;}
+    if (nextaudioblock >= AUDIOBLOCKS) {
+        nextaudioblock = 0;
+    }
     int previousaudioblock = i-(AUDIOBLOCKS-1);
-    while (previousaudioblock < 0) {previousaudioblock += AUDIOBLOCKS;}
-    
+    while (previousaudioblock < 0) {
+        previousaudioblock += AUDIOBLOCKS;
+    }
+
     // set block length
     waveheader[i].dwBufferLength = waveoutbytes;
     waveheader[i].dwLoops = 0;
-    
+
     // set block audio data:
     samplecallbackptr(blockbuffer[i], (unsigned int)waveoutbytes);
     waveheader[i].lpData = blockbuffer[i];
-    
+
     // queue up block:
     int r;
     if (!headerprepared[i]) {
@@ -249,7 +253,7 @@ static void queueBlock(void) {
         }
         headerprepared[i] = 1;
     }
-    
+
     if ((r = waveOutWrite(waveoutdev, &waveheader[i],
     sizeof(WAVEHDR))) != MMSYSERR_NOERROR) {
         printf("writeout failed!\n");fflush(stdout);
@@ -257,7 +261,7 @@ static void queueBlock(void) {
         return;
     }
     fflush(stdout);
-    
+
     mutex_Release(waveoutlock);
 }
 
@@ -265,33 +269,33 @@ static void CALLBACK audioCallback(HWAVEOUT hwo, UINT uMsg,
 DWORD dwInstance, DWORD dwParam1, DWORD dwParam2) {
     if (uMsg == WOM_DONE) {
         queueBlock();
-        //semaphore_Post(newblocksignal);
+        // semaphore_Post(newblocksignal);
     }
 }
 
 void audio_SoundThread(void* userdata) {
     // sound thread function (SOUND THREAD)
-    
+
     // initialise audio blocks:
     int i = 0;
     while (i < AUDIOBLOCKS) {
         // keep in mind we still need to waveout-prepare this block:
         headerprepared[i] = 0;
-        
+
         // zero out the block:
         memset(&waveheader[i], 0, sizeof(WAVEHDR));
-        
+
         // initialise new block data:
         blockbuffer[i] = malloc(waveoutbytes);
         i++;
     }
-    
+
     // initialise signal semaphore:
     if (newblocksignal) {
         semaphore_Destroy(newblocksignal);
     }
     newblocksignal = semaphore_Create(0);
-    
+
     // open audio device
     MMRESULT r = waveOutOpen(&waveoutdev, WAVE_MAPPER,
     &waveoutfmt, (DWORD_PTR)&audioCallback, (DWORD_PTR)0,
@@ -303,21 +307,21 @@ void audio_SoundThread(void* userdata) {
         return;
     }
     threadcontrol = 1;
-    
+
     mutex_Release(waveoutlock);
-    
+
     // queue up the initial blocks:
     i = 0;
     while (i < AUDIOBLOCKS) {
         queueBlock();
         i++;
     }
-    
+
     while (1) {
         // the waveOut callback will wake us up when there
         // is stuff to do:
-        //semaphore_Wait(newblocksignal);
-        //queueBlock();
+        // semaphore_Wait(newblocksignal);
+        // queueBlock();
         time_Sleep(100);
         mutex_Lock(waveoutlock);
         if (threadcontrol == 0) {
@@ -365,10 +369,10 @@ static void audio_StopWaveoutThread(void) {
         mutex_Release(waveoutlock);
         return;
     }
-    
+
     // tell thread to shutdown:
     threadcontrol = 0;
-    
+
     // wait for thread to shutdown:
     while (threadcontrol == 0) {
         mutex_Release(waveoutlock);
@@ -410,38 +414,38 @@ unsigned int buffersize, const char* backend, int s16, char** error) {
         *error = strdup("WaveOut doesn't support 32bit float audio");
         return 0;
     }
-        
+
     if (!waveoutlock) {
         waveoutlock = mutex_Create();
     }
-        
+
     if (soundenabled) {
         // quit old sound first
         audio_StopWaveoutThread();
         soundenabled = 0;
     }
-    
+
     if (!samplecallback) {
         *error = strdup("Need sample callback");
         return 0;
     }
-    
+
     int i = 0;
     while (i < AUDIOBLOCKS) {
         blockbuffer[i] = NULL;
         i++;
     }
-    
+
     memset(&waveoutfmt, 0, sizeof(waveoutfmt));
     waveoutfmt.nSamplesPerSec = 48000;
     waveoutfmt.wBitsPerSample = 16;
     waveoutfmt.nChannels = 2;
-    
+
     waveoutfmt.cbSize = 0;
     waveoutfmt.wFormatTag = WAVE_FORMAT_PCM;
     waveoutfmt.nBlockAlign = (2 * 16) / 8;
     waveoutfmt.nAvgBytesPerSec = waveoutfmt.nSamplesPerSec * waveoutfmt.nBlockAlign;
-    
+
     int custombuffersize = DEFAULTSOUNDBUFFERSIZE;
     if (buffersize > 0) {
         custombuffersize = buffersize;
@@ -455,7 +459,7 @@ unsigned int buffersize, const char* backend, int s16, char** error) {
     waveoutbytes = custombuffersize;
     samplecallbackptr = samplecallback;
     waveout_LaunchWaveoutThread();
-    
+
     time_Sleep(50);
     mutex_Lock(waveoutlock);
     while (threadcontrol == 0) {
@@ -464,7 +468,7 @@ unsigned int buffersize, const char* backend, int s16, char** error) {
         mutex_Lock(waveoutlock);
     }
     mutex_Release(waveoutlock);
-    
+
     if (threadcontrol < 0) {
         *error = strdup("WaveOut returned an error");
         return 0;

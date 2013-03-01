@@ -80,7 +80,7 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
     as->position = &audiosourceresample_Position;
     as->length = &audiosourceresample_Length;
     as->seek = &audiosourceresample_Seek;
-	as->samplerate = targetrate;
+    as->samplerate = targetrate;
     as->channels = source->channels;
     as->format = source->format;
     return as;
@@ -272,40 +272,42 @@ static int audiosourceresample_Read(struct audiosource* source, char* buffer, un
 
 static size_t audiosourceresample_Length(struct audiosource* source) {
     struct audiosourceresample_internaldata* idata = source->internaldata;
-    
+
     if (idata->eof && idata->returnerroroneof) {
         return 0;
     }
-    
+
     return (idata->source->length(idata->source) *
     source->samplerate) / idata->source->samplerate;
 }
 
 static size_t audiosourceresample_Position(struct audiosource* source) {
     struct audiosourceresample_internaldata* idata = source->internaldata;
-    
+
     if (idata->eof && idata->returnerroroneof) {
         return 0;
     }
-    
+
     return (idata->source->position(idata->source) *
     source->samplerate) / idata->source->samplerate;
 }
 
 static size_t audiosourceresample_Seek(struct audiosource* source, size_t pos) {
     struct audiosourceresample_internaldata* idata = source->internaldata;
-    
+
     if (!source->seekable || (idata->eof && idata->returnerroroneof)) {
         return 0;
     }
-    
+
     // check position against valid boundaries:
     unsigned int tpos = (pos * source->samplerate) / idata->source->samplerate;
-    if (tpos < 0) {return 0;}
+    if (tpos < 0) {
+        return 0;
+    }
     if (tpos > idata->source->length(idata->source)) {
         tpos = idata->source->length(idata->source);
     }
-    
+
     // try seeking:
     if (idata->source->seek(idata->source, pos)) {
         return 1;
@@ -369,7 +371,7 @@ struct audiosource* audiosourceresample_Create(struct audiosource* source, unsig
     a->position = &audiosourceresample_Position;
     a->length = &audiosourceresample_Length;
     a->seek = &audiosourceresample_Seek;
-    
+
     // if our source is seekable, we are so too:
     a->seekable = source->seekable;
 

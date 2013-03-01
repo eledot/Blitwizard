@@ -402,19 +402,19 @@ int main(int argc, char** argv) {
                     printf("blitwizard %s (C) 2011-2013 Jonas Thiem et al\n",VERSION);
                     printf("Usage:\n   blitwizard [blitwizard options] [script name] [script options]\n\n");
                     printf("The script name should be a .lua file containing\n"
-					"Lua source code for use with blitwizard.\n\n");
+                    "Lua source code for use with blitwizard.\n\n");
                     printf("The script options (optional) are passed through\n"
-					"to the script.\n\n");
+                    "to the script.\n\n");
                     printf("Supported blitwizard options:\n");
                     printf("   -changedir             Change working directory to "
-						   "the\n"
-					       "                          folder of the script\n");
+                           "the\n"
+                           "                          folder of the script\n");
                     printf("   -help                  Show this help text and quit\n");
                     printf("   -templatepath [path]   Check another place for "
-						   "templates\n"
-						   "                          (not the default "
-						   "\"templates/\")\n");
-					printf("   -version               Show extended version info and quit\n");
+                           "templates\n"
+                           "                          (not the default "
+                           "\"templates/\")\n");
+                    printf("   -version               Show extended version info and quit\n");
                     return 0;
                 }
                 if (strcasecmp(argv[i],"-changedir") == 0) {
@@ -427,26 +427,26 @@ int main(int argc, char** argv) {
                     i++;
                     continue;
                 }
-				if (strcmp(argv[i], "-v") == 0 || strcasecmp(argv[i], "-version") == 0
-				|| strcasecmp(argv[i], "--version") == 0) {
-					printf("blitwizard %s (C) 2011-2013 Jonas Thiem et al\n",VERSION);
-					printf("\nSupported features of this build:\n");
-					
-					#ifdef USE_SDL_AUDIO
+                if (strcmp(argv[i], "-v") == 0 || strcasecmp(argv[i], "-version") == 0
+                || strcasecmp(argv[i], "--version") == 0) {
+                    printf("blitwizard %s (C) 2011-2013 Jonas Thiem et al\n",VERSION);
+                    printf("\nSupported features of this build:\n");
+
+                    #ifdef USE_SDL_AUDIO
                     printf("  Audio device: SDL 2\n");
-					#else
-					#ifdef USE_AUDIO
+                    #else
+                    #ifdef USE_AUDIO
                     #ifdef WINDOWS
                     printf("  Audio device: waveOut\n");
                     #else
                     printf("  Audio device: only virtual (not audible)\n");
                     #endif
-					#else
-					printf("  Audio device: no\n");
+                    #else
+                    printf("  Audio device: no\n");
                     printf("     Playback support: none, audio disabled\n");
                     printf("     Resampling support: none, audio disabled\n");
-					#endif
-					#endif
+                    #endif
+                    #endif
 
                     #if (defined(USE_SDL_AUDIO) || defined(USE_AUDIO))
                     printf("     Playback support: Ogg%s%s\n",
@@ -458,14 +458,14 @@ int main(int argc, char** argv) {
                     ,
                     #if defined(USE_FFMPEG_AUDIO)
                     #ifndef USE_FLAC_AUDIO
-                    ", FLAC (FFmpeg), mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)"
+                    ", FLAC (FFmpeg), mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n     resulting in FFmpeg playback support not working)"
                     #else
-                    ", mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)"
+                    ", mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n      resulting in FFmpeg playback support not working)\n"
                     #endif
                     #else
                     ""
                     #endif
-					);
+                    );
                     #if defined(USE_SPEEX_RESAMPLING)
                     printf("     Resampling: libspeex\n");
                     #else
@@ -474,7 +474,7 @@ int main(int argc, char** argv) {
                     #endif
 
                     #ifdef USE_GRAPHICS
-					#ifdef USE_SDL_GRAPHICS
+                    #ifdef USE_SDL_GRAPHICS
                     #ifdef USE_OGRE_GRAPHICS
                     printf("  Graphics device: SDL 2, Ogre\n");
                     printf("     2d graphics support: SDL 2, Ogre\n");
@@ -484,11 +484,11 @@ int main(int argc, char** argv) {
                     printf("     2d graphics support: SDL 2\n");
                     printf("     3d graphics support: none\n");
                     #endif
-					#else
+                    #else
                     printf("  Graphics device: only virtual (not visible)\n");
-					printf("     2d graphics support: virtual\n");
+                    printf("     2d graphics support: virtual\n");
                     printf("     3d graphics support: none\n");
-					#endif
+                    #endif
                     #else
                     printf("  Graphics device: none\n");
                     printf("     2d graphics support: none, graphics disabled\n");
@@ -519,9 +519,9 @@ int main(int argc, char** argv) {
                     printf("\nCheck out http://www.blitwizard.de/"
                     " for info about blitwizard.\n");
 
-					fflush(stdout);
-					exit(0);
-				}
+                    fflush(stdout);
+                    exit(0);
+                }
                 printwarning("Warning: Unknown Blitwizard option: %s", argv[i]);
             }else{
                 scriptargfound = 1;

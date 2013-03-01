@@ -26,19 +26,19 @@ end
 function error_linecommentspace(file, nr)
     styleerror = true
     local linecomment = "//"
-    if string.lower(language) == "lua" then
+    if language ~= nil and string.lower(language) == "lua" then
         linecomment = "--"
     end
-    print("Style: line " .. file .. ":" .. nr .. " should have a whitespace between " .. linecomment .. " and the comment text")
+    print("Style: line " .. file .. ":" .. nr .. " should have a whitespace between " .. linecomment .. " and the comment text following it")
 end
 
 function error_linecommentspace2(file, nr)
     styleerror = true
     local linecomment = "//"
-    if string.lower(language) == "lua" then
+    if language ~= nil and string.lower(language) == "lua" then
         linecomment = "--"
     end
-    print("Style: line " .. file .. ":" .. nr .. " should have a whitespace between the code it follows and " .. linecomment)
+    print("Style: line " .. file .. ":" .. nr .. " should have a whitespace between " .. linecomment .. " and the code it follows")
 end
 
 function error_shortblockcomment(file, nr)
@@ -75,7 +75,23 @@ function error_expectedwhitespace(file, nr, char, after)
     print("Style: line " .. file .. ":" .. nr .. " should have a whitespace " .. beforeafter .. " " .. char)
 end
 
-function checkcommentsandstrings(file, nr, language, line, insideblockcomment, insidestring, blockcommentlength)
+function error_tabs(file)
+    styleerror = true
+    print("Style: file " .. file .. " contains tab characters. Please use space for indentation and \\t for tabs in strings")
+end
+
+function checkcommentsandstrings(file, nr, language, line, insideblockcomment, insidestring, blockcommentlength, tabfound)
+    _G[language] = language
+    if tabfound == nil then
+        tabfound = false
+    end
+
+    -- check for tab characters:
+    if string.find(line, "\t", 1, true) ~= nil and not tabfound then
+        tabfound = true
+        error_tabs(file)
+    end
+
     -- Get start position of block comments:
     local blockcommentstart = 1/0
     if language == "c" then
@@ -142,40 +158,44 @@ function checkcommentsandstrings(file, nr, language, line, insideblockcomment, i
             
             -- check for white space following the line comment
             if linecommentstart + #"//" <= #line then
-                if string.sub(line, linecommentstart + #"//", linecommentstart + #"//") ~= " " then
+                local nextchar = string.sub(line, linecommentstart + #"//",
+                linecommentstart + #"//")
+                if nextchar ~= " " and nextchar ~= "\t" and
+                (language ~= "c" or nextchar ~= "/") then
                     error_linecommentspace(file, nr)
                 end
             end
 
             -- check if a space is before the line comment:
             if linecommentstart > 1 then
-                if string.sub(line, linecommentstart - 1, linecommentstart - 1) ~= " " then
+                local firstchar = string.sub(line, linecommentstart - 1, linecommentstart - 1)
+                if firstchar ~= " " and firstchar ~= "\t" then
                     error_linecommentspace2(file, nr)
                 end
             end
 
             -- return line up to the comment
             if linecommentstart > 1 then
-                return string.sub(line, 1, linecommentstart-1), false, false, 0
+                return string.sub(line, 1, linecommentstart-1), false, false, 0, tabfound
             else
-                return "", false, false, 0
+                return "", false, false, 0, tabfound
             end
         end
 
         if linestringstart < blockcommentstart then
             -- string starts before block comment -> check remaining string
             local remainingstring = ""
-            remainingstring,insideblockcomment,insidestring,blockcommentlength = checkcommentsandstrings(file, nr, language, string.sub(line, linestringstart+1), false, true, 0)
-            return string.sub(line, 1, linestringstart) .. remainingstring, insideblockcomment, insidestring, 0
+            remainingstring,insideblockcomment,insidestring,blockcommentlength = checkcommentsandstrings(file, nr, language, string.sub(line, linestringstart+1), false, true, 0, tabfound)
+            return string.sub(line, 1, linestringstart) .. remainingstring, insideblockcomment, insidestring, 0, tabfound
         end
 
         if blockcommentstart < 1/0 then
             -- we got a block comment -> check remaining string
             local remainingstring = ""
-            remainingstring,insideblockcomment,insidestring = checkcommentsandstrings(file, nr, language, string.sub(line, blockcommentstart + #"/*"), true, false, 1)
-            return string.sub(line, 1, blockcommentstart - 1) .. remainingstring, insideblockcomment, insidestring, blockcommentlength
+            remainingstring,insideblockcomment,insidestring = checkcommentsandstrings(file, nr, language, string.sub(line, blockcommentstart + #"/*"), true, false, 1, tabfound)
+            return string.sub(line, 1, blockcommentstart - 1) .. remainingstring, insideblockcomment, insidestring, blockcommentlength, tabfound
         end
-        return line, false, false, 0
+        return line, false, false, 0, tabfound
     else
         if insidestring ~= false then
             local stringend = string.find(line, "\"", 1, true)
@@ -185,18 +205,18 @@ function checkcommentsandstrings(file, nr, language, line, insideblockcomment, i
                 if line[stringend-1] == "\\" then
                     -- escaped, -> ignore
                     local remainingstring = ""
-                    remainingstring,insideblockcomment,insidestring = checkcommentsandstrings(file, nr, language, string.sub(line, stringend), false, true, 0)
-                    return string.sub(line, 1, stringend - 1) .. remainingstring, insideblockcomment, insidestring, 0
+                    remainingstring,insideblockcomment,insidestring = checkcommentsandstrings(file, nr, language, string.sub(line, stringend), false, true, 0, tabfound)
+                    return string.sub(line, 1, stringend - 1) .. remainingstring, insideblockcomment, insidestring, 0, tabfound
                 end
             end
 
             -- deal with valid " string end:
             if stringend ~= nil then
                 local remainingstring = ""
-                remainingstring,insideblockcomment,insidestring = checkcommentsandstrings(file, nr, language, string.sub(line, stringend+1), false, false, 0)
+                remainingstring,insideblockcomment,insidestring = checkcommentsandstrings(file, nr, language, string.sub(line, stringend+1), false, false, 0, tabfound)
                 return string.sub(line, 1, stringend) .. remainingstring, insideblockcomment, insidestring, 0
             end
-            return line, false, true
+            return line, false, true, nil, tabfound
         else
             local commentend = string.find(line, "*/", 1, true)
             if commentend ~= nil then
@@ -206,10 +226,10 @@ function checkcommentsandstrings(file, nr, language, line, insideblockcomment, i
                 end
 
                 local remainingstring = ""
-                remainingstring,insideblockcomment,insidestring,blockcommentlength = checkcommentsandstrings(file, nr, language, string.sub(line, commentend + #"*/"), false, false, blockcommentlength)
-                return remainingstring, insideblockcomment, insidestring, blockcommentlength
+                remainingstring,insideblockcomment,insidestring,blockcommentlength = checkcommentsandstrings(file, nr, language, string.sub(line, commentend + #"*/"), false, false, blockcommentlength, tabfound)
+                return remainingstring, insideblockcomment, insidestring, blockcommentlength, tabfound
             else
-                return "", true, false, blockcommentlength + 1
+                return "", true, false, blockcommentlength + 1, tabfound
             end
         end
     end
@@ -227,6 +247,7 @@ function checkfile(file)
     local cpc_insidestring = false
     local cpc_bracketcount = 0
     local cpc_ininitialiser = false
+    local tabfound = false
 
     for line in io.lines(file) do
         local line_without_comments = ""
@@ -244,9 +265,9 @@ function checkfile(file)
         -- check language:
         local language = "c"
 
-        -- get line without line, block comments
+        -- get line without line comments, block comments
         local isolatedline = ""
-        isolatedline,insideblockcomment,insidestring,blockcommentlength,openbracketcount = checkcommentsandstrings(file, n, language, line, insideblockcomment, insidestring, blockcommentlength, openbracketcount)
+        isolatedline,insideblockcomment,insidestring,blockcommentlength,tabfound = checkcommentsandstrings(file, n, language, line, insideblockcomment, insidestring, blockcommentlength, tabfound)
         while string.ends(isolatedline, " ") do
             if #isolatedline > 1 then
                 isolatedline = string.sub(isolatedline, 1, #isolatedline - 1)
@@ -285,62 +306,6 @@ function checkfile(file)
                     -- unescaped string start:
                     if escaped == false then
                         cpc_insidestring = "\""
-                    end
-                elseif (string.sub(isolatedline, i, i) == "+" or
-                string.sub(isolatedline, i, i) == "-" or
-                string.sub(isolatedline, i, i) == "*" or
-                string.sub(isolatedline, i, i) == "/" or
-                string.sub(isolatedline, i, i) == "^" or
-                string.sub(isolatedline, i, i) == "~") then
-                    local currentc = string.sub(isolatedline, i, i)
-                    local c1 = false
-                    local c2 = false
-                    if i > 1 then
-                        c1 = string.sub(isolatedline, i - 1, i - 1)
-                    end
-                    if i < #isolatedline then
-                        c2 = string.sub(isolatedline, i + 1, i + 1)
-                    end
-
-                    local dontcomplain = false
-
-                    -- Allow -> pointers
-                    if currentc == "-" and c1 ~= false and c2 ~= false and
-                    c1 ~= " " and c2 == ">" then
-                        dontcomplain = true
-                    end
-
-                    -- Allow / in preprocessor include line
-                    if currentc == "/" and cpc_preprocessorline and
-                    string.find(isolatedline, "#include", 1, false) ~= nil then
-                        dontcomplain = true
-                    end
-
-                    -- Allow * pointer deference: *pointer
-                    if currentc == "*" and (c1 == false or c1 == "(" or
-                    c1 == ")" or c1 == ")" or c1 == "+" or c1 == "-"
-                    or c1 == "*" or c1 == "/" or c1 == "}" or c1 == "{"
-                    or c1 == "=") then
-                        dontcomplain = true
-                    end
-
-                    -- Allow * pointer declarations: char*/int*
-                    --if currentc == "*" and c1 ~= false then
-                    --
-                    --    local beforestr = string.sub(isolatedline, 1, i - 1)
-                    --    
-                    --end
-
-                    -- FIXME rewrite this to remove the checks handled above
-                    if c1 ~= false and not dontcomplain then
-                        if c1 ~= " " then
-                            error_expectedwhitespace(file, n, currentc, false)
-                        end
-                    end
-                    if i < #isolatedline and not dontcomplain then
-                        if c2 ~= " " then 
-                            error_expectedwhitespace(file, n, currentc, true)
-                        end
                     end
                 elseif string.sub(isolatedline, i, i) == "(" then
                     -- Check for opening brackets

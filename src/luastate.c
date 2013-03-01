@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -450,7 +450,7 @@ static lua_State* luastate_New(void) {
 
     // obtain math table
     lua_getglobal(l, "math");
-    
+
     // math namespace extensions
     lua_pushstring(l, "trandom");
     lua_pushcfunction(l, &luafuncs_trandom);
@@ -573,23 +573,30 @@ int luastate_DoInitialFile(const char* file, int argcount, char** error) {
     return luastate_DoFile(scriptstate, argcount, file, error);
 }
 
-int luastate_PushFunctionArgumentToMainstate_Bool(int yesno) {
-    lua_pushboolean(scriptstate, yesno);
-    return 1;
-}
-
-int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
+static void preparepush() {
     if (!scriptstate) {
         scriptstate = luastate_New();
         if (!scriptstate) {
             return 0;
         }
     }
+    lua_checkstack(scriptstate, 1);
+}
+
+int luastate_PushFunctionArgumentToMainstate_Bool(int yesno) {
+    preparepush();
+    lua_pushboolean(scriptstate, yesno);
+    return 1;
+}
+
+int luastate_PushFunctionArgumentToMainstate_String(const char* string) {
+    preparepush();
     lua_pushstring(scriptstate, string);
     return 1;
 }
 
 int luastate_PushFunctionArgumentToMainstate_Double(double i) {
+    preparepush();
     lua_pushnumber(scriptstate, i);
     return 1;
 }

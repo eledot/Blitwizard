@@ -32,6 +32,9 @@
 #include <pthread.h>
 #endif // ifdef HAVE_WINDOWS
 
+// disable mutex debugging:
+#define NDEBUG
+
 
 #ifndef WINDOWS
 #if defined(WIN32) || defined(_WIN32) || defined(_WIN64) || defined(__WIN32__) || defined(_MSC_VER)
@@ -119,7 +122,9 @@ void semaphore_Post(semaphore* s) {
 }
 
 void semaphore_Destroy(semaphore* s) {
-    if (!s) {return;}
+    if (!s) {
+        return;
+    }
 #ifdef WINDOWS
     CloseHandle(s->s);
 #else
@@ -160,12 +165,16 @@ mutex* mutex_Create() {
 }
 
 void mutex_Destroy(mutex* m) {
-    if (!m) {return;}
+    if (!m) {
+        return;
+    }
 #ifdef WINDOWS
     CloseHandle(m->m);
 #else
     while (pthread_mutex_destroy(&m->m) != 0) {
-        if (errno != EBUSY) {break;}
+        if (errno != EBUSY) {
+            break;
+        }
     }
 #endif
     free(m);
@@ -260,7 +269,7 @@ void thread_Spawn(threadinfo* t, void (*func)(void* userdata), void* userdata) {
         }
         pthread_detach(thread);
     }
-#endif 
+#endif
 }
 
 

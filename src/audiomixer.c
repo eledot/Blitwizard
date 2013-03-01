@@ -196,7 +196,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
         audiosourceprereadcache_Create(audiosourcefile_Create(path))
         );
     }
-    
+
     // try flac format:
     if (!decodesource && strlen(path) > strlen(".flac") &&
     strcasecmp(path+strlen(path)-strlen(".flac"), ".flac") == 0) {
@@ -207,7 +207,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
             AUDIOSOURCEFORMAT_F32LE
         );
     }
-    
+
     // try FFmpeg:
     if (!decodesource) {
         decodesource = audiosourceformatconvert_Create(
@@ -215,7 +215,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
         audiosourceprereadcache_Create(audiosourcefile_Create(path))),
         AUDIOSOURCEFORMAT_F32LE);
     }
-    
+
     // if we got no decode source at this point, the audio file is unsupported:
     if (!decodesource) {
         // unsupported audio format

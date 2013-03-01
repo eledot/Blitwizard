@@ -80,7 +80,7 @@ struct audiosource {
     // Audio sample format:
     unsigned int format;
     // This is set to the sample format.
-    
+
     // Supports seeking:
     int seekable;
     // Set to 1 if seeking support is available, otherwise 0.

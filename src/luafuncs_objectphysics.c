@@ -1,7 +1,7 @@
 
-/* blitwizard 2d engine - source code file
+/* blitwizard game engine - source code file
 
-  Copyright (C) 2011-2012 Jonas Thiem
+  Copyright (C) 2011-2013 Jonas Thiem
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -67,7 +67,7 @@ struct blitwizardobject* obj) {
 
 // Attempt to trigger a user-defined collision callback for a given object.
 // When no callback is set by the user or if the callback succeeds,
-// 1 will be returned. 
+// 1 will be returned.
 // In case of a lua error in the callback, 0 will be returned and a
 // traceback printed to stderr.
 static int luafuncs_trycollisioncallback(struct blitwizardobject* obj, struct blitwizardobject* otherobj, double x, double y, double z, double normalx, double normaly, double normalz, double force, int* enabled, int use3d) {
@@ -133,7 +133,7 @@ static int luafuncs_trycollisioncallback2d(struct blitwizardobject* obj, struct 
 // it isn't pcalled for now: FIXME
 // This function gets the information about two objects colliding, and will
 // subsequently attempt to call both object's collision callbacks.
-// 
+//
 // The user callbacks can decide that the collision shouldn't be handled,
 // in which case this function will return 0. Otherwise, it will return 1.
 // If a lua error happens in the user callbacks (apart from out of memory),
@@ -145,7 +145,7 @@ int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physic
     // get the associated blitwizard objects to the collision objects:
     struct blitwizardobject* aobj = (struct blitwizardobject*)physics_GetObjectUserdata(a);
     struct blitwizardobject* bobj = (struct blitwizardobject*)physics_GetObjectUserdata(b);
-    
+
     // call first object's callback:
     if (!luafuncs_trycollisioncallback2d(aobj, bobj, x, y, normalx, normaly, force, &enabled)) {
         // a lua error happened and backtrace was spilled out -> ignore and continue
@@ -443,9 +443,9 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
                 }
             }
             lua_pop(l, 1);  // pop shapetype string
-        }            
+        }
         i++;
-    } 
+    }
 
     // prepare physics data:
     if (!obj->physics) {
@@ -463,7 +463,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
 
     // destroy old representation after transferring settings:
     if (old) {
-        transferbodysettings(old, obj->physics->object); 
+        transferbodysettings(old, obj->physics->object);
         physics_DestroyObject(old);
     }
 
@@ -480,7 +480,7 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
 // @tfield number y_size required for "box" and "elliptic ball"
 // @tfield number z_size required for "box" and "elliptic ball"
 // @tfield table points required for "polygon": a list of two pair coordinates which specify the corner points of the polygon, e.g. [ [ 0, 0 ], [ 1, 0 ], [ 0, 1 ] ]  (keep in mind the polygon needs to be convex!)
-// @tfield table edges required for "edge list": a list of edges, whereas an edge is itself a 2-item list of two 2d points, each 2d point being a list of two coordinates. Example: [ [ [ 0, 0 ], [ 1, 0 ] ], [ [ 0, 1 ], [ 1, 1 ] ] ] 
+// @tfield table edges required for "edge list": a list of edges, whereas an edge is itself a 2-item list of two 2d points, each 2d point being a list of two coordinates. Example: [ [ [ 0, 0 ], [ 1, 0 ] ], [ [ 0, 1 ], [ 1, 1 ] ] ]
 // @tfield table triangles required for "triangle mesh": a list of triangles, whereas a triangle is itself a 3-item list of three 3d points, each 3d point being a list of three coordinates.
 // @tfield number x_offset (optional) x coordinate offset for any 2d or 3d shape, defaults to 0
 // @tfield number y_offset (optional) y coordinate offset for any 2d or 3d shape, defaults to 0
@@ -715,7 +715,7 @@ int luafuncs_ray(lua_State* l, int use3d) {
         &obj,
         &normalx, &normaly);
     }
-    
+
     if (returnvalue) {
         // create a new reference to the (existing) object the ray has hit:
         luafuncs_pushbobjidref(l, (struct blitwizardobject*)physics_GetObjectUserdata(obj));

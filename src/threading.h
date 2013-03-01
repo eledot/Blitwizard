@@ -49,7 +49,7 @@ threadinfo* thread_CreateInfo(void);
 
 // spawn a new thread:
 void thread_Spawn(threadinfo* tinfo, void (*func)(void* userdata),
-void* userdata); 
+void* userdata);
 
 // free threadinfo (you can safely do this when the thread is still running):
 void thread_FreeInfo(threadinfo* tinfo);
