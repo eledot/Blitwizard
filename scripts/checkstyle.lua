@@ -23,7 +23,7 @@ function error_whitespace(file, nr)
     print("Style: line " .. file .. ":" .. nr .. " ends with whitespace(s)")
 end
 
-function error_linecommentspace(file, nr)
+function error_linecommentspace(file, nr, language)
     styleerror = true
     local linecomment = "//"
     if language ~= nil and string.lower(language) == "lua" then
@@ -32,7 +32,7 @@ function error_linecommentspace(file, nr)
     print("Style: line " .. file .. ":" .. nr .. " should have a whitespace between " .. linecomment .. " and the comment text following it")
 end
 
-function error_linecommentspace2(file, nr)
+function error_linecommentspace2(file, nr, language)
     styleerror = true
     local linecomment = "//"
     if language ~= nil and string.lower(language) == "lua" then
@@ -81,7 +81,8 @@ function error_tabs(file)
 end
 
 function checkcommentsandstrings(file, nr, language, line, insideblockcomment, insidestring, blockcommentlength, tabfound)
-    _G[language] = language
+    -- Enable this for debugging:
+    -- print("checkcommentsandstrings \"" .. line .. "\", " .. tostring(insideblockcomment) .. ", " .. tostring(insidestring) .. ", " .. tostring(blockcommentlength))
     if tabfound == nil then
         tabfound = false
     end
@@ -162,7 +163,7 @@ function checkcommentsandstrings(file, nr, language, line, insideblockcomment, i
                 linecommentstart + #"//")
                 if nextchar ~= " " and nextchar ~= "\t" and
                 (language ~= "c" or nextchar ~= "/") then
-                    error_linecommentspace(file, nr)
+                    error_linecommentspace(file, nr, language)
                 end
             end
 
@@ -170,7 +171,7 @@ function checkcommentsandstrings(file, nr, language, line, insideblockcomment, i
             if linecommentstart > 1 then
                 local firstchar = string.sub(line, linecommentstart - 1, linecommentstart - 1)
                 if firstchar ~= " " and firstchar ~= "\t" then
-                    error_linecommentspace2(file, nr)
+                    error_linecommentspace2(file, nr, language)
                 end
             end
 
