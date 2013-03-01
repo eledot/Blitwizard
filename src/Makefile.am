@@ -27,7 +27,7 @@ mytarget: blitwizard$(EXEEXT)
 	sh ../scripts/copybin.sh
 install:
 	mkdir -p ${datadir}/blitwizard
-	rm -rf ${datadir}/blitwizard/templates/
+#	rm -rf ${datadir}/blitwizard/templates/
 	cp -R ../templates/ ${datadir}/blitwizard/templates/
 	chmod -R 775 ${datadir}/blitwizard
 	cp ../bin/blitwizard${EXEEXT} ${bindir}
