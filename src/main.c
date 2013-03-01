@@ -435,11 +435,23 @@ int main(int argc, char** argv) {
 					#endif
 
                     #if (defined(USE_SDL_AUDIO) || defined(USE_AUDIO))
-                    printf("     Playback support: Ogg, %s%s\n",
+                    printf("     Playback support: Ogg%s%s\n",
                     #if (defined(USE_FLAC_AUDIO)
-                    "FLAC (libFlac)"
+                    ", FLAC (libFlac)"
+                    #else
+                    ""
                     #endif
-					
+                    #if defined(USE_FFMPEG_AUDIO)
+                    #ifndef USE_FLAC_AUDIO
+                    ", FLAC (FFmpeg), mp3 (FFmpeg), many more.. (FFmpeg)"
+                    #else
+                    ", mp3 (FFmpeg), many more.. (FFmpeg)"
+                    #endif
+                    #else
+                    ""
+                    #endif
+					);
+
 					#ifdef USE_SDL_GRAPHICS
                     printf("  2d graphics support: yes\n");
 					#else
