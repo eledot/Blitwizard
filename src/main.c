@@ -424,23 +424,28 @@ int main(int argc, char** argv) {
 					printf("\nSupported features of this build:\n\n");
 					
 					#ifdef USE_SDL_AUDIO
-                    printf("   Audio device: normal\n");
+                    printf("  Audio device: SDL 2\n");
 					#else
 					#ifdef USE_AUDIO
-                    printf("   Audio device: only virtual (not audible)\n");
+                    #ifdef WINDOWS
+                    printf("  Audio device: waveOut\n");
+                    #else
+                    printf("  Audio device: only virtual (not audible)\n");
+                    #endif
 					#else
-					printf("   Audio device: no\n");
+					printf("  Audio device: no\n");
                     printf("     Playback support: none, audio disabled\n");
 					#endif
 					#endif
 
                     #if (defined(USE_SDL_AUDIO) || defined(USE_AUDIO))
                     printf("     Playback support: Ogg%s%s\n",
-                    #if (defined(USE_FLAC_AUDIO)
+                    #if defined(USE_FLAC_AUDIO)
                     ", FLAC (libFlac)"
                     #else
                     ""
                     #endif
+                    ,
                     #if defined(USE_FFMPEG_AUDIO)
                     #ifndef USE_FLAC_AUDIO
                     ", FLAC (FFmpeg), mp3 (FFmpeg), many more.. (FFmpeg)"
@@ -451,6 +456,7 @@ int main(int argc, char** argv) {
                     ""
                     #endif
 					);
+                    #endif
 
 					#ifdef USE_SDL_GRAPHICS
                     printf("  2d graphics support: yes\n");
