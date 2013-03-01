@@ -390,7 +390,7 @@ int main(int argc, char** argv) {
                 if (strcasecmp(argv[i],"--help") == 0 || strcasecmp(argv[i], "-help") == 0
                 || strcasecmp(argv[i], "-?") == 0 || strcasecmp(argv[i],"/?") == 0
                 || strcasecmp(argv[i],"-h") == 0) {
-                    printf("blitwizard %s - http://www.blitwizard.de/\n",VERSION);
+                    printf("blitwizard %s (C) 2011-2013 Jonas Thiem et al\n",VERSION);
                     printf("Usage:\n   blitwizard [blitwizard options] [script name] [script options]\n\n");
                     printf("The script name should be a .lua file containing\n"
 					"Lua source code for use with blitwizard.\n\n");
@@ -421,7 +421,7 @@ int main(int argc, char** argv) {
 				if (strcmp(argv[i], "-v") == 0 || strcasecmp(argv[i], "-version") == 0
 				|| strcasecmp(argv[i], "--version") == 0) {
 					printf("blitwizard %s (C) 2011-2013 Jonas Thiem et al\n",VERSION);
-					printf("Supported features of this build:\n\n");
+					printf("\nSupported features of this build:\n");
 					
 					#ifdef USE_SDL_AUDIO
                     printf("  Audio device: SDL 2\n");
@@ -435,6 +435,7 @@ int main(int argc, char** argv) {
 					#else
 					printf("  Audio device: no\n");
                     printf("     Playback support: none, audio disabled\n");
+                    printf("     Resampling support: none, audio disabled\n");
 					#endif
 					#endif
 
@@ -456,30 +457,58 @@ int main(int argc, char** argv) {
                     ""
                     #endif
 					);
+                    #if defined(USE_SPEEX_RESAMPLING)
+                    printf("     Resampling: libspeex\n");
+                    #else
+                    printf("     Resampling: none (non-48kHz audio will sound wrong!)\n");
+                    #endif
                     #endif
 
                     #ifdef USE_GRAPHICS
 					#ifdef USE_SDL_GRAPHICS
                     #ifdef USE_OGRE_GRAPHICS
                     printf("  Graphics device: SDL 2, Ogre\n");
-                    printf("    2d graphics support: SDL 2, Ogre\n");
-                    printf("    3d graphics support: Ogre\n");
+                    printf("     2d graphics support: SDL 2, Ogre\n");
+                    printf("     3d graphics support: Ogre\n");
                     #else
                     printf("  Graphics device: SDL 2\n");
-                    printf("    2d graphics support: SDL 2\n");
-                    printf("    3d graphics support: none\n");
+                    printf("     2d graphics support: SDL 2\n");
+                    printf("     3d graphics support: none\n");
                     #endif
 					#else
                     printf("  Graphics device: only virtual (not visible)\n");
-					printf("    2d graphics support: virtual\n");
-                    printf("    3d graphics support: none\n");
+					printf("     2d graphics support: virtual\n");
+                    printf("     3d graphics support: none\n");
 					#endif
-				    printf("Check out http://www.blitwizard.de/ for info.\n");	
                     #else
                     printf("  Graphics device: none\n");
-                    printf("    2d graphics support: none, graphics disabled\n");
-                    printf("    3d graphics support: none, graphics disalbed\n");
+                    printf("     2d graphics support: none, graphics disabled\n");
+                    printf("     3d graphics support: none, graphics disabled\n");
                     #endif
+                    #if defined(USE_PHYSICS2D) || defined(USE_PHYSICS3D)
+                    printf("  Physics: yes\n");
+                    #else
+                    printf("  Physics: no\n");
+                    #endif
+                    #if defined(USE_PHYSICS2D)
+                    printf("     2d physics: Box2D\n");
+                    #else
+                    printf("     2d physics: none\n");
+                    #endif
+                    #if defined(USE_PHYSICS3D)
+                    printf("     3d physics: bullet\n");
+                    #else
+                    printf("     3d physics: none\n");
+                    #endif
+
+                    printf("\nVarious build options:\n");
+                    printf("  SYSTEM_TEMPLATE_PATH:\n   %s\n",
+                    SYSTEM_TEMPLATE_PATH);
+                    printf("  FINAL_USE_LIB_FLAGS:\n   %s\n",
+                    USE_LIB_FLAGS);
+
+                    printf("\nCheck out http://www.blitwizard.de/"
+                    " for info about blitwizard.\n");
 
 					fflush(stdout);
 					exit(0);
@@ -613,7 +642,8 @@ int main(int argc, char** argv) {
 
     int checksystemwidetemplate = 1;
     // see if there is a template directory & file:
-    if (file_DoesFileExist(option_templatepath) && file_IsDirectory(option_templatepath)) {
+    if (file_DoesFileExist(option_templatepath)
+    && file_IsDirectory(option_templatepath)) {
         checksystemwidetemplate = 0;
 
         // change working directory to template folder:
