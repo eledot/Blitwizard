@@ -108,20 +108,22 @@ struct audiosourceresample_internaldata {
 
 static void audiosourceresample_Close(struct audiosource* source) {
     struct audiosourceresample_internaldata* idata = source->internaldata;
+    if (idata) {
+        // close the processed source
+        if (idata->source) {
+            idata->source->close(idata->source);
+        }
 
-    // close the processed source
-    if (idata->source) {
-        idata->source->close(idata->source);
-    }
+        // close resampler
+        if (idata->st) {
+            speex_resampler_destroy(idata->st);
+        }
 
-    // close resampler
-    if (idata->st) {
-        speex_resampler_destroy(idata->st);
-    }
-
-    // free all structs
-    if (source->internaldata) {
-        free(source->internaldata);
+        // free all structs
+        if (source->internaldata) {
+            free(source->internaldata);
+        }
+        free(idata);
     }
     free(source);
 }

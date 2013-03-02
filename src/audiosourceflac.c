@@ -138,6 +138,11 @@ void *client_data) {
     struct audiosource* source = (struct audiosource*)client_data;
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
+    
+    if (idata->eof && idata->returnerroroneof) {
+        // simply ignore data
+        return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+    }
 
     // if we still need format info, grab it now:
     if (source->samplerate == 0) {
@@ -146,7 +151,7 @@ void *client_data) {
         idata->decoder);
         unsigned int samplerate = FLAC__stream_decoder_get_sample_rate(
         idata->decoder);
-        if (samplerate <= 3000 || channels < 1 || bits < 8) {
+        if (samplerate <= 3000 || channels < 1 || bits < 8 || bits > 32) {
             // this is invalid
             idata->eof = 1;
             idata->returnerroroneof = 1;
@@ -156,11 +161,34 @@ void *client_data) {
         source->channels = channels;
 
         // check if we can deal with the audio format:
-
+        switch (bits) {
+        case 8:
+            source->format = AUDIOSOURCEFORMAT_U8;
+            break;
+        case 16:
+            source->format = AUDIOSOURCEFORMAT_S16LE;
+            break;
+        case 24:
+            source->format = AUDIOSOURCEFORMAT_S24LE;
+            break;
+        case 32:
+            source->format = AUDIOSOURCEFORMAT_S32LE;
+            break;
+        default:
+            // invalid format
+            idata->eof = 1;
+            idata->returnerroroneof = 1;
+            return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+        }
     }
 
     // write the data we got:
-    // memcpy(idata->
+    unsigned int i = frame->header.blocksize;
+    if (i > DECODE_BUFFER - idata->decodedbytes) {
+        i = DECODE_BUFFER - idata->decodedbytes;
+    }
+    memcpy(idata->decodedbuf + idata->decodedbytes, buffer, i);
+    idata->decodedbytes += i;
     return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
@@ -289,16 +317,18 @@ static size_t audiosourceflac_Position(struct audiosource* source) {
 void audiosourceflac_Close(struct audiosource* source) {
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
+    if (idata){
+        if (idata->flacopened) {
+            FLAC__stream_decoder_delete(idata->decoder);
+            idata->decoder = NULL;
+            idata->flacopened = 0;
+        }
 
-    if (idata->flacopened) {
-        FLAC__stream_decoder_delete(idata->decoder);
-        idata->decoder = NULL;
-        idata->flacopened = 0;
-    }
-
-    if (idata->source) {
-        idata->source->close(idata->source);
-        idata->source = NULL;
+        if (idata->source) {
+            idata->source->close(idata->source);
+            idata->source = NULL;
+        }
+        free(idata);
     }
     free(source);
 }
@@ -312,6 +342,7 @@ static int audiosourceflac_InitFLAC(struct audiosource* source) {
     if (!idata->decoder) {
         return 0;
     }
+    idata->flacopened = 1;
 
     // initialise decoder:
     if (FLAC__stream_decoder_init_stream(idata->decoder,
@@ -360,7 +391,6 @@ unsigned int bytes) {
             source->channels = -1;
             return -1;
         }
-        idata->flacopened = 1;
     }
 
     int byteswritten = 0;

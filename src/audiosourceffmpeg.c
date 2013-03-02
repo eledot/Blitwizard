@@ -720,14 +720,17 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
 
 static void audiosourceffmpeg_Close(struct audiosource* source) {
     struct audiosourceffmpeg_internaldata* idata = source->internaldata;
-    // close audio source we might have opened
-    if (idata && idata->source) {
-        idata->source->close(idata->source);
-    }
-    // close FFmpeg stuff
-    audiosourceffmpeg_FreeFFmpegData(source);
-    // free all structs & strings
     if (idata) {
+        // close audio source we might have opened
+        if (idata && idata->source) {
+            idata->source->close(idata->source);
+        }
+        // close FFmpeg stuff
+        audiosourceffmpeg_FreeFFmpegData(source);
+        // free all structs & strings
+        if (idata) {
+            free(idata);
+        }
         free(idata);
     }
     free(source);

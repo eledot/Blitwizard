@@ -44,8 +44,11 @@ struct audiosourceformatconvert_internaldata {
 
 static void audiosourceformatconvert_Close(struct audiosource* source) {
     struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
-    if (idata->source) {
-        idata->source->close(idata->source);
+    if (idata) {
+        if (idata->source) {
+            idata->source->close(idata->source);
+        }
+        free(idata);
     }
     free(source);
     return;

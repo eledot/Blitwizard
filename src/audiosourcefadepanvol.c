@@ -201,15 +201,17 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
 
 static void audiosourcefadepanvol_Close(struct audiosource* source) {
     struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
+    if (idata) {
+        // close the processed source
+        if (idata->source) {
+            idata->source->close(idata->source);
+        }
 
-    // close the processed source
-    if (idata->source) {
-        idata->source->close(idata->source);
-    }
-
-    // free all structs
-    if (source->internaldata) {
-        free(source->internaldata);
+        // free all structs
+        if (source->internaldata) {
+            free(source->internaldata);
+        }
+        free(idata);
     }
     free(source);
 }

@@ -146,26 +146,26 @@ static size_t audiosourcefile_Position(struct audiosource* source) {
 
 static void audiosourcefile_Close(struct audiosource* source) {
     struct audiosourcefile_internaldata* idata = source->internaldata;
-    if (!idata) {
-        return;
-    }
-    // close file we might have opened
+    if (idata) {
+        // close file we might have opened
 #ifdef SDLRW
-    if (idata->file) {
-        idata->file->close(idata->file);
-    }
+        if (idata->file) {
+            idata->file->close(idata->file);
+        }
 #else
-    FILE* r = idata->file;
-    if (r) {
-        fclose(r);
-    }
+        FILE* r = idata->file;
+        if (r) {
+            fclose(r);
+        }
 #endif
-    // free all structs & strings
-    if (idata->path) {
-        free(idata->path);
-    }
-    if (source->internaldata) {
-        free(source->internaldata);
+        // free all structs & strings
+        if (idata->path) {
+            free(idata->path);
+        }
+        if (source->internaldata) {
+            free(source->internaldata);
+        }
+        free(idata);
     }
     free(source);
 }

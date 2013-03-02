@@ -137,15 +137,17 @@ static int audiosourceloop_Seek(struct audiosource* source, size_t pos) {
 
 static void audiosourceloop_Close(struct audiosource* source) {
     struct audiosourceloop_internaldata* idata = source->internaldata;
+    if (idata) {
+        // close the processed source
+        if (idata->source) {
+            idata->source->close(idata->source);
+        }
 
-    // close the processed source
-    if (idata->source) {
-        idata->source->close(idata->source);
-    }
-
-    // free all structs
-    if (source->internaldata) {
-        free(source->internaldata);
+        // free all structs
+        if (source->internaldata) {
+            free(source->internaldata);
+        }
+        free(idata);
     }
     free(source);
 }

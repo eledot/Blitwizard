@@ -308,20 +308,22 @@ static int audiosourceogg_Read(struct audiosource* source, char* buffer, unsigne
 
 static void audiosourceogg_Close(struct audiosource* source) {
     struct audiosourceogg_internaldata* idata = source->internaldata;
+    if (idata) {
+        // close ogg file if we have it open
+        if (idata->vorbisopened) {
+            ov_clear(&idata->vorbisfile);
+        }
 
-    // close ogg file if we have it open
-    if (idata->vorbisopened) {
-        ov_clear(&idata->vorbisfile);
-    }
+        // close file source if we have one
+        if (idata->filesource) {
+            idata->filesource->close(idata->filesource);
+        }
 
-    // close file source if we have one
-    if (idata->filesource) {
-        idata->filesource->close(idata->filesource);
-    }
-
-    // free all structs
-    if (source->internaldata) {
-        free(source->internaldata);
+        // free all structs
+        if (source->internaldata) {
+            free(source->internaldata);
+        }
+        free(idata);
     }
     free(source);
 }
