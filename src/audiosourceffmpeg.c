@@ -543,7 +543,7 @@ static int audiosourceffmpeg_Read(struct audiosource* source, char* buffer, unsi
         source->samplerate = c->sample_rate;
         switch (c->sample_fmt) {
         case AV_SAMPLE_FMT_U8:
-            source->format = AUDIOSOURCEFORMAT_U8LE;
+            source->format = AUDIOSOURCEFORMAT_U8;
             break;
         case AV_SAMPLE_FMT_S16:
             source->format = AUDIOSOURCEFORMAT_S16LE;

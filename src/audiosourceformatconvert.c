@@ -109,6 +109,9 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         if (idata->source->format == AUDIOSOURCEFORMAT_F32LE) {
             wantbytes = 4;
         }
+        if (idata->source->format == AUDIOSOURCEFORMAT_U8) {
+            wantbytes = 1;
+        }
 
         char bytebuf[8];
         // read the bytes we want:
@@ -125,31 +128,123 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         }
 
         // convert:
-        if (idata->source->format == AUDIOSOURCEFORMAT_S16LE &&
-        idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
-            double intmax_big = 32768;
-            // convert s16le -> f32le
-            int16_t old = *((int16_t*)bytebuf);
-            double convert = old;
-            convert /= intmax_big;
-            float new = convert;
+        if (idata->source->format == AUDIOSOURCEFORMAT_S16LE) {
+            if (idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
+                double intmax_big = 32768;
+                // convert s16le -> f32le
+                int16_t old = *((int16_t*)bytebuf);
+                double convert = old;
+                convert /= intmax_big;
+                float new = convert;
 
-            // copy the result into our buffer
-            memcpy(idata->convertbuf, &new, sizeof(new));
-            idata->convertbufbytes += sizeof(new);
+                // copy the result into our buffer
+                memcpy(idata->convertbuf, &new, sizeof(new));
+                idata->convertbufbytes += sizeof(new);
+            }
         }
-        if (idata->source->format == AUDIOSOURCEFORMAT_F32LE &&
-        idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
-            double intmax_small = 32767;
-            // convert f32le -> s16le
-            float old = *((float*)bytebuf);
-            double convert = old;
-            convert *= intmax_small;
-            int16_t new = (int16_t)fastdoubletoint32(convert);
+        if (idata->source->format == AUDIOSOURCEFORMAT_F32LE) {
+            if (idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
+                double intmax_small = 32767;
+                // convert f32le -> s16le
+                float old = *((float*)bytebuf);
+                double convert = old;
+                convert *= intmax_small;
+                int16_t new = (int16_t)fastdoubletoint32(convert);
 
-            // copy the result into our buffer
-            memcpy(idata->convertbuf, &new, sizeof(new));
-            idata->convertbufbytes += sizeof(new);
+                // copy the result into our buffer
+                memcpy(idata->convertbuf, &new, sizeof(new));
+                idata->convertbufbytes += sizeof(new);
+            }
+        }
+        if (idata->source->format == AUDIOSOURCEFORMAT_U8) {
+            if (idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
+                double uint8max_big = 256;
+                double int16max_small = 32767;
+                // convert u8 -> s16le
+                unsigned char old = *((unsigned char*)bytebuf);
+                double convert = old;
+                convert /= uint8max_big;
+                convert *= int16max_small;
+                int16_t new = (int16_t)fastdoubletoint32(convert);
+
+                // copy the result into our buffer
+                memcpy(idata->convertbuf, &new, sizeof(new));
+                idata->convertbufbytes += sizeof(new);
+            }
+            if (idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
+                double uint8max_big = 256;
+                // convert u8 -> s16le
+                unsigned char old = *((unsigned char*)bytebuf);
+                double convert = old;
+                convert /= uint8max_big;
+                float new = convert;
+
+                // copy the result into our buffer
+                memcpy(idata->convertbuf, &new, sizeof(new));
+                idata->convertbufbytes += sizeof(new);
+            }
+        }
+        if (idata->source->format == AUDIOSOURCEFORMAT_S24LE) {
+            if (idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
+                // FIXME: depends on large endian cpu architecture
+                double int24max_big = (2^24)/2;
+                double int16max_small = 32767;
+                // convert s24le -> s16le
+                int32_t old;
+                memset((((char*)old)+3), 0, 1);  // null last byte
+                memcpy(&old, (char*)bytebuf, 3);  // copy first 3 bytes (=24 bit)
+                double convert = old;
+                convert /= int24max_big;
+                convert *= int16max_small;
+                int16_t new = (int16_t)fastdoubletoint32(convert);
+
+                // copy the result into our buffer
+                memcpy(idata->convertbuf, &new, sizeof(new));
+                idata->convertbufbytes += sizeof(new);
+            }
+            if (idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
+                // FIXME: depends on large endian cpu architecture
+                double int24max_big = (2^24)/2;
+                // convert s24le -> s16le
+                int32_t old;
+                memset((((char*)old)+3), 0, 1);  // null last byte (most significant)
+                memcpy(&old, (char*)bytebuf, 3);  // copy first 3 bytes (=24 bit)
+                double convert = old;
+                convert /= int24max_big;
+                float new = convert;
+
+                // copy the result into our buffer
+                memcpy(idata->convertbuf, &new, sizeof(new));
+                idata->convertbufbytes += sizeof(new);
+            }
+        }
+        if (idata->source->format == AUDIOSOURCEFORMAT_S32LE) {
+            if (idata->targetformat == AUDIOSOURCEFORMAT_S16LE) {
+                double int32max_big = (2^32)/2;
+                double int16max_small = 32767;
+                // convert s32le -> s16le
+                int32_t old = *((int32_t*)bytebuf);
+                double convert = old;
+                convert /= int32max_big;
+                convert *= int16max_small;
+                int16_t new = (int16_t)fastdoubletoint32(convert);
+
+                // copy the result into our buffer
+                memcpy(idata->convertbuf, &new, sizeof(new));
+                idata->convertbufbytes += sizeof(new);
+            }
+            if (idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
+                double int32max_big = (2^32)/2;
+                // convert s32le -> s16le
+                int32_t old = *((int32_t*)bytebuf);
+                double convert = old;
+                convert /= int32max_big;
+                float new = convert;
+
+                // copy the result into our buffer
+                memcpy(idata->convertbuf, &new, sizeof(new));
+                idata->convertbufbytes += sizeof(new);
+            }
         }
 
         // return converted bytes;
@@ -167,7 +262,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
             // are some bytes left in buffer?
             if (idata->convertbufbytes > 0) {
                 // move them up to the beginning
-                memmove(idata->convertbuf, idata->convertbuf + amount, CONVERTBUFSIZE - amount);
+                memmove(idata->convertbuf, idata->convertbuf + amount, idata->convertbufbytes);
             }
             // all requested bytes served:
             break;
@@ -236,8 +331,8 @@ struct audiosource* audiosourceformatconvert_Create(struct audiosource* source, 
 
     // whitelist of supported formats:
     if (
-    source->format != AUDIOSOURCEFORMAT_S16LE &&
-    source->format != AUDIOSOURCEFORMAT_F32LE &&
+    newformat != AUDIOSOURCEFORMAT_S16LE &&
+    newformat != AUDIOSOURCEFORMAT_F32LE &&
     1) {
         source->close(source);
         return NULL;

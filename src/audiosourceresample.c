@@ -292,7 +292,7 @@ static size_t audiosourceresample_Position(struct audiosource* source) {
     source->samplerate) / idata->source->samplerate;
 }
 
-static size_t audiosourceresample_Seek(struct audiosource* source, size_t pos) {
+static int audiosourceresample_Seek(struct audiosource* source, size_t pos) {
     struct audiosourceresample_internaldata* idata = source->internaldata;
 
     if (!source->seekable || (idata->eof && idata->returnerroroneof)) {
@@ -300,10 +300,7 @@ static size_t audiosourceresample_Seek(struct audiosource* source, size_t pos) {
     }
 
     // check position against valid boundaries:
-    unsigned int tpos = (pos * source->samplerate) / idata->source->samplerate;
-    if (tpos < 0) {
-        return 0;
-    }
+    size_t tpos = (pos * source->samplerate) / idata->source->samplerate;
     if (tpos > idata->source->length(idata->source)) {
         tpos = idata->source->length(idata->source);
     }
