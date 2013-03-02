@@ -319,6 +319,7 @@ void audiosourceflac_Close(struct audiosource* source) {
     source->internaldata;
     if (idata){
         if (idata->flacopened) {
+            printf("deleting decoder %p\n", idata->decoder);
             FLAC__stream_decoder_delete(idata->decoder);
             idata->decoder = NULL;
             idata->flacopened = 0;
@@ -339,12 +340,15 @@ static int audiosourceflac_InitFLAC(struct audiosource* source) {
 
     // open up FLAC decoder:
     idata->decoder = FLAC__stream_decoder_new();
+    printf("our decoder is %p\n", idata->decoder);
     if (!idata->decoder) {
         return 0;
     }
     idata->flacopened = 1;
+    printf("decoder opened\n");fflush(stdout);
 
     // initialise decoder:
+    int r = 0;
     if (FLAC__stream_decoder_init_stream(idata->decoder,
     flacread,
     flacseek,
@@ -356,8 +360,10 @@ static int audiosourceflac_InitFLAC(struct audiosource* source) {
     NULL,  // error
     source
     ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+        printf("failed to initialise decoder\n");fflush(stdout);
         return 0;
     }
+    printf("decoder initialised\n");fflush(stdout);
 
     // run decoder up to first audio frame:
     while(idata->decodedbytes == 0) {
