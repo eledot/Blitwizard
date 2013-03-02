@@ -133,7 +133,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         // convert:
         if (idata->source->format == AUDIOSOURCEFORMAT_S16LE) {
             if (idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
-#define S16TOF32TYPE double
+#define S16TOF32TYPE float
                 S16TOF32TYPE intmax_big = 32768;
                 // convert s16le -> f32le
                 int16_t old = *((int16_t*)bytebuf);
