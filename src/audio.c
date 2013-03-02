@@ -27,7 +27,7 @@
 #include "logging.h"
 
 // valid sound buffer sizes for audio:
-#define DEFAULTSOUNDBUFFERSIZE (1024)
+#define DEFAULTSOUNDBUFFERSIZE (2048)
 #define MINSOUNDBUFFERSIZE 512
 #define MAXSOUNDBUFFERSIZE (1024 * 10)
 
