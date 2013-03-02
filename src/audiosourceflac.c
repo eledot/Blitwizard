@@ -348,7 +348,6 @@ static int audiosourceflac_InitFLAC(struct audiosource* source) {
     printf("decoder opened\n");fflush(stdout);
 
     // initialise decoder:
-    int r = 0;
     if (FLAC__stream_decoder_init_stream(idata->decoder,
     flacread,
     flacseek,
@@ -458,6 +457,8 @@ struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     }
     struct audiosourceflac_internaldata* idata =
     a->internaldata;
+    memset(idata, 0, sizeof(*idata));
+    idata->source = source;
 
     // function pointers
     a->read = &audiosourceflac_Read;

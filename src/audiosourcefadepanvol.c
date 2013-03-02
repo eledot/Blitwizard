@@ -208,9 +208,6 @@ static void audiosourcefadepanvol_Close(struct audiosource* source) {
         }
 
         // free all structs
-        if (source->internaldata) {
-            free(source->internaldata);
-        }
         free(idata);
     }
     free(source);

@@ -162,9 +162,6 @@ static void audiosourcefile_Close(struct audiosource* source) {
         if (idata->path) {
             free(idata->path);
         }
-        if (source->internaldata) {
-            free(source->internaldata);
-        }
         free(idata);
     }
     free(source);
