@@ -104,7 +104,7 @@ struct audiosource* source) {
 static FLAC__bool flaceof(const FLAC__StreamDecoder* decoder,
 void* client_data) {
     return ((struct audiosourceflac_internaldata*)
-    ((struct audiosource*)client_data))->filesourceeof;
+    ((struct audiosource*)client_data)->internaldata)->filesourceeof;
 }
 
 static FLAC__StreamDecoderReadStatus flacread(
@@ -123,8 +123,10 @@ size_t* bytes, void* client_data) {
     if (r <= 0) {
         if (r == 0) {
             idata->filesourceeof = 1;
+            printf("eof\n");
             return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
         }
+        printf("error\n");
         return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
     }
     *bytes = r;
@@ -146,6 +148,7 @@ void *client_data) {
 
     // if we still need format info, grab it now:
     if (source->samplerate == 0) {
+        printf("flacwrite info!\n");
         int channels = FLAC__stream_decoder_get_channels(idata->decoder);
         unsigned int bits = FLAC__stream_decoder_get_bits_per_sample(
         idata->decoder);
@@ -159,23 +162,29 @@ void *client_data) {
         }
         source->samplerate = samplerate;
         source->channels = channels;
+        printf("channels: %u, samplerate: %u\n", channels, samplerate);
 
         // check if we can deal with the audio format:
         switch (bits) {
         case 8:
             source->format = AUDIOSOURCEFORMAT_U8;
+            printf("u8\n");
             break;
         case 16:
             source->format = AUDIOSOURCEFORMAT_S16LE;
+            printf("s16le\n");
             break;
         case 24:
             source->format = AUDIOSOURCEFORMAT_S24LE;
+            printf("24le\n");
             break;
         case 32:
             source->format = AUDIOSOURCEFORMAT_S32LE;
+            printf("s32le\n");
             break;
         default:
             // invalid format
+            printf("invalid format\n");
             idata->eof = 1;
             idata->returnerroroneof = 1;
             return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
@@ -195,21 +204,25 @@ void *client_data) {
 static FLAC__StreamDecoderLengthStatus flaclength(
 const FLAC__StreamDecoder* decoder,
 FLAC__uint64* stream_length, void* client_data) {
+    printf("flaclength\n");fflush(stdout);
     struct audiosource* source = (struct audiosource*)client_data;
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
 
     size_t length = idata->source->length(idata->source);
     if (length > 0) {
+        printf("length returned is: %u\n", length);
         *stream_length = length;
         return FLAC__STREAM_DECODER_LENGTH_STATUS_OK;
     }
+    printf("length unsupported\n");
     return FLAC__STREAM_DECODER_LENGTH_STATUS_UNSUPPORTED;
 }
 
 static FLAC__StreamDecoderTellStatus flactell(
 const FLAC__StreamDecoder* decoder,
 FLAC__uint64* absolute_byte_offset, void* client_data) {
+    printf("flactell\n");fflush(stdout);
     struct audiosource* source = (struct audiosource*)client_data;
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
@@ -228,6 +241,7 @@ static FLAC__StreamDecoderSeekStatus flacseek(
 const FLAC__StreamDecoder* decoder,
 FLAC__uint64 absolute_byte_offset,
 void* client_data) {
+    printf("flacseek\n");fflush(stdout);
     struct audiosource* source = (struct audiosource*)client_data;
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
@@ -334,6 +348,19 @@ void audiosourceflac_Close(struct audiosource* source) {
     free(source);
 }
 
+static void flacerror(const FLAC__StreamDecoder* decoder,
+FLAC__StreamDecoderErrorStatus status, void* client_data) {
+    printf("FLAC ERROR\n");
+    // we don't care.
+    return;
+}
+
+static void flacmetadata(const FLAC__StreamDecoder* decoder,
+const FLAC__StreamMetadata* metadata, void* client_data) {
+    // we're not interested.
+    return;
+}
+
 static int audiosourceflac_InitFLAC(struct audiosource* source) {
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
@@ -344,34 +371,45 @@ static int audiosourceflac_InitFLAC(struct audiosource* source) {
     if (!idata->decoder) {
         return 0;
     }
+    
     idata->flacopened = 1;
     printf("decoder opened\n");fflush(stdout);
 
     // initialise decoder:
-    if (FLAC__stream_decoder_init_stream(idata->decoder,
+    int r;
+    if ((r = FLAC__stream_decoder_init_stream(idata->decoder,
     flacread,
     flacseek,
     flactell,
     flaclength,
     flaceof,
     flacwrite,
-    NULL,  // metadata
-    NULL,  // error
+    flacmetadata,
+    flacerror,
     source
-    ) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
-        printf("failed to initialise decoder\n");fflush(stdout);
+    )) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+        printf("failed to initialise decoder: %d\n", r);fflush(stdout);
         return 0;
     }
     printf("decoder initialised\n");fflush(stdout);
-
+    if (FLAC__stream_decoder_get_state(idata->decoder) == FLAC__STREAM_DECODER_END_OF_STREAM) {
+        printf("stream is EOF\n");
+    } else {
+        printf("stream is not EOF\n");
+    }
     // run decoder up to first audio frame:
     while(idata->decodedbytes == 0) {
-        if (FLAC__stream_decoder_process_single(idata->decoder) == false
+        FLAC__bool b;
+        if ((b = FLAC__stream_decoder_process_single(idata->decoder)) == false
         || FLAC__stream_decoder_get_state(idata->decoder) ==
         FLAC__STREAM_DECODER_END_OF_STREAM) {
+            printf("return value false or end of stream: end of stream: %d, return value: %d\n", FLAC__stream_decoder_get_state(idata->decoder) ==
+            FLAC__STREAM_DECODER_END_OF_STREAM, b);
             return 0;
         }
+        printf("decoded.\n");
     }
+    printf("init ok\n");
 
     // we should have some information now
     return 1;
@@ -380,6 +418,7 @@ static int audiosourceflac_InitFLAC(struct audiosource* source) {
 static int audiosourceflac_Read(
 struct audiosource* source, char* buffer,
 unsigned int bytes) {
+    //printf("audiosourceflac_Read(%u)\n", bytes);
     struct audiosourceflac_internaldata* idata =
     source->internaldata;
     if (idata->eof) {
@@ -396,8 +435,9 @@ unsigned int bytes) {
             source->channels = -1;
             return -1;
         }
+        printf("initialised\n");
     }
-
+    //printf("bytes to read: %d, decodedbytes: %d\n", bytes, idata->decodedbytes);
     int byteswritten = 0;
     while (bytes > 0) {
         if (idata->decodedbytes <= 0) {
@@ -413,6 +453,7 @@ unsigned int bytes) {
                 if (!result) {
                     idata->returnerroroneof = 1;
                 }
+                // continue since we might still have some decoded bytes left
             }
         }
         unsigned int i = idata->decodedbytes;
@@ -423,6 +464,11 @@ unsigned int bytes) {
         memcpy(buffer, idata->decodedbuf, i);
         buffer += i;
         bytes -= i;
+        idata->decodedbytes -= i;
+        byteswritten += i;
+        if (idata->decodedbytes > 0) {
+            memmove(idata->decodedbuf, idata->decodedbuf + i, idata->decodedbytes);
+        }
     }
     if (bytes > 0 && byteswritten == 0) {
         idata->eof = 1;
@@ -459,6 +505,7 @@ struct audiosource* audiosourceflac_Create(struct audiosource* source) {
     a->internaldata;
     memset(idata, 0, sizeof(*idata));
     idata->source = source;
+    printf("source eof: %d\n", idata->filesourceeof);
 
     // function pointers
     a->read = &audiosourceflac_Read;
@@ -478,7 +525,8 @@ struct audiosource* audiosourceflac_Create(struct audiosource* source) {
         audiosourceflac_Close(a);
         return NULL;
     }
-    return NULL;
+    printf("ok!\n");
+    return a;
 }
 
 #endif // ifdef USE_FLAC_AUDIO
