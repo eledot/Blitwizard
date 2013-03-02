@@ -449,18 +449,18 @@ int main(int argc, char** argv) {
                     #endif
 
                     #if (defined(USE_SDL_AUDIO) || defined(USE_AUDIO))
-                    printf("     Playback support: Ogg%s%s\n",
+                    printf("     Playback support: Ogg (libogg)%s%s\n",
                     #if defined(USE_FLAC_AUDIO)
-                    ", FLAC (libFlac)"
+                    ", FLAC (libFLAC)"
                     #else
                     ""
                     #endif
                     ,
                     #if defined(USE_FFMPEG_AUDIO)
                     #ifndef USE_FLAC_AUDIO
-                    ", FLAC (FFmpeg), mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n     resulting in FFmpeg playback support not working)"
+                    ", FLAC (FFmpeg),\n      mp3 (FFmpeg), WAVE (FFmpeg), mp4 (FFmpeg),\n      many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n     resulting in FFmpeg playback support not working)"
                     #else
-                    ", mp3 (FFmpeg),\n      WAVE (FFmpeg), mp4 (FFmpeg), many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n      resulting in FFmpeg playback support not working)"
+                    ",\n      mp3 (FFmpeg), WAVE (FFmpeg), mp4 (FFmpeg),\n      many more.. (FFmpeg)\n     (Please note FFmpeg can fail to load at runtime,\n      resulting in FFmpeg playback support not working)"
                     #endif
                     #else
                     ""

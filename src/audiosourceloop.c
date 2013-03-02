@@ -44,7 +44,12 @@ void audiosourceloop_SetLooping(struct audiosource* source, int looping) {
 }
 
 static void audiosourceloop_Rewind(struct audiosource* source) {
-    // this audio source has no rewind functionality
+    struct audiosourceloop_internaldata* idata = source->internaldata;
+    // if we aren't looping, we offer a rewind:
+    if (!idata->looping) {
+        idata->source->rewind(idata->source);
+        idata->sourceeof = 0;
+    }
     return;
 }
 
