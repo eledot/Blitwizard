@@ -194,7 +194,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
                 double int16max_small = 32767;
                 // convert s24le -> s16le
                 int32_t old;
-                memset((((char*)old)+3), 0, 1);  // null last byte
+                memset((((char*)&old)+3), 0, 1);  // null last byte
                 memcpy(&old, (char*)bytebuf, 3);  // copy first 3 bytes (=24 bit)
                 double convert = old;
                 convert /= int24max_big;
@@ -210,7 +210,7 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
                 double int24max_big = (2^24)/2;
                 // convert s24le -> s16le
                 int32_t old;
-                memset((((char*)old)+3), 0, 1);  // null last byte (most significant)
+                memset((((char*)&old)+3), 0, 1);  // null last byte (most significant)
                 memcpy(&old, (char*)bytebuf, 3);  // copy first 3 bytes (=24 bit)
                 double convert = old;
                 convert /= int24max_big;
