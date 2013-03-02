@@ -133,10 +133,11 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
         // convert:
         if (idata->source->format == AUDIOSOURCEFORMAT_S16LE) {
             if (idata->targetformat == AUDIOSOURCEFORMAT_F32LE) {
-                double intmax_big = 32768;
+#define S16TOF32TYPE double
+                S16TOF32TYPE intmax_big = 32768;
                 // convert s16le -> f32le
                 int16_t old = *((int16_t*)bytebuf);
-                double convert = old;
+                S16TOF32TYPE convert = old;
                 convert /= intmax_big;
                 float new = convert;
 
@@ -283,9 +284,10 @@ static int audiosourceformatconvert_Read(struct audiosource* source, char* buffe
     }
 }
 
-static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned int pos) {
+static int audiosourceformatconvert_Seek(struct audiosource* source, size_t pos) {
     // Forward the seek to our audio source if possible:
-    struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
+    struct audiosourceformatconvert_internaldata* idata =
+    (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
     if (!idata->source->seekable) {
         return 0;
@@ -300,16 +302,18 @@ static int audiosourceformatconvert_Seek(struct audiosource* source, unsigned in
     return 0;
 }
 
-static unsigned int audiosourceformatconvert_Position(struct audiosource* source) {
+static size_t audiosourceformatconvert_Position(struct audiosource* source) {
     // Forward the position query to our audio source:
-    struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
+    struct audiosourceformatconvert_internaldata* idata =
+    (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
     return idata->source->position(idata->source);
 }
 
-static unsigned int audiosourceformatconvert_Length(struct audiosource* source) {
+static size_t audiosourceformatconvert_Length(struct audiosource* source) {
     // Forward the length query to our audio source:
-    struct audiosourceformatconvert_internaldata* idata = (struct audiosourceformatconvert_internaldata*)source->internaldata;
+    struct audiosourceformatconvert_internaldata* idata =
+    (struct audiosourceformatconvert_internaldata*)source->internaldata;
 
     return idata->source->length(idata->source);
 }
