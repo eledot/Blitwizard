@@ -1,6 +1,6 @@
 
-This file contains required license information on libraries
-used by the blitwizard game engine.
+This file contains required license information on various
+third-party libraries used by the blitwizard game engine.
 
 This README file should be shipped with all blitwizard builds
 that statically link the dependencies (which is the default
