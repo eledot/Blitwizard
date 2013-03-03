@@ -21,6 +21,21 @@
 
 */
 
+// Get a fadepanvol audio source:
 struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source);
-void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float vol, float pan);
+
+// Change settings on the fadepanvol audio source:
+void audiosourcefadepanvol_SetPanVol(
+struct audiosource* source,
+float volume, float pan, int noamplify);
+// volume: volume at which sound plays from 0 to 1.5. 1 is regular volume
+// pan: panning from 1 (left) to -1 (right). 0 is center.
+// noamplify: if set to 1, panning and volume > 1 is disabled,
+//  but the audio is of higher quality especially if loud.
+//  For regular panning support, specify 0.
+
+// Start a fade to a given volume level:
 void audiosourcefadepanvol_StartFade(struct audiosource* source, float seconds, float targetvol, int terminate);
+
+
+

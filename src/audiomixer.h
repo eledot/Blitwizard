@@ -25,9 +25,9 @@
 extern int s16mixmode; // 1: output s16 samples, 0: output float32 samples (default)
 void audiomixer_GetBuffer(void* buf, unsigned int len);
 void audiomixer_Init(void);
-int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, float panning, float fadeinseconds, int loop);
+int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, float panning, int noamplify, float fadeinseconds, int loop);
 void audiomixer_StopSound(int id);
-void audiomixer_AdjustSound(int id, float volume, float panning);
+void audiomixer_AdjustSound(int id, float volume, float panning, int noamplify);
 int audiomixer_IsSoundPlaying(int id);
 int audiomixer_NoSoundsPlaying(void);
 

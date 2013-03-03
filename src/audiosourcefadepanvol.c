@@ -46,6 +46,8 @@ struct audiosourcefadepanvol_internaldata {
 
     char processedsamplesbuf[512];
     unsigned int processedsamplesbytes;
+
+    int noamplify; // don't amplify with soft clipping
 };
 
 static size_t audiosourcefadepanvol_Position(struct audiosource* source) {
@@ -87,6 +89,22 @@ static void audiosourcefadepanvol_Rewind(struct audiosource* source) {
         idata->returnerroroneof = 0;
         idata->processedsamplesbytes = 0;
     }
+}
+
+static float amplify(float value, float amplification) {
+    // amplifies with soft clipping applied
+    float maxamplify = 2;
+    float clippingstart = 0.95;
+    value *= amplification;
+    if (abs(value) > clippingstart) {
+        float excess = abs(value)-clippingstart;
+        if (value > 0) {
+            value += (excess/(maxamplify-clippingstart))*(1-clippingstart);
+        } else {
+            value -= (excess/(maxamplify-clippingstart))*(1-clippingstart);
+        }
+    }
+    return value;
 }
 
 static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, unsigned int bytes) {
@@ -153,12 +171,34 @@ static int audiosourcefadepanvol_Read(struct audiosource* source, char* buffer, 
             }
 
             // apply volume
-            leftchannel *= idata->vol;
-            rightchannel *= idata->vol;
+            if (!idata->noamplify) {
+                leftchannel = amplify(leftchannel, idata->vol);
+                rightchannel = amplify(rightchannel, idata->vol);
+            } else {
+                leftchannel *= idata->vol;
+                rightchannel *= idata->vol;
+            }
 
             // calculate panning
-            leftchannel *= (idata->pan+1)/2;
-            rightchannel *= 1-(idata->pan+1)/2;
+            if (idata->pan < 0) {
+                leftchannel *= (1+idata->pan);
+            }
+            if (idata->pan > 0) {
+                rightchannel *= (1-idata->pan);
+            }
+
+            // amplify channels when closer to edges:
+            float panningamplifyfactor = abs(idata->pan);
+            float amplifyamount = 1.3;
+            if (!idata->noamplify) {
+                if (idata->pan > 0) {
+                    leftchannel = amplify(leftchannel,
+                    1 + panningamplifyfactor * (amplifyamount-1));
+                } else {
+                    rightchannel = amplify(rightchannel,
+                    1 + panningamplifyfactor * (amplifyamount-1));
+                }
+            }
 
             // write floats back
             memcpy(idata->processedsamplesbuf+i, &leftchannel, sizeof(float));
@@ -263,20 +303,30 @@ struct audiosource* audiosourcefadepanvol_Create(struct audiosource* source) {
     return a;
 }
 
-void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float vol, float pan) {
+void audiosourcefadepanvol_SetPanVol(struct audiosource* source, float vol, float pan, int noamplify) {
     struct audiosourcefadepanvol_internaldata* idata = source->internaldata;
+    // limit panning range:
     if (pan < -1) {
         pan = -1;
     }
     if (pan > 1) {
         pan = 1;
     }
+    // limit volume range:
     if (vol < 0) {
         vol = 0;
     }
-    if (vol > 1) {
-        vol = 1;
+    if (vol > 1.5) {
+        vol = 1.5;
     }
+    // the user wants to avoid excess amplification:
+    if (noamplify) {
+        if (vol > 1) {
+            vol = 1;
+        }
+    }
+
+    idata->noamplify = noamplify;
     idata->pan = pan;
     idata->vol = vol;
 
@@ -297,7 +347,10 @@ void audiosourcefadepanvol_StartFade(struct audiosource* source, float seconds, 
     if (targetvol < 0) {
         targetvol = 0;
     }
-    if (targetvol > 1) {
+    if (targetvol > 1.5) {
+        targetvol = 1.5;
+    }
+    if (idata->noamplify && targetvol > 1) {
         targetvol = 1;
     }
 

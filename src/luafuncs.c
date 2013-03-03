@@ -138,7 +138,7 @@ int luafuncs_loadfile(lua_State* l) {
 }
 
 static char printlinebuf[1024 * 50] = "";
-static int luafuncs_printline() {
+static int luafuncs_printline(void) {
     // print a line from the printlinebuf
     unsigned int len = strlen(printlinebuf);
     if (len == 0) {
@@ -1114,7 +1114,7 @@ int luafuncs_adjust(lua_State* l) {
     if (panning < -1) {panning = -1;}
     if (panning > 1) {panning = 1;}
 
-    audiomixer_AdjustSound(id, volume, panning);
+    audiomixer_AdjustSound(id, volume, panning, 0);
     return 0;
 #else // ifdef USE_AUDIO
     lua_pushstring(l, compiled_without_audio);
@@ -1184,7 +1184,7 @@ int luafuncs_play(lua_State* l) {
     memset(iref,0,sizeof(*iref));
     iref->magic = IDREF_MAGIC;
     iref->type = IDREF_SOUND;
-    iref->ref.id = audiomixer_PlaySoundFromDisk(p, priority, volume, panning, fadein, looping);
+    iref->ref.id = audiomixer_PlaySoundFromDisk(p, priority, volume, panning, 0, fadein, looping);
     if (iref->ref.id < 0) {
         char errormsg[512];
         snprintf(errormsg, sizeof(errormsg), "Cannot play sound \"%s\"", p);

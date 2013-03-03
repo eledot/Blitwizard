@@ -167,17 +167,17 @@ void audiomixer_StopSound(int id) {
     audio_UnlockAudioThread();
 }
 
-void audiomixer_AdjustSound(int id, float volume, float panning) {
+void audiomixer_AdjustSound(int id, float volume, float panning, int noamplify) {
     audio_LockAudioThread();
     int slot = audiomixer_GetChannelSlotById(id);
     if (slot >= 0 && channels[slot].fadepanvolsource) {
-        audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning);
+        audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning, noamplify);
     }
     audio_UnlockAudioThread();
 }
 
 
-int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, float panning, float fadeinseconds, int loop) {
+int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, float panning, int noamplify, float fadeinseconds, int loop) {
     audio_LockAudioThread();
     int id = audiomixer_FreeSoundId();
     int slot = audiomixer_GetFreeChannelSlot(priority);
@@ -230,7 +230,7 @@ int audiomixer_PlaySoundFromDisk(const char* path, int priority, float volume, f
     }
 
     // set the options for the fade/pan/vol modifier
-    audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning);
+    audiosourcefadepanvol_SetPanVol(channels[slot].fadepanvolsource, volume, panning, noamplify);
     if (fadeinseconds > 0) {
         audiosourcefadepanvol_StartFade(channels[slot].fadepanvolsource, fadeinseconds, volume, 0);
     }

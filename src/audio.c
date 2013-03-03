@@ -71,7 +71,7 @@ unsigned int buffersize, const char* backend, int s16, char** error) {
     if (!sdlvideoinit) {
         if (SDL_VideoInit(NULL) < 0) {
             char errormsg[512];
-            snprintf(errormsg,sizeof(errormsg),"Failed to initialize SDL video: %s", SDL_GetError());
+            snprintf(errormsg,sizeof(errormsg), "Failed to initialize SDL video: %s", SDL_GetError());
             errormsg[sizeof(errormsg)-1] = 0;
             *error = strdup(errormsg);
             return 0;
