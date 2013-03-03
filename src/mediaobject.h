@@ -32,7 +32,7 @@
 
 struct mediaobject {
     int type;
-    int deleted;  // 1: deleted (deletedMediaObjects), 0: regular (mediaObjects)
+    int isPlaying;
     int refcount;  // refcount of luaidref references
     union {
         struct {
@@ -48,7 +48,6 @@ struct mediaobject {
 };
 
 extern struct mediaobject* mediaObjects;
-extern struct mediaobject* deletedMediaObjects;
 
 #endif  // BLITWIZARD_MEDIAOBJECT_H_
 

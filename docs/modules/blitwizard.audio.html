@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+<head>
+    <title>Blitwizard API reference</title>
+    <link rel="stylesheet" href="../ldoc.css" type="text/css" />
+</head>
+<body>
+
+<div id="container">
+
+<div id="product">
+	<div id="product_logo"></div>
+	<div id="product_name"><big><b></b></big></div>
+	<div id="product_description"></div>
+</div> <!-- id="product" -->
+
+
+<div id="main">
+
+
+<!-- Menu -->
+
+<div id="navigation">
+<br/>
+<h1>blitwizard</h1>
+
+<ul>
+  <li><a href="../index.html">Index</a></li>
+</ul>
+
+<h2>Contents</h2>
+<ul>
+<li><a href="#Class_simpleSound">Class simpleSound</a></li>
+<li><a href="#Class_pannedSound">Class pannedSound</a></li>
+<li><a href="#Class_positionedSound">Class positionedSound</a></li>
+</ul>
+
+
+<h2>Modules</h2>
+<ul>
+  <li><a href="../modules/blitwizard.html">blitwizard</a></li>
+  <li><strong>blitwizard.audio</strong></li>
+  <li><a href="../modules/blitwizard.graphics.html">blitwizard.graphics</a></li>
+  <li><a href="../modules/blitwizard.physics.html">blitwizard.physics</a></li>
+</ul>
+
+</div>
+
+<div id="content">
+
+<h1>Module <code>blitwizard.audio</code></h1>
+
+<p>The blitwizard audio namespace allows you to create
+ sound objects to play sounds and music.</p>
+<p>
+ Use <a href="../modules/blitwizard.audio.html#Class_simpleSound">simpleSound</a> objects for
+ background music, <a href="../modules/blitwizard.audio.html#Class_pannedSound">pannedSound</a>
+ for a sound with left/right panning,
+ <a href="../modules/blitwizard.audio.html#Class_positionedSound">positionedSound</a> for a sound with
+ positioning in 2d or 3d space inside the game world.
+
+ Please note blitwizard will NEVER preload any sounds into memory,
+ so it is perfectly fine to create many sound objects from the same
+ sound file, it won't cause the file to be loaded into memory
+ many times.</p>
+    <h3>Info:</h3>
+    <ul>
+        <li><strong>Copyright</strong>: 2012-2013</li>
+        <li><strong>License</strong>: zlib</li>
+        <li><strong>Author</strong>: Jonas Thiem  (jonas.thiem@gmail.com)</li>
+    </ul>
+
+
+<h2><a href="#Class_simpleSound">Class simpleSound</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" ><a href="#simpleSound:new">simpleSound:new&nbsp;(filename)</a></td>
+	<td class="summary">Create a new simple sound object.</td>
+	</tr>
+	<tr>
+	<td class="name" ><a href="#simpleSound:play">simpleSound:play&nbsp;(volume, loop, fadein)</a></td>
+	<td class="summary">Play the sound represented by the simple sound object</td>
+	</tr>
+	<tr>
+	<td class="name" ><a href="#simpleSound:stop">simpleSound:stop&nbsp;(fadeout)</a></td>
+	<td class="summary">Stop the sound represented by the simple sound object.</td>
+	</tr>
+</table>
+<h2><a href="#Class_pannedSound">Class pannedSound</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" ><a href="#pannedSound:new">pannedSound:new&nbsp;(filename)</a></td>
+	<td class="summary">Create a new panned sound object.</td>
+	</tr>
+	<tr>
+	<td class="name" ><a href="#pannedSound:play">pannedSound:play&nbsp;(volume, panning, loop, fadein)</a></td>
+	<td class="summary">Play the sound represented by the panned sound object</td>
+	</tr>
+</table>
+<h2><a href="#Class_positionedSound">Class positionedSound</a></h2>
+<table class="function_list">
+	<tr>
+	<td class="name" ><a href="#positionedSound:new">positionedSound:new&nbsp;(filename, object)</a></td>
+	<td class="summary">Create a new positioned sound object.</td>
+	</tr>
+</table>
+
+<br/>
+<br/>
+
+
+    <h2><a name="Class_simpleSound"></a>Class simpleSound</h2>
+
+ This is the sound object suited best for background music.
+ It deactivates some postprocessing which allows positioning
+ or stereo panning which results in slightly better and
+ unaltered sound.
+    <dl class="function">
+    <dt>
+    <a name = "simpleSound:new"></a>
+    <strong>simpleSound:new&nbsp;(filename)</strong>
+    </dt>
+    <dd>
+    Create a new simple sound object.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">filename</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+       Filename of the audio file you want to play</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "simpleSound:play"></a>
+    <strong>simpleSound:play&nbsp;(volume, loop, fadein)</strong>
+    </dt>
+    <dd>
+    Play the sound represented by the simple sound object
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">volume</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) Volume at which the sound plays from 0 (quiet) to 1 (full volume). Defaults to 1</li>
+      <li><span class="parameter">loop</span>
+        <span class="types"><span class="type">boolean</span></span>
+       (optional) If set to true, the sound will loop until explicitely stopped. If set to false or if not specified, it will play once</li>
+      <li><span class="parameter">fadein</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) Fade in from silence to the specified volume in the given amount of seconds, instead of playing at full volume right from the start</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "simpleSound:stop"></a>
+    <strong>simpleSound:stop&nbsp;(fadeout)</strong>
+    </dt>
+    <dd>
+    Stop the sound represented by the simple sound object.
+ Does nothing if the sound doesn't currently play
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">fadeout</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) If specified, the sound will fade out for the specified amount in seconds. Otherwise it will stop instantly</li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2><a name="Class_pannedSound"></a>Class pannedSound</h2>
+
+ If you want to make a sound emit from a specific location,
+ you should probably use a
+ <a href="../modules/blitwizard.audio.html#Class_positionedSound">positionedSound</a> instead
+    <dl class="function">
+    <dt>
+    <a name = "pannedSound:new"></a>
+    <strong>pannedSound:new&nbsp;(filename)</strong>
+    </dt>
+    <dd>
+    Create a new panned sound object.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">filename</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+       Filename of the audio file you want to play</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "pannedSound:play"></a>
+    <strong>pannedSound:play&nbsp;(volume, panning, loop, fadein)</strong>
+    </dt>
+    <dd>
+    Play the sound represented by the panned sound object
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">volume</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) Volume at which the sound plays from 0 (quiet) to 1 (full volume). Defaults to 1</li>
+      <li><span class="parameter">panning</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) Stereo panning which alters the left/right placement of the sound from 1 (left) through 0 (center) to -1 (right). Default is 0</li>
+      <li><span class="parameter">loop</span>
+        <span class="types"><span class="type">boolean</span></span>
+       (optional) If set to true, the sound will loop until explicitely stopped. If set to false or if not specified, it will play once</li>
+      <li><span class="parameter">fadein</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) Fade in from silence to the specified volume in the given amount of seconds, instead of playing at full volume right from the start</li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+    <h2><a name="Class_positionedSound"></a>Class positionedSound</h2>
+     It will alter volume
+ based on distance and channels based on direction to simulate
+ its room placement.
+    <dl class="function">
+    <dt>
+    <a name = "positionedSound:new"></a>
+    <strong>positionedSound:new&nbsp;(filename, object)</strong>
+    </dt>
+    <dd>
+    Create a new positioned sound object.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">filename</span>
+        <span class="types"><a class="type" href="http://www.lua.org/manual/5.1/manual.html#5.4">string</a></span>
+       Filename of the audio file you want to play</li>
+      <li><span class="parameter">object</span>
+        <span class="types"><span class="type">userdata</span></span>
+       (optional) Specify a <a href="../modules/blitwizard.html#Class_object">blitwizard object</a> to which the sound should stick. If you don't specify an object to stick to, the sound can be freely placed with ???</li>
+    </ul>
+
+
+
+
+
+</dd>
+</dl>
+
+
+</div> <!-- id="content" -->
+</div> <!-- id="main" -->
+<div id="about">
+<i>generated by <a href="http://github.com/stevedonovan/LDoc">LDoc 1.3</a></i>
+</div> <!-- id="about" -->
+</div> <!-- id="container" -->
+</body>
+</html>

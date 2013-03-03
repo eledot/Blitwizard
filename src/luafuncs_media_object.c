@@ -24,10 +24,15 @@
 /// The blitwizard audio namespace allows you to create
 // sound objects to play sounds and music.
 // Use @{blitwizard.audio.simpleSound|simpleSound} objects for
-// background music, @{blitwizard.audio.pannedSound|blitwizard.audio.pannedSound}
+// background music, @{blitwizard.audio.pannedSound|pannedSound}
 // for a sound with left/right panning,
-// @{blitwizard.audio.positionedSound|blitwizard.audio.positionedSound} for a sound with
+// @{blitwizard.audio.positionedSound|positionedSound} for a sound with
 // positioning in 2d or 3d space inside the game world.
+//
+// Please note blitwizard will NEVER preload any sounds into memory,
+// so it is perfectly fine to create many sound objects from the same
+// sound file, it won't cause the file to be loaded into memory
+// many times.
 // @author Jonas Thiem  (jonas.thiem@gmail.com)
 // @copyright 2012-2013
 // @license zlib
@@ -39,29 +44,91 @@ int luafuncs_media_object_new(lua_State* l, int type) {
 
 }
 
-int luafuncs_media_object_destroy(struct mediaobject* o, int type) {
+int luafuncs_media_object_play(lua_State* l, int type) {
 
 }
 
-// @type simpleSound
+int luafuncs_media_object_stop(lua_State* l, int type) {
 
-/// Create a new simple sound object which has no
+}
+
+/// Implements a simple sound which has no
 // stereo left/right panning or room positioning features.
 // This is the sound object suited best for background music.
 // It deactivates some postprocessing which allows positioning
 // or stereo panning which results in slightly better and
 // unaltered sound.
+// @type simpleSound
+
+/// Create a new simple sound object.
 // @function new
+// @tparam string filename Filename of the audio file you want to play
+
 int luafuncs_media_simpleSound_new(lua_State* l) {
     return luafuncs_media_object_new(l, MEDIA_TYPE_AUDIO_SIMPLE);
 }
 
-// @module blitwizard.audio
+/// Play the sound represented by the simple sound object
+// @function play
+// @tparam number volume (optional) Volume at which the sound plays from 0 (quiet) to 1 (full volume). Defaults to 1
+// @tparam boolean loop (optional) If set to true, the sound will loop until explicitely stopped. If set to false or if not specified, it will play once
+// @tparam number fadein (optional) Fade in from silence to the specified volume in the given amount of seconds, instead of playing at full volume right from the start
+
+int luafuncs_media_simpleSound_play(lua_State* l) {
+    return luafuncs_media_object_play(l, MEDIA_TYPE_AUDIO_SIMPLE);
+}
+
+/// Stop the sound represented by the simple sound object.
+// Does nothing if the sound doesn't currently play
+// @function stop
+// @tparam number fadeout (optional) If specified, the sound will fade out for the specified amount in seconds. Otherwise it will stop instantly
+
+int luafuncs_media_simpleSound_stop(lua_State* l) {
+    return luafuncs_media_object_stop(l, MEDIA_TYPE_AUDIO_SIMPLE);
+}
+
+///
+// Implements a sound with simple left/right stereo panning.
+// If you want to make a sound emit from a specific location,
+// you should probably use a
+// @{blitwizard.audio.positionedSound|positionedSound} instead
 // @type pannedSound
 
-// @module blitwizard.audio
-// @type positionSound
+/// Create a new panned sound object.
+// @function new
+// @tparam string filename Filename of the audio file you want to play
 
+int luafuncs_media_pannedSound_new(lua_State* l) {
+    return luafuncs_media_object_new(l, MEDIA_TYPE_AUDIO_PANNED);
+}
+
+/// Play the sound represented by the panned sound object
+// @function play
+// @tparam number volume (optional) Volume at which the sound plays from 0 (quiet) to 1 (full volume). Defaults to 1
+// @tparam number panning (optional) Stereo panning which alters the left/right placement of the sound from 1 (left) through 0 (center) to -1 (right). Default is 0
+// @tparam boolean loop (optional) If set to true, the sound will loop until explicitely stopped. If set to false or if not specified, it will play once
+// @tparam number fadein (optional) Fade in from silence to the specified volume in the given amount of seconds, instead of playing at full volume right from the start
+
+int luafuncs_media_pannedSound_play(lua_State* l) {
+    return luafuncs_media_object_play(l, MEDIA_TYPE_AUDIO_PANNED);
+}
+
+/// Implements a positioned sound which can either follow a
+// specific @{blitwizard.object|blitwizard object} or which
+// you can move to any position you like. It will alter volume
+// based on distance and channels based on direction to simulate
+// its room placement.
+// @type positionedSound
+
+
+/// Create a new positioned sound object.
+// @function new
+// @tparam string filename Filename of the audio file you want to play
+// @tparam userdata object (optional) Specify a @{blitwizard.object|blitwizard object} to which the sound should stick. If you don't specify an object to stick to, the sound can be freely placed with @{position}
+
+int luafuncs_media_positionedSound_new(lua_State* l) {
+    return luafuncs_media_object_new(l, MEDIA_TYPE_AUDIO_POSITIONED);
+}
 
 
 // Various cleanup and management functions:
@@ -89,9 +156,9 @@ static int garbagecollect_mediaobjref(lua_State* l) {
     struct mediaobject* o = idref->ref.bobj;
     o->refcount--;
 
-    // if it's already deleted and ref count is zero, remove it
+    // if it's not playing and ref count is zero, remove it
     // entirely and free it:
-    if (o->deleted && o->refcount <= 0) {
+    if (!o->isPlaying && o->refcount <= 0) {
         cleanupmediaobject(o);
 
         // remove object from the list
@@ -99,8 +166,8 @@ static int garbagecollect_mediaobjref(lua_State* l) {
             // adjust prev object to have new next pointer
             o->prev->next = o->next;
         } else {
-            // was first object in deleted list -> adjust list start pointer
-            deletedMediaObjects = o->next;
+            // was first object in list -> adjust list start pointer
+            mediaObjects = o->next;
         }
         if (o->next) {
             // adjust next object to have new prev pointer
