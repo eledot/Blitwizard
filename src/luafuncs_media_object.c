@@ -25,7 +25,7 @@
 // sound objects to play sounds and music.
 // Use @{blitwizard.audio.simpleSound|simpleSound} objects for
 // background music, @{blitwizard.audio.pannedSound|pannedSound}
-// for a sound with left/right panning,
+// for a sound with left/right panning and
 // @{blitwizard.audio.positionedSound|positionedSound} for a sound with
 // positioning in 2d or 3d space inside the game world.
 //
