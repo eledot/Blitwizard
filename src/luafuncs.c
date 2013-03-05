@@ -1047,11 +1047,12 @@ static int soundfromstack(lua_State* l, int index) {
     if (lua_rawlen(l, index) != sizeof(struct luaidref)) {
         return -1;
     }
-    struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
+    /*struct luaidref* idref = (struct luaidref*)lua_touserdata(l, index);
     if (!idref || idref->magic != IDREF_MAGIC || idref->type != IDREF_SOUND) {
         return -1;
     }
-    return idref->ref.id;
+    return idref->ref.id;*/
+    return -1;
 }
 #endif
 
@@ -1122,7 +1123,7 @@ int luafuncs_adjust(lua_State* l) {
 #endif
 }
 
-int luafuncs_play(lua_State* l) {
+/*int luafuncs_play(lua_State* l) {
 #ifdef USE_AUDIO
     main_InitAudio();
     const char* p = lua_tostring(l, 1);
@@ -1198,7 +1199,7 @@ int luafuncs_play(lua_State* l) {
     lua_pushstring(l, compiled_without_audio);
     return lua_error(l);
 #endif
-}
+}*/
 
 int luafuncs_getDesktopDisplayMode(lua_State* l) {
 #ifdef USE_GRAPHICS

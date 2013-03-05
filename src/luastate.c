@@ -226,7 +226,7 @@ static void luastate_CreateGraphicsTable(lua_State* l) {
     lua_settable(l, -3);
 }
 
-static void luastate_CreateSoundTable(lua_State* l) {
+/*static void luastate_CreateSoundTable(lua_State* l) {
     lua_newtable(l);
     lua_pushstring(l, "play");
     lua_pushcfunction(l, &luafuncs_play);
@@ -243,7 +243,7 @@ static void luastate_CreateSoundTable(lua_State* l) {
     lua_pushstring(l, "getBackendName");
     lua_pushcfunction(l, &luafuncs_getBackendName);
     lua_settable(l, -3);
-}
+}*/
 
 static void luastate_CreateTimeTable(lua_State* l) {
     lua_newtable(l);
@@ -426,9 +426,9 @@ static lua_State* luastate_New(void) {
     luastate_CreateNetTable(l);
     lua_settable(l, -3);
 
-    lua_pushstring(l, "sound");
+    /*lua_pushstring(l, "sound");
     luastate_CreateSoundTable(l);
-    lua_settable(l, -3);
+    lua_settable(l, -3);*/
 
     lua_pushstring(l, "callback");
     lua_newtable(l);

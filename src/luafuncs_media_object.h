@@ -24,10 +24,12 @@
 #ifndef BLITWIZARD_LUAFUNCS_OBJECT_MEDIA_H_
 #define BLITWIZARD_LUAFUNCS_OBJECT_MEDIA_H_
 
+#include "luaheader.h"
 #include "mediaobject.h"
 
-void luafuncs_media_object_new(struct blitwizardobject* o);
-void luafuncs_media_object_destroy(struct blitwizardobject* o);
+int luafuncs_media_simpleSound_new(lua_State* l);
+int luafuncs_media_pannedSound_new(lua_State* l);
+int luafuncs_media_positionedSound_new(lua_State* l);
 
 #endif  // BLITWIZARD_LUAFUNCS_OBJECT_MEDIA_H_
 

@@ -39,6 +39,11 @@
 // @module blitwizard.audio
 
 #include "luafuncs_media_object.h"
+#include "luaheader.h"
+#include "luastate.h"
+
+#include <stdlib.h>
+#include <string.h>
 
 int luafuncs_media_object_new(lua_State* l, int type) {
 
