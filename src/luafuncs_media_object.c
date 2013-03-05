@@ -33,6 +33,10 @@
 // so it is perfectly fine to create many sound objects from the same
 // sound file, it won't cause the file to be loaded into memory
 // many times.
+//
+// Supported audio formats are .ogg and .flac, and, if a usable FFmpeg
+// version is present on the system, many more like .mp3, .mp4 and others.
+//
 // @author Jonas Thiem  (jonas.thiem@gmail.com)
 // @copyright 2012-2013
 // @license zlib
@@ -60,7 +64,7 @@ int luafuncs_media_object_stop(lua_State* l, int type) {
 /// Implements a simple sound which has no
 // stereo left/right panning or room positioning features.
 // This is the sound object suited best for background music.
-// It deactivates some postprocessing which allows positioning
+// It deactivates some of the postprocessing which would allow positioning
 // or stereo panning which results in slightly better and
 // unaltered sound.
 // @type simpleSound
