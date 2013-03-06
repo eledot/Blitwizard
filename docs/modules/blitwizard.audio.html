@@ -64,7 +64,11 @@
  Please note blitwizard will NEVER preload any sounds into memory,
  so it is perfectly fine to create many sound objects from the same
  sound file, it won't cause the file to be loaded into memory
- many times.</p>
+ many times.
+
+ Supported audio formats are .ogg and .flac, and, if a usable FFmpeg
+ version is present on the system, many more like .mp3, .mp4 and others.
+</p>
     <h3>Info:</h3>
     <ul>
         <li><strong>Copyright</strong>: 2012-2013</li>
@@ -87,6 +91,15 @@
 	<td class="name" ><a href="#simpleSound:stop">simpleSound:stop&nbsp;(fadeout)</a></td>
 	<td class="summary">Stop the sound represented by the simple sound object.</td>
 	</tr>
+	<tr>
+	<td class="name" ><a href="#simpleSound:setPriority">simpleSound:setPriority&nbsp;(priority)</a></td>
+	<td class="summary">Set the sound priority of the simple sound object.</td>
+	</tr>
+	<tr>
+	<td class="name" ><a href="#simpleSound:adjust">simpleSound:adjust&nbsp;(volume)</a></td>
+	<td class="summary">Adjust the volume of a simple sound while it is playing
+ (does nothing if it's not)</td>
+	</tr>
 </table>
 <h2><a href="#Class_pannedSound">Class pannedSound</a></h2>
 <table class="function_list">
@@ -98,12 +111,25 @@
 	<td class="name" ><a href="#pannedSound:play">pannedSound:play&nbsp;(volume, panning, loop, fadein)</a></td>
 	<td class="summary">Play the sound represented by the panned sound object</td>
 	</tr>
+	<tr>
+	<td class="name" ><a href="#pannedSound:stop">pannedSound:stop&nbsp;(fadeout)</a></td>
+	<td class="summary">Stop the sound represented by the panned sound object.</td>
+	</tr>
+	<tr>
+	<td class="name" ><a href="#pannedSound:setPriority">pannedSound:setPriority&nbsp;(priority)</a></td>
+	<td class="summary">Set the sound priority of the panned sound,
+ see explanation of <a href="../modules/blitwizard.audio.html#simpleSound:setPriority">blitwizard.audio.simpleSound:setPriority</a>.</td>
+	</tr>
 </table>
 <h2><a href="#Class_positionedSound">Class positionedSound</a></h2>
 <table class="function_list">
 	<tr>
 	<td class="name" ><a href="#positionedSound:new">positionedSound:new&nbsp;(filename, object)</a></td>
 	<td class="summary">Create a new positioned sound object.</td>
+	</tr>
+	<tr>
+	<td class="name" ><a href="#positionedSound:stop">positionedSound:stop&nbsp;(fadeout)</a></td>
+	<td class="summary">Stop the sound represented by the positioned sound object.</td>
 	</tr>
 </table>
 
@@ -114,9 +140,12 @@
     <h2><a name="Class_simpleSound"></a>Class simpleSound</h2>
 
  This is the sound object suited best for background music.
- It deactivates some postprocessing which allows positioning
+ It deactivates some of the postprocessing which would allow positioning
  or stereo panning which results in slightly better and
  unaltered sound.
+
+ The default <a href="../modules/blitwizard.audio.html#simpleSound:setPriority">sound priority</a>
+ for simple sound objects is 5.
     <dl class="function">
     <dt>
     <a name = "simpleSound:new"></a>
@@ -182,6 +211,62 @@
 
 
 </dd>
+    <dt>
+    <a name = "simpleSound:setPriority"></a>
+    <strong>simpleSound:setPriority&nbsp;(priority)</strong>
+    </dt>
+    <dd>
+    Set the sound priority of the simple sound object.
+
+ In blitwizard, only a fixed maximum number of sounds can play
+ at a time. If you attempt to <a href="../modules/blitwizard.audio.html#simpleSound:play">play</a>
+ a sound object when the maximum number of sounds simultaneously
+ is reached, it will kill off playing sounds with
+ lower priority. If no lower or same priority sound is available
+ to kill, it won't start playing at all.
+
+ Changing the priority won't affect the sound object's current
+ playing, it will only have an effect the next time you use
+ play.
+
+ Background music should have a high priority, and short,
+ frequent sounds like gun shots or footsteps should have a low
+ priority.
+
+ Simple sound objects default to a priority of 5.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">priority</span>
+        <span class="types"><span class="type">number</span></span>
+       Priority from 0 (lowest) to 20 (highest), values will be rounded down to have no decimal places (0.5 becomes 0, 1.7 becomes 1, etc)</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "simpleSound:adjust"></a>
+    <strong>simpleSound:adjust&nbsp;(volume)</strong>
+    </dt>
+    <dd>
+    Adjust the volume of a simple sound while it is playing
+ (does nothing if it's not)
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">volume</span>
+        <span class="types"><span class="type">number</span></span>
+       New volume from 0 (quiet) to 1 (full volume)</li>
+    </ul>
+
+
+
+
+
+</dd>
 </dl>
     <h2><a name="Class_pannedSound"></a>Class pannedSound</h2>
 
@@ -236,6 +321,48 @@
 
 
 </dd>
+    <dt>
+    <a name = "pannedSound:stop"></a>
+    <strong>pannedSound:stop&nbsp;(fadeout)</strong>
+    </dt>
+    <dd>
+    Stop the sound represented by the panned sound object.
+ Does nothing if the sound doesn't currently play
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">fadeout</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) If specified, the sound will fade out for the specified amount in seconds. Otherwise it will stop instantly</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "pannedSound:setPriority"></a>
+    <strong>pannedSound:setPriority&nbsp;(priority)</strong>
+    </dt>
+    <dd>
+    Set the sound priority of the panned sound,
+ see explanation of <a href="../modules/blitwizard.audio.html#simpleSound:setPriority">blitwizard.audio.simpleSound:setPriority</a>.
+
+ Panned sounds default to a priority of 2.
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">priority</span>
+        <span class="types"><span class="type">number</span></span>
+       Priority from 0 (lowest) to 20 (highest), values will be rounded down to have no decimal places (0.5 becomes 0, 1.7 becomes 1, etc)</li>
+    </ul>
+
+
+
+
+
+</dd>
 </dl>
     <h2><a name="Class_positionedSound"></a>Class positionedSound</h2>
      It will alter volume
@@ -257,6 +384,26 @@
       <li><span class="parameter">object</span>
         <span class="types"><span class="type">userdata</span></span>
        (optional) Specify a <a href="../modules/blitwizard.html#Class_object">blitwizard object</a> to which the sound should stick. If you don't specify an object to stick to, the sound can be freely placed with ???</li>
+    </ul>
+
+
+
+
+
+</dd>
+    <dt>
+    <a name = "positionedSound:stop"></a>
+    <strong>positionedSound:stop&nbsp;(fadeout)</strong>
+    </dt>
+    <dd>
+    Stop the sound represented by the positioned sound object.
+ Does nothing if the sound doesn't currently play
+
+    <h3>Parameters:</h3>
+    <ul>
+      <li><span class="parameter">fadeout</span>
+        <span class="types"><span class="type">number</span></span>
+       (optional) If specified, the sound will fade out for the specified amount in seconds. Otherwise it will stop instantly</li>
     </ul>
 
 

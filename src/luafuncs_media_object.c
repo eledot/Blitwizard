@@ -67,6 +67,9 @@ int luafuncs_media_object_stop(lua_State* l, int type) {
 // It deactivates some of the postprocessing which would allow positioning
 // or stereo panning which results in slightly better and
 // unaltered sound.
+// 
+// The default @{blitwizard.audio.simpleSound:setPriority|sound priority}
+// for simple sound objects is 5.
 // @type simpleSound
 
 /// Create a new simple sound object.
@@ -96,8 +99,41 @@ int luafuncs_media_simpleSound_stop(lua_State* l) {
     return luafuncs_media_object_stop(l, MEDIA_TYPE_AUDIO_SIMPLE);
 }
 
-///
-// Implements a sound with simple left/right stereo panning.
+/// Set the sound priority of the simple sound object.
+//
+// In blitwizard, only a fixed maximum number of sounds can play
+// at a time. If you attempt to @{blitwizard.audio.simpleSound:play|play}
+// a sound object when the maximum number of sounds simultaneously
+// is reached, it will kill off playing sounds with
+// lower priority. If no lower or same priority sound is available
+// to kill, it won't start playing at all.
+//
+// Changing the priority won't affect the sound object's current
+// playing, it will only have an effect the next time you use
+// play.
+//
+// Background music should have a high priority, and short,
+// frequent sounds like gun shots or footsteps should have a low
+// priority.
+//
+// Simple sound objects default to a priority of 5.
+// @function setPriority
+// @tparam number priority Priority from 0 (lowest) to 20 (highest), values will be rounded down to have no decimal places (0.5 becomes 0, 1.7 becomes 1, etc)
+
+int luafuncs_media_simpleSound_setPriority(lua_State* l) {
+    return luafuncs_media_object_setPriority(l, MEDIA_TYPE_AUDIO_SIMPLE);
+}
+
+/// Adjust the volume of a simple sound while it is playing
+// (does nothing if it's not)
+// @function adjust
+// @tparam number volume New volume from 0 (quiet) to 1 (full volume)
+
+int luafuncs_media_simpleSound_adjust(lua_State* l) {
+    return luafuncs_media_object_adjust(l, MEDIA_TYPE_AUDIO_SIMPLE);
+}
+
+/// Implements a sound with simple left/right stereo panning.
 // If you want to make a sound emit from a specific location,
 // you should probably use a
 // @{blitwizard.audio.positionedSound|positionedSound} instead
@@ -122,6 +158,26 @@ int luafuncs_media_pannedSound_play(lua_State* l) {
     return luafuncs_media_object_play(l, MEDIA_TYPE_AUDIO_PANNED);
 }
 
+/// Stop the sound represented by the panned sound object.
+// Does nothing if the sound doesn't currently play
+// @function stop
+// @tparam number fadeout (optional) If specified, the sound will fade out for the specified amount in seconds. Otherwise it will stop instantly
+
+int luafuncs_media_pannedSound_stop(lua_State* l) {
+    return luafuncs_media_object_stop(l, MEDIA_TYPE_AUDIO_PANNED);
+}
+
+/// Set the sound priority of the panned sound,
+// see explanation of @{blitwizard.audio.simpleSound:setPriority}.
+//
+// Panned sounds default to a priority of 2.
+// @function setPriority
+// @tparam number priority Priority from 0 (lowest) to 20 (highest), values will be rounded down to have no decimal places (0.5 becomes 0, 1.7 becomes 1, etc)
+
+int luafuncs_media_pannedSound_setPriority(lua_State* l) {
+    return luafuncs_media_object_setPriority(l, MEDIA_TYPE_AUDIO_SIMPLE);
+}
+
 /// Implements a positioned sound which can either follow a
 // specific @{blitwizard.object|blitwizard object} or which
 // you can move to any position you like. It will alter volume
@@ -138,6 +194,17 @@ int luafuncs_media_pannedSound_play(lua_State* l) {
 int luafuncs_media_positionedSound_new(lua_State* l) {
     return luafuncs_media_object_new(l, MEDIA_TYPE_AUDIO_POSITIONED);
 }
+
+
+/// Stop the sound represented by the positioned sound object.
+// Does nothing if the sound doesn't currently play
+// @function stop
+// @tparam number fadeout (optional) If specified, the sound will fade out for the specified amount in seconds. Otherwise it will stop instantly
+
+int luafuncs_media_positionedSound_stop(lua_State* l) {
+    return luafuncs_media_object_stop(l, MEDIA_TYPE_AUDIO_POSITIONED);
+}
+
 
 
 // Various cleanup and management functions:

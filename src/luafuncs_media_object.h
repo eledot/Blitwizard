@@ -28,6 +28,10 @@
 #include "mediaobject.h"
 
 int luafuncs_media_simpleSound_new(lua_State* l);
+int luafuncs_media_simpleSound_play(lua_State* l);
+int luafuncs_media_simpleSound_stop(lua_State* l);
+int luafuncs_media_simpleSound_setPriority(lua_State* l);
+int luafuncs_media_simpleSound_adjust(lua_State* l);
 int luafuncs_media_pannedSound_new(lua_State* l);
 int luafuncs_media_positionedSound_new(lua_State* l);
 
