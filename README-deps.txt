@@ -43,8 +43,8 @@ That file contains:
 	Box2D 2.2.1
     Speex 1.2rc1
     OGRE 1.8.0
-    PhysFS 2.0.3
-    bullet 2.8.0
+    PhysFS 2.1 (hg)
+    bullet 2.81
 
 WARNING: Those versions might be outdated and may contain bugs! Please
 always check if there are newer versions available, and consider
@@ -68,12 +68,12 @@ Required for null device audio, audio:
     src/vorbis
    http://xiph.org/downloads/
 
-Required for null device graphics, graphics:
+Required for null device graphics, or normal (2d/3d) graphics:
  - drop the contents of a source tarball of a recent libpng release into
     src/imgloader/png
    see http://libpng.org/pub/png/libpng.html
 
-Required for null device graphics, graphics:
+Required for null device graphics, or normal (2d/3d) graphics:
  - drop the contents of a source tarball of a recent zlib release into
     src/imgloader/zlib
    see http://zlib.net/
@@ -104,7 +104,7 @@ Required for additional high quality audio resampling support (you want this!):
    see http://speex.org/
 
 Required for .zip and game embedded into binary support:
- - drop the contents of a source tarball of a recent PhysFS release into
+ - drop the contents of a source tarball of a recent PhysFS >= 2.1 release into
     src/physfs/
    see http://icculus.org/physfs/
 
