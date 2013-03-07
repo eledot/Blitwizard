@@ -42,6 +42,9 @@
 struct physicsobject2d;
 int luafuncs_globalcollision2dcallback_unprotected(void* userdata, struct physicsobject2d* a, struct physicsobject2d* b, double x, double y, double normalx, double normaly, double force);
 
+// media cleanup callback:
+void checkAllMediaObjectsForCleanup(void);
+
 int wantquit = 0; // set to 1 if there was a quit event
 int suppressfurthererrors = 0; // a critical error was shown, don't show more
 int windowisfocussed = 0;
@@ -578,16 +581,17 @@ int main(int argc, char** argv) {
     // check if provided script path is a folder:
     if (file_IsDirectory(script)) {
         // make sure it isn't inside a resource file as a proper file:
-
-        // it isn't, so we can safely assume it is a folder.
-        // -> append "game.lua" to the path
-        filenamebuf = file_AddComponentToPath(script, "game.lua");
-        if (!filenamebuf) {
-            printerror("Error: failed to add component to script path");
-            main_Quit(1);
-            return 1;
+        if (!resource_LocateResource(script, NULL)) {
+            // it isn't, so we can safely assume it is a folder.
+            // -> append "game.lua" to the path
+            filenamebuf = file_AddComponentToPath(script, "game.lua");
+            if (!filenamebuf) {
+                printerror("Error: failed to add component to script path");
+                main_Quit(1);
+                return 1;
+            }
+            script = filenamebuf;
         }
-        script = filenamebuf;
     }
 
     // check if we want to change directory to the provided script path:
@@ -804,6 +808,9 @@ int main(int argc, char** argv) {
             }
         }
 #endif // ifdef USE_AUDIO
+
+        // check for unused, no longer playing media objects:
+        checkAllMediaObjectsForCleanup();
 
         // slow sleep: check if we can safe some cpu by waiting longer
         unsigned int deltaspan = 16;

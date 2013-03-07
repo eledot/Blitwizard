@@ -54,6 +54,7 @@ int luastate_CallFunctionInMainstate(const char* function, int args, int recursi
 #define IDREF_BLITWIZARDOBJECT 3
 
 struct blitwizardobject;
+struct mediaobject;
 struct luaidref {
     int magic;
     int type;
@@ -61,6 +62,7 @@ struct luaidref {
         int id;
         void* ptr;
         struct blitwizardobject* bobj;
+        struct mediaobject* mobj;
     } ref;
 };
 

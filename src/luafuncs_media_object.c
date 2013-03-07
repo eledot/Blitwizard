@@ -50,6 +50,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+struct mediaobject* mediaObjects = NULL;
+
+static int garbagecollect_mediaobjref(lua_State* l);
 int luafuncs_media_object_new(lua_State* l, int type) {
     // check which function called us:
     char funcname_simple[] = "blitwizard.audio.simpleSound:new";
@@ -79,22 +82,65 @@ int luafuncs_media_object_new(lua_State* l, int type) {
         return haveluaerror(l, badargument1, 1, funcname,
         "string", lua_strtype(l, 2));
     }
+    const char* p = lua_tostring(l, 2);
+
+    // check if the given resource exists:
+    if (!resource_LocateResource(p, NULL)) {
+        return haveluaerror(l, "Sound file \"%s\" not found", p);
+    }
+
+    // generate new sound object:
+    struct luaidref* iref = lua_newuserdata(l, sizeof(*iref));
+    memset(iref, 0, sizeof(*iref));
+    iref->magic = IDREF_MAGIC;
+    iref->type = IDREF_MEDIA;
+    iref->ref.mobj = malloc(sizeof(struct mediaobject));
+    if (!iref->ref.mobj) {
+        lua_pop(l, 1);
+        return haveluaerror(l, "Failed to allocate media object");
+    }
+    luastate_SetGCCallback(l, -1, (int (*)(void*))&garbagecollect_mediaobjref);
+    struct mediaobject* m = iref->ref.mobj;
+    memset(m, 0, sizeof(*m));
+    m->type = type;
+    m->refcount++;
+
+    // set proper default priority:
+    switch (type) {
+    case MEDIA_TYPE_AUDIO_SIMPLE:
+        m->mediainfo.sound.priority = 5;
+        break;
+    case MEDIA_TYPE_AUDIO_PANNED:
+        m->mediainfo.sound.priority = 2;
+        break;
+    case MEDIA_TYPE_AUDIO_POSITIONED:
+        m->mediainfo.sound.priority = 2;
+        break;
+    }
+
+    // add to media object list:
+    if (mediaObjects) {
+        mediaObjects->prev = m;
+    }
+    m->next = mediaObjects;
+    mediaObjects = m;
+    return 1;
 }
 
 int luafuncs_media_object_play(lua_State* l, int type) {
-
+    return 0;
 }
 
 int luafuncs_media_object_stop(lua_State* l, int type) {
-
+    return 0;
 }
 
 int luafuncs_media_object_setPriority(lua_State* l, int type) {
-
+    return 0;
 }
 
 int luafuncs_media_object_adjust(lua_State* l, int type) {
-
+    return 0;
 }
 
 /// Implements a simple sound which has no
@@ -120,11 +166,21 @@ int luafuncs_media_simpleSound_new(lua_State* l) {
     return luafuncs_media_object_new(l, MEDIA_TYPE_AUDIO_SIMPLE);
 }
 
-/// Play the sound represented by the simple sound object. If the sound file doesn't exist or if it is in an unsupported format, an error will be thrown
+/// Play the sound represented by the simple sound object.
+//
+// If the sound file doesn't exist or if it is in an unsupported format,
+// an error will be thrown.
+//
+// Does nothing if the sound object is already playing: to play a sound
+// multiple times at once, use multiple sound objects.
 // @function play
 // @tparam number volume (optional) Volume at which the sound plays from 0 (quiet) to 1 (full volume). Defaults to 1
 // @tparam boolean loop (optional) If set to true, the sound will loop until explicitely stopped. If set to false or if not specified, it will play once
 // @tparam number fadein (optional) Fade in from silence to the specified volume in the given amount of seconds, instead of playing at full volume right from the start
+// @usage -- play sound file "blubber.ogg" at 80% volume and
+// -- fade in for 5 seconds
+// mysound2 = @{blitwizard.audio.simpleSound:new}("blubber.ogg")
+// mysound2:play(0.8, 8)
 
 int luafuncs_media_simpleSound_play(lua_State* l) {
     return luafuncs_media_object_play(l, MEDIA_TYPE_AUDIO_SIMPLE);
@@ -253,8 +309,46 @@ int luafuncs_media_positionedSound_stop(lua_State* l) {
 
 // Various cleanup and management functions:
 
-void cleanupmediaobject(struct blitwizardobject* o) {
+void cleanupMediaObject(struct mediaobject* o) {
     
+}
+
+void deleteMediaObject(struct mediaobject* o) {
+    cleanupMediaObject(o);
+
+    // remove object from the list
+    if (o->prev) {
+        // adjust prev object to have new next pointer
+        o->prev->next = o->next;
+    } else {
+        // was first object in list -> adjust list start pointer
+        mediaObjects = o->next;
+    }
+    if (o->next) {
+        // adjust next object to have new prev pointer
+        o->next->prev = o->prev;
+    }
+
+    // free object
+    free(o);
+}
+
+static void mediaobject_UpdateIsPlaying(struct mediaobject* o) {
+
+}
+
+void checkAllMediaObjectsForCleanup() {
+    struct mediaobject* m = mediaObjects;
+    while (m) {
+        struct mediaobject* mnext = m->next;
+        if (m->refcount <= 0) {
+            mediaobject_UpdateIsPlaying(m);
+            if (!m->isPlaying) {
+                deleteMediaObject(m);
+            }
+        }
+        m = mnext;
+    } 
 }
 
 static int garbagecollect_mediaobjref(lua_State* l) {
@@ -273,29 +367,16 @@ static int garbagecollect_mediaobjref(lua_State* l) {
     }
 
     // it is a valid media object, decrease ref count:
-    struct mediaobject* o = idref->ref.bobj;
+    struct mediaobject* o = (struct mediaobject*)idref->ref.mobj;
     o->refcount--;
 
     // if it's not playing and ref count is zero, remove it
     // entirely and free it:
-    if (!o->isPlaying && o->refcount <= 0) {
-        cleanupmediaobject(o);
-
-        // remove object from the list
-        if (o->prev) {
-            // adjust prev object to have new next pointer
-            o->prev->next = o->next;
-        } else {
-            // was first object in list -> adjust list start pointer
-            mediaObjects = o->next;
+    if (o->refcount <= 0) {
+        mediaobject_UpdateIsPlaying(o);
+        if (!o->isPlaying) {
+            deleteMediaObject(o);
         }
-        if (o->next) {
-            // adjust next object to have new prev pointer
-            o->next->prev = o->prev;
-        }
-
-        // free object
-        free(o);
     }
     return 0;
 }

@@ -58,7 +58,8 @@ struct resourcelocation {
 };
 
 // Locate a resource:
-int resource_LocateResource(struct resourcelocation* location);
+int resource_LocateResource(const char* resource,
+struct resourcelocation* location);
 // Returns 1 if resource is found, in which case the given
 // resourceinfo struct is modified to share the information.
 // Returns 0 if the resource wasn't found.

@@ -490,6 +490,24 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
 // @tfield number rotation_tilt (optional) rotation of any 3d shape 0..360 degree up and down, applied after horizontal rotation
 // @tfield number rotation_roll (optional) rotation of any 3d shape 0..360 degree around itself while remaining faced forward (basically overturning/leaning on the side), applied after the horizontal and vertical rotations
 // @table shape_info
+// @usage -- Specify a square 2d box as collision shape:
+// local myshape = {
+//   width = 1,
+//   height = 1,
+// }
+// -- Create a new 2d object from an image:
+// local myobject = @{blitwizard.object:new}(false, "someimage.png")
+// -- (the image should be square if you don't want it to look squished)
+//
+// -- Set the dimensions of the object to a 1x1 square
+// -- (find out how large that is in pixels
+// -- at the default zoom level with
+// -- {blitwizard.graphics.getDefaultCamera}:{blitwizard.graphics.camera:gameUnitsPerPixel|gameUnitsPerPixel}() - multiply this
+// -- with any number of game units to get their size in pixels)
+// myobject:setScale(1, 1)
+//
+// -- Enable collision for our object:
+// myobject:enableCollision(myshape)
 
 /// Enable the physics simulation on the given object and make it
 // movable and collide with other movable and static objects.

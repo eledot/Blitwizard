@@ -36,6 +36,7 @@ struct mediaobject {
     int refcount;  // refcount of luaidref references
     union {
         struct {
+            int priority;
             float volume;
             float panning;
             int is3d;

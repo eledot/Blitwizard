@@ -177,7 +177,13 @@
     <strong>simpleSound:play&nbsp;(volume, loop, fadein)</strong>
     </dt>
     <dd>
-    Play the sound represented by the simple sound object.  If the sound file doesn't exist or if it is in an unsupported format, an error will be thrown
+    Play the sound represented by the simple sound object.
+
+ If the sound file doesn't exist or if it is in an unsupported format,
+ an error will be thrown.
+
+ Does nothing if the sound object is already playing: to play a sound
+ multiple times at once, use multiple sound objects.
 
     <h3>Parameters:</h3>
     <ul>
@@ -195,6 +201,13 @@
 
 
 
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"> <span class="comment">-- play sound file "blubber.ogg" at 80% volume and
+</span> <span class="comment">-- fade in for 5 seconds
+</span> mysound2 = @{blitwizard.audio.simpleSound:new}(<span class="string">"blubber.ogg"</span>)
+ mysound2:play(<span class="number">0.8</span>, <span class="number">8</span>)</pre>
+    </ul>
 
 </dd>
     <dt>
