@@ -45,12 +45,40 @@
 #include "luafuncs_media_object.h"
 #include "luaheader.h"
 #include "luastate.h"
+#include "luaerror.h"
 
 #include <stdlib.h>
 #include <string.h>
 
 int luafuncs_media_object_new(lua_State* l, int type) {
+    // check which function called us:
+    char funcname_simple[] = "blitwizard.audio.simpleSound:new";
+    char funcname_panned[] = "blitwizard.audio.pannedSound:new";
+    char funcname_positioned[] = "blitwizard.audio.positionedSound:new";
+    char funcname_unknown[] = "???";
+    char* funcname = funcname_unknown;
+    switch (type) {
+    case MEDIA_TYPE_AUDIO_SIMPLE:
+        funcname = funcname_simple;
+        break;
+    case MEDIA_TYPE_AUDIO_PANNED:
+        funcname = funcname_panned;
+        break;
+    case MEDIA_TYPE_AUDIO_POSITIONED:
+        funcname = funcname_positioned;
+        break;
+    }
 
+    // technical first argument is the object table,
+    // which we don't care about in the :new function.
+    // actual specified first argument is the second one
+    // on the lua stack.
+
+    // first argument needs to be media file name
+    if (lua_type(l, 2) != LUA_TSTRING) {
+        return haveluaerror(l, badargument1, 1, funcname,
+        "string", lua_strtype(l, 2));
+    }
 }
 
 int luafuncs_media_object_play(lua_State* l, int type) {
@@ -76,7 +104,7 @@ int luafuncs_media_object_stop(lua_State* l, int type) {
 /// Create a new simple sound object.
 // @function new
 // @tparam string filename Filename of the audio file you want to play
-// @usage
+// @usage -- play sound file "blubber.ogg"
 // mysound = blitwizard.audio.simpleSound:new("blubber.ogg")
 // mysound:play()
 
@@ -84,7 +112,7 @@ int luafuncs_media_simpleSound_new(lua_State* l) {
     return luafuncs_media_object_new(l, MEDIA_TYPE_AUDIO_SIMPLE);
 }
 
-/// Play the sound represented by the simple sound object
+/// Play the sound represented by the simple sound object. If the sound file doesn't exist or if it is in an unsupported format, an error will be thrown
 // @function play
 // @tparam number volume (optional) Volume at which the sound plays from 0 (quiet) to 1 (full volume). Defaults to 1
 // @tparam boolean loop (optional) If set to true, the sound will loop until explicitely stopped. If set to false or if not specified, it will play once
@@ -123,6 +151,10 @@ int luafuncs_media_simpleSound_stop(lua_State* l) {
 // Simple sound objects default to a priority of 5.
 // @function setPriority
 // @tparam number priority Priority from 0 (lowest) to 20 (highest), values will be rounded down to have no decimal places (0.5 becomes 0, 1.7 becomes 1, etc)
+// @usage -- play sound file "blubber.ogg" with lowest priotiy
+// mysound = blitwizard.audio.simpleSound:new("blubber.ogg")
+// mysound:setPriority(0)
+// mysound:play()
 
 int luafuncs_media_simpleSound_setPriority(lua_State* l) {
     return luafuncs_media_object_setPriority(l, MEDIA_TYPE_AUDIO_SIMPLE);

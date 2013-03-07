@@ -135,6 +135,13 @@ AS_IF([test "x$enable_physics" = xno], [
     enable_physics3d="no"
 ])
 
+AC_ARG_ENABLE([physfs],
+    [AS_HELP_STRING([--disable-physfs],[disable optional PhysFS support which enables reading resources from .zip files])],
+[case "${enableval}" in
+    yes | no ) enable_physfs="${enableval}" ;;
+    *) AC_MSG_ERROR(bad value ${enableval} for --disable-physfs) ;;
+ esac],
+[enable_physfs=yes])
 
 AC_ARG_ENABLE([flac],
     [AS_HELP_STRING([--disable-flac],[disable optional FLAC audio support through libFLAC. If FFmpeg support is enabled and FFmpeg is available at runtime, you might still be able to play FLAC audio])],
@@ -151,9 +158,6 @@ AC_ARG_ENABLE([speex],
      *) AC_MSG_ERROR(bad value ${enableval} for --disable-speex) ;;
  esac],
 [enable_speex=yes])
-
-# cmake -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off
-
 
 
 
@@ -176,6 +180,7 @@ FFMPEG_FEATURE_ENABLED="yes"
 PHYSICS2D_FEATURE_ENABLED="yes"
 PHYSICS3D_FEATURE_ENABLED="yes"
 FAST_FLOAT2INT_FEATURE_ENABLED="yes"
+ZIP_FEATURE_ENABLED="yes"
 
 
 # Lib deps info text for later output:
@@ -410,6 +415,27 @@ AS_IF([test "x$enable_graphics" = xyes],[ # START enable_graphics block
     SDL_GRAPHICS_FEATURE_ENABLED="no, disabled"
     OGRE_GRAPHICS_FEATURE_ENABLED="no, disabled"
     NULL_GRAPHICS_FEATURE_ENABLED="no, disabled"
+])
+
+# Check PhysFS:
+AC_MSG_CHECKING([for static PhysFS library])
+AS_IF([test ! -f "src/physfs/physfs.c"],[
+    AC_MSG_RESULT([no])
+    AC_CHECK_LIB([physfs], [PHYSFS_init],[
+        #shared lib is there!
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libphysfs: shared"
+    ],[
+        #nothing there
+        LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libphysfs: no"
+        ZIP_FEATURE_ENABLED="no, need libphysfs"
+    ])
+],[
+    AC_MSG_RESULT([yes])
+    STATIC_LIBS_USE="${STATIC_LIBS_USE} PhysFS"
+    LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
+  libphysfs: static"
 ])
 
 AS_IF([test "x$enable_audio" = xyes],[ # START enable_audio block
@@ -700,9 +726,18 @@ AS_IF([test "x$SDL_GRAPHICS_FEATURE_ENABLED" = xyes],[
     ])
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_SDL_GRAPHICS"
 ])
+AS_IF([test "x$ZIP_FEATURE_ENABLED" = xyes],[
+    statictest=`echo $STATIC_LIBS_USE | grep PhysFS`
+    AS_IF([test -z "$statictest"], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lphysfs"
+    ], [
+        FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardPhysFS"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iphysfs"
+    ])
+    FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSFS"
+])
 AS_IF([test "x$OGRE_GRAPHICS_FEATURE_ENABLED" = xyes],[
     statictest=`echo $STATIC_LIBS_USE | grep Ogre3D`
-    SDLADDED=yes
 
     # Add ogre to include path:
     AS_IF([test -z "$statictest"], [
@@ -1020,6 +1055,7 @@ This results in the following feature set:
   2D physics simulation support: ${PHYSICS2D_FEATURE_ENABLED}
   3D physics simulation support: ${PHYSICS3D_FEATURE_ENABLED}
   Fast float-to-int conversion: ${FAST_FLOAT2INT_FEATURE_ENABLED}
+  Zip archive resource loading: ${ZIP_FEATURE_ENABLED}
 "
 
 

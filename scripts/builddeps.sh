@@ -168,7 +168,7 @@ if [ ! -e libs/libblitwizardOgreMainStatic.a ]; then
     if [ -n "`echo $static_libs_use | grep Ogre3D`" ]; then
         cd src/ogre/
         rm ./CMakeCache.txt
-        cmake -DOGRE_CONFIG_ENABLE_ZIP=FALSE -DOGRE_BUILD_PLUGIN_BSP=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_PFX=0 -DOGRE_BUILD_PLUGIN_PCZ=0 -DOGRE_BUILD_PLUGIN_OCTREE=1 -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TESTS=0 -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_CG=off . || { echo "Failed to compile Ogre3D"; exit 1; }
+        cmake -DOGRE_CONFIG_ENABLE_ZIP=FALSE -DOGRE_BUILD_PLUGIN_BSP=0 -DOGRE_CONFIG_DOUBLE=1 -DOGRE_BUILD_PLUGIN_PFX=0 -DOGRE_BUILD_PLUGIN_PCZ=1 -DOGRE_BUILD_PLUGIN_OCTREE=1 -DOGRE_CONFIG_ENABLE_FREEIMAGE=0 -DOGRE_CONFIG_ENABLE_DDS=0 -DOGRE_CONFIG_THREADS=2 -DOGRE_STATIC=on -DOGRE_BUILD_RENDERSYSTEM_GL=on -DOGRE_BUILD_TESTS=0 -DOGRE_BUILD_TOOLS=0 -DOGRE_BUILD_SAMPLES=0 -DOGRE_BUILD_PLUGIN_CG=off . || { echo "Failed to compile Ogre3D"; exit 1; }
         make || { echo "Failed to compile Ogre3D"; exit 1; }
         cd "$dir"
     fi
@@ -183,6 +183,29 @@ if [ ! -e libs/libblitwizardOgreMainStatic.a ]; then
             NEWNAME="`echo $NEWNAME | sed -e 's/libblitwizardlib/libblitwizard/'`.a"
             cp "$f" "$NEWNAME"
         done
+    fi
+fi
+
+# PhysFS:
+if [ ! -e libs/libblitwizardPhysFS.a ]; then
+    if [ -n "`echo $static_libs_use | grep PhysFS`" ]; then
+        cd src/physfs/
+        rm ./CMakeCache.txt
+        cmake -DPHYSFS_BUILD_SHARED=OFF -DPHYSFS_BUILD_STATIC=ON -DPHYSFS_ARCHIVE_7Z=OFF . || { echo "Failed to compile PhysFS"; exit 1; }
+        make || {
+            # The build script is buggy and it might have worked anyway:
+            if [ ! -e libphysfs.a ]; then
+                echo "Failed to compile PhysFS"; exit 1;
+            fi
+        }
+        cd "$dir"
+    fi
+fi
+
+# Copy PhysFS:
+if [ ! -e libs/libblitwizardPhysFS.a ]; then
+    if [ -n "`echo $static_libs_use | grep PhysFS`" ]; then
+        cp src/physfs/libphysfs.a libs/libblitwizardPhysFS.a
     fi
 fi
 

@@ -85,7 +85,7 @@
 	</tr>
 	<tr>
 	<td class="name" ><a href="#simpleSound:play">simpleSound:play&nbsp;(volume, loop, fadein)</a></td>
-	<td class="summary">Play the sound represented by the simple sound object</td>
+	<td class="summary">Play the sound represented by the simple sound object.</td>
 	</tr>
 	<tr>
 	<td class="name" ><a href="#simpleSound:stop">simpleSound:stop&nbsp;(fadeout)</a></td>
@@ -167,8 +167,8 @@
 
     <h3>Usage:</h3>
     <ul>
-        <pre class="example">
- mysound = blitwizard.audio.simpleSound:new(<span class="string">"blubber.ogg"</span>)
+        <pre class="example"> <span class="comment">-- play sound file "blubber.ogg"
+</span> mysound = blitwizard.audio.simpleSound:new(<span class="string">"blubber.ogg"</span>)
  mysound:play()</pre>
     </ul>
 
@@ -178,7 +178,7 @@
     <strong>simpleSound:play&nbsp;(volume, loop, fadein)</strong>
     </dt>
     <dd>
-    Play the sound represented by the simple sound object
+    Play the sound represented by the simple sound object.  If the sound file doesn't exist or if it is in an unsupported format, an error will be thrown
 
     <h3>Parameters:</h3>
     <ul>
@@ -252,6 +252,13 @@
 
 
 
+    <h3>Usage:</h3>
+    <ul>
+        <pre class="example"> <span class="comment">-- play sound file "blubber.ogg" with lowest priotiy
+</span> mysound = blitwizard.audio.simpleSound:new(<span class="string">"blubber.ogg"</span>)
+ mysound:setPriority(<span class="number">0</span>)
+ mysound:play()</pre>
+    </ul>
 
 </dd>
     <dt>

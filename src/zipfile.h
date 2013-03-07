@@ -21,8 +21,8 @@
 
 */
 
-// Read-only zip file reader.
-// Supports reading zip files which are arbitrary parts inside
+// Read-only zip archive api.
+// Supports reading .zip files which can be arbitrary parts inside
 // a larger file (e.g. appended to an .exe file) if you specify
 // the bounds accordingly.
 // Can be used from multiple threads if each thread has a separate

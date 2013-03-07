@@ -22,6 +22,7 @@
 */
 
 #include "os.h"
+#include "resources.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -155,6 +156,7 @@ void main_InitAudio(void) {
     s16mixmode = 0;
 #endif  // USE_SDL_AUDIO || WINDOWS
 #else // ifdef USE_AUDIO
+    // we don't support any audio
     return;
 #endif  // ifdef USE_AUDIO
 }
@@ -538,7 +540,8 @@ int main(int argc, char** argv) {
     }
 
 #ifdef USE_AUDIO
-    // This needs to be done at some point before we actually initialise audio
+    // This needs to be done at some point before we actually 
+    // initialise audio so that the mixer is ready for use then
     audiomixer_Init();
 #endif
 
@@ -562,11 +565,25 @@ int main(int argc, char** argv) {
         file_MakeSlashesNative(option_templatepath);
     }
 
+    // load internal resources appended to this binary,
+    // so we can load the game.lua from it if there is any inside:
+#ifdef WINDOWS
+    resource_LoadZipFromOwnExecutable(NULL);
+#else
+#ifndef ANDROID
+    resource_LoadZipFromOwnExecutable(argc[0]);
+#endif
+#endif
+
     // check if provided script path is a folder:
     if (file_IsDirectory(script)) {
+        // make sure it isn't inside a resource file as a proper file:
+
+        // it isn't, so we can safely assume it is a folder.
+        // -> append "game.lua" to the path
         filenamebuf = file_AddComponentToPath(script, "game.lua");
         if (!filenamebuf) {
-            printerror("Error: failed to add component to template path");
+            printerror("Error: failed to add component to script path");
             main_Quit(1);
             return 1;
         }
