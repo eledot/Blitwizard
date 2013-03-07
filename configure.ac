@@ -418,10 +418,10 @@ AS_IF([test "x$enable_graphics" = xyes],[ # START enable_graphics block
 ])
 
 # Check PhysFS:
-AC_MSG_CHECKING([for static PhysFS library])
-AS_IF([test ! -f "src/physfs/physfs.c"],[
+AC_MSG_CHECKING([for static PhysFS >=2.1 library])
+AS_IF([test ! -f "src/physfs/src/physfs.c"],[
     AC_MSG_RESULT([no])
-    AC_CHECK_LIB([physfs], [PHYSFS_init],[
+    AC_CHECK_LIB([physfs], [PHYSFS_mountIo],[
         #shared lib is there!
         LIBS_DEP_INFO_TEXT="${LIBS_DEP_INFO_TEXT}
   libphysfs: shared"
@@ -732,7 +732,7 @@ AS_IF([test "x$ZIP_FEATURE_ENABLED" = xyes],[
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lphysfs"
     ], [
         FINAL_LD_FLAGS="$FINAL_LD_FLAGS -lblitwizardPhysFS"
-        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iphysfs"
+        FINAL_INCLUDE_FLAGS="$FINAL_INCLUDE_FLAGS -Iphysfs/src"
     ])
     FINAL_USE_LIB_FLAGS="$FINAL_USE_LIB_FLAGS -DUSE_PHYSFS"
 ])

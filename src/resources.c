@@ -53,12 +53,12 @@ int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg) {
 
 #else
     // locate our own binary using the first command line arg
-    if (!first_command_line_arg) {
+    if (!first_commandline_arg) {
         // no way of locating it.
         return 0;
     }
     printf("first argument: %s\n",
-    first_command_line_arg);
+    first_commandline_arg);
     return 0;
 #endif
 }
@@ -68,5 +68,4 @@ int resource_LocateResource(struct resourcelocation* location) {
 
 }
 
-#endif  // BLITWIZARD_RESOURCES_H_
 

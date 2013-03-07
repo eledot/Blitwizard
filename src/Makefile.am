@@ -5,7 +5,7 @@ ACLOCAL_AMFLAGS = -I m4
 
 bin_PROGRAMS = blitwizard
 
-blitwizard_SOURCES = audio.c audiomixer.c audiosourcefadepanvol.c audiosourceffmpeg.c audiosourceflac.c audiosourcefile.c audiosourceformatconvert.c audiosourceloop.c audiosourceogg.c audiosourceprereadcache.c audiosourceresample.c audiosourcewave.c connections.c file.c filelist.c graphics.c graphics2d3d.cpp graphics2d3drender.cpp graphicsnull.c graphicstexturelist.c hash.c hashtable.c hostresolver.c ipcheck.c library.c listeners.c logging.c luaerror.c luafuncs.c luafuncs_net.c luafuncs_media_object.c luafuncs_object.c luafuncs_objectgraphics.c luafuncs_objectphysics.c luastate.c main.c mathhelpers.c osinfo.c physics2d.cpp threading.c timefuncs.c win32console.c sockets.c
+blitwizard_SOURCES = audio.c audiomixer.c audiosourcefadepanvol.c audiosourceffmpeg.c audiosourceflac.c audiosourcefile.c audiosourceformatconvert.c audiosourceloop.c audiosourceogg.c audiosourceprereadcache.c audiosourceresample.c audiosourcewave.c connections.c file.c filelist.c graphics.c graphics2d3d.cpp graphics2d3drender.cpp graphicsnull.c graphicstexturelist.c hash.c hashtable.c hostresolver.c ipcheck.c library.c listeners.c logging.c luaerror.c luafuncs.c luafuncs_net.c luafuncs_media_object.c luafuncs_object.c luafuncs_objectgraphics.c luafuncs_objectphysics.c luastate.c main.c mathhelpers.c osinfo.c physics2d.cpp threading.c timefuncs.c win32console.c resources.c sockets.c zipfile.c
 blitwizard_LDADD = 
 blitwizard_LDFLAGS = $(FINAL_LD_FLAGS)
 

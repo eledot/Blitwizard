@@ -21,6 +21,8 @@
 
 */
 
+#include <stdlib.h>
+#include <stdio.h>
 #include "os.h"
 
 #ifdef USE_PHYSFS
@@ -42,7 +44,7 @@ struct zipfile {
 };
 struct PHYSFS_Io* physio = NULL;
 
-__attribute__((constructor)) void initialisezip() {
+__attribute__((constructor)) void initialisezip(void) {
     // initialize physfs and just pass some random stuff for binary name:
     PHYSFS_init("./ourrandomnonexistingbinaryname");
 }
@@ -50,7 +52,7 @@ __attribute__((constructor)) void initialisezip() {
 static PHYSFS_sint64 zipfile_Read(struct PHYSFS_Io *io, void *buf,
 PHYSFS_uint64 len) {
     // get our zip file info:
-    struct zipfile* zf = (struct zipfile*)io->opaque;
+    struct zipfile* zf = (struct zipfile*)(io->opaque);
 
     // simply read from our file handle, but no further than the limit:
     size_t readlen = len;

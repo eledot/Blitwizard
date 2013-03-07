@@ -571,7 +571,7 @@ int main(int argc, char** argv) {
     resource_LoadZipFromOwnExecutable(NULL);
 #else
 #ifndef ANDROID
-    resource_LoadZipFromOwnExecutable(argc[0]);
+    resource_LoadZipFromOwnExecutable(argv[0]);
 #endif
 #endif
 

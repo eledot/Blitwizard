@@ -89,6 +89,14 @@ int luafuncs_media_object_stop(lua_State* l, int type) {
 
 }
 
+int luafuncs_media_object_setPriority(lua_State* l, int type) {
+
+}
+
+int luafuncs_media_object_adjust(lua_State* l, int type) {
+
+}
+
 /// Implements a simple sound which has no
 // stereo left/right panning or room positioning features.
 // This is the sound object suited best for background music.
