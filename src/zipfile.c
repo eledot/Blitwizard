@@ -21,6 +21,7 @@
 
 */
 
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include "os.h"
@@ -103,9 +104,9 @@ PHYSFS_uint64 offset) {
     return 0;
 }
 
-static PHYSFS_sint64 zipfile_Destroy(struct PHYSFS_Io *io) {
+static void zipfile_Destroy(struct PHYSFS_Io *io) {
     // close file, destroy our structs:
-    struct zipfile* zf = (struct zipfile*)zf->opaque;
+    struct zipfile* zf = (struct zipfile*)(io->opaque);
     fclose(zf->f);
     free(zf->fname);
     free(zf->physio);
@@ -113,7 +114,7 @@ static PHYSFS_sint64 zipfile_Destroy(struct PHYSFS_Io *io) {
 
 struct PHYSFS_Io* zipfile_Duplicate(struct PHYSFS_Io* io) {
     // duplicate zipfile struct:
-    struct zipfile* zf = (struct zipfile*)zf->opaque;
+    struct zipfile* zf = (struct zipfile*)(io->opaque);
     struct zipfile* newzip = malloc(sizeof(*newzip));
     if (!newzip) {
         return NULL;
@@ -200,7 +201,7 @@ size_t sizeinfile) {
     // initialise sizeinfile to something senseful if zero:
     if (zf->sizeinfile == 0) {
         // initialise to possible file size:
-        zf->sizeinfile = file_GetSize(zf->name)-zf->offsetinfile;
+        zf->sizeinfile = file_GetSize(zf->fname)-zf->offsetinfile;
     }
 
     // allocate physfs io struct:
