@@ -21,12 +21,14 @@
 
 */
 
+#include <string.h>
 #include <stdio.h>
 #include "resources.h"
+#include "file.h"
 
 int resources_LoadZip(const char* path) {
 #ifdef USE_PHYSFS
-
+    return 0;  // unimplemented for now
 #else  // USE_PHYSFS
     // no PhysFS -> no .zip support
     return 0;
@@ -64,8 +66,26 @@ int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg) {
 }
 
 
-int resource_LocateResource(struct resourcelocation* location) {
+int resource_LocateResource(const char* path,
+struct resourcelocation* location) {
+#ifdef USE_PHYSFS
+    // check resource archives:
 
+#endif
+    // check the hard disk as last location:
+    if (file_DoesFileExist(path) && !file_IsDirectory(path)) {
+        if (location) {
+            location->type = LOCATION_TYPE_DISK;
+            int i = strlen(path);
+            if (i >= MAX_RESOURCE_PATH) {
+                i = MAX_RESOURCE_PATH-1;
+            }
+            memcpy(location->location.disklocation.filepath, path, i);
+            location->location.disklocation.filepath[i] = 0;
+        }
+        return 1;
+    }
+    return 0;
 }
 
 

@@ -31,6 +31,7 @@
 #include "file.h"
 #include "physfs.h"
 #include "zipfile.h"
+#include "zipdecryption.h"
 
 #define MOUNT_POINT_LEN 20
 
