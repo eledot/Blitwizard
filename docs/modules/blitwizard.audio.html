@@ -138,7 +138,8 @@
 
 
     <h2><a name="Class_simpleSound"></a>Class simpleSound</h2>
-
+        Implements a simple sound which has no
+ stereo left/right panning or room positioning features.
  This is the sound object suited best for background music.
  It deactivates some of the postprocessing which would allow positioning
  or stereo panning which results in slightly better and
@@ -147,6 +148,10 @@
  The default <a href="../modules/blitwizard.audio.html#simpleSound:setPriority">sound priority</a>
  for simple sound objects is 5.
 
+            <h3>Usage:</h3>
+            <pre class="example"> <span class="comment">-- play sound file "blubber.ogg"
+</span> mysound = blitwizard.audio.simpleSound:new(<span class="string">"blubber.ogg"</span>)
+ mysound:play()</pre>
     <dl class="function">
     <dt>
     <a name = "simpleSound:new"></a>
@@ -165,12 +170,6 @@
 
 
 
-    <h3>Usage:</h3>
-    <ul>
-        <pre class="example"> <span class="comment">-- play sound file "blubber.ogg"
-</span> mysound = blitwizard.audio.simpleSound:new(<span class="string">"blubber.ogg"</span>)
- mysound:play()</pre>
-    </ul>
 
 </dd>
     <dt>
@@ -283,7 +282,7 @@
 </dd>
 </dl>
     <h2><a name="Class_pannedSound"></a>Class pannedSound</h2>
-
+        Implements a sound with simple left/right stereo panning.
  If you want to make a sound emit from a specific location,
  you should probably use a
  <a href="../modules/blitwizard.audio.html#Class_positionedSound">positionedSound</a> instead
@@ -379,7 +378,9 @@
 </dd>
 </dl>
     <h2><a name="Class_positionedSound"></a>Class positionedSound</h2>
-     It will alter volume
+        Implements a positioned sound which can either follow a
+ specific <a href="../modules/blitwizard.html#Class_object">blitwizard object</a> or which
+ you can move to any position you like.  It will alter volume
  based on distance and channels based on direction to simulate
  its room placement.
     <dl class="function">

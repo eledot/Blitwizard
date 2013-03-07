@@ -107,14 +107,14 @@ int luafuncs_media_object_adjust(lua_State* l, int type) {
 // The default @{blitwizard.audio.simpleSound:setPriority|sound priority}
 // for simple sound objects is 5.
 //
+// @usage -- play sound file "blubber.ogg"
+// mysound = blitwizard.audio.simpleSound:new("blubber.ogg")
+// mysound:play()
 // @type simpleSound
 
 /// Create a new simple sound object.
 // @function new
 // @tparam string filename Filename of the audio file you want to play
-// @usage -- play sound file "blubber.ogg"
-// mysound = blitwizard.audio.simpleSound:new("blubber.ogg")
-// mysound:play()
 
 int luafuncs_media_simpleSound_new(lua_State* l) {
     return luafuncs_media_object_new(l, MEDIA_TYPE_AUDIO_SIMPLE);
