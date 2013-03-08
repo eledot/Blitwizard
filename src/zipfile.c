@@ -231,7 +231,7 @@ size_t sizeinfile) {
         zf->physio->destroy(zf->physio);
         return 0;
     }
-    return 1;
+    return zf;
 }
 
 void zipfile_Close(struct zipfile* zf) {

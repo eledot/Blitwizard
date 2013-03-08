@@ -496,13 +496,13 @@ int luafuncs_enableCollision(lua_State* l, int movable) {
 //   height = 1,
 // }
 // -- Create a new 2d object from an image:
-// local myobject = @{blitwizard.object:new}(false, "someimage.png")
+// local myobject = blitwizard.object:new(false, "someimage.png")
 // -- (the image should be square if you don't want it to look squished)
 //
 // -- Set the dimensions of the object to a 1x1 square
 // -- (find out how large that is in pixels
 // -- at the default zoom level with
-// -- {blitwizard.graphics.getDefaultCamera}:{blitwizard.graphics.camera:gameUnitsPerPixel|gameUnitsPerPixel}() - multiply this
+// -- @{blitwizard.graphics.getDefaultCamera}:@{blitwizard.graphics.camera:gameUnitsPerPixel|gameUnitsPerPixel}() - multiply this
 // -- with any number of game units to get their size in pixels)
 // myobject:setScale(1, 1)
 //

@@ -1,4 +1,5 @@
 -- LDoc configuration file
+backtick_references = true
 wrap = true
 merge = true
 file = { INSERT_FILES_HERE }

@@ -29,6 +29,9 @@
 #ifndef BLITWIZARD_ZIPDECRYPTION_H_
 #define BLITWIZARD_ZIPDECRYPTION_H_
 
+// a decryption instance:
+struct zipdecryption;
+
 // the zip decrypt file access functions which you pass
 // to the zip decrypter. the userdata will be passed through
 // to you by the zip decrypter:

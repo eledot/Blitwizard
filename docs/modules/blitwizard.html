@@ -359,13 +359,13 @@
    height = <span class="number">1</span>,
  }
  <span class="comment">-- Create a new 2d object from an image:
-</span> <span class="keyword">local</span> myobject = @{blitwizard.object:new}(<span class="keyword">false</span>, <span class="string">"someimage.png"</span>)
+</span> <span class="keyword">local</span> myobject = blitwizard.object:new(<span class="keyword">false</span>, <span class="string">"someimage.png"</span>)
  <span class="comment">-- (the image should be square if you don't want it to look squished)
 </span>
  <span class="comment">-- Set the dimensions of the object to a 1x1 square
 </span> <span class="comment">-- (find out how large that is in pixels
-</span> <span class="comment">-- at the current zoom level with
-</span> <span class="comment">-- {blitwizard.graphics.getDefaultCamera}:{blitwizard.graphics.camera:gameUnitsPerPixel|gameUnitsPerPixel}() - multiply this
+</span> <span class="comment">-- at the default zoom level with
+</span> <span class="comment">-- ???:???() - multiply this
 </span> <span class="comment">-- with any number of game units to get their size in pixels)
 </span> myobject:setScale(<span class="number">1</span>, <span class="number">1</span>)
 
