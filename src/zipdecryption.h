@@ -31,7 +31,11 @@
 
 #include <unistd.h>
 
+struct zipdecryptionfileaccess;
+
+// Update the next two lines for your custom decryption:
 #define DEFAULT_DECRYPTER zipdecryption_None
+#include "zipdecryptionnone.h"
 
 // a decryption instance:
 struct zipdecrypter;
@@ -106,8 +110,6 @@ struct zipdecrypter {
     // internal data of the decrypter, don't touch:
     void* internaldata;
 };
-
-#include "zipdecryptionnone.h"
 
 #endif  // BLITWIZARD_ZIPDECRYPTION_H_
 

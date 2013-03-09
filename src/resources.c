@@ -39,7 +39,7 @@ int resource_LoadZipFromExecutable(const char* path) {
 #ifdef USE_PHYSFS
 #ifdef WINDOWS
     // on windows and using PhysFS
-
+    return 0;
 #else  // WINDOWS
     // on some unix with PhysFS
     return 0;
