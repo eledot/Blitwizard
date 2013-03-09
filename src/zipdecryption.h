@@ -29,8 +29,12 @@
 #ifndef BLITWIZARD_ZIPDECRYPTION_H_
 #define BLITWIZARD_ZIPDECRYPTION_H_
 
+#include <unistd.h>
+
+#define DEFAULT_DECRYPTER zipdecryption_None
+
 // a decryption instance:
-struct zipdecryption;
+struct zipdecrypter;
 
 // the zip decrypt file access functions which you pass
 // to the zip decrypter. the userdata will be passed through
@@ -59,33 +63,51 @@ struct zipdecryptionfileaccess {
 
     // close the file:
     void (*close)(void* userdata);
+
+    // duplicate the file access struct & file handle:
+    int (*duplicate)(void* userdata, struct zipdecryptionfileaccess* faccess);
+    // duplicates the file access and writes new function
+    // pointers & userdata to 'faccess' and
+    // returns 1 on success, 0 on error.
+
+    // the user data that should be passed to the functions
+    void* userdata;
 };
 
-// the zip decrypt functions to read the final result:
-// (you get this struct from the decrypter)
-struct zipdecryptionresult {
+// the zip decrypter with the actual decryption functions
+// to read the final result:
+// (you get this struct from the decrypter creation function)
+struct zipdecrypter {
     // read from the decrypted file:
-    size_t (*read)(struct zipdecryption* d, char* buffer, size_t bytes);
+    size_t (*read)(struct zipdecrypter* d, char* buffer, size_t bytes);
     // returns amount of bytes read, or 0 if EOF or error
 
     // check if EOF state is reached:
-    int (*eof)(struct zipdecryption* d);
+    int (*eof)(struct zipdecrypter* d);
     // returns 1 if yes or otherwise 0
 
     // peek at length of decrypted file:
-    size_t (*length)(struct zipdecryption* d);
+    size_t (*length)(struct zipdecrypter* d);
     // returns 0 in case of an error
 
     // seek to a given position:
-    int (*seek)(struct zipdecryption* d);
+    int (*seek)(struct zipdecrypter* d, size_t pos);
     // returns 1 on success, 0 on error
 
     // tell current position in the file:
-    size_t (*tell)(struct zipdecryption* d);
+    size_t (*tell)(struct zipdecrypter* d);
 
     // close the decrypted file and the decrypter:
-    void (*close)(struct zipdecryption* d);
+    void (*close)(struct zipdecrypter* d);
+
+    // duplicate the decrypter:
+    struct zipdecrypter* (*duplicate)(struct zipdecrypter* d);
+
+    // internal data of the decrypter, don't touch:
+    void* internaldata;
 };
+
+#include "zipdecryptionnone.h"
 
 #endif  // BLITWIZARD_ZIPDECRYPTION_H_
 

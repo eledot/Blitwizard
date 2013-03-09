@@ -36,7 +36,21 @@
 // open a zip archive file:
 struct zipfile;
 struct zipfile* zipfile_Open(const char* file, size_t offsetinfile,
-size_t sizeinfile);
+size_t sizeinfile, int encrypted);
+// The first parameter specifies the file name.
+//
+// In addition, you must specify the offset inside the file
+// where the .zip can be found (or 0 if there is no other stuff
+// prepending the .zip inside the file), and you must specify
+// the size inside the file, starting from the offset, that
+// belongs to the .zip (or 0 if simply up to the end of the file).
+//
+// Finally, if you wrote a zip decrypter that can decrypt
+// encrypted zip data of yours, specify 1 for encrypted to
+// make use of it (it also needs to be specified as default
+// decrypter inside zipdecryption.h). Otherwise, specify 0
+// for regular undecrypted .zip data.
+
 
 // iterate over all files in a directory the given zip archive
 // (start with "" to get a listing of the archive's root directory)
