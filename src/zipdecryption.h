@@ -21,8 +21,8 @@
 
 */
 
-// Zip decryption api.
-// This api is implemented by zip decryption variants and
+// Zip decryption interface.
+// This interface is implemented by zip decryption variants and
 // decrypts the encrypted zip resource files.
 // It implements read-only decrypted access.
 
