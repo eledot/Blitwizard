@@ -21,6 +21,7 @@
 
 */
 
+#include <windows.h>
 #include <string.h>
 #include <stdio.h>
 #include "resources.h"
@@ -59,7 +60,7 @@ int resource_LoadZipFromExecutable(const char* path) {
     }
 
     // locate PE header
-    IMAGE_NT_HEADERS32 nth;
+    IMAGE_NT_HEADERS nth;
     fseek(r, h.e_lfanew, SEEK_SET);
     if (fread(&nth, 1, sizeof(nth), r) != sizeof(nth)) {
         fclose(r);
