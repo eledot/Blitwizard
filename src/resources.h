@@ -28,7 +28,9 @@
 // and decides where to pick any resource from (image, sound, ...).
 
 // Manage resource zip files:
-int resources_LoadZip(const char* path);
+int resources_LoadZipFromFile(const char* path);
+int resources_LoadZipFromFilePart(const char* path,
+size_t offsetinfile, size_t sizeinfile);
 int resource_LoadZipFromExecutable(const char* path);
 int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg);
 // (all functions return 1 on success, 0 on error)
