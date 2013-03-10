@@ -53,14 +53,49 @@ int resource_LoadZipFromExecutable(const char* path) {
 int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg) {
 #ifdef WINDOWS
 
+    return 0;
 #else
     // locate our own binary using the first command line arg
     if (!first_commandline_arg) {
         // no way of locating it.
         return 0;
     }
-    printf("first argument: %s\n",
-    first_commandline_arg);
+
+    // check if the given argument is a valid file:
+    if (!file_DoesFileExist(first_commandline_arg)
+    || file_IsDirectory(first_commandline_arg)) {
+        // not pointing at a file as expected
+        return 0;
+    }
+
+    // get an absolute path:
+    char* path = file_GetAbsolutePathFromRelativePath(first_commandline_arg);
+    if (!path) {
+        return 0;
+    }
+
+    // open file:
+    FILE* r = fopen(path, "rb");
+
+    // see if this is an ELF file:
+    char magic[4];
+    if (fread(magic, 1, 4, r) != 4) {
+        fclose(r);
+        return 0;
+    }
+    if (magic[0] != 127 || memcmp("ELF", magic+1, 3) != 0) {
+        // not an ELF binary
+        fclose(r);
+        return 0;
+    }
+    printf("ELF binary is at: %s\n", path);
+
+    // read regular size of ELF binary from header:
+
+
+    // close file:
+    fclose(r);
+
     return 0;
 #endif
 }
