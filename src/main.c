@@ -514,6 +514,11 @@ int main(int argc, char** argv) {
                     #else
                     printf("     3d physics: none\n");
                     #endif
+                    #if defined(USE_PHYSFS)
+                    printf("  .zip archive resource loading: yes\n");
+                    #else
+                    printf("  .zip archive resource loading: no\n");
+                    #endif     
 
                     printf("\nVarious build options:\n");
                     printf("  SYSTEM_TEMPLATE_PATH:\n   %s\n",
