@@ -78,7 +78,7 @@ int resources_LoadZipFromFile(const char* path, int encrypted) {
 #endif  // USE_PHYSFS
 }
 
-int resource_LoadZipFromExecutable(const char* path, int encrypted) {
+int resources_LoadZipFromExecutable(const char* path, int encrypted) {
 #ifdef USE_PHYSFS
 #ifdef WINDOWS
     // on windows and using PhysFS
@@ -103,8 +103,8 @@ int resource_LoadZipFromExecutable(const char* path, int encrypted) {
     }
 
     // check header signatures:
-    if (dosheader.e_magic != IMAGE_DOS_SIGNATURE ||
-    header->Signature != IMAGE_NT_SIGNATURE) {
+    if (h.e_magic != IMAGE_DOS_SIGNATURE ||
+    nth.Signature != IMAGE_NT_SIGNATURE) {
         fclose(r);
         return 0;
     }
@@ -118,14 +118,24 @@ int resource_LoadZipFromExecutable(const char* path, int encrypted) {
     }
     fclose(r);
     void* latestSection = NULL;
-    int latestSectionIndex = -1;
+    size_t latestSectionSize = -1;
     int i = 0;
-    while (i < nth.fileHeader.NumberOfSections) {
-        if (sections[i].PointerToRawData > latestSection) {
-            latestSection = sections[i].PointerToRawData;
-            latestSectionIndex = i;
+    while (i < nth.FileHeader.NumberOfSections) {
+        // check out current section:
+        if ((void*)sections.PointerToRawData > (void*)latestSection) {
+            latestSection = (void*)sections.PointerToRawData;
+            latestSectionSize = sections.SizeOfRawData;
         }
         i++;
+
+        // read next section if this wasn't the last one:
+        if (i < nth.FileHeader.NumberOfSections) {
+            if (fread(&sections, 1, sizeof(sections), r) !=
+            sizeof(sections)) {
+                fclose(r);
+                return 0;
+            }
+        }
     }
 
     if (!latestSection) {
@@ -134,11 +144,10 @@ int resource_LoadZipFromExecutable(const char* path, int encrypted) {
     }
 
     // the size of the PE section data:
-    size_t size = (size_t)sections[i].PointerToRawData +
-    sections[i].SizeOfRawData;
+    size_t size = (size_t)latestSection + latestSectionSize;
 
     // now we have all information we want.
-    return resource_LoadZipFromFilePart(path, size, 0, encrypted);
+    return resources_LoadZipFromFilePart(path, size, 0, encrypted);
 #else  // WINDOWS
     // on some unix with PhysFS
     // open file:
@@ -170,7 +179,7 @@ int resource_LoadZipFromExecutable(const char* path, int encrypted) {
 #endif  // USE_PHYSFS
 }
 
-int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg,
+int resources_LoadZipFromOwnExecutable(const char* first_commandline_arg,
 int encrypted) {
 #ifdef WINDOWS
     // locate our exe:
@@ -186,7 +195,7 @@ int encrypted) {
     }
 
     // load from our executable:
-    int result = resource_LoadZipFromExecutable(fname, encrypted);
+    int result = resources_LoadZipFromExecutable(fname, encrypted);
     free(path);
     return result;
 #else
@@ -211,7 +220,7 @@ int encrypted) {
     }
 
     // load from our executable:
-    int result = resource_LoadZipFromExecutable(path,
+    int result = resources_LoadZipFromExecutable(path,
     encrypted);
     free(path);
     return result;
@@ -219,7 +228,7 @@ int encrypted) {
 }
 
 
-int resource_LocateResource(const char* path,
+int resources_LocateResource(const char* path,
 struct resourcelocation* location) {
 #ifdef USE_PHYSFS
     if (file_IsPathRelative(path)) {

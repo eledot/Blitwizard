@@ -573,17 +573,17 @@ int main(int argc, char** argv) {
 #ifdef WINDOWS
     // windows
     // try encrypted first:
-    if (!resource_LoadZipFromOwnExecutable(NULL, 1)) {
+    if (!resources_LoadZipFromOwnExecutable(NULL, 1)) {
         // ... ok, then attempt unencrypted:
-        resource_LoadZipFromOwnExecutable(NULL, 0);
+        resources_LoadZipFromOwnExecutable(NULL, 0);
     }
 #else
 #ifndef ANDROID
     // unix systems
     // encrypted first:
-    if (!resource_LoadZipFromOwnExecutable(argv[0], 1)) {
+    if (!resources_LoadZipFromOwnExecutable(argv[0], 1)) {
         // ... ok, then attempt unencrypted:
-        resource_LoadZipFromOwnExecutable(argv[0], 0);
+        resources_LoadZipFromOwnExecutable(argv[0], 0);
     }
 #endif
 #endif
@@ -591,7 +591,7 @@ int main(int argc, char** argv) {
     // check if provided script path is a folder:
     if (file_IsDirectory(script)) {
         // make sure it isn't inside a resource file as a proper file:
-        if (!resource_LocateResource(script, NULL)) {
+        if (!resources_LocateResource(script, NULL)) {
             // it isn't, so we can safely assume it is a folder.
             // -> append "game.lua" to the path
             filenamebuf = file_AddComponentToPath(script, "game.lua");

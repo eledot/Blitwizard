@@ -33,9 +33,9 @@
 int resources_LoadZipFromFile(const char* path, int encrypted);
 int resources_LoadZipFromFilePart(const char* path,
 size_t offsetinfile, size_t sizeinfile, int encrypted);
-int resource_LoadZipFromExecutable(const char* path,
+int resources_LoadZipFromExecutable(const char* path,
 int encrypted);
-int resource_LoadZipFromOwnExecutable(
+int resources_LoadZipFromOwnExecutable(
 const char* first_commandline_arg, int encrypted);
 // (all functions return 1 on success, 0 on error)
 
@@ -64,7 +64,7 @@ struct resourcelocation {
 };
 
 // Locate a resource:
-int resource_LocateResource(const char* resource,
+int resources_LocateResource(const char* resource,
 struct resourcelocation* location);
 // Returns 1 if resource is found, in which case the given
 // resourceinfo struct is modified to share the information.

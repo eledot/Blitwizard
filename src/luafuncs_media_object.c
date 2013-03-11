@@ -85,7 +85,7 @@ int luafuncs_media_object_new(lua_State* l, int type) {
     const char* p = lua_tostring(l, 2);
 
     // check if the given resource exists:
-    if (!resource_LocateResource(p, NULL)) {
+    if (!resources_LocateResource(p, NULL)) {
         return haveluaerror(l, "Sound file \"%s\" not found", p);
     }
 
