@@ -191,13 +191,11 @@ if [ ! -e libs/libblitwizardPhysFS.a ]; then
     if [ -n "`echo $static_libs_use | grep PhysFS`" ]; then
         cd src/physfs/
         rm ./CMakeCache.txt
-        cmake -DPHYSFS_BUILD_SHARED=OFF -DPHYSFS_BUILD_STATIC=ON -DPHYSFS_ARCHIVE_7Z=OFF . || { echo "Failed to compile PhysFS"; exit 1; }
-        make || {
-            # The build script is buggy and it might have worked anyway:
-            if [ ! -e libphysfs.a ]; then
-                echo "Failed to compile PhysFS"; exit 1;
-            fi
-        }
+        rm -f *.o
+        rm src/archiver_lzma.c
+        $CC -c src/*.c -Isrc/ || { echo "Failed to compile PhysFS"; exit 1; }
+        $AR rcs "$dir"/libs/libblitwizardPhysFS.a *.o || { echo "Failed to compile PhysFS"; exit 1; }
+        rm *.o
         cd "$dir"
     fi
 fi

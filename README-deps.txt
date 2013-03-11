@@ -29,7 +29,7 @@ If you want to use FFmpeg, please check README-build.txt for detals.
 
 == Dependencies ==
 
-Either get the deps here: http://www.blitwizard/download-files/deps.zip
+Either get the deps here: http://www.blitwizard.de/download-files/deps.zip
 (extract into the blitwizard folder root here).
 
 That file contains:
