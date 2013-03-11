@@ -21,28 +21,64 @@
 
 */
 
+#include "os.h"
+
+#ifdef WINDOWS
 #include <windows.h>
+#endif
 #include <string.h>
 #include <stdio.h>
+
 #include "resources.h"
 #include "file.h"
+#include "zipfile.h"
+
+#ifdef USE_PHYSFS
+struct resourcearchive {
+    struct zipfile* z;
+    struct resourcearchive* prev, *next;
+};
+struct resourcearchive* resourcearchives = NULL;
+#endif
 
 int resources_LoadZipFromFilePart(const char* path,
-size_t offsetinfile, size_t sizeinfile) {
-    // unimplemented for now
+size_t offsetinfile, size_t sizeinfile, int encrypted) {
+#ifdef USE_PHYSFS
+    // allocate resource location struct:
+    struct resourcearchive* rl = malloc(sizeof(*rl));
+    if (!rl) {
+        return 0;
+    }
+    memset(rl, 0, sizeof(*rl));
+
+    // open archive:
+    rl->z = zipfile_Open(path, offsetinfile, sizeinfile, 0);
+    if (!rl->z) {
+        // opening the archive failed.
+        free(rl);
+        return 0;
+    }
+
+    // add ourselves to the resourcelist:
+    if (resourcearchives) {
+        resourcearchives->prev = rl;
+    }
+    rl->next = resourcearchives;
+    resourcearchives = rl;
+#endif
     return 0;
 }
 
-int resources_LoadZipFromFile(const char* path) {
+int resources_LoadZipFromFile(const char* path, int encrypted) {
 #ifdef USE_PHYSFS
-    return resources_LoadZipFromFilePart(path, 0, 0);
+    return resources_LoadZipFromFilePart(path, 0, 0, encrypted);
 #else  // USE_PHYSFS
     // no PhysFS -> no .zip support
     return 0;
 #endif  // USE_PHYSFS
 }
 
-int resource_LoadZipFromExecutable(const char* path) {
+int resource_LoadZipFromExecutable(const char* path, int encrypted) {
 #ifdef USE_PHYSFS
 #ifdef WINDOWS
     // on windows and using PhysFS
@@ -102,7 +138,7 @@ int resource_LoadZipFromExecutable(const char* path) {
     sections[i].SizeOfRawData;
 
     // now we have all information we want.
-    return resource_LoadZipFromFilePart(path, size, 0);
+    return resource_LoadZipFromFilePart(path, size, 0, encrypted);
 #else  // WINDOWS
     // on some unix with PhysFS
     // open file:
@@ -134,7 +170,8 @@ int resource_LoadZipFromExecutable(const char* path) {
 #endif  // USE_PHYSFS
 }
 
-int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg) {
+int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg,
+int encrypted) {
 #ifdef WINDOWS
     // locate our exe:
     char fname[512];
@@ -149,7 +186,7 @@ int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg) {
     }
 
     // load from our executable:
-    int result = resource_LoadZipFromExecutable(fname);
+    int result = resource_LoadZipFromExecutable(fname, encrypted);
     free(path);
     return result;
 #else
@@ -167,13 +204,15 @@ int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg) {
     }
 
     // get an absolute path:
-    char* path = file_GetAbsolutePathFromRelativePath(first_commandline_arg);
+    char* path = file_GetAbsolutePathFromRelativePath(
+    first_commandline_arg);
     if (!path) {
         return 0;
     }
 
     // load from our executable:
-    int result = resource_LoadZipFromExecutable(path);
+    int result = resource_LoadZipFromExecutable(path,
+    encrypted);
     free(path);
     return result;
 #endif
@@ -183,19 +222,51 @@ int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg) {
 int resource_LocateResource(const char* path,
 struct resourcelocation* location) {
 #ifdef USE_PHYSFS
-    // check resource archives:
-
+    if (file_IsPathRelative(path)) {
+        // check resource archives:
+        struct resourcearchive* a = resourcearchives;
+        while (a) {
+            // check if path maps to a file in this archive:
+            if (zipfile_PathExists(a->z, path)) {
+                if (zipfile_IsDirectory(a->z, path)) {
+                    // we want a file, not a directory.
+                    a = a->next;
+                    continue;
+                }
+                // it is a file! hooray!
+                location->type = LOCATION_TYPE_ZIP;
+                int i = strlen(path);
+                if (i >= MAX_RESOURCE_PATH) {
+                    i = MAX_RESOURCE_PATH-1;
+                }
+                memcpy(location->location.ziplocation.filepath, path, i);
+                location->location.ziplocation.filepath[i] = 0;
+                file_MakeSlashesNative(
+                location->location.ziplocation.filepath);
+                return 1;
+            }
+            // if path doesn't exist, continue our search:
+            a = a->next;
+        }
+    }
 #endif
     // check the hard disk as last location:
     if (file_DoesFileExist(path) && !file_IsDirectory(path)) {
         if (location) {
             location->type = LOCATION_TYPE_DISK;
-            int i = strlen(path);
+            char* apath = file_GetAbsolutePathFromRelativePath(path);
+            if (!apath) {
+                return 0;
+            }
+            int i = strlen(apath);
             if (i >= MAX_RESOURCE_PATH) {
                 i = MAX_RESOURCE_PATH-1;
             }
-            memcpy(location->location.disklocation.filepath, path, i);
+            memcpy(location->location.disklocation.filepath, apath, i);
             location->location.disklocation.filepath[i] = 0;
+            file_MakeSlashesNative(
+            location->location.disklocation.filepath);
+            free(apath);
         }
         return 1;
     }

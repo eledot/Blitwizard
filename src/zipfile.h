@@ -61,7 +61,10 @@ const char* zipfile_NextFile(struct zipfileiter* iter);
 // Clear your zipfile archive iterator again:
 void zipfile_FinishIteration(struct zipfileiter* iter);
 
-// check if a given path is a directory or a file:
+// check if a given path leads to a folder or a file:
+int zipfile_PathExists(struct zipfile* f, const char* path);
+
+// check if a given valid path is a directory or a file:
 int zipfile_IsDirectory(struct zipfile* f, const char* path);
 
 // do things with files inside the archive:

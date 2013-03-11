@@ -571,10 +571,20 @@ int main(int argc, char** argv) {
     // load internal resources appended to this binary,
     // so we can load the game.lua from it if there is any inside:
 #ifdef WINDOWS
-    resource_LoadZipFromOwnExecutable(NULL);
+    // windows
+    // try encrypted first:
+    if (!resource_LoadZipFromOwnExecutable(NULL, 1)) {
+        // ... ok, then attempt unencrypted:
+        resource_LoadZipFromOwnExecutable(NULL, 0);
+    }
 #else
 #ifndef ANDROID
-    resource_LoadZipFromOwnExecutable(argv[0]);
+    // unix systems
+    // encrypted first:
+    if (!resource_LoadZipFromOwnExecutable(argv[0], 1)) {
+        // ... ok, then attempt unencrypted:
+        resource_LoadZipFromOwnExecutable(argv[0], 0);
+    }
 #endif
 #endif
 
@@ -609,11 +619,13 @@ int main(int argc, char** argv) {
             main_Quit(1);
             return 1;
         }
-        if (filenamebuf) {free(filenamebuf);}
+        if (filenamebuf) {
+            free(filenamebuf);
+        }
         filenamebuf = newfilenamebuf;
         if (!file_Cwd(p)) {
             free(filenamebuf);
-            printerror("Error: Cannot cd to \"%s\"",p);
+            printerror("Error: Cannot cd to \"%s\"", p);
             free(p);
             main_Quit(1);
             return 1;

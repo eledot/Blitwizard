@@ -24,15 +24,19 @@
 #ifndef BLITWIZARD_RESOURCES_H_
 #define BLITWIZARD_RESOURCES_H_
 
+#include <stdlib.h>
+
 // The resources code manages all loaded resource zip files
 // and decides where to pick any resource from (image, sound, ...).
 
 // Manage resource zip files:
-int resources_LoadZipFromFile(const char* path);
+int resources_LoadZipFromFile(const char* path, int encrypted);
 int resources_LoadZipFromFilePart(const char* path,
-size_t offsetinfile, size_t sizeinfile);
-int resource_LoadZipFromExecutable(const char* path);
-int resource_LoadZipFromOwnExecutable(const char* first_commandline_arg);
+size_t offsetinfile, size_t sizeinfile, int encrypted);
+int resource_LoadZipFromExecutable(const char* path,
+int encrypted);
+int resource_LoadZipFromOwnExecutable(
+const char* first_commandline_arg, int encrypted);
 // (all functions return 1 on success, 0 on error)
 
 // Resource location info:

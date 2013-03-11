@@ -383,5 +383,39 @@ void zipfile_Close(struct zipfile* zf) {
     PHYSFS_unmount(zf->mountpoint);
 }
 
+int zipfile_PathExists(struct zipfile* zf, const char* path) {
+    if (!zf || !path) {return 0;}
+
+    // sanitize path:
+    char* p = strdup(path);
+    if (!p) {return 0;}
+    file_MakeSlashesNative(p);
+
+    // check if path exists in archive:
+    int exists = 0;
+
+    // free sanitized path:
+    free(p);
+
+    return exists;
+}
+
+int zipfile_IsDirectory(struct zipfile* zf, const char* path) {
+    if (!zf || !path) {return 0;}
+
+    // sanitize path:
+    char* p = strdup(path);
+    if (!p) {return 0;}
+    file_MakeSlashesNative(p);
+
+    // check if path is directory in archive:
+    int isdirectory = 0;
+    
+    // free sanitized path:
+    free(p);
+
+    return isdirectory;
+}
+
 #endif  // USE_PHYSFS
 
